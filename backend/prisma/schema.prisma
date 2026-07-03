@@ -1,0 +1,430 @@
+// Guzel Teknoloji ERP — REST7.xlsx (Sayfa2) tek veritabani semasi
+// NOT: Sayfa1'deki eski yapi (bayiler, db_bilgileri, MASTER_DB, SUBE_DB, paketler, lisanslar) KULLANILMAZ.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Panel yetki altyapisi
+// ---------------------------------------------------------------------------
+
+model Modul {
+  id               Int      @id @default(autoincrement())
+  modulAdi         String   @map("modul_adi") @db.VarChar(100)
+  prefix           String   @unique @db.VarChar(50)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  roller Rol[]
+
+  @@map("moduller")
+}
+
+model Rol {
+  id               Int      @id @default(autoincrement())
+  rolAdi           String   @map("rol_adi") @db.VarChar(50)
+  modulId          Int      @map("modul_id")
+  yetki            Json     @default("[]")
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  modul Modul @relation(fields: [modulId], references: [id], onDelete: Cascade)
+
+  @@unique([modulId, rolAdi])
+  @@index([rolAdi])
+  @@map("roller")
+}
+
+// ---------------------------------------------------------------------------
+// REST7.xlsx Sayfa2 — ERP tablolari (panel tablolarina dokunulmaz)
+// ---------------------------------------------------------------------------
+
+model Firma {
+  id               Int      @id @default(autoincrement())
+  firmaKodu        String   @unique @map("firma_kodu") @db.VarChar(20)
+  firmaAdi         String   @map("firma_adi") @db.VarChar(255)
+  vergiDairesi     String?  @map("vergi_dairesi") @db.VarChar(100)
+  vergiNo          String?  @map("vergi_no") @db.VarChar(20)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  donemler       Donem[]
+  subeler        Sube[]
+  kullanicilar   Kullanici[]
+  f001Cariler    F001Cari[]
+  bildirimler    Bildirim[]
+  yedekKayitlari YedekKaydi[]
+
+  @@map("firmalar")
+}
+
+model Kullanici {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @map("firma_id")
+  donemId          Int?     @map("donem_id")
+  subeId           Int?     @map("sube_id")
+  depoId           Int?     @map("depo_id")
+  kasaId           Int?     @map("kasa_id")
+  kullaniciKodu    String   @unique @map("kullanici_kodu") @db.VarChar(50)
+  adSoyad          String   @map("ad_soyad") @db.VarChar(150)
+  sifreHash        String   @map("sifre_hash") @db.VarChar(255)
+  pin              String?  @db.VarChar(20)
+  rol              String   @db.VarChar(50)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  firma          Firma               @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+  donem          Donem?              @relation(fields: [donemId], references: [id], onDelete: SetNull)
+  sube           Sube?               @relation(fields: [subeId], references: [id], onDelete: SetNull)
+  depo           Depo?               @relation(fields: [depoId], references: [id], onDelete: SetNull)
+  kasa           Kasa?               @relation(fields: [kasaId], references: [id], onDelete: SetNull)
+  kisayolAyari   KullaniciKisayol?
+  sekmeAyari     KullaniciSekmeAyar?
+  loglar         Log[]
+  yedekKayitlari YedekKaydi[]
+
+  @@index([firmaId])
+  @@index([donemId])
+  @@index([subeId])
+  @@map("kullanicilar")
+}
+
+model Donem {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @map("firma_id")
+  donemKodu        String   @map("donem_kodu") @db.VarChar(20)
+  donemAdi         String   @map("donem_adi") @db.VarChar(100)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  firma       Firma       @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+  kullanicilar Kullanici[]
+
+  @@unique([firmaId, donemKodu])
+  @@map("donemler")
+}
+
+model Sube {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @map("firma_id")
+  subeKodu         String   @map("sube_kodu") @db.VarChar(20)
+  subeAdi          String   @map("sube_adi") @db.VarChar(150)
+  il               String?  @db.VarChar(50)
+  ilce             String?  @db.VarChar(50)
+  mahalle          String?  @db.VarChar(100)
+  cadde            String?  @db.VarChar(100)
+  sokak            String?  @db.VarChar(100)
+  bina             String?  @db.VarChar(50)
+  no               String?  @db.VarChar(20)
+  postaKodu        String?  @map("posta_kodu") @db.VarChar(10)
+  efaturaSeri      String?  @map("efatura_seri") @db.VarChar(10)
+  earsivSeri       String?  @map("earsiv_seri") @db.VarChar(10)
+  eirsaliyeSeri    String?  @map("eirsaliye_seri") @db.VarChar(10)
+  mersis           String?  @db.VarChar(30)
+  ticaretSicil     String?  @map("ticaret_sicil") @db.VarChar(30)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  firma        Firma       @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+  depolar      Depo[]
+  kasalar      Kasa[]
+  kullanicilar Kullanici[]
+
+  @@unique([firmaId, subeKodu])
+  @@map("subeler")
+}
+
+model Depo {
+  id               Int      @id @default(autoincrement())
+  subeId           Int      @map("sube_id")
+  depoKodu         String   @map("depo_kodu") @db.VarChar(20)
+  depoAdi          String   @map("depo_adi") @db.VarChar(150)
+  il               String?  @db.VarChar(50)
+  ilce             String?  @db.VarChar(50)
+  mahalle          String?  @db.VarChar(100)
+  cadde            String?  @db.VarChar(100)
+  sokak            String?  @db.VarChar(100)
+  bina             String?  @db.VarChar(50)
+  no               String?  @db.VarChar(20)
+  postaKodu        String?  @map("posta_kodu") @db.VarChar(10)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  sube         Sube        @relation(fields: [subeId], references: [id], onDelete: Cascade)
+  kullanicilar Kullanici[]
+
+  @@unique([subeId, depoKodu])
+  @@map("depolar")
+}
+
+model Kasa {
+  id               Int      @id @default(autoincrement())
+  subeId           Int      @map("sube_id")
+  kasaKodu         String   @map("kasa_kodu") @db.VarChar(20)
+  kasaAdi          String   @map("kasa_adi") @db.VarChar(150)
+  paraBirimi       String   @default("TL") @map("para_birimi") @db.VarChar(10)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  sube         Sube        @relation(fields: [subeId], references: [id], onDelete: Cascade)
+  kullanicilar Kullanici[]
+
+  @@unique([subeId, kasaKodu])
+  @@map("kasalar")
+}
+
+// F001 — firma islem tablolari (F001CARILER, F001URUNLER, F001BIRIMLER, F001MALIYETLER)
+
+model F001Cari {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @map("firma_id")
+  ustId            Int?     @map("ust_id")
+  cariTipi         String   @map("cari_tipi") @db.VarChar(20)
+  isletmeTuru      String?  @map("isletme_turu") @db.VarChar(20)
+  cariKodu         String   @map("cari_kodu") @db.VarChar(30)
+  cariAdi          String   @map("cari_adi") @db.VarChar(255)
+  unvan            String?  @db.VarChar(255)
+  yetkili          String?  @db.VarChar(150)
+  vergiDairesi     String?  @map("vergi_dairesi") @db.VarChar(100)
+  vergiNo          String?  @map("vergi_no") @db.VarChar(20)
+  adres            String?  @db.VarChar(500)
+  il               String?  @db.VarChar(50)
+  ilce             String?  @db.VarChar(50)
+  telefon          String?  @db.VarChar(20)
+  eposta           String?  @db.VarChar(191)
+  web              String?  @db.VarChar(255)
+  efatura          Boolean  @default(false)
+  efaturaTipi      String?  @map("efatura_tipi") @db.VarChar(50)
+  alias            String?  @db.VarChar(255)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  firma Firma @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+
+  @@unique([firmaId, cariKodu])
+  @@index([firmaId, cariTipi])
+  @@map("f001cariler")
+}
+
+model F001Urun {
+  id               Int      @id @default(autoincrement())
+  ustId            Int?     @map("ust_id")
+  urunTipi         String   @map("urun_tipi") @db.VarChar(20)
+  urunNevi         String?  @map("urun_nevi") @db.VarChar(50)
+  urunKodu         String   @map("urun_kodu") @db.VarChar(30)
+  marka            String?  @db.VarChar(100)
+  urunAdi          String   @map("urun_adi") @db.VarChar(255)
+  anaBirim         String?  @map("ana_birim") @db.VarChar(20)
+  varsayilanBirim  String?  @map("varsayilan_birim") @db.VarChar(20)
+  mensei           String?  @db.VarChar(50)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  f001Birimler F001Birim[]
+
+  @@unique([urunKodu])
+  @@map("f001urunler")
+}
+
+model F001Birim {
+  id               Int      @id @default(autoincrement())
+  urunId           Int      @map("urun_id")
+  fiyatAdi         String   @map("fiyat_adi") @db.VarChar(50)
+  birimAdi         String   @map("birim_adi") @db.VarChar(20)
+  carpan           Decimal  @default(1) @db.Decimal(12, 4)
+  barkod           String?  @db.VarChar(50)
+  alisKdv          Decimal  @default(0) @map("alis_kdv") @db.Decimal(5, 2)
+  satisKdv         Decimal  @default(0) @map("satis_kdv") @db.Decimal(5, 2)
+  alisFiyati       Decimal  @default(0) @map("alis_fiyati") @db.Decimal(18, 4)
+  satisFiyati      Decimal  @default(0) @map("satis_fiyati") @db.Decimal(18, 4)
+  kdvDahil         Boolean  @default(false) @map("kdv_dahil")
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  f001Urun       F001Urun      @relation(fields: [urunId], references: [id], onDelete: Cascade)
+  f001Maliyetler F001Maliyet[]
+
+  @@index([urunId])
+  @@map("f001birimler")
+}
+
+model F001Maliyet {
+  id                       Int      @id @default(autoincrement())
+  birimId                  Int      @unique @map("birim_id")
+  sonAlisMaliyeti          Decimal  @default(0) @map("son_alis_maliyeti") @db.Decimal(18, 4)
+  yuruyenAgirlikliOrtalama Decimal  @default(0) @map("yuruyen_agirlikli_ortalama") @db.Decimal(18, 4)
+  agirlikliOrtalama        Decimal  @default(0) @map("agirlikli_ortalama") @db.Decimal(18, 4)
+  basitOrtalama            Decimal  @default(0) @map("basit_ortalama") @db.Decimal(18, 4)
+  lifo                     Decimal  @default(0) @db.Decimal(18, 4)
+  fifo                     Decimal  @default(0) @db.Decimal(18, 4)
+  kayitTarihi              DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi         DateTime @updatedAt @map("guncelleme_tarihi")
+  durum                    Boolean  @default(true)
+
+  f001Birim F001Birim @relation(fields: [birimId], references: [id], onDelete: Cascade)
+
+  @@map("f001maliyetler")
+}
+
+// ---------------------------------------------------------------------------
+// Panel yardimci tablolari
+// ---------------------------------------------------------------------------
+
+enum BildirimTipi {
+  sistem
+}
+
+enum EklentiDurum {
+  kurulu
+  aktif
+  pasif
+}
+
+enum EklentiKaynak {
+  katalog
+  yukleme
+}
+
+enum YedeklemeFormati {
+  json
+  sql
+  rar
+  zip
+}
+
+enum YedekIslemTipi {
+  indir
+  geri_yukle
+}
+
+model Log {
+  id          Int      @id @default(autoincrement())
+  kullaniciId Int?     @map("kullanici_id")
+  logTipi     String?  @map("log_tipi") @db.VarChar(30)
+  mesaj       String   @db.VarChar(1000)
+  ipAdresi    String?  @map("ip_adresi") @db.VarChar(45)
+  kayitTarihi DateTime @default(now()) @map("kayit_tarihi")
+
+  kullanici Kullanici? @relation(fields: [kullaniciId], references: [id], onDelete: SetNull)
+
+  @@index([kayitTarihi])
+  @@map("log")
+}
+
+model Ayar {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @default(0) @map("firma_id")
+  anahtar          String   @db.VarChar(100)
+  deger            Json
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+
+  @@unique([firmaId, anahtar])
+  @@index([anahtar])
+  @@map("ayarlar")
+}
+
+model KullaniciKisayol {
+  kullaniciId Int  @id @map("kullanici_id")
+  harita      Json @default("{}")
+
+  kullanici Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@map("kullanici_kisayol")
+}
+
+model KullaniciSekmeAyar {
+  kullaniciId Int  @id @map("kullanici_id")
+  ayarlar     Json @default("{}")
+
+  kullanici Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@map("kullanici_sekme_ayar")
+}
+
+model EklentiKatalog {
+  kod           String   @id @db.VarChar(100)
+  ad            String   @db.VarChar(150)
+  aciklama      String   @db.VarChar(1000)
+  gelistirici   String   @db.VarChar(100)
+  ikon          String   @db.VarChar(50)
+  kategori      String   @db.VarChar(50)
+  surum         String   @db.VarChar(30)
+  puan          Float    @default(0)
+  etkinKurulum  Int      @default(0) @map("etkin_kurulum")
+  sonGuncelleme DateTime @default(now()) @map("son_guncelleme")
+  publicHook    String?  @map("public_hook") @db.VarChar(100)
+  manifestJson  Json?    @map("manifest_json")
+
+  kurulumlar EklentiKurulum[]
+
+  @@map("eklenti_katalog")
+}
+
+model EklentiKurulum {
+  id            Int           @id @default(autoincrement())
+  firmaId       Int           @default(0) @map("firma_id")
+  eklentiKodu   String        @map("eklenti_kodu") @db.VarChar(100)
+  durum         EklentiDurum  @default(kurulu)
+  kaynak        EklentiKaynak @default(katalog)
+  ayarlarJson   Json          @default("{}") @map("ayarlar_json")
+  kurulumTarihi DateTime      @default(now()) @map("kurulum_tarihi")
+  guncelleme    DateTime      @updatedAt @map("guncelleme")
+
+  eklenti EklentiKatalog @relation(fields: [eklentiKodu], references: [kod], onDelete: Cascade)
+
+  @@unique([firmaId, eklentiKodu])
+  @@map("eklenti_kurulum")
+}
+
+model Bildirim {
+  id        Int          @id @default(autoincrement())
+  firmaId   Int?         @map("firma_id")
+  tip       BildirimTipi
+  baslik    String       @db.VarChar(150)
+  mesaj     String       @db.VarChar(1000)
+  okundu    Boolean      @default(false)
+  link      String?      @db.VarChar(500)
+  olusturma DateTime     @default(now()) @map("kayit_tarihi")
+
+  firma Firma? @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+
+  @@index([okundu, olusturma])
+  @@map("bildirim")
+}
+
+model YedekKaydi {
+  id             Int              @id @default(autoincrement())
+  firmaId        Int?             @map("firma_id")
+  kullaniciId    Int?             @map("kullanici_id")
+  kullaniciAd    String           @map("kullanici_ad") @db.VarChar(150)
+  kullaniciEmail String           @map("kullanici_email") @db.VarChar(191)
+  dosyaAdi       String           @map("dosya_adi") @db.VarChar(255)
+  tip            YedekIslemTipi
+  format         YedeklemeFormati @default(json)
+  olusturma      DateTime         @default(now()) @map("kayit_tarihi")
+
+  firma     Firma?     @relation(fields: [firmaId], references: [id], onDelete: SetNull)
+  kullanici Kullanici? @relation(fields: [kullaniciId], references: [id], onDelete: SetNull)
+
+  @@index([olusturma])
+  @@map("yedek_kaydi")
+}
