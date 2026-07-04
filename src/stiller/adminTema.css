@@ -73,7 +73,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .erp-giris {
-  background: var(--ap-bg);
+  background: #f1f5f9;
 }
 
 .erp-giris-sol {
@@ -81,19 +81,156 @@ html:has(.admin-panel[data-tema='acik']) body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.erp-giris-sag {
-  background: var(--ap-bg);
+.erp-giris-icerik {
+  background: #f1f5f9;
+  position: relative;
+}
+
+.erp-giris-kart {
+  max-width: 28rem;
+  width: 100%;
+  overflow: hidden;
+}
+
+.erp-giris-secim-grid > div {
+  min-width: 0;
+}
+
+.erp-giris select.erp-giris-select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 2.25rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 12px;
+}
+
+.erp-giris select.erp-giris-select option {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.erp-giris-combo {
+  width: 100%;
+}
+
+.erp-giris-combo-tetik {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 12px;
+}
+
+.erp-giris-combo-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 11rem;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #3b82f6;
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: #fff;
+  box-shadow: none;
+}
+
+.erp-giris-combo-acik .erp-giris-combo-tetik {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-color: #3b82f6;
+}
+
+.erp-giris-combo-oge {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--ap-heading);
+  background: transparent;
+  cursor: pointer;
+}
+
+.erp-giris-combo-oge:hover {
+  background: #f1f5f9;
+}
+
+.erp-giris-combo-oge-secili {
+  background: #2563eb;
+  color: #fff;
+}
+
+.erp-giris-combo-oge-secili:hover {
+  background: #2563eb;
+}
+
+.erp-giris-combo-panel li:last-child .erp-giris-combo-oge:not(.erp-giris-combo-oge-secili) {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.erp-giris-oturum-ozet {
+  background: #fff;
+}
+
+.erp-giris-oturum-yildiz {
+  color: #64748b;
+}
+
+.erp-giris-gelismis {
+  animation: erp-giris-acilis 0.2s ease-out;
+}
+
+@keyframes erp-giris-acilis {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.erp-giris-aksiyonlar button {
+  min-height: 2.75rem;
+}
+
+.erp-giris-sosyal-sutun {
+  width: 4.5rem;
+  padding-right: 1.5rem;
+}
+
+.erp-giris-sosyal-ikon {
+  text-decoration: none;
 }
 
 .erp-giris-logo {
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.35);
 }
 
-@media (min-width: 1024px) {
-  .erp-giris-kapsayici {
-    box-shadow: 0 25px 80px rgba(15, 23, 42, 0.35);
-  }
-
+@media (min-width: 1280px) {
   .erp-giris-sol {
     border-bottom: none;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
