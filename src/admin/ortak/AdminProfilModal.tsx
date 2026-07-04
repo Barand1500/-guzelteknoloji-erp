@@ -22,7 +22,7 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
   useEffect(() => {
     if (!acik || !kullanici) return;
     setAd(kullanici.ad);
-    setEmail(kullanici.email);
+    setEmail(kullanici.email ?? '');
     setMevcutSifre('');
     setYeniSifre('');
     setHata('');

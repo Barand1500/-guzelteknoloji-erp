@@ -72,6 +72,34 @@ html:has(.admin-panel[data-tema='acik']) body {
   background-color: #f1f5f9;
 }
 
+.erp-giris {
+  background: var(--ap-bg);
+}
+
+.erp-giris-sol {
+  background: linear-gradient(145deg, #1e3a8a 0%, #1d4ed8 45%, #0f172a 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.erp-giris-sag {
+  background: var(--ap-bg);
+}
+
+.erp-giris-logo {
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.35);
+}
+
+@media (min-width: 1024px) {
+  .erp-giris-kapsayici {
+    box-shadow: 0 25px 80px rgba(15, 23, 42, 0.35);
+  }
+
+  .erp-giris-sol {
+    border-bottom: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
 .admin-panel .ap-header {
   background-color: var(--ap-header-bg);
   border-color: var(--ap-border);

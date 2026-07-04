@@ -2,14 +2,66 @@ export interface KullaniciTercihleri {
   dashboardHizliErisim: string[];
 }
 
+export interface OturumBilgisi {
+  firmaKodu: string;
+  firmaAdi: string;
+  donemKodu: string;
+  donemAdi: string;
+  subeKodu: string;
+  subeAdi: string;
+  kasaKodu: string;
+  kasaAdi: string;
+}
+
 export interface AuthKullanici {
   id: string;
   kullaniciKodu?: string;
-  email: string;
+  email?: string;
   ad: string;
   rol: string;
   tercihler?: KullaniciTercihleri;
   yetkiler?: import('@/admin/baslat-menusu/musteri-ajans/roller/api').YetkiKodu[];
+  oturum?: OturumBilgisi;
+}
+
+export interface GirisFormu {
+  kullaniciKodu: string;
+  sifre: string;
+  firmaKodu: string;
+  donemKodu: string;
+  subeKodu: string;
+  kasaKodu: string;
+}
+
+export interface OturumKasa {
+  id: number;
+  kasaKodu: string;
+  kasaAdi: string;
+}
+
+export interface OturumSube {
+  id: number;
+  subeKodu: string;
+  subeAdi: string;
+  kasalar: OturumKasa[];
+}
+
+export interface OturumDonem {
+  id: number;
+  donemKodu: string;
+  donemAdi: string;
+}
+
+export interface OturumFirma {
+  id: number;
+  firmaKodu: string;
+  firmaAdi: string;
+  donemler: OturumDonem[];
+  subeler: OturumSube[];
+}
+
+export interface OturumSecenekleriYanit {
+  firmalar: OturumFirma[];
 }
 
 export interface AuthYanit {

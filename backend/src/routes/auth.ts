@@ -9,14 +9,60 @@ import { authZorunlu } from '../middleware/auth.js';
 
 const router = Router();
 
+router.get('/oturum-secenekleri', async (_req, res) => {
+  const firmalar = await prisma.firma.findMany({
+    where: { durum: true },
+    orderBy: { firmaKodu: 'asc' },
+    select: {
+      id: true,
+      firmaKodu: true,
+      firmaAdi: true,
+      donemler: {
+        where: { durum: true },
+        orderBy: { donemKodu: 'asc' },
+        select: { id: true, donemKodu: true, donemAdi: true },
+      },
+      subeler: {
+        where: { durum: true },
+        orderBy: { subeKodu: 'asc' },
+        select: {
+          id: true,
+          subeKodu: true,
+          subeAdi: true,
+          kasalar: {
+            where: { durum: true },
+            orderBy: { kasaKodu: 'asc' },
+            select: { id: true, kasaKodu: true, kasaAdi: true },
+          },
+          depolar: {
+            where: { durum: true },
+            orderBy: { depoKodu: 'asc' },
+            select: { id: true, depoKodu: true, depoAdi: true },
+          },
+        },
+      },
+    },
+  });
+
+  return res.json({ firmalar });
+});
+
 router.post('/giris', async (req, res) => {
-  const { kullaniciKodu, sifre } = req.body as {
+  const { kullaniciKodu, sifre, firmaKodu, donemKodu, subeKodu, kasaKodu } = req.body as {
     kullaniciKodu?: string;
     sifre?: string;
+    firmaKodu?: string;
+    donemKodu?: string;
+    subeKodu?: string;
+    kasaKodu?: string;
   };
 
   if (!sifre || !kullaniciKodu?.trim()) {
     return res.status(400).json({ mesaj: 'Kullanici kodu ve sifre gerekli' });
+  }
+
+  if (!firmaKodu?.trim() || !donemKodu?.trim() || !subeKodu?.trim() || !kasaKodu?.trim()) {
+    return res.status(400).json({ mesaj: 'Firma, donem, sube ve kasa secimi gerekli' });
   }
 
   const kullanici = await prisma.kullanici.findUnique({
@@ -27,12 +73,64 @@ router.post('/giris', async (req, res) => {
     return res.status(401).json({ mesaj: 'Gecersiz kullanici veya sifre' });
   }
 
-  const yetkiler = await kullaniciYetkileriAl(kullanici);
-  const token = tokenUret(kullanici.id, kullanici.kullaniciKodu);
+  const firma = await prisma.firma.findFirst({
+    where: { firmaKodu: firmaKodu.trim().toUpperCase(), durum: true },
+  });
+  if (!firma) {
+    return res.status(400).json({ mesaj: 'Gecersiz firma kodu' });
+  }
+
+  const donem = await prisma.donem.findFirst({
+    where: { firmaId: firma.id, donemKodu: donemKodu.trim().toUpperCase(), durum: true },
+  });
+  if (!donem) {
+    return res.status(400).json({ mesaj: 'Gecersiz donem' });
+  }
+
+  const sube = await prisma.sube.findFirst({
+    where: { firmaId: firma.id, subeKodu: subeKodu.trim().toUpperCase(), durum: true },
+  });
+  if (!sube) {
+    return res.status(400).json({ mesaj: 'Gecersiz sube' });
+  }
+
+  const kasa = await prisma.kasa.findFirst({
+    where: { subeId: sube.id, kasaKodu: kasaKodu.trim().toUpperCase(), durum: true },
+  });
+  if (!kasa) {
+    return res.status(400).json({ mesaj: 'Gecersiz kasa' });
+  }
+
+  const depo =
+    (await prisma.depo.findFirst({
+      where: { subeId: sube.id, depoKodu: sube.subeKodu, durum: true },
+    })) ??
+    (await prisma.depo.findFirst({
+      where: { subeId: sube.id, durum: true },
+      orderBy: { depoKodu: 'asc' },
+    }));
+
+  if (kullanici.firmaId !== firma.id && kullanici.rol !== 'YONETICI' && kullanici.rol !== 'SUPER_ADMIN') {
+    return res.status(403).json({ mesaj: 'Bu firmaya erisim yetkiniz yok' });
+  }
+
+  const guncel = await prisma.kullanici.update({
+    where: { id: kullanici.id },
+    data: {
+      firmaId: firma.id,
+      donemId: donem.id,
+      subeId: sube.id,
+      kasaId: kasa.id,
+      depoId: depo?.id ?? null,
+    },
+  });
+
+  const yetkiler = await kullaniciYetkileriAl(guncel);
+  const token = tokenUret(guncel.id, guncel.kullaniciKodu);
 
   return res.json({
     token,
-    kullanici: await kullaniciYanit(kullanici, yetkiler),
+    kullanici: await kullaniciYanit(guncel, yetkiler),
   });
 });
 

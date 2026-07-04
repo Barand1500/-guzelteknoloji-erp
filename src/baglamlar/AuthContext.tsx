@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { AuthKullanici, KullaniciTercihleri } from '@/admin/ortak/tipler/admin';
+import type { AuthKullanici, GirisFormu, KullaniciTercihleri } from '@/admin/ortak/tipler/admin';
 import {
   benGetir,
   girisYap,
@@ -16,7 +16,7 @@ import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 interface AuthContextDeger {
   kullanici: AuthKullanici | null;
   yukleniyor: boolean;
-  girisYap: (kullaniciKodu: string, sifre: string) => Promise<void>;
+  girisYap: (form: GirisFormu) => Promise<void>;
   cikisYap: () => void;
   profilKaydet: (form: ProfilGuncelleForm) => Promise<void>;
   hizliErisimKaydet: (ids: string[]) => Promise<void>;
@@ -53,8 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setYukleniyor(false));
   }, []);
 
-  async function giris(kullaniciKodu: string, sifre: string) {
-    const sonuc = await girisYap(kullaniciKodu, sifre);
+  async function giris(form: GirisFormu) {
+    const sonuc = await girisYap(form);
     tokenKaydet(sonuc.token);
     setKullanici(sonuc.kullanici);
   }

@@ -249,7 +249,7 @@ function offlineKullaniciVarsayilan(): OfflinePanelKullanici[] {
   return [
     {
       id: String(oturum.id),
-      email: oturum.email,
+      email: oturum.kullaniciKodu ?? '',
       ad: oturum.ad,
       rol: oturum.rol,
       aktif: true,
@@ -379,7 +379,7 @@ function offlineLogYaz(body: BodyInit | null | undefined, method: string, path: 
       ipAdresi: '127.0.0.1',
       kayitTarihi: new Date().toISOString(),
       kullaniciAd: kullanici.ad,
-      kullaniciEmail: kullanici.email,
+      kullaniciEmail: kullanici.kullaniciKodu ?? kullanici.email ?? null,
     };
     offlineLogKaydetStorage([kayit, ...offlineLogOku()]);
     return { mesaj: 'Kaydedildi' };

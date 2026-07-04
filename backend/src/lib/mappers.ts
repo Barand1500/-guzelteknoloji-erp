@@ -43,12 +43,41 @@ export function tarihIso(d: Date): string {
 }
 
 export async function kullaniciYanit(k: Kullanici, yetkiler: string[]) {
+  const tam = await prisma.kullanici.findUnique({
+    where: { id: k.id },
+    include: {
+      firma: true,
+      donem: true,
+      sube: true,
+      depo: true,
+      kasa: true,
+    },
+  });
+
+  const kayit = tam ?? k;
+  const firma = tam?.firma;
+  const donem = tam?.donem;
+  const sube = tam?.sube;
+  const kasa = tam?.kasa;
+
   return {
-    id: k.id,
-    kullaniciKodu: k.kullaniciKodu,
-    ad: k.adSoyad,
-    rol: k.rol,
+    id: kayit.id,
+    kullaniciKodu: kayit.kullaniciKodu,
+    ad: kayit.adSoyad,
+    rol: kayit.rol,
     yetkiler,
+    oturum: firma
+      ? {
+          firmaKodu: firma.firmaKodu,
+          firmaAdi: firma.firmaAdi,
+          donemKodu: donem?.donemKodu ?? '',
+          donemAdi: donem?.donemAdi ?? '',
+          subeKodu: sube?.subeKodu ?? '',
+          subeAdi: sube?.subeAdi ?? '',
+          kasaKodu: kasa?.kasaKodu ?? '',
+          kasaAdi: kasa?.kasaAdi ?? '',
+        }
+      : undefined,
   };
 }
 

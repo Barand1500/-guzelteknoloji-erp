@@ -1,4 +1,10 @@
-import type { AuthKullanici, AuthYanit, KullaniciTercihleri } from '@/admin/ortak/tipler/admin';
+import type {
+  AuthKullanici,
+  AuthYanit,
+  GirisFormu,
+  KullaniciTercihleri,
+  OturumSecenekleriYanit,
+} from '@/admin/ortak/tipler/admin';
 import { jsonYanitOku } from '@/araclar/jsonFetch';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 
@@ -28,19 +34,47 @@ function kullaniciTercihleriEkle(k: AuthKullanici): AuthKullanici {
   };
 }
 
+const OFFLINE_OTURUM_SECENEKLERI: OturumSecenekleriYanit = {
+  firmalar: [
+    {
+      id: 1,
+      firmaKodu: 'F001',
+      firmaAdi: 'GUZEL IC VE DIS TICARET LIMITED SIRKETI',
+      donemler: [{ id: 1, donemKodu: 'D001', donemAdi: '2026' }],
+      subeler: [
+        {
+          id: 1,
+          subeKodu: 'MERKEZ',
+          subeAdi: 'MERKEZ',
+          kasalar: [{ id: 1, kasaKodu: 'MERKEZ', kasaAdi: 'MERKEZ' }],
+        },
+      ],
+    },
+  ],
+};
+
 const OFFLINE_KULLANICI: AuthKullanici = {
   id: '1',
   kullaniciKodu: 'ADMIN',
-  email: 'bilgi@guzelteknoloji.com',
   ad: 'ERCAN GUZEL',
   rol: 'YONETICI',
   tercihler: { dashboardHizliErisim: [] },
   yetkiler: [],
+  oturum: {
+    firmaKodu: 'F001',
+    firmaAdi: 'GUZEL IC VE DIS TICARET LIMITED SIRKETI',
+    donemKodu: 'D001',
+    donemAdi: '2026',
+    subeKodu: 'MERKEZ',
+    subeAdi: 'MERKEZ',
+    kasaKodu: 'MERKEZ',
+    kasaAdi: 'MERKEZ',
+  },
 };
 
 export interface ProfilGuncelleForm {
   ad: string;
-  email: string;
+  email?: string;
   mevcutSifre?: string;
   yeniSifre?: string;
 }
@@ -70,15 +104,31 @@ export function offlineKullanici(kullaniciKodu?: string): AuthKullanici {
   };
 }
 
-export async function girisYap(kullaniciKodu: string, sifre: string): Promise<AuthYanit> {
+export async function oturumSecenekleriGetir(): Promise<OturumSecenekleriYanit> {
+  if (BACKEND_YOK) return OFFLINE_OTURUM_SECENEKLERI;
+
+  const yanit = await fetch(`${API_URL}/admin/auth/oturum-secenekleri`);
+  const veri = await jsonYanitOku<{ mesaj?: string } & OturumSecenekleriYanit>(yanit);
+  if (!yanit.ok) throw new Error(veri.mesaj ?? 'Oturum secenekleri alinamadi');
+  return veri;
+}
+
+export async function girisYap(form: GirisFormu): Promise<AuthYanit> {
   if (BACKEND_YOK) {
-    return { token: 'offline-token', kullanici: offlineKullanici(kullaniciKodu) };
+    return { token: 'offline-token', kullanici: offlineKullanici(form.kullaniciKodu) };
   }
 
   const yanit = await fetch(`${API_URL}/admin/auth/giris`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kullaniciKodu: kullaniciKodu.trim().toUpperCase(), sifre }),
+    body: JSON.stringify({
+      kullaniciKodu: form.kullaniciKodu.trim().toUpperCase(),
+      sifre: form.sifre,
+      firmaKodu: form.firmaKodu.trim().toUpperCase(),
+      donemKodu: form.donemKodu.trim().toUpperCase(),
+      subeKodu: form.subeKodu.trim().toUpperCase(),
+      kasaKodu: form.kasaKodu.trim().toUpperCase(),
+    }),
   });
 
   const veri = await jsonYanitOku<{ mesaj?: string } & AuthYanit>(yanit);
@@ -111,7 +161,6 @@ export async function profilGuncelle(form: ProfilGuncelleForm): Promise<AuthKull
   const payload: Record<string, string> = {
     ad: form.ad.trim(),
   };
-  if (form.email?.trim()) payload.email = form.email.trim();
   if (form.yeniSifre?.trim()) {
     payload.yeniSifre = form.yeniSifre.trim();
     payload.mevcutSifre = form.mevcutSifre?.trim() ?? '';
