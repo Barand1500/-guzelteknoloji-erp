@@ -62,6 +62,7 @@ export interface OturumFirma {
 
 export interface OturumSecenekleriYanit {
   firmalar: OturumFirma[];
+  kullaniciKodlari?: string[];
 }
 
 export interface AuthYanit {

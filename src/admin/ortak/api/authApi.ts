@@ -8,7 +8,7 @@ import type {
 import { jsonYanitOku } from '@/araclar/jsonFetch';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 
-const API_URL = import.meta.env.VITE_API_URL ?? '/api';
+const API_URL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 const TOKEN_KEY = 'gt_admin_token';
 const HIZLI_ERISIM_KEY = 'gt_admin_hizli_erisim';
 
@@ -51,6 +51,7 @@ const OFFLINE_OTURUM_SECENEKLERI: OturumSecenekleriYanit = {
       ],
     },
   ],
+  kullaniciKodlari: ['ADMIN'],
 };
 
 const OFFLINE_KULLANICI: AuthKullanici = {

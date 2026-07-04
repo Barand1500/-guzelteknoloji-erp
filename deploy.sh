@@ -117,7 +117,31 @@ if [ "$DB_OK" = "1" ]; then
 else
   echo "=== DEPLOY TAMAMLANDI (veritabani uyarisi var) ==="
 fi
-curl -sf "http://127.0.0.1:${API_PORT}/api/health" && echo "" || echo "UYARI: health check basarisiz"
+echo "API kontrolleri (127.0.0.1:${API_PORT})..."
+HEALTH_OK=0
+OTURUM_OK=0
+if curl -sf "http://127.0.0.1:${API_PORT}/api/health" >/dev/null; then
+  HEALTH_OK=1
+  echo "  OK  /api/health"
+else
+  echo "  HATA /api/health — PM2 log: pm2 logs ${PM2_NAME} --lines 30"
+fi
+if curl -sf "http://127.0.0.1:${API_PORT}/api/admin/auth/oturum-secenekleri" | grep -q '"firmalar"'; then
+  OTURUM_OK=1
+  echo "  OK  /api/admin/auth/oturum-secenekleri"
+else
+  echo "  HATA /api/admin/auth/oturum-secenekleri (login combobox bos kalir)"
+  echo "        Eski dist olabilir: cd $SITE/backend && npm run build && pm2 restart ${PM2_NAME}"
+  echo "        Nginx dogru: location /api/ { proxy_pass http://127.0.0.1:${API_PORT}/api/; }"
+fi
+if [ "$HEALTH_OK" = "0" ] && curl -sf "http://127.0.0.1:${API_PORT}/health" >/dev/null; then
+  echo "  UYARI: /api/health basarisiz ama /health calisiyor — nginx proxy_pass on ekini dusuruyor olabilir."
+  echo "        Duzelt: proxy_pass http://127.0.0.1:${API_PORT}/api/;"
+fi
 echo ""
-echo "Frontend guncellendi. Tarayicida Ctrl+Shift+R ile sert yenileme yapin."
+if [ "$OTURUM_OK" = "1" ]; then
+  echo "Frontend guncellendi. Tarayicida Ctrl+Shift+R ile sert yenileme yapin."
+else
+  echo "Deploy tamamlandi ancak login API hazir degil — yukaridaki HATA satirlarini kontrol edin."
+fi
 echo ""

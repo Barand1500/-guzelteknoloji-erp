@@ -45,4 +45,6 @@ echo "==> PM2 yeniden baslat"
 npx pm2 restart erp-api --update-env || npx pm2 start ecosystem.config.cjs
 
 echo ""
-echo "Test: curl http://127.0.0.1:3006/api/health"
+echo "==> API testleri"
+curl -sf http://127.0.0.1:3006/api/health && echo "  OK /api/health" || echo "  HATA /api/health"
+curl -sf http://127.0.0.1:3006/api/admin/auth/oturum-secenekleri | head -c 80 && echo "" || echo "  HATA /api/admin/auth/oturum-secenekleri"

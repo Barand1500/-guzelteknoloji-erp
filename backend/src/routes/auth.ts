@@ -44,7 +44,16 @@ router.get('/oturum-secenekleri', async (_req, res) => {
     },
   });
 
-  return res.json({ firmalar });
+  return res.json({
+    firmalar,
+    kullaniciKodlari: (
+      await prisma.kullanici.findMany({
+        where: { durum: true },
+        orderBy: { kullaniciKodu: 'asc' },
+        select: { kullaniciKodu: true },
+      })
+    ).map((k) => k.kullaniciKodu),
+  });
 });
 
 router.post('/giris', async (req, res) => {

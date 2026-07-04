@@ -24,9 +24,12 @@ export function appOlustur() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
 
-  app.get('/api/health', (_req, res) => {
+  const saglikYaniti = (_req: Request, res: Response) => {
     res.json({ durum: 'ok', surum: config.surum, dbTuru: config.dbTuru });
-  });
+  };
+  app.get('/api/health', saglikYaniti);
+  // Nginx proxy_pass /api on ekini dusururse (proxy_pass ...:3006/;) health yine calissin
+  app.get('/health', saglikYaniti);
 
   const admin = express.Router();
   admin.use('/auth', authRouter);
@@ -40,8 +43,11 @@ export function appOlustur() {
   admin.use('/', legacyStubsRouter);
 
   app.use('/api/admin', admin);
+  // Nginx /api on ekini dusururse /admin/auth/... istekleri de karsilansin
+  app.use('/admin', admin);
 
-  app.use((_req, res) => {
+  app.use((req, res) => {
+    console.warn(`[404] ${req.method} ${req.originalUrl}`);
     res.status(404).json({ mesaj: 'Endpoint bulunamadi' });
   });
 
