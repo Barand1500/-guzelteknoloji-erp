@@ -1381,7 +1381,8 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .admin-panel--kenarlik-neon .ap-alt-panel-link,
-.admin-panel--kenarlik-neon .ap-sekme-aktif {
+.admin-panel--kenarlik-neon .ap-sekme-aktif,
+.admin-panel--kenarlik-neon .ap-aksiyon-btn:not(:disabled):hover .ap-aksiyon-harf {
   text-shadow: 0 0 10px color-mix(in srgb, var(--ap-accent) 85%, transparent);
 }
 
@@ -1621,44 +1622,76 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 /* Alt aksiyon cubugu butonlari */
 .ap-aksiyon-btn {
-  border: 1px solid transparent;
-  color: var(--ap-text);
-}
-
-.ap-aksiyon-aktif {
-  background: var(--ap-surface-2);
-  border-color: var(--ap-border);
+  position: relative;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--ap-heading);
+  cursor: pointer;
 }
 
-.ap-aksiyon-aktif:hover {
-  background: var(--ap-hover);
+.ap-aksiyon-btn-metin {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
 }
 
-.ap-aksiyon-birincil {
-  background: var(--ap-accent);
-  border-color: var(--ap-accent);
-  color: #fff;
+.ap-aksiyon-harf {
+  display: inline-block;
+  color: inherit;
 }
 
-.ap-aksiyon-birincil:hover {
-  filter: brightness(1.08);
+.ap-aksiyon-btn:not(:disabled):hover .ap-aksiyon-harf {
+  animation: ap-aksiyon-harf-renk 0.22s ease forwards;
+  animation-delay: calc(var(--harf-i) * 0.055s);
 }
 
-.ap-aksiyon-basari {
-  background: #16a34a !important;
-  border-color: #16a34a !important;
-  color: #fff !important;
-  animation: ap-aksiyon-pulse 0.35s ease;
-  cursor: default;
+@keyframes ap-aksiyon-harf-renk {
+  to {
+    color: var(--ap-accent);
+  }
 }
 
+.ap-aksiyon-pasif {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.ap-aksiyon-basari .ap-aksiyon-harf {
+  animation: ap-aksiyon-harf-basari 0.28s ease forwards;
+  animation-delay: calc(var(--harf-i) * 0.055s);
+}
+
+.ap-aksiyon-hata .ap-aksiyon-harf {
+  animation: ap-aksiyon-harf-hata 0.28s ease forwards;
+  animation-delay: calc(var(--harf-i) * 0.055s);
+}
+
+@keyframes ap-aksiyon-harf-basari {
+  from {
+    color: var(--ap-accent);
+  }
+  to {
+    color: #16a34a;
+  }
+}
+
+@keyframes ap-aksiyon-harf-hata {
+  from {
+    color: var(--ap-accent);
+  }
+  to {
+    color: #dc2626;
+  }
+}
+
+.ap-aksiyon-basari,
 .ap-aksiyon-hata {
-  background: #dc2626 !important;
-  border-color: #dc2626 !important;
-  color: #fff !important;
-  animation: ap-aksiyon-pulse 0.35s ease;
   cursor: default;
+  animation: ap-aksiyon-pulse 0.35s ease;
 }
 
 @keyframes ap-aksiyon-pulse {

@@ -2,6 +2,13 @@ import { Router } from 'express';
 import type { Response } from 'express';
 import { sifreDogrula, sifreHashle } from '../lib/crypto.js';
 import { tokenUret } from '../lib/jwt.js';
+import {
+  mockAuthAktif,
+  mockGirisDogrula,
+  mockGirisYanit,
+  mockKullaniciYanit,
+  MOCK_OTURUM_SECENEKLERI,
+} from '../lib/mockAuth.js';
 import { kullaniciYanit, kullaniciYetkileriAl } from '../lib/mappers.js';
 import { prisma } from '../lib/prisma.js';
 import type { AuthRequest } from '../middleware/auth.js';
@@ -10,6 +17,10 @@ import { authZorunlu } from '../middleware/auth.js';
 const router = Router();
 
 router.get('/oturum-secenekleri', async (_req, res) => {
+  if (mockAuthAktif()) {
+    return res.json(MOCK_OTURUM_SECENEKLERI);
+  }
+
   const firmalar = await prisma.firma.findMany({
     where: { durum: true },
     orderBy: { firmaKodu: 'asc' },
@@ -72,6 +83,13 @@ router.post('/giris', async (req, res) => {
 
   if (!firmaKodu?.trim() || !donemKodu?.trim() || !subeKodu?.trim() || !kasaKodu?.trim()) {
     return res.status(400).json({ mesaj: 'Firma, donem, sube ve kasa secimi gerekli' });
+  }
+
+  if (mockAuthAktif()) {
+    if (!mockGirisDogrula(kullaniciKodu, sifre)) {
+      return res.status(401).json({ mesaj: 'Gecersiz kullanici veya sifre' });
+    }
+    return res.json(mockGirisYanit(kullaniciKodu));
   }
 
   const kullanici = await prisma.kullanici.findUnique({
@@ -144,6 +162,10 @@ router.post('/giris', async (req, res) => {
 });
 
 router.get('/ben', authZorunlu, async (req: AuthRequest, res: Response) => {
+  if (mockAuthAktif() && req.mockOturum) {
+    return res.json({ kullanici: mockKullaniciYanit(req.mockOturum.kullaniciKodu) });
+  }
+
   const k = req.kullanici!;
   return res.json({
     kullanici: await kullaniciYanit(k, req.yetkiler ?? []),
@@ -151,6 +173,16 @@ router.get('/ben', authZorunlu, async (req: AuthRequest, res: Response) => {
 });
 
 router.patch('/profil', authZorunlu, async (req: AuthRequest, res: Response) => {
+  if (mockAuthAktif() && req.mockOturum) {
+    const { ad } = req.body as { ad?: string };
+    if (!ad?.trim()) {
+      return res.status(400).json({ mesaj: 'Ad soyad gerekli' });
+    }
+    return res.json({
+      kullanici: { ...mockKullaniciYanit(req.mockOturum.kullaniciKodu), ad: ad.trim() },
+    });
+  }
+
   const k = req.kullanici!;
   const { ad, mevcutSifre, yeniSifre } = req.body as {
     ad?: string;

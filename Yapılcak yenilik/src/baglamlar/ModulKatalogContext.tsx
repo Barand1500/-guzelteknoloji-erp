@@ -1,0 +1,74 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
+import { masterModulleriGetir } from '@/admin/baslat-menusu/master/moduller/api';
+import { modulMenuGorunurMu as panelModulMenuGorunurMu } from '@/admin/veri/adminMenuYapisi';
+
+export const MODUL_KATALOG_YENILE_OLAY = 'ap-modul-katalog-yenile';
+
+export function modulKatalogYenile() {
+  window.dispatchEvent(new Event(MODUL_KATALOG_YENILE_OLAY));
+}
+
+interface ModulKatalogDeger {
+  aktifPrefixler: Set<string> | null;
+  yukleniyor: boolean;
+  yenile: () => Promise<void>;
+  modulMenuGorunurMu: (modulId: string) => boolean;
+}
+
+const ModulKatalogContext = createContext<ModulKatalogDeger | null>(null);
+
+export function ModulKatalogProvider({ children }: { children: ReactNode }) {
+  const [aktifPrefixler, setAktifPrefixler] = useState<Set<string> | null>(null);
+  const [yukleniyor, setYukleniyor] = useState(true);
+
+  const yenile = useCallback(async () => {
+    setYukleniyor(true);
+    try {
+      const { moduller } = await masterModulleriGetir();
+      setAktifPrefixler(new Set(moduller.filter((m) => m.aktif).map((m) => m.prefix)));
+    } catch {
+      try {
+        const { moduller } = await adminJsonFetch<{ moduller: { prefix: string }[] }>('/roller', {
+          headers: adminHeaders(),
+        });
+        setAktifPrefixler(new Set(moduller.map((m) => m.prefix)));
+      } catch {
+        setAktifPrefixler(null);
+      }
+    } finally {
+      setYukleniyor(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void yenile();
+    const dinle = () => void yenile();
+    window.addEventListener(MODUL_KATALOG_YENILE_OLAY, dinle);
+    return () => window.removeEventListener(MODUL_KATALOG_YENILE_OLAY, dinle);
+  }, [yenile]);
+
+  const modulMenuGorunurMu = useCallback(
+    (modulId: string) => panelModulMenuGorunurMu(modulId, aktifPrefixler),
+    [aktifPrefixler]
+  );
+
+  const deger = useMemo(
+    () => ({ aktifPrefixler, yukleniyor, yenile, modulMenuGorunurMu }),
+    [aktifPrefixler, yukleniyor, yenile, modulMenuGorunurMu]
+  );
+
+  return <ModulKatalogContext.Provider value={deger}>{children}</ModulKatalogContext.Provider>;
+}
+
+export function useModulKatalog() {
+  const ctx = useContext(ModulKatalogContext);
+  if (!ctx) {
+    throw new Error('useModulKatalog ModulKatalogProvider icinde kullanilmali');
+  }
+  return ctx;
+}
+
+export function useModulKatalogOptional() {
+  return useContext(ModulKatalogContext);
+}

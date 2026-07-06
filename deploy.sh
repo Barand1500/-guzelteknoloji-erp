@@ -56,7 +56,7 @@ chmod +x "$SITE/deploy.sh"
 echo "[2/6] Frontend build..."
 cd "$SITE/repo"
 npm ci
-VITE_API_URL=/api npm run build
+VITE_API_URL=/api VITE_BACKEND_YOK=true npm run build
 rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
 FRONTEND_JS="$(grep -oE 'index-[^"]+\.js' "$SITE/frontend/index.html" | head -1 || true)"
 echo "  Frontend: $SITE/frontend/ (${FRONTEND_JS:-index bulunamadi})"

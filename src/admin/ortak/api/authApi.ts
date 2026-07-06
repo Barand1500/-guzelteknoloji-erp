@@ -11,6 +11,30 @@ import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 const API_URL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 const TOKEN_KEY = 'gt_admin_token';
 const HIZLI_ERISIM_KEY = 'gt_admin_hizli_erisim';
+const AUTH_OFFLINE_KEY = 'gt_auth_offline';
+
+function authOfflineMi(): boolean {
+  if (BACKEND_YOK) return true;
+  try {
+    return sessionStorage.getItem(AUTH_OFFLINE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function authOfflineAyarla() {
+  try {
+    sessionStorage.setItem(AUTH_OFFLINE_KEY, '1');
+  } catch {
+    /* storage yok */
+  }
+}
+
+function authApiKullanilamazMi(hata: unknown): boolean {
+  if (hata instanceof TypeError) return true;
+  if (hata instanceof Error && /fetch|network|failed/i.test(hata.message)) return true;
+  return false;
+}
 
 function hizliErisimOku(kullaniciId: string | number): string[] {
   try {
@@ -106,56 +130,94 @@ export function offlineKullanici(kullaniciKodu?: string): AuthKullanici {
 }
 
 export async function oturumSecenekleriGetir(): Promise<OturumSecenekleriYanit> {
-  if (BACKEND_YOK) return OFFLINE_OTURUM_SECENEKLERI;
+  if (authOfflineMi()) return OFFLINE_OTURUM_SECENEKLERI;
 
-  const yanit = await fetch(`${API_URL}/admin/auth/oturum-secenekleri`);
-  const veri = await jsonYanitOku<{ mesaj?: string } & OturumSecenekleriYanit>(yanit);
-  if (!yanit.ok) throw new Error(veri.mesaj ?? 'Oturum secenekleri alinamadi');
-  return veri;
+  try {
+    const yanit = await fetch(`${API_URL}/admin/auth/oturum-secenekleri`);
+    if (yanit.status === 404) {
+      authOfflineAyarla();
+      return OFFLINE_OTURUM_SECENEKLERI;
+    }
+    const veri = await jsonYanitOku<{ mesaj?: string } & OturumSecenekleriYanit>(yanit);
+    if (!yanit.ok) throw new Error(veri.mesaj ?? 'Oturum secenekleri alinamadi');
+    return veri;
+  } catch (err) {
+    if (authApiKullanilamazMi(err)) {
+      authOfflineAyarla();
+      return OFFLINE_OTURUM_SECENEKLERI;
+    }
+    throw err;
+  }
 }
 
 export async function girisYap(form: GirisFormu): Promise<AuthYanit> {
-  if (BACKEND_YOK) {
+  if (authOfflineMi()) {
     return { token: 'offline-token', kullanici: offlineKullanici(form.kullaniciKodu) };
   }
 
-  const yanit = await fetch(`${API_URL}/admin/auth/giris`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      kullaniciKodu: form.kullaniciKodu.trim().toUpperCase(),
-      sifre: form.sifre,
-      firmaKodu: form.firmaKodu.trim().toUpperCase(),
-      donemKodu: form.donemKodu.trim().toUpperCase(),
-      subeKodu: form.subeKodu.trim().toUpperCase(),
-      kasaKodu: form.kasaKodu.trim().toUpperCase(),
-    }),
-  });
+  try {
+    const yanit = await fetch(`${API_URL}/admin/auth/giris`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kullaniciKodu: form.kullaniciKodu.trim().toUpperCase(),
+        sifre: form.sifre,
+        firmaKodu: form.firmaKodu.trim().toUpperCase(),
+        donemKodu: form.donemKodu.trim().toUpperCase(),
+        subeKodu: form.subeKodu.trim().toUpperCase(),
+        kasaKodu: form.kasaKodu.trim().toUpperCase(),
+      }),
+    });
 
-  const veri = await jsonYanitOku<{ mesaj?: string } & AuthYanit>(yanit);
-  if (!yanit.ok) throw new Error(veri.mesaj ?? 'Giris basarisiz');
-  return { ...veri, kullanici: kullaniciTercihleriEkle(veri.kullanici) };
+    if (yanit.status === 404) {
+      authOfflineAyarla();
+      return { token: 'offline-token', kullanici: offlineKullanici(form.kullaniciKodu) };
+    }
+
+    const veri = await jsonYanitOku<{ mesaj?: string } & AuthYanit>(yanit);
+    if (!yanit.ok) throw new Error(veri.mesaj ?? 'Giris basarisiz');
+    return { ...veri, kullanici: kullaniciTercihleriEkle(veri.kullanici) };
+  } catch (err) {
+    if (authApiKullanilamazMi(err)) {
+      authOfflineAyarla();
+      return { token: 'offline-token', kullanici: offlineKullanici(form.kullaniciKodu) };
+    }
+    throw err;
+  }
 }
 
 export async function benGetir(): Promise<AuthKullanici> {
   const token = tokenAl();
   if (!token) throw new Error('Token yok');
 
-  if (BACKEND_YOK) {
+  if (authOfflineMi()) {
     return offlineKullanici();
   }
 
-  const yanit = await fetch(`${API_URL}/admin/auth/ben`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  try {
+    const yanit = await fetch(`${API_URL}/admin/auth/ben`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  const veri = await jsonYanitOku<{ mesaj?: string; kullanici: AuthKullanici }>(yanit);
-  if (!yanit.ok) throw new Error(veri.mesaj ?? 'Oturum gecersiz');
-  return kullaniciTercihleriEkle(veri.kullanici);
+    if (yanit.status === 404) {
+      authOfflineAyarla();
+      return offlineKullanici();
+    }
+
+    const veri = await jsonYanitOku<{ mesaj?: string; kullanici: AuthKullanici }>(yanit);
+    if (!yanit.ok) throw new Error(veri.mesaj ?? 'Oturum gecersiz');
+    return kullaniciTercihleriEkle(veri.kullanici);
+  } catch (err) {
+    if (authApiKullanilamazMi(err)) {
+      authOfflineAyarla();
+      return offlineKullanici();
+    }
+    throw err;
+  }
 }
 
 export async function profilGuncelle(form: ProfilGuncelleForm): Promise<AuthKullanici> {
-  if (BACKEND_YOK) {
+  if (authOfflineMi()) {
     return offlineKullanici();
   }
 
@@ -179,7 +241,7 @@ export async function profilGuncelle(form: ProfilGuncelleForm): Promise<AuthKull
 }
 
 export async function tercihlerKaydet(tercihler: KullaniciTercihleri): Promise<AuthKullanici> {
-  const mevcut = BACKEND_YOK ? offlineKullanici() : await benGetir().catch(() => offlineKullanici());
+  const mevcut = authOfflineMi() ? offlineKullanici() : await benGetir().catch(() => offlineKullanici());
   hizliErisimKaydetLocal(mevcut.id, tercihler.dashboardHizliErisim ?? []);
   return kullaniciTercihleriEkle(mevcut);
 }

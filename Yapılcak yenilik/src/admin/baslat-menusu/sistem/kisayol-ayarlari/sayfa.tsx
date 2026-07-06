@@ -1,0 +1,130 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
+import { AdminModulKabuk, AdminPanelKarti, BildirimKutusu } from '@/admin/ortak/AdminBilesenleri';
+import {
+  KISAYOL_ISLEMLERI,
+  kisayolAyarlariKaydet,
+  kisayolAyarlariOku,
+  kisayolCakismaBul,
+  tusKombinasyonuYakala,
+  varsayilanKisayollar,
+  type KisayolHaritasi,
+  type KisayolIslemId,
+} from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
+import { kisayolAyarlariKaliciKaydet } from '@/admin/ortak/api/kullaniciAyarlariApi';
+
+export function KisayolAyarlariSayfasi() {
+  const logMesajiAyarla = useAdminLogMesaji();
+  const [harita, setHarita] = useState<KisayolHaritasi>(() => kisayolAyarlariOku());
+  const [sonKayitli, setSonKayitli] = useState<KisayolHaritasi>(() => kisayolAyarlariOku());
+  const [dinlenen, setDinlenen] = useState<KisayolIslemId | null>(null);
+  const [hata, setHata] = useState('');
+  const [basari, setBasari] = useState('');
+
+  const kirli = useMemo(() => JSON.stringify(harita) !== JSON.stringify(sonKayitli), [harita, sonKayitli]);
+
+  const kaydet = useCallback(async () => {
+    setHata('');
+    for (const islem of KISAYOL_ISLEMLERI) {
+      const cakisma = kisayolCakismaBul(harita, islem.id, harita[islem.id]);
+      if (cakisma) {
+        setHata(`"${harita[islem.id]}" kombinasyonu hem ${islem.etiket} hem ${KISAYOL_ISLEMLERI.find((k) => k.id === cakisma)?.etiket} için atanmış.`);
+        return;
+      }
+    }
+    await kisayolAyarlariKaliciKaydet(harita);
+    setSonKayitli({ ...harita });
+    const ozet = KISAYOL_ISLEMLERI.map((i) => `${i.etiket}: ${harita[i.id]}`).join(', ');
+    logMesajiAyarla(logMesaj.kaydetti('Kısayol Ayarları', `klavye kısayollarını (${ozet})`));
+    window.dispatchEvent(new CustomEvent('ap-kisayol-ayarlari-guncellendi'));
+    setBasari('Kısayol ayarları kaydedildi.');
+  }, [harita, logMesajiAyarla]);
+
+  useModulAksiyonlari({ kaydet }, { kaydet: kirli }, kirli);
+
+  useEffect(() => {
+    if (!dinlenen) return;
+    function tusDinle(e: KeyboardEvent) {
+      e.preventDefault();
+      e.stopPropagation();
+      const komb = tusKombinasyonuYakala(e);
+      if (!komb || komb === 'Ctrl' || komb === 'Alt' || komb === 'Shift') return;
+      const islem = dinlenen;
+      if (!islem) return;
+      const cakisma = kisayolCakismaBul(harita, islem, komb);
+      if (cakisma) {
+        setHata(`Bu kombinasyon zaten "${KISAYOL_ISLEMLERI.find((k) => k.id === cakisma)?.etiket}" için kullanılıyor.`);
+        setDinlenen(null);
+        return;
+      }
+      setHarita((h) => {
+        const yeni = { ...h, [islem]: komb };
+        kisayolAyarlariKaydet(yeni, true);
+        setSonKayitli({ ...yeni });
+        window.dispatchEvent(new CustomEvent('ap-kisayol-ayarlari-guncellendi'));
+        return yeni;
+      });
+      setDinlenen(null);
+      setHata('');
+      setBasari(`"${KISAYOL_ISLEMLERI.find((k) => k.id === islem)?.etiket}" kısayolu güncellendi.`);
+    }
+    window.addEventListener('keydown', tusDinle, true);
+    return () => window.removeEventListener('keydown', tusDinle, true);
+  }, [dinlenen, harita]);
+
+  return (
+    <AdminModulKabuk baslik="Kısayol Ayarları" aciklama="Panel kısayollarını özelleştirin." onizleGoster={false}>
+      {hata && <BildirimKutusu mesaj={hata} tur="hata" />}
+      {basari && <BildirimKutusu mesaj={basari} tur="basari" />}
+
+      <AdminPanelKarti baslik="Klavye Kısayolları" altBaslik="Tuş dinle ile yeni kombinasyon atayın">
+        <div className="space-y-3">
+          {KISAYOL_ISLEMLERI.map((islem) => (
+            <div
+              key={islem.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--ap-border)] p-3"
+            >
+              <div>
+                <p className="ap-heading text-sm font-medium">{islem.etiket}</p>
+                <p className="ap-muted text-xs">{islem.aciklama}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="rounded border border-[var(--ap-border)] bg-[var(--ap-input-bg)] px-2 py-1 font-mono text-xs">
+                  {harita[islem.id]}
+                </kbd>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDinlenen(islem.id);
+                    setHata('');
+                    setBasari('');
+                  }}
+                  className={`rounded px-2 py-1 text-xs ${
+                    dinlenen === islem.id
+                      ? 'bg-amber-600 text-white'
+                      : 'border border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
+                  }`}
+                >
+                  {dinlenen === islem.id ? 'Tuşa basın...' : 'Tuş dinle'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setHarita(varsayilanKisayollar());
+            setBasari('');
+            setHata('');
+          }}
+          className="mt-4 text-xs text-blue-400 hover:underline"
+        >
+          Varsayılana sıfırla
+        </button>
+      </AdminPanelKarti>
+    </AdminModulKabuk>
+  );
+}

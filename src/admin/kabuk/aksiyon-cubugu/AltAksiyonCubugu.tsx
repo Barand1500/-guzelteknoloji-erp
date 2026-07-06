@@ -1,6 +1,7 @@
 import { useRef, useState, type RefObject } from 'react';
 import type { AksiyonButonu } from '@/admin/ortak/tipler/admin';
 import { GorevCubuguTray } from './GorevCubuguTray';
+import { AksiyonCubuguButon } from './AksiyonCubuguButon';
 import { SaatTakvimWidget } from '../alt-panel/SaatTakvimWidget';
 import { modulRehberBul } from '@/admin/veri/adminModulRehberleri';
 import { BildirimPaneli, useBildirimSayaci } from '../alt-panel/BildirimPaneli';
@@ -54,32 +55,20 @@ function AltAksiyonCubuguGovde({
       data-ap-kesif="aksiyon-cubugu"
     >
       <AksiyonCubuguUstCizgiSlot footerRef={footerRef} />
-      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+      <div className="ap-aksiyon-cubugu-sol flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
         {aksiyonlar.map((aksiyon) => {
           const geriBildirim =
             aksiyonGeriBildirim?.aksiyonId === aksiyon.id ? aksiyonGeriBildirim : null;
           const etiket = geriBildirim?.mesaj ?? aksiyon.etiket;
 
           return (
-            <button
-              key={aksiyon.id}
-              type="button"
-              disabled={!aksiyon.aktif && !geriBildirim}
+            <AksiyonCubuguButon
+              key={`${aksiyon.id}-${etiket}-${geriBildirim?.tur ?? ''}`}
+              etiket={etiket}
+              aktif={aksiyon.aktif || Boolean(geriBildirim)}
+              geriBildirim={geriBildirim?.tur === 'basari' || geriBildirim?.tur === 'hata' ? geriBildirim.tur : null}
               onClick={() => onAksiyon?.(aksiyon.id)}
-              className={`ap-aksiyon-btn shrink-0 rounded px-4 py-1.5 text-sm font-medium transition ${
-                geriBildirim?.tur === 'basari'
-                  ? 'ap-aksiyon-basari'
-                  : geriBildirim?.tur === 'hata'
-                    ? 'ap-aksiyon-hata'
-                    : !aksiyon.aktif
-                      ? 'ap-aksiyon-pasif cursor-not-allowed opacity-40'
-                      : aksiyon.birincil
-                        ? 'ap-aksiyon-birincil'
-                        : 'ap-aksiyon-aktif'
-              }`}
-            >
-              {etiket}
-            </button>
+            />
           );
         })}
       </div>
