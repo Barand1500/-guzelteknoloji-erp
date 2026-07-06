@@ -25,6 +25,7 @@ import {
 import { adminSayfalariGetir, type AdminSayfa } from '@/admin/ortak/api/sayfaApi';
 import { sistemAyarlariGetir, sistemAyarlariGuncelle } from '@/admin/baslat-menusu/sistem/ayarlar/api';
 import { bosSistemForm, sistemdenForm, type SistemAyarlariForm, type SistemSekmeId } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
+import { kenarlikAyariNormalize, kenarlikRenkYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/kenarlikRenkYardimci';
 import { SagTikPaneliYonetimSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SagTikPaneliYonetimSekme';
 import { sagTikAyarlariYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/yardimci-sag-tik';
 import { siteVerisiGuncellendiYayinla } from '@/araclar/siteVerisiOlaylari';
@@ -60,6 +61,9 @@ export function SistemAyarlariSayfasi() {
       const yeniForm = sistemdenForm(veri.site, veri.sistem);
       setForm(yeniForm);
       setSonKayitliForm(yeniForm);
+      kenarlikRenkYayinla(
+        kenarlikAyariNormalize({ renk: yeniForm.kenarlikRenk, neon: yeniForm.kenarlikNeon })
+      );
       dilAyarla(yeniForm.panelDili);
       cevirileriAyarla(yeniForm.panelCeviriler);
       siteVerisiGuncellendiYayinla();
@@ -144,6 +148,9 @@ export function SistemAyarlariSayfasi() {
         const yuklenen = sistemdenForm(veri.site, veri.sistem);
         setForm(yuklenen);
         setSonKayitliForm(yuklenen);
+        kenarlikRenkYayinla(
+          kenarlikAyariNormalize({ renk: yuklenen.kenarlikRenk, neon: yuklenen.kenarlikNeon })
+        );
         dilAyarla(yuklenen.panelDili);
         cevirileriAyarla(yuklenen.panelCeviriler);
       } catch (err) {

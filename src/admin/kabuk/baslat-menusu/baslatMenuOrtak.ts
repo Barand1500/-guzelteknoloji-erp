@@ -11,6 +11,8 @@ export const KATEGORI_IKON: Record<string, string> = {
   Sistem: '⚙️',
 };
 
+export type BaslatMenuDurumu = ReturnType<typeof useBaslatMenuDurumu>;
+
 export function useBaslatMenuDurumu() {
   const [arama, setArama] = useState('');
   const [kapaliKategoriler, setKapaliKategoriler] = useState<Set<string>>(() =>

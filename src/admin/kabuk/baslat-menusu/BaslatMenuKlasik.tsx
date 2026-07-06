@@ -1,17 +1,25 @@
 import { usePanelDil } from '@/baglamlar/PanelDilContext';
+import { forwardRef, type CSSProperties } from 'react';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
 import { BaslatMenuArama } from './BaslatMenuArama';
-import { KATEGORI_IKON, useBaslatMenuDurumu } from './baslatMenuOrtak';
+import { KATEGORI_IKON, type BaslatMenuDurumu } from './baslatMenuOrtak';
 
 interface BaslatMenuKlasikProps {
+  menuDurumu: BaslatMenuDurumu;
   onModulSec: (modul: AdminModul) => void;
   onKapat: () => void;
+  kenarlikAnim?: boolean;
+  dockStil?: CSSProperties;
+  dockYerlesim?: 'kare' | 'dikdortgen';
 }
 
-export function BaslatMenuKlasik({ onModulSec, onKapat }: BaslatMenuKlasikProps) {
+export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps>(function BaslatMenuKlasik(
+  { menuDurumu, onModulSec, onKapat, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
+  ref
+) {
   const { t } = usePanelDil();
   const { arama, setArama, kapaliKategoriler, kategoriToggle, sonuclar, gorunurModuller, kategoriler } =
-    useBaslatMenuDurumu();
+    menuDurumu;
 
   const modulSec = (modul: AdminModul) => {
     onModulSec(modul);
@@ -19,7 +27,11 @@ export function BaslatMenuKlasik({ onModulSec, onKapat }: BaslatMenuKlasikProps)
   };
 
   return (
-    <div className="ap-baslat-menu-dock ap-baslat-menu-klasik fixed left-0 top-12 z-50 flex max-h-[calc(100vh-3rem)] w-[min(440px,92vw)] flex-col overflow-hidden border border-[var(--ap-border)] border-l-0 bg-[var(--ap-surface)] shadow-2xl">
+    <div
+      ref={ref}
+      style={dockStil}
+      className={`ap-baslat-menu-dock ap-baslat-menu-klasik z-50 flex max-h-[calc(100vh-3rem)] w-[min(440px,92vw)] flex-col overflow-hidden border border-[var(--ap-border)] border-l-0 bg-[var(--ap-surface)] shadow-2xl${kenarlikAnim ? ` ap-baslat-menu-dock--kenarlik-anim ap-baslat-menu-dock--bagli ap-baslat-menu-dock--${dockYerlesim}` : ''}`}
+    >
       <div className="border-b border-[var(--ap-border)] bg-[var(--ap-header-bg)] px-3 py-2">
         <p className="ap-heading text-xs font-bold">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
         <p className="ap-muted text-[10px]">{t('header.modulAra', 'Modül veya ayar ara')}</p>
@@ -53,7 +65,7 @@ export function BaslatMenuKlasik({ onModulSec, onKapat }: BaslatMenuKlasikProps)
       </div>
     </div>
   );
-}
+});
 
 function ModulListesi({
   baslik,

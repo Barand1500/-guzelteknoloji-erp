@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 
 interface AltPanelProps {
   acik: boolean;
@@ -9,12 +10,15 @@ interface AltPanelProps {
 }
 
 export function AltPanel({ acik, onKapat, baslik, ustAksiyon, children }: AltPanelProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  useAksiyonCubuguPanelSync(acik, panelRef);
+
   if (!acik) return null;
 
   return (
     <>
       <button type="button" className="ap-alt-panel-backdrop" aria-label="Paneli kapat" onClick={onKapat} />
-      <div className="ap-alt-panel">
+      <div ref={panelRef} className="ap-alt-panel ap-alt-panel--kenarlik-anim">
         <div className="ap-alt-panel-baslik">
           <h3 className="ap-alt-panel-baslik-metin">{baslik}</h3>
           {ustAksiyon}

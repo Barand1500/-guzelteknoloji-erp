@@ -11,6 +11,8 @@ export const AYAR_ANAHTARLARI = {
   panelDili: 'panel_dili',
   panelCeviriler: 'panel_ceviriler',
   logSaklamaGun: 'log_saklama_gun',
+  kenarlikRenk: 'kenarlik_renk',
+  kenarlikNeon: 'kenarlik_neon',
   yedekleme: 'yedekleme',
   guvenlik: 'guvenlik',
   script: 'script',
@@ -18,6 +20,13 @@ export const AYAR_ANAHTARLARI = {
 } as const;
 
 type AyarAnahtar = (typeof AYAR_ANAHTARLARI)[keyof typeof AYAR_ANAHTARLARI];
+
+function kenarlikRenkDogrula(deger: unknown): string {
+  const s = String(deger ?? 'mavi').trim();
+  if (s === 'turuncu' || s === 'mavi') return s;
+  if (/^#[0-9A-Fa-f]{6}$/.test(s)) return s;
+  return 'mavi';
+}
 
 async function ayarKaydet(firmaId: number, anahtar: AyarAnahtar, deger: unknown) {
   await prisma.ayar.upsert({
@@ -44,6 +53,8 @@ export async function tumAyarlarOku(firmaId = PANEL_FIRMA_ID) {
     panelDili,
     panelCeviriler,
     logSaklamaGun,
+    kenarlikRenk,
+    kenarlikNeon,
     yedekleme,
     guvenlik,
     script,
@@ -70,6 +81,8 @@ export async function tumAyarlarOku(firmaId = PANEL_FIRMA_ID) {
     ayarOku(firmaId, AYAR_ANAHTARLARI.panelDili, 'tr'),
     ayarOku(firmaId, AYAR_ANAHTARLARI.panelCeviriler, {} as Record<string, Record<string, string>>),
     ayarOku(firmaId, AYAR_ANAHTARLARI.logSaklamaGun, 90),
+    ayarOku(firmaId, AYAR_ANAHTARLARI.kenarlikRenk, 'mavi'),
+    ayarOku(firmaId, AYAR_ANAHTARLARI.kenarlikNeon, false),
     ayarOku(firmaId, AYAR_ANAHTARLARI.yedekleme, {
       otomatik: false,
       gun: 7,
@@ -96,6 +109,8 @@ export async function tumAyarlarOku(firmaId = PANEL_FIRMA_ID) {
     panelDili,
     panelCeviriler,
     logSaklamaGun,
+    kenarlikRenk,
+    kenarlikNeon,
     yedekleme,
     guvenlik,
     script,
@@ -119,6 +134,8 @@ export async function ayarlariFormdanKaydet(form: Record<string, unknown>, firma
     ayarKaydet(firmaId, AYAR_ANAHTARLARI.panelDili, String(form.panelDili ?? 'tr')),
     ayarKaydet(firmaId, AYAR_ANAHTARLARI.panelCeviriler, form.panelCeviriler ?? {}),
     ayarKaydet(firmaId, AYAR_ANAHTARLARI.logSaklamaGun, Number(form.logSaklamaGun ?? 90)),
+    ayarKaydet(firmaId, AYAR_ANAHTARLARI.kenarlikRenk, kenarlikRenkDogrula(form.kenarlikRenk)),
+    ayarKaydet(firmaId, AYAR_ANAHTARLARI.kenarlikNeon, form.kenarlikNeon === true),
     ayarKaydet(firmaId, AYAR_ANAHTARLARI.yedekleme, {
       otomatik: Boolean(form.otomatikYedekleme),
       gun: Number(form.otomatikYedeklemeGun ?? 7),
@@ -143,6 +160,8 @@ export async function varsayilanAyarlarOlustur(firmaId = PANEL_FIRMA_ID) {
       bakimBaslik: 'Bakim Calismasi',
       bakimMesaji: 'Site gecici olarak bakimda. Lutfen daha sonra tekrar deneyin.',
       logSaklamaGun: 90,
+      kenarlikRenk: 'mavi',
+      kenarlikNeon: false,
       panelDili: 'tr',
       otomatikYedekleme: false,
       otomatikYedeklemeGun: 7,

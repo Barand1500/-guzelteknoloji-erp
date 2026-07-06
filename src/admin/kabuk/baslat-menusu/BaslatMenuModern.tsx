@@ -1,18 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { sekmeAyarlariOku } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 import { usePanelDil } from '@/baglamlar/PanelDilContext';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
 import { BaslatMenuArama } from './BaslatMenuArama';
-import { KATEGORI_IKON, useBaslatMenuDurumu } from './baslatMenuOrtak';
+import { KATEGORI_IKON, type BaslatMenuDurumu } from './baslatMenuOrtak';
 
 interface BaslatMenuModernProps {
+  menuDurumu: BaslatMenuDurumu;
   onModulSec: (modul: AdminModul) => void;
   onKapat: () => void;
+  kenarlikAnim?: boolean;
+  dockStil?: CSSProperties;
+  dockYerlesim?: 'kare' | 'dikdortgen';
 }
 
-export function BaslatMenuModern({ onModulSec, onKapat }: BaslatMenuModernProps) {
+export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps>(function BaslatMenuModern(
+  { menuDurumu, onModulSec, onKapat, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
+  ref
+) {
   const { t } = usePanelDil();
-  const { arama, setArama, sonuclar, gorunurModuller, kategoriler } = useBaslatMenuDurumu();
+  const { arama, setArama, sonuclar, gorunurModuller, kategoriler } = menuDurumu;
   const [seciliKategori, setSeciliKategori] = useState<string | null>(null);
   const [modernAyar, setModernAyar] = useState(() => {
     const ayar = sekmeAyarlariOku();
@@ -59,13 +66,18 @@ export function BaslatMenuModern({ onModulSec, onKapat }: BaslatMenuModernProps)
 
   return (
     <div
+      ref={ref}
+      style={dockStil}
       className={[
-        'ap-baslat-menu-dock ap-baslat-menu-modern fixed left-0 top-12 z-50 flex flex-col overflow-hidden border border-[var(--ap-border)] border-l-0 shadow-2xl',
+        'ap-baslat-menu-dock ap-baslat-menu-modern z-50 flex flex-col overflow-hidden border border-[var(--ap-border)] border-l-0 shadow-2xl',
         tamEkran
           ? 'ap-baslat-modern-tam-ekran h-[calc(100vh-3rem)] w-full max-w-none rounded-none'
           : 'max-h-[calc(100vh-3rem)] w-[min(720px,96vw)]',
         `ap-baslat-modern-kutu-${modernAyar.kutuBoyutu}`,
         `ap-baslat-modern-kategori-${modernAyar.kategoriGorunum}`,
+        kenarlikAnim
+          ? `ap-baslat-menu-dock--kenarlik-anim ap-baslat-menu-dock--bagli ap-baslat-menu-dock--${dockYerlesim}`
+          : '',
       ].join(' ')}
     >
       <div className="ap-baslat-modern-ust">
@@ -152,7 +164,7 @@ export function BaslatMenuModern({ onModulSec, onKapat }: BaslatMenuModernProps)
       </div>
     </div>
   );
-}
+});
 
 function ModulKutuGrid({
   moduller,

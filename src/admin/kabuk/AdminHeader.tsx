@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/baglamlar/AuthContext';
-import { useAdminTema } from '@/baglamlar/AdminTemaContext';
 import { useSistemKesifOptional } from '@/baglamlar/SistemKesifContext';
 import { AdminProfilModal } from '@/admin/ortak/AdminProfilModal';
 import { BaslatMenu } from './baslat-menusu/BaslatMenu';
@@ -19,6 +18,8 @@ interface AdminHeaderProps {
   onModulSec: (modul: AdminModul) => void;
   onSekmeAyir?: (sekmeId: string) => void;
   onSekmeSagTikIslem?: (sekmeId: string, islem: SekmeSagTikIslem) => void;
+  baslatMenuAcik?: boolean;
+  onBaslatMenuAcikDegistir?: (acik: boolean) => void;
 }
 
 export function AdminHeader({
@@ -32,33 +33,42 @@ export function AdminHeader({
   onModulSec,
   onSekmeAyir,
   onSekmeSagTikIslem,
+  baslatMenuAcik: disBaslatMenuAcik,
+  onBaslatMenuAcikDegistir,
 }: AdminHeaderProps) {
   const { kullanici } = useAuth();
-  const { temaDegistir, koyuMu } = useAdminTema();
   const kesif = useSistemKesifOptional();
-  const [menuAcik, setMenuAcik] = useState(false);
+  const [menuAcikIc, setMenuAcikIc] = useState(false);
   const [profilAcik, setProfilAcik] = useState(false);
+  const baslatBtnRef = useRef<HTMLButtonElement>(null);
+
+  const menuAcik = disBaslatMenuAcik ?? menuAcikIc;
+  const menuAcikDegistir = onBaslatMenuAcikDegistir ?? setMenuAcikIc;
 
   useEffect(() => {
     kesif?.baslatMenuKaydet(
-      () => setMenuAcik(true),
-      () => setMenuAcik(false)
+      () => menuAcikDegistir(true),
+      () => menuAcikDegistir(false)
     );
-  }, [kesif]);
+  }, [kesif, menuAcikDegistir]);
 
   const basHarf = kullanici?.ad?.charAt(0).toUpperCase() ?? '?';
 
   return (
     <>
-      <header className="ap-header flex h-12 shrink-0 items-stretch border-b">
+      <header
+        className={`ap-header flex h-12 shrink-0 items-stretch border-b${menuAcik ? ' ap-header--baslat-acik' : ''}`}
+      >
         <button
+          ref={baslatBtnRef}
           type="button"
-          onClick={() => setMenuAcik((a) => !a)}
-          className="flex w-14 items-center justify-center border-r border-[var(--ap-border)] hover:bg-[var(--ap-hover)]"
+          onClick={() => menuAcikDegistir(!menuAcik)}
+          className={`ap-baslat-menu-btn ap-baslat-menu-btn--dikdortgen relative flex w-14 shrink-0 items-center justify-center ${menuAcik ? 'ap-baslat-menu-btn--dikdortgen-aktif ap-baslat-menu-btn--kenarlik-aktif' : 'border-r border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'}`}
           title="Başlat menüsü"
           data-ap-kesif="baslat-menu"
+          aria-expanded={menuAcik}
         >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
             <rect x="3" y="3" width="8" height="8" rx="1" />
             <rect x="13" y="3" width="8" height="8" rx="1" />
             <rect x="3" y="13" width="8" height="8" rx="1" />
@@ -77,17 +87,10 @@ export function AdminHeader({
           onSekmeAyir={onSekmeAyir}
           onModulSec={onModulSec}
           onSekmeSagTikIslem={onSekmeSagTikIslem}
+          baslatMenuAcik={menuAcik}
         />
 
         <div className="flex items-center gap-3 border-l border-[var(--ap-border)] px-4">
-          <button
-            type="button"
-            onClick={temaDegistir}
-            className="rounded-lg border border-[var(--ap-border)] px-2 py-1 text-sm transition hover:bg-[var(--ap-hover)]"
-            title={koyuMu ? 'Gündüz moduna geç' : 'Gece moduna geç'}
-          >
-            {koyuMu ? '☀️' : '🌙'}
-          </button>
           <button
             type="button"
             onClick={() => setProfilAcik(true)}
@@ -111,8 +114,9 @@ export function AdminHeader({
 
       <BaslatMenu
         acik={menuAcik}
-        onKapat={() => setMenuAcik(false)}
+        onKapat={() => menuAcikDegistir(false)}
         onModulSec={onModulSec}
+        baslatButonRef={baslatBtnRef}
       />
     </>
   );

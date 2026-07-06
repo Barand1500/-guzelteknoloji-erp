@@ -21,6 +21,11 @@ import { SagTikPanelProvider } from '@/baglamlar/SagTikPanelContext';
 import { AdminSagTikMenu } from '@/admin/kabuk/sag-tik/AdminSagTikMenu';
 import { PanelDilKabuk } from '@/admin/kabuk/PanelDilKabuk';
 import { sekmeAyarlariOku, splitSekmeleriHesapla } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import {
+  kenarlikAyariOku,
+  kenarlikRenkCssDegiskeni,
+  type KenarlikRenkAyari,
+} from '@/admin/baslat-menusu/sistem/ayarlar/kenarlikRenkYardimci';
 import { sekmeOnizlemeSil } from '@/admin/kabuk/sekme-cubugu/sekmeOnizlemeOnbellek';
 import { sekmeOnizlemeGuncelle } from '@/admin/kabuk/sekme-cubugu/sekmeOnizlemeYakala';
 import { kisayolAyarlariOku, klavyeOlayiEslesir } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
@@ -64,6 +69,8 @@ function AdminPanelGovde() {
   const navigate = useNavigate();
   const aksiyonlar = useAksiyonCubugu(focusModulId);
   const [sekmeAyarlari, setSekmeAyarlari] = useState(sekmeAyarlariOku);
+  const [kenarlikAyar, setKenarlikAyar] = useState<KenarlikRenkAyari>(() => kenarlikAyariOku());
+  const [baslatMenuAcik, setBaslatMenuAcik] = useState(false);
   const [ayriPencereler, setAyriPencereler] = useState<AyriPencere[]>([]);
   const [rehberAcik, setRehberAcik] = useState(false);
   const [sekmeKapatOnay, setSekmeKapatOnay] = useState<{
@@ -87,6 +94,17 @@ function AdminPanelGovde() {
     window.addEventListener('ap-sekme-ayarlari-guncellendi', handler);
     return () => window.removeEventListener('ap-sekme-ayarlari-guncellendi', handler);
   }, []);
+
+  useEffect(() => {
+    const handler = () => setKenarlikAyar(kenarlikAyariOku());
+    window.addEventListener('ap-kenarlik-renk-guncellendi', handler);
+    return () => window.removeEventListener('ap-kenarlik-renk-guncellendi', handler);
+  }, []);
+
+  const panelStil = useMemo(
+    () => kenarlikRenkCssDegiskeni(kenarlikAyar, tema),
+    [kenarlikAyar, tema]
+  );
 
   const aktifSekme = sekmeler.find((s) => s.id === aktifSekmeId);
   const splitSekmeler = useMemo(
@@ -464,7 +482,11 @@ function AdminPanelGovde() {
 
   return (
     <SistemKesifProvider onModulAc={modulSecHandler}>
-    <div className="admin-panel flex h-screen min-h-0 w-full flex-col overflow-hidden" data-tema={tema}>
+    <div
+      className={`admin-panel flex h-screen min-h-0 w-full flex-col overflow-hidden${kenarlikAyar.neon ? ' admin-panel--kenarlik-neon' : ''}`}
+      data-tema={tema}
+      style={panelStil}
+    >
       <AdminHeader
         sekmeler={sekmeler}
         aktifSekmeId={aktifSekmeId}
@@ -476,6 +498,8 @@ function AdminPanelGovde() {
         onModulSec={modulAcHandler}
         onSekmeAyir={sekmeAyarlari.surukleAyirPencere ? sekmeAyir : undefined}
         onSekmeSagTikIslem={sekmeSagTikIslemHandler}
+        baslatMenuAcik={baslatMenuAcik}
+        onBaslatMenuAcikDegistir={setBaslatMenuAcik}
       />
 
       <main className="ap-scroll flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--ap-bg)]">

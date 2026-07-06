@@ -125,6 +125,8 @@ export async function sistemAyarlariYanitOlustur(surum: string) {
       bakimTahminiSure: String(bakim.tahminiSure ?? ''),
       bakimIpBeyazListe: Array.isArray(bakim.ipBeyazListe) ? bakim.ipBeyazListe : [],
       logSaklamaGun: Number(ayarlar.logSaklamaGun ?? 90),
+      kenarlikRenk: String(ayarlar.kenarlikRenk ?? 'mavi'),
+      kenarlikNeon: Boolean(ayarlar.kenarlikNeon),
       panelDili: String(ayarlar.panelDili ?? 'tr'),
       panelCeviriler: ayarlar.panelCeviriler ?? {},
       sayfa404: {

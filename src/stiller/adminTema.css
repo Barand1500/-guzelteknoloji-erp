@@ -1305,6 +1305,318 @@ html:has(.admin-panel[data-tema='acik']) body {
   z-index: 40;
   flex-shrink: 0;
   width: 100%;
+  overflow: visible;
+  --ap-aksiyon-kenarlik-kalinlik: 5px;
+}
+
+.ap-gorev-cubugu-ust-cizgi {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 6;
+  overflow: visible;
+}
+
+.ap-gorev-cubugu-ust-cizgi-yol {
+  stroke: var(--ap-accent);
+  stroke-width: var(--ap-aksiyon-kenarlik-kalinlik);
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+
+.ap-gorev-cubugu-ust-cizgi-yol--anim {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ap-kenarlik-ciz 0.75s ease-out forwards;
+}
+
+.ap-gorev-cubugu-ust-cizgi-yol--sabit {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+
+.ap-gorev-cubugu--panel-acik .ap-alt-panel--kenarlik-anim,
+.ap-gorev-cubugu--panel-acik .ap-takvim-panel--kenarlik-anim {
+  border-color: transparent !important;
+  border-radius: 0.625rem 0.625rem 0 0;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.ap-kenarlik-anim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.ap-kenarlik-anim-yol {
+  stroke: var(--ap-accent);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ap-kenarlik-ciz 0.65s ease-out forwards;
+}
+
+.ap-kenarlik-anim-yol--sabit {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+
+.admin-panel--kenarlik-neon .ap-kenarlik-anim-yol,
+.admin-panel--kenarlik-neon .ap-baslat-kenarlik-yol {
+  filter: var(--ap-accent-neon-filter);
+}
+
+.admin-panel--kenarlik-neon .ap-gorev-cubugu-ust-cizgi-yol {
+  filter: var(--ap-accent-neon-filter);
+}
+
+.admin-panel--kenarlik-neon .ap-tray-ikon-aktif,
+.admin-panel--kenarlik-neon .ap-tray-bildirim-btn.ap-tray-ikon-aktif {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ap-accent) 45%, transparent);
+}
+
+.admin-panel--kenarlik-neon .ap-alt-panel-link,
+.admin-panel--kenarlik-neon .ap-sekme-aktif {
+  text-shadow: 0 0 10px color-mix(in srgb, var(--ap-accent) 85%, transparent);
+}
+
+@keyframes ap-kenarlik-ciz {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ap-sekme-tab--kenarlik-aktif {
+  z-index: 2;
+  border-color: transparent !important;
+  overflow: visible;
+}
+
+.ap-sekme-scroll:has(.ap-sekme-tab--kenarlik-aktif) {
+  overflow-y: visible;
+}
+
+.admin-panel .ap-header:has(.ap-sekme-tab--kenarlik-aktif) {
+  overflow: visible;
+}
+
+.ap-baslat-kenarlik-svg {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.ap-baslat-kenarlik-yol {
+  stroke: var(--ap-accent);
+  stroke-width: var(--ap-baslat-kenarlik-kalinlik, 2px);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ap-baslat-kenarlik-ciz 0.95s ease-out forwards;
+}
+
+.ap-baslat-kenarlik-yol--sabit {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+
+@keyframes ap-baslat-kenarlik-ciz {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ap-baslat-menu-dock--kenarlik-anim {
+  border-color: transparent !important;
+  border-top: none !important;
+}
+
+.ap-header--baslat-acik {
+  border-bottom-color: transparent;
+}
+
+.ap-baslat-menu-btn--dikdortgen {
+  height: 100%;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.ap-baslat-menu-btn--dikdortgen:hover {
+  background: var(--ap-hover);
+  color: var(--ap-heading);
+}
+
+.ap-baslat-menu-btn--dikdortgen-aktif {
+  border: 1px solid var(--ap-border);
+  border-bottom: none;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  color: var(--ap-heading);
+}
+
+.ap-baslat-menu-btn--dikdortgen.ap-baslat-menu-btn--kenarlik-aktif {
+  border-bottom: none !important;
+  border-color: transparent;
+  background: var(--ap-surface);
+  z-index: 50;
+}
+
+.ap-baslat-menu-dock--bagli {
+  border-radius: 0 0.75rem 0.75rem 0.75rem;
+}
+
+.ap-alt-panel--kenarlik-anim {
+  border-color: transparent !important;
+}
+
+.ap-takvim-panel--kenarlik-anim {
+  border-color: transparent !important;
+}
+
+.ap-kenarlik-neon-toggle.ap-toggle-on {
+  background: var(--ap-accent);
+}
+
+.ap-ozel-renk-panel {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.65rem);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  animation: ap-ozel-renk-giris 0.18s ease-out;
+}
+
+@keyframes ap-ozel-renk-giris {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ap-ozel-renk-teker {
+  position: relative;
+  flex-shrink: 0;
+  touch-action: none;
+  user-select: none;
+}
+
+.ap-ozel-renk-teker-halka {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #ef4444,
+    #f97316,
+    #eab308,
+    #22c55e,
+    #06b6d4,
+    #3b82f6,
+    #8b5cf6,
+    #ec4899,
+    #ef4444
+  );
+  mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 13px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 13px));
+}
+
+.ap-ozel-renk-sl {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  background-image:
+    linear-gradient(to top, #000, transparent),
+    linear-gradient(to right, #fff, transparent);
+  background-blend-mode: multiply;
+}
+
+.ap-ozel-renk-imlec {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.25),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ap-ozel-renk-imlec--teker {
+  width: 16px;
+  height: 16px;
+}
+
+.ap-ozel-renk-imlec--sl {
+  width: 14px;
+  height: 14px;
+}
+
+.ap-ozel-renk-alt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.ap-ozel-renk-onizleme {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.ap-ozel-renk-hex {
+  flex: 1;
+  min-width: 0;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-input-bg);
+  padding: 0 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-text);
+  outline: none;
+}
+
+.ap-ozel-renk-hex:focus {
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 20%, transparent);
 }
 
 /* Alt aksiyon cubugu butonlari */
@@ -1726,13 +2038,27 @@ html:has(.admin-panel[data-tema='acik']) body {
   overflow: hidden;
 }
 
-.ap-sekme-scroll-track {
-  position: relative;
+.ap-sekme-scroll-rail {
   display: flex;
   min-width: 0;
   flex: 1;
-  align-items: flex-end;
+  align-items: stretch;
   overflow: hidden;
+}
+
+.ap-sekme-scroll-ayrac {
+  flex-shrink: 0;
+  width: 1px;
+  align-self: stretch;
+  margin: 0.25rem 0;
+  background: var(--ap-border);
+}
+
+.ap-sekme-scroll--ortada {
+  flex: 1;
+  min-width: 0;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
 }
 
 .ap-sekme-scroll {
@@ -1757,52 +2083,46 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-sekme-scroll-btn {
-  position: absolute;
-  z-index: 2;
-  top: 50%;
   display: flex;
-  height: 1.75rem;
-  width: 1.5rem;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  transform: translateY(-50%);
+  height: 2.5rem;
+  width: 2.25rem;
+  min-height: 2.5rem;
+  min-width: 2.25rem;
   border-radius: 0.375rem;
-  border: 1px solid var(--ap-border);
-  background: var(--ap-surface);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--ap-heading);
-  font-size: 1.125rem;
-  line-height: 1;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
-  transition: background-color 0.15s;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
 }
 
-.ap-sekme-scroll-btn:hover {
+.ap-sekme-scroll-btn--sabit {
+  align-self: center;
+  margin: 0 0.15rem;
+}
+
+.ap-sekme-scroll-btn--sabit:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+.ap-sekme-scroll-btn-ikon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.ap-sekme-scroll-btn:hover:not(:disabled) {
   background: var(--ap-hover);
+  border-color: color-mix(in srgb, var(--ap-accent) 25%, transparent);
 }
 
-.ap-sekme-scroll-sol {
-  left: 0;
-}
-
-.ap-sekme-scroll-sag {
-  right: 0;
-}
-
-.ap-sekme-scroll-wrap:has(.ap-sekme-arama) .ap-sekme-scroll-sag {
-  right: 0;
-}
-
-.ap-sekme-scroll-wrap .ap-sekme-scroll {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
-}
-
-.ap-sekme-scroll-wrap:has(.ap-sekme-scroll-sol) .ap-sekme-scroll {
-  padding-left: 1.75rem;
-}
-
-.ap-sekme-scroll-wrap:has(.ap-sekme-scroll-sag) .ap-sekme-scroll-track:has(.ap-sekme-scroll-sag) .ap-sekme-scroll {
-  padding-right: 1.75rem;
+.ap-sekme-scroll-btn:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .ap-sekme-onizleme-alan {
@@ -3930,24 +4250,14 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-rehber-cubuk-btn {
-  display: inline-flex;
-  height: 2rem;
-  width: 2rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, #22c55e 40%, var(--ap-border));
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: white;
-  box-shadow: 0 2px 8px rgb(34 197 94 / 0.3);
-  transition: transform 0.15s;
   flex-shrink: 0;
 }
 
-.ap-rehber-cubuk-btn:hover {
-  transform: scale(1.05);
+.ap-rehber-cubuk-soru {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  color: inherit;
 }
 
 .ap-rehber-float-legacy {
@@ -7171,6 +7481,11 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-baslat-menu-dock {
+  position: fixed;
+  left: 0;
+  top: 3rem;
+  z-index: 50;
+  max-height: calc(100vh - 3rem);
   border-radius: 0 0.75rem 0.75rem 0;
 }
 
@@ -7725,9 +8040,13 @@ html:has(.admin-panel[data-tema='acik']) body {
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
   line-height: 1.2;
+  border: none;
+  background: transparent;
+  cursor: pointer;
 }
 
-.ap-saat-btn:hover {
+.ap-saat-btn:hover,
+.ap-saat-btn--aktif {
   background: var(--ap-hover);
 }
 
@@ -7735,6 +8054,8 @@ html:has(.admin-panel[data-tema='acik']) body {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--ap-heading);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 .ap-saat-tarih {

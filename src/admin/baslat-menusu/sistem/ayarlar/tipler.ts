@@ -1,6 +1,7 @@
 import type { SagTikPanelAyarlari } from '@/admin/ortak/tipler/sagTikPaneli';
 import { VARSAYILAN_SAG_TIK_PANEL } from '@/admin/ortak/tipler/sagTikPaneli';
 import { sagTikPanelNormalize } from '@/admin/baslat-menusu/sistem/ayarlar/yardimci-sag-tik';
+import { kenarlikAyariNormalize, type KenarlikRenkAyari } from '@/admin/baslat-menusu/sistem/ayarlar/kenarlikRenkYardimci';
 import { VARSAYILAN_YEDEKLEME_FORMATI, yedeklemeFormatiNormalize, type YedeklemeFormati } from '@/types/yedekleme';
 
 export type Sayfa404MenuTipi = 'ust' | 'footer' | 'her-ikisi' | 'yok';
@@ -19,6 +20,8 @@ export const varsayilanScriptAyarlari: ScriptAyarlari = {
   footerScript: '',
 };
 
+export type { KenarlikRenkAyari };
+
 export interface SistemAyarlariJson {
   bakimModu?: boolean;
   bakimMesaji?: string;
@@ -26,6 +29,8 @@ export interface SistemAyarlariJson {
   bakimGorselUrl?: string;
   bakimTahminiSure?: string;
   logSaklamaGun?: number;
+  kenarlikRenk?: string;
+  kenarlikNeon?: boolean;
   panelDili?: string;
   panelCeviriler?: Record<string, Record<string, string>>;
   sayfa404?: Partial<Sayfa404Ayarlari>;
@@ -56,6 +61,8 @@ export interface SistemAyarlariForm {
   bakimTahminiSure: string;
   bakimIpBeyazListe: string[];
   logSaklamaGun: number;
+  kenarlikRenk: string;
+  kenarlikNeon: boolean;
   panelDili: string;
   panelCeviriler: Record<string, Record<string, string>>;
   sayfa404: Sayfa404Ayarlari;
@@ -115,6 +122,8 @@ export const bosSistemForm: SistemAyarlariForm = {
   bakimTahminiSure: '',
   bakimIpBeyazListe: [],
   logSaklamaGun: 90,
+  kenarlikRenk: 'mavi',
+  kenarlikNeon: false,
   panelDili: 'tr',
   panelCeviriler: {},
   sayfa404: { ...varsayilanSayfa404 },
@@ -141,6 +150,8 @@ export function sistemdenForm(
     bakimTahminiSure: sistem.bakimTahminiSure ?? '',
     bakimIpBeyazListe: sistem.bakimIpBeyazListe ?? [],
     logSaklamaGun: sistem.logSaklamaGun ?? 90,
+    kenarlikRenk: kenarlikAyariNormalize(sistem.kenarlikRenk, sistem.kenarlikNeon).renk,
+    kenarlikNeon: kenarlikAyariNormalize(sistem.kenarlikRenk, sistem.kenarlikNeon).neon,
     panelDili: sistem.panelDili ?? 'tr',
     panelCeviriler: sistem.panelCeviriler ?? {},
     sayfa404: { ...varsayilanSayfa404, ...sistem.sayfa404 },
