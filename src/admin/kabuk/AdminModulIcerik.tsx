@@ -5,6 +5,7 @@ import { KullanicilarSayfasi } from '@/admin/baslat-menusu/musteri-ajans/kullani
 import { RollerSayfasi } from '@/admin/baslat-menusu/musteri-ajans/roller/sayfa';
 import { SekmeYonetimiSayfasi } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/sayfa';
 import { KisayolAyarlariSayfasi } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/sayfa';
+import { DatagridDemoSayfasi } from '@/admin/baslat-menusu/datagrid/demo/sayfa';
 import { ModulKabuk } from '@/baglamlar/ModulKabukContext';
 
 interface AdminModulIcerikProps {
@@ -36,6 +37,8 @@ function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
       return <SekmeYonetimiSayfasi />;
     case 'kisayol-ayarlari':
       return <KisayolAyarlariSayfasi />;
+    case 'datagrid-demo':
+      return <DatagridDemoSayfasi />;
     default:
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center">

@@ -36,6 +36,13 @@ export const adminModulleri: AdminModul[] = [
     kategori: 'Sistem',
     yol: '/gt-admin/kisayol-ayarlari',
   },
+  {
+    id: 'datagrid-demo',
+    baslik: 'Sipariş Tablosu',
+    ikon: '📊',
+    kategori: 'Datagrid',
+    yol: '/gt-admin/datagrid-demo',
+  },
 ];
 
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
@@ -58,7 +65,7 @@ export const adminGizliModuller: AdminModul[] = [
   },
 ];
 
-export const adminKategoriler = ['Müşteri / Ajans', 'Sistem'] as const;
+export const adminKategoriler = ['Müşteri / Ajans', 'Sistem', 'Datagrid'] as const;
 
 export function modulBul(id: string): AdminModul | undefined {
   return adminModulleri.find((m) => m.id === id) ?? adminGizliModuller.find((m) => m.id === id);
@@ -82,7 +89,7 @@ export function modulIdDenPrefix(modulId: string): string {
   return modulId.replace(/-/g, '_');
 }
 
-const PANEL_ALTYAPI_MODUL_IDLERI = new Set(['ayarlar', 'sekme-yonetimi', 'kisayol-ayarlari']);
+const PANEL_ALTYAPI_MODUL_IDLERI = new Set(['ayarlar', 'sekme-yonetimi', 'kisayol-ayarlari', 'datagrid-demo']);
 
 export function modulMenuGorunurMu(modulId: string, aktifPrefixler: Set<string> | null | undefined): boolean {
   if (PANEL_ALTYAPI_MODUL_IDLERI.has(modulId)) return true;
