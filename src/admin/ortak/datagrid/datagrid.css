@@ -188,14 +188,16 @@
   align-self: center;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  min-width: 3.25rem;
   white-space: nowrap;
   border: 1px solid var(--ap-border);
   border-radius: 0.5rem;
   background: var(--ap-surface);
   padding: 0.5rem 0.85rem;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   line-height: 1.2;
   color: var(--ap-text-muted);
   cursor: pointer;
@@ -208,11 +210,6 @@
   background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
 }
 
-.dg-urun-arama-geri-ok {
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
 .dg-urun-arama-liste {
   flex: 1 1 auto;
   min-height: 0;
@@ -220,48 +217,84 @@
   padding: 0.65rem;
 }
 
-.dg-urun-arama-oge {
-  display: grid;
-  grid-template-columns: minmax(5.5rem, auto) 1fr auto;
-  gap: 0.35rem 0.75rem;
-  align-items: center;
+.dg-urun-arama-tablo {
   width: 100%;
-  margin-bottom: 0.35rem;
-  border: 1px solid transparent;
-  border-radius: 0.65rem;
-  background: transparent;
-  padding: 0.7rem 0.8rem;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    background-color 0.15s,
-    transform 0.15s,
-    box-shadow 0.15s;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
 }
 
-.dg-urun-arama-oge:hover {
+.dg-urun-arama-th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-hover) 55%, var(--ap-surface));
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.dg-urun-arama-th:nth-child(4),
+.dg-urun-arama-th:nth-child(5),
+.dg-urun-arama-th:nth-child(6) {
+  text-align: right;
+}
+
+.dg-urun-arama-satir {
+  cursor: pointer;
+  transition: background-color 0.12s, box-shadow 0.12s;
+}
+
+.dg-urun-arama-satir:hover {
   background: var(--ap-hover);
 }
 
-.dg-urun-arama-oge--secili {
-  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+.dg-urun-arama-satir--secili {
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 20%, transparent);
-  transform: translateX(4px);
+  box-shadow: inset 3px 0 0 var(--ap-accent);
 }
 
-.dg-urun-arama-sku {
+.dg-urun-arama-hucre {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  color: var(--ap-text);
+  vertical-align: middle;
+}
+
+.dg-urun-arama-hucre--kod {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--ap-accent);
+  white-space: nowrap;
 }
 
-.dg-urun-arama-ad {
-  font-size: 0.875rem;
+.dg-urun-arama-hucre--ad {
   font-weight: 600;
   color: var(--ap-heading);
+  min-width: 10rem;
+}
+
+.dg-urun-arama-hucre--birim {
+  white-space: nowrap;
+  color: var(--ap-text-muted);
+  font-size: 0.75rem;
+}
+
+.dg-urun-arama-hucre--sayi {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dg-urun-arama-satir:last-child .dg-urun-arama-hucre {
+  border-bottom: none;
 }
 
 .dg-urun-arama-bos {
@@ -332,8 +365,8 @@
     transition: none;
   }
 
-  .dg-urun-arama-oge--secili {
-    transform: none;
+  .dg-urun-arama-satir--secili {
+    box-shadow: inset 3px 0 0 var(--ap-accent);
   }
 }
 
