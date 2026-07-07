@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import type { DataGridProps, HizliGirisApi, KolonTanimi } from './types';
+import type { DataGridCizgiModu, DataGridProps, HizliGirisApi, KolonTanimi } from './types';
 import { useDataGridState, satirlariIsle, sayfala } from './useDataGridState';
 import { ifadeHesapla } from './formulaYardimci';
 import { bosGosterim, csvIndir, paraFormatla, tarihFormatla, yuzdeFormatla } from './formatYardimci';
@@ -19,6 +19,13 @@ import './datagrid.css';
 
 const SAYFA_BOYUTLARI = [5, 10, 25, 50];
 
+const CIZGI_MODLARI: { mod: DataGridCizgiModu; ikon: 'cizgi-yok' | 'cizgi-yatay' | 'cizgi-dikey' | 'cizgi-tam'; title: string }[] = [
+  { mod: 'yok', ikon: 'cizgi-yok', title: 'Çizgisiz' },
+  { mod: 'yatay', ikon: 'cizgi-yatay', title: 'Yatay çizgiler' },
+  { mod: 'dikey', ikon: 'cizgi-dikey', title: 'Dikey çizgiler' },
+  { mod: 'tam', ikon: 'cizgi-tam', title: 'Tam ızgara' },
+];
+
 interface OdakHucre {
   satirId: string;
   kolonId: string;
@@ -26,6 +33,27 @@ interface OdakHucre {
 
 interface DuzenlemeHucre extends OdakHucre {
   hamDeger: string;
+}
+
+function DgKesilenHucre({
+  baslik,
+  alt,
+  kurSatir,
+}: {
+  baslik: string;
+  alt?: string;
+  kurSatir?: boolean;
+}) {
+  const tamMetin = [baslik, alt].filter(Boolean).join(' · ');
+  return (
+    <div className="dg-zengin-metin dg-tooltip-kabuk dg-kesilen-hucre">
+      <div className="dg-zengin-baslik">{baslik}</div>
+      {alt ? <div className={kurSatir ? 'dg-zengin-kur' : 'dg-zengin-alt'}>{alt}</div> : null}
+      <span className="dg-tooltip dg-tooltip--hucre" role="tooltip">
+        {tamMetin}
+      </span>
+    </div>
+  );
 }
 
 function HucreGoster<TRow>({
@@ -43,23 +71,12 @@ function HucreGoster<TRow>({
   switch (kolon.tip) {
     case 'zengin': {
       const z = deger as { baslik: string; alt?: string; kur?: string };
-      return (
-        <div className="dg-zengin-metin">
-          <div className="dg-zengin-baslik">{z.baslik}</div>
-          {z.alt && <div className="dg-zengin-alt">{z.alt}</div>}
-          {z.kur && <div className="dg-zengin-kur">{z.kur}</div>}
-        </div>
-      );
+      return <DgKesilenHucre baslik={z.baslik} alt={z.alt ?? z.kur} kurSatir={Boolean(z.kur)} />;
     }
     case 'birlesik': {
       const b = deger as { ust: string; alt?: string };
-      const kurSatir = b.alt?.includes('=') || b.alt?.startsWith('$');
-      return (
-        <div className="dg-zengin-metin">
-          <div className="dg-zengin-baslik">{b.ust}</div>
-          {b.alt && <div className={kurSatir ? 'dg-zengin-kur' : 'dg-zengin-alt'}>{b.alt}</div>}
-        </div>
-      );
+      const kurSatir = Boolean(b.alt?.includes('=') || b.alt?.startsWith('$'));
+      return <DgKesilenHucre baslik={b.ust} alt={b.alt} kurSatir={kurSatir} />;
     }
     case 'badge':
       return <span className="dg-rozet">{String(deger)}</span>;
@@ -128,6 +145,7 @@ export function DataGrid<TRow extends { id: string }>({
   hizliGirisInputSinif,
   hizliGirisInputPlaceholder,
   hizliGirisApiRef,
+  onSecimDegistir,
   hizliGirisOnizleme,
   kolonBaslikEki,
   satirSinifAdi,
@@ -138,7 +156,6 @@ export function DataGrid<TRow extends { id: string }>({
   const [duzenleme, setDuzenleme] = useState<DuzenlemeHucre | null>(null);
   const [satirPanel, setSatirPanel] = useState<TRow | null>(null);
   const [resize, setResize] = useState<{ kolonId: string; baslangicX: number; baslangicGenislik: number } | null>(null);
-  const [filtreAcik, setFiltreAcik] = useState(false);
   const [hizliGiris, setHizliGiris] = useState<Record<string, string>>(() => {
     const baslangic: Record<string, string> = {};
     for (const k of hizliGirisKolonlari ?? []) {
@@ -189,19 +206,15 @@ export function DataGrid<TRow extends { id: string }>({
       satirlariIsle(
         satirlar,
         kolonlar,
-        dg.filtreler,
         dg.siralama?.yon ? (dg.siralama as { kolonId: string; yon: 'asc' | 'desc' }) : null
       ),
-    [satirlar, kolonlar, dg.filtreler, dg.siralama]
+    [satirlar, kolonlar, dg.siralama]
   );
 
   const sayfalama = useMemo(
     () => sayfala(islenmis, dg.sayfa, dg.ayar.sayfaBoyutu),
     [islenmis, dg.sayfa, dg.ayar.sayfaBoyutu]
   );
-
-  const tumKolonlarSecimHaric = dg.gorunurKolonlar.filter((k) => k.id !== 'secim' && k.id !== 'islemler');
-  const filtreVarMi = tumKolonlarSecimHaric.some((k) => k.filtre);
 
   const sabitLeftMap = useMemo(() => {
     let left = 40;
@@ -251,7 +264,7 @@ export function DataGrid<TRow extends { id: string }>({
       ro.disconnect();
       window.removeEventListener('resize', guncelle);
     };
-  }, [dg.seciliIdler.size, filtreAcik, hata, hizliGirisGenisletildi, hizliGirisKartModu]);
+  }, [dg.seciliIdler.size, hata, hizliGirisGenisletildi, hizliGirisKartModu]);
 
   useLayoutEffect(() => {
     if (!theadRef.current) return;
@@ -260,7 +273,7 @@ export function DataGrid<TRow extends { id: string }>({
     const ro = new ResizeObserver(guncelle);
     ro.observe(theadRef.current);
     return () => ro.disconnect();
-  }, [filtreAcik, dg.gorunurKolonlar.length]);
+  }, [dg.gorunurKolonlar.length]);
 
   const sutunMenuKonumGuncelle = useCallback(() => {
     const rect = sutunTusRef.current?.getBoundingClientRect();
@@ -332,6 +345,18 @@ export function DataGrid<TRow extends { id: string }>({
     dg.setSayfa(0);
     requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
   }, [onHizliGiris, onHizliGirisEnter, hizliGirisKolonlari, hizliGiris, dg, hizliGirisSifirla]);
+
+  useEffect(() => {
+    onSecimDegistir?.([...dg.seciliIdler]);
+  }, [dg.seciliIdler, onSecimDegistir]);
+
+  useEffect(() => {
+    const mevcut = new Set(satirlar.map((s) => s.id));
+    const kalan = [...dg.seciliIdler].filter((id) => mevcut.has(id));
+    if (kalan.length !== dg.seciliIdler.size) {
+      dg.tumunuSec(kalan, kalan.length > 0);
+    }
+  }, [satirlar, dg.seciliIdler, dg.tumunuSec]);
 
   const hizliGirisApi = useMemo<HizliGirisApi>(
     () => ({
@@ -458,13 +483,6 @@ export function DataGrid<TRow extends { id: string }>({
       })
     );
     csvIndir(tabloBaslik.replace(/\s+/g, '-').toLowerCase(), basliklar, satirVeri);
-  };
-
-  const topluSil = () => {
-    if (!onSatirlarDegistir || !dg.seciliIdler.size) return;
-    if (!confirm(`${dg.seciliIdler.size} kayıt silinsin mi?`)) return;
-    onSatirlarDegistir(satirlar.filter((s) => !dg.seciliIdler.has(s.id)));
-    dg.secimiTemizle();
   };
 
   const topluDurum = (aktif: boolean) => {
@@ -613,10 +631,12 @@ export function DataGrid<TRow extends { id: string }>({
               );
             }
 
+            const kesilebilir = kolon.tip === 'birlesik' || kolon.tip === 'zengin';
+
             return (
               <td
                 key={kolon.id}
-                className={`dg-hucre dg-tooltip-kabuk${kolon.tip === 'etiket' ? ' dg-hucre--etiket' : ''}${sabit ? ' dg-hucre--sabit' : ''}${kolon.tip === 'para' || kolon.tip === 'sayi' || kolon.tip === 'iskonto' ? ' dg-hucre--sayi' : ''}${odakta ? ' dg-hucre--odak' : ''}`}
+                className={`dg-hucre${kesilebilir ? '' : ' dg-tooltip-kabuk'}${kolon.tip === 'etiket' ? ' dg-hucre--etiket' : ''}${kesilebilir ? ' dg-hucre--kesilebilir' : ''}${sabit ? ' dg-hucre--sabit' : ''}${kolon.tip === 'para' || kolon.tip === 'sayi' || kolon.tip === 'iskonto' ? ' dg-hucre--sayi' : ''}${odakta ? ' dg-hucre--odak' : ''}`}
                 style={{ width: genislik, minWidth: genislik, left: sabit ? left : undefined }}
                 tabIndex={0}
                 onKeyDown={(e) => klavyeNav(e, satir, kolonIdx)}
@@ -989,26 +1009,23 @@ export function DataGrid<TRow extends { id: string }>({
               <span>kayıt</span>
             </div>
             <span className="dg-arac-ayrac" />
-            <button
-              type="button"
-              className={`dg-tus dg-tus--ikonlu${dg.ayar.cizgilerAcik ? ' dg-tus-aktif' : ''}`}
-              onClick={dg.cizgiToggle}
-              title="Tablo çizgileri"
-            >
-              <DgIkon ad="cizgi" />
-              <span>Çizgi</span>
-            </button>
-            {filtreVarMi && (
-              <button
-                type="button"
-                className={`dg-tus dg-tus--ikonlu${filtreAcik ? ' dg-tus-aktif' : ''}`}
-                onClick={() => setFiltreAcik((a) => !a)}
-                title="Sütun filtreleri"
-              >
-                <DgIkon ad="filtre" />
-                <span>Filtre</span>
-              </button>
-            )}
+            <div className="dg-cizgi-grup">
+              <span className="dg-cizgi-etiket">Çizgi:</span>
+              <div className="dg-cizgi-secim" role="group" aria-label="Tablo çizgileri">
+                {CIZGI_MODLARI.map(({ mod, ikon, title }) => (
+                  <button
+                    key={mod}
+                    type="button"
+                    className={`dg-tus dg-tus-ikon${dg.ayar.cizgiModu === mod ? ' dg-tus-aktif' : ''}`}
+                    title={title}
+                    aria-pressed={dg.ayar.cizgiModu === mod}
+                    onClick={() => dg.cizgiModuAyarla(mod)}
+                  >
+                    <DgIkon ad={ikon} />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
         <div className="dg-ust-sag">
@@ -1071,9 +1088,6 @@ export function DataGrid<TRow extends { id: string }>({
           <button type="button" className="dg-tus" onClick={() => csvAktar(true)}>
             Dışa aktar
           </button>
-          <button type="button" className="dg-tus dg-tus-tehlike" onClick={topluSil}>
-            Sil
-          </button>
           <button type="button" className="dg-tus" onClick={dg.secimiTemizle}>
             Seçimi temizle
           </button>
@@ -1090,7 +1104,7 @@ export function DataGrid<TRow extends { id: string }>({
         ref={scrollRef}
         style={scrollYukseklik ? { height: scrollYukseklik, maxHeight: scrollYukseklik } : undefined}
       >
-        <table className={`dg-tablo${dg.ayar.cizgilerAcik ? ' dg-tablo--cizgili' : ' dg-tablo--cizgisiz'}`}>
+        <table className={`dg-tablo dg-tablo--cizgi-${dg.ayar.cizgiModu}`}>
           <thead ref={theadRef}>
             <tr className="dg-baslik-satir">
               {dg.gorunurKolonlar.map((kolon) => {
@@ -1171,22 +1185,6 @@ export function DataGrid<TRow extends { id: string }>({
                 );
               })}
             </tr>
-            {filtreVarMi && filtreAcik && (
-              <tr className="dg-filtre-satir">
-                {dg.gorunurKolonlar.map((kolon) => (
-                  <th key={`f-${kolon.id}`} className="dg-baslik-hucre">
-                    {kolon.filtre ? (
-                      <input
-                        className="dg-filtre-girdi"
-                        placeholder="Filtre..."
-                        value={dg.filtreler[kolon.id] ?? ''}
-                        onChange={(e) => dg.filtreAyarla(kolon.id, e.target.value)}
-                      />
-                    ) : null}
-                  </th>
-                ))}
-              </tr>
-            )}
           </thead>
           <tbody>
             {renderHizliGirisSatiri()}

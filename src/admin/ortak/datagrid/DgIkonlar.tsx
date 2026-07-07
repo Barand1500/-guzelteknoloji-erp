@@ -1,5 +1,5 @@
 interface DgIkonProps {
-  ad: 'cizgi' | 'filtre' | 'grup' | 'sutun' | 'indir' | 'tablo';
+  ad: 'cizgi-yok' | 'cizgi-yatay' | 'cizgi-dikey' | 'cizgi-tam' | 'grup' | 'sutun' | 'indir' | 'tablo';
   className?: string;
 }
 
@@ -15,22 +15,30 @@ export function DgIkon({ ad, className = '' }: DgIkonProps) {
   };
 
   switch (ad) {
-    case 'cizgi':
+    case 'cizgi-yok':
+      return (
+        <svg {...ortak}>
+          <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.25" />
+          <path d="M4.5 11.5 11.5 4.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+        </svg>
+      );
+    case 'cizgi-yatay':
+      return (
+        <svg {...ortak}>
+          <path d="M3 5h10M3 8h10M3 11h10" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+        </svg>
+      );
+    case 'cizgi-dikey':
+      return (
+        <svg {...ortak}>
+          <path d="M5 3v10M8 3v10M11 3v10" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+        </svg>
+      );
+    case 'cizgi-tam':
       return (
         <svg {...ortak}>
           <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
           <path d="M2 6.5h12M2 9.5h12M6 3v10M10 3v10" stroke="currentColor" strokeWidth="1" opacity="0.55" />
-        </svg>
-      );
-    case 'filtre':
-      return (
-        <svg {...ortak}>
-          <path
-            d="M2.5 3.5h11l-3.5 4v4l-4 2.5V7.5L2.5 3.5z"
-            stroke="currentColor"
-            strokeWidth="1.25"
-            strokeLinejoin="round"
-          />
         </svg>
       );
     case 'grup':

@@ -374,6 +374,42 @@
   opacity: 0.7;
 }
 
+.dg-cizgi-grup {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dg-cizgi-etiket {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ap-muted);
+  white-space: nowrap;
+}
+
+.dg-cizgi-secim {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.15rem;
+  border-radius: 0.5rem;
+  background: var(--ap-surface-2);
+  border: 1px solid color-mix(in srgb, var(--ap-border) 65%, transparent);
+}
+
+.dg-cizgi-secim .dg-tus-ikon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.dg-cizgi-secim .dg-tus-ikon .dg-svg-ikon {
+  opacity: 0.8;
+}
+
+.dg-cizgi-secim .dg-tus-ikon.dg-tus-aktif .dg-svg-ikon {
+  opacity: 1;
+}
+
 .dg-ikon-grup {
   display: flex;
   align-items: center;
@@ -532,18 +568,31 @@
   table-layout: fixed;
 }
 
+.dg-tablo--cizgi-tam .dg-hucre,
+.dg-tablo--cizgi-tam .dg-baslik-hucre,
 .dg-tablo--cizgili .dg-hucre,
 .dg-tablo--cizgili .dg-baslik-hucre {
   border-right: 1px solid color-mix(in srgb, var(--ap-border) 55%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 55%, transparent);
 }
 
-.dg-tablo--cizgisiz .dg-satir .dg-hucre {
+.dg-tablo--cizgi-yatay .dg-satir .dg-hucre,
+.dg-tablo--cizgi-yatay .dg-baslik-hucre {
   border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 35%, transparent);
 }
 
-.dg-tablo--cizgisiz .dg-satir:last-child .dg-hucre {
+.dg-tablo--cizgi-yatay .dg-satir:last-child .dg-hucre {
   border-bottom: none;
+}
+
+.dg-tablo--cizgi-dikey .dg-hucre,
+.dg-tablo--cizgi-dikey .dg-baslik-hucre {
+  border-right: 1px solid color-mix(in srgb, var(--ap-border) 55%, transparent);
+}
+
+.dg-tablo--cizgi-yok .dg-hucre,
+.dg-tablo--cizgi-yok .dg-baslik-hucre {
+  border: none;
 }
 
 .dg-baslik-satir {
@@ -632,20 +681,6 @@
   cursor: col-resize;
 }
 
-.dg-filtre-satir .dg-baslik-hucre {
-  padding: 0.2rem 0.35rem 0.35rem;
-}
-
-.dg-filtre-girdi {
-  width: 100%;
-  padding: 0.2rem 0.35rem;
-  border: 1px solid var(--ap-border);
-  border-radius: 0.2rem;
-  background: var(--ap-input-bg);
-  color: var(--ap-text);
-  font-size: 0.6875rem;
-}
-
 .dg-grup-satir .dg-hucre {
   padding: 0.3rem 0.45rem;
   background: var(--ap-surface-2);
@@ -714,6 +749,11 @@
   overflow: hidden;
 }
 
+.dg-hucre--kesilebilir {
+  max-width: 0;
+  overflow: hidden;
+}
+
 .dg-hucre--sabit {
   position: sticky;
   left: 0;
@@ -774,7 +814,14 @@
 /* Ürün hücresi — resimsiz */
 .dg-zengin-metin {
   min-width: 0;
+  width: 100%;
   overflow: hidden;
+}
+
+.dg-kesilen-hucre {
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
 .dg-zengin-baslik {
@@ -1192,6 +1239,21 @@
 
 .dg-tooltip-kabuk:hover .dg-tooltip { opacity: 1; }
 
+.dg-tooltip--hucre {
+  max-width: min(20rem, 92vw);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.2);
+}
+
+.dg-kesilen-hucre:hover .dg-tooltip--hucre {
+  opacity: 1;
+}
+
 .dg-skeleton-satir td { padding: 0.45rem; }
 
 .dg-skeleton-cubuk {
@@ -1582,7 +1644,7 @@
 }
 
 .dg-hizli-giris-hucre--birlesik {
-  min-width: 12rem;
+  min-width: 0 !important;
   padding-left: 0.65rem !important;
 }
 

@@ -24,6 +24,7 @@ import {
   type UrunKaydi,
   URUN_ARAMA_ALANLARI,
 } from './urunAramaYardimci';
+import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 
 
 
@@ -51,13 +52,11 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       genislik: 108,
       minGenislik: 88,
       zorunlu: true,
-      filtre: true,
       siralama: true,
       duzenlenebilir: true,
       degerAl: (s) => s.urun.sku,
       degerYaz: (s, d) => satirHesapla({ ...s, urun: { ...s.urun, sku: String(d).trim() || s.urun.sku } }),
       siralamaDegeri: (s) => s.urun.sku,
-      filtreDegeri: (s) => s.urun.sku,
       goster: (s) => <span className="dg-stok-kodu">{s.urun.sku}</span>,
     },
     {
@@ -65,15 +64,13 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       baslik: 'Ürün',
       tip: 'birlesik',
       genislik: 200,
-      minGenislik: 140,
-      filtre: true,
+      minGenislik: 88,
       siralama: true,
       duzenlenebilir: true,
       degerAl: (s) => ({ ust: s.urun.ad, alt: s.urun.kur }),
       degerYaz: (s, d) =>
         satirHesapla({ ...s, urun: { ...s.urun, ad: String(d).trim() || s.urun.ad } }),
       siralamaDegeri: (s) => s.urun.ad,
-      filtreDegeri: (s) => `${s.urun.sku} ${s.urun.ad}`,
     },
 
     {
@@ -88,8 +85,6 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       gruplama: true,
 
-      filtre: true,
-
       siralama: true,
 
       duzenlenebilir: true,
@@ -97,8 +92,6 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerAl: (s) => s.kategori,
 
       degerYaz: (s, d) => satirHesapla({ ...s, kategori: String(d).trim() || s.kategori }),
-
-      filtreDegeri: (s) => s.kategori,
 
       goster: (s) => <span className="dg-kategori-etiket">{s.kategori}</span>,
 
@@ -118,8 +111,6 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       formulaTip: 'sayi',
 
-      filtre: true,
-
       siralama: true,
 
       degerAl: (s) => s.miktar,
@@ -127,8 +118,6 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerYaz: (s, d) => satirHesapla({ ...s, miktar: Number(d) || 0 }),
 
       siralamaDegeri: (s) => s.miktar,
-
-      filtreDegeri: (s) => String(s.miktar),
 
       goster: (s) => (
 
@@ -158,8 +147,6 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       duzenlenebilir: true,
 
       formulaTip: 'sayi',
-
-      filtre: true,
 
       siralama: true,
 
@@ -381,11 +368,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       minGenislik: 64,
 
-      filtre: true,
-
       degerAl: (s) => s.etiketler,
-
-      filtreDegeri: (s) => s.etiketler.map((e) => e.metin).join(' '),
 
     },
 
@@ -399,15 +382,11 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       genislik: 108,
 
-      filtre: true,
-
       siralama: true,
 
       degerAl: (s) => s.kayitTarihi,
 
       siralamaDegeri: (s) => s.kayitTarihi,
-
-      filtreDegeri: (s) => s.kayitTarihi,
 
     },
 
@@ -488,6 +467,8 @@ export function DatagridDemoSayfasi() {
   const [aramaSorgusu, setAramaSorgusu] = useState('');
   const [aramaSonuclari, setAramaSonuclari] = useState<UrunKaydi[]>([]);
   const [seciliIndeks, setSeciliIndeks] = useState(0);
+  const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
+  const seciliSatirIdleriRef = useRef<string[]>([]);
   const hizliGirisApiRef = useRef<HizliGirisApi | null>(null);
 
   const kolonlar = useMemo(() => siparisKolonlari(), []);
@@ -558,6 +539,17 @@ export function DatagridDemoSayfasi() {
     },
     [aramayiAc]
   );
+
+  const seciliSatirlariSil = useCallback(() => {
+    const ids = seciliSatirIdleriRef.current;
+    if (!ids.length) return;
+    if (!confirm(`${ids.length} kayıt silinsin mi?`)) return;
+    setSatirlar((onceki) => onceki.filter((s) => !ids.includes(s.id)));
+    seciliSatirIdleriRef.current = [];
+    setSeciliSatirSayisi(0);
+  }, []);
+
+  useModulAksiyonlari({ sil: seciliSatirlariSil }, { sil: seciliSatirSayisi > 0 });
 
 
 
@@ -692,6 +684,11 @@ export function DatagridDemoSayfasi() {
         onKdvDahilDegistir={setKdvDahil}
 
         onSatirlarDegistir={setSatirlar}
+
+        onSecimDegistir={(ids) => {
+          seciliSatirIdleriRef.current = ids;
+          setSeciliSatirSayisi(ids.length);
+        }}
 
         onSatirGuncelle={(s) => satirHesapla(s, kdvDahil)}
 

@@ -24,7 +24,6 @@ export interface KolonTanimi<TRow> {
   zorunlu?: boolean;
   sabitSag?: boolean;
   siralama?: boolean;
-  filtre?: boolean;
   duzenlenebilir?: boolean;
   formulaTip?: 'sayi' | 'iskonto';
   gruplama?: boolean;
@@ -32,8 +31,9 @@ export interface KolonTanimi<TRow> {
   degerYaz?: (satir: TRow, deger: unknown) => TRow;
   goster?: (satir: TRow, deger: unknown) => ReactNode;
   siralamaDegeri?: (satir: TRow) => string | number;
-  filtreDegeri?: (satir: TRow) => string;
 }
+
+export type DataGridCizgiModu = 'yok' | 'yatay' | 'dikey' | 'tam';
 
 export interface DataGridAyar {
   kolonSirasi: string[];
@@ -41,7 +41,7 @@ export interface DataGridAyar {
   sabitlenmisKolonlar: string[];
   kolonGenislikleri: Record<string, number>;
   sayfaBoyutu: number;
-  cizgilerAcik: boolean;
+  cizgiModu: DataGridCizgiModu;
   gruplamaKolonId: string | null;
 }
 
@@ -105,6 +105,7 @@ export interface DataGridProps<TRow extends { id: string }> {
   hizliGirisInputSinif?: (alanId: string, deger: string) => string | undefined;
   hizliGirisInputPlaceholder?: (alanId: string, deger: string, varsayilan: string) => string;
   hizliGirisApiRef?: MutableRefObject<HizliGirisApi | null>;
+  onSecimDegistir?: (seciliIdler: string[]) => void;
   hizliGirisOnizleme?: (degerler: Record<string, string>) => Record<string, ReactNode>;
   hizliGirisModalAc?: (kolonId: string) => void;
   kolonBaslikEki?: (kolonId: string) => ReactNode | null;

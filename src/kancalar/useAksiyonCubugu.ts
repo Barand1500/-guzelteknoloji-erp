@@ -48,6 +48,7 @@ const MODUL_VARSAYILAN: Record<string, Partial<Record<StandartAksiyonId, Aksiyon
   'kisayol-ayarlari': { kaydet: a(true) },
   kullanicilar: { kaydet: a(true), ekle: a(), sil: a() },
   roller: { kaydet: a(), ekle: a(), sil: a() },
+  'datagrid-demo': { sil: { aktif: false } },
   loglar: { sil: a() },
 };
 
