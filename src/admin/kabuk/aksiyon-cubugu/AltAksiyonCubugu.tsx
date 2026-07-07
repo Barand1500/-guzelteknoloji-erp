@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { AksiyonButonu } from '@/admin/ortak/tipler/admin';
 import { AksiyonCubuguButon } from './AksiyonCubuguButon';
 import { GorevCubuguTray } from './GorevCubuguTray';
+import { CubukModulArama } from './CubukModulArama';
 import { SaatTakvimWidget } from '../alt-panel/SaatTakvimWidget';
 import { modulRehberBul } from '@/admin/veri/adminModulRehberleri';
 import { BildirimPaneli, useBildirimSayaci } from '../alt-panel/BildirimPaneli';
@@ -11,7 +12,6 @@ import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { useAdminTema } from '@/baglamlar/AdminTemaContext';
 import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
 import { sekmeAyarlariOku, type SekmePanelAyarlari } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
-import { SekmeCubuguArama } from '../sekme-cubugu/SekmeCubuguArama';
 import {
   AksiyonCubuguPanelProvider,
   AksiyonCubuguUstCizgiSlot,
@@ -84,11 +84,7 @@ function AltAksiyonCubuguGovde({
 
       <div className="ap-aksiyon-cubugu-sag relative flex shrink-0 items-center gap-2 border-l border-[var(--ap-border)] pl-3">
         {sekmeAyarlari.sekmeAramaAktif && onModulAc && (
-          <SekmeCubuguArama
-            gorunum={sekmeAyarlari.sekmeAramaGorunum}
-            konum="alt"
-            onModulSec={(modul) => onModulAc(modul.id)}
-          />
+          <CubukModulArama onModulSec={(modul) => onModulAc(modul.id)} />
         )}
         <button
           type="button"

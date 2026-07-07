@@ -6,6 +6,7 @@ import { BaslatMenu } from './baslat-menusu/BaslatMenu';
 import { UstSekmeCubugu } from './sekme-cubugu/UstSekmeCubugu';
 import type { AdminModul, AdminSekme } from '@/admin/ortak/tipler/admin';
 import type { SekmeSagTikIslem } from '@/admin/kabuk/sekme-cubugu/sekmeSagTikYardimci';
+import { sekmeAyarlariOku, sekmeTabCssDegiskenleri } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 
 interface AdminHeaderProps {
   sekmeler: AdminSekme[];
@@ -40,10 +41,12 @@ export function AdminHeader({
   const kesif = useSistemKesifOptional();
   const [menuAcikIc, setMenuAcikIc] = useState(false);
   const [profilAcik, setProfilAcik] = useState(false);
+  const [kareYerlesim, setKareYerlesim] = useState(() => sekmeAyarlariOku().sekmeYerlesim === 'kare');
   const baslatBtnRef = useRef<HTMLButtonElement>(null);
 
   const menuAcik = disBaslatMenuAcik ?? menuAcikIc;
   const menuAcikDegistir = onBaslatMenuAcikDegistir ?? setMenuAcikIc;
+  const headerStil = kareYerlesim ? sekmeTabCssDegiskenleri(sekmeAyarlariOku()) : undefined;
 
   useEffect(() => {
     kesif?.baslatMenuKaydet(
@@ -52,23 +55,36 @@ export function AdminHeader({
     );
   }, [kesif, menuAcikDegistir]);
 
+  useEffect(() => {
+    const guncelle = () => setKareYerlesim(sekmeAyarlariOku().sekmeYerlesim === 'kare');
+    window.addEventListener('ap-sekme-ayarlari-guncellendi', guncelle);
+    return () => window.removeEventListener('ap-sekme-ayarlari-guncellendi', guncelle);
+  }, []);
+
   const basHarf = kullanici?.ad?.charAt(0).toUpperCase() ?? '?';
 
   return (
     <>
       <header
-        className={`ap-header flex h-12 shrink-0 items-stretch border-b${menuAcik ? ' ap-header--baslat-acik' : ''}`}
+        className={`ap-header flex h-12 shrink-0 border-b ${kareYerlesim ? 'ap-header--sekme-kare items-end' : 'items-stretch'}${
+          menuAcik ? ' ap-header--baslat-acik' : ''
+        }`}
+        style={headerStil}
       >
         <button
           ref={baslatBtnRef}
           type="button"
           onClick={() => menuAcikDegistir(!menuAcik)}
-          className={`ap-baslat-menu-btn ap-baslat-menu-btn--dikdortgen relative flex w-14 shrink-0 items-center justify-center ${menuAcik ? 'ap-baslat-menu-btn--dikdortgen-aktif ap-baslat-menu-btn--kenarlik-aktif' : 'border-r border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'}`}
+          className={
+            kareYerlesim
+              ? `ap-baslat-menu-btn ap-baslat-menu-btn--kare relative shrink-0 ${menuAcik ? 'ap-baslat-menu-btn--kare-aktif ap-baslat-menu-btn--kenarlik-aktif' : ''}`
+              : `ap-baslat-menu-btn ap-baslat-menu-btn--dikdortgen relative flex w-14 shrink-0 items-center justify-center ${menuAcik ? 'ap-baslat-menu-btn--dikdortgen-aktif ap-baslat-menu-btn--kenarlik-aktif' : 'border-r border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'}`
+          }
           title="Başlat menüsü"
           data-ap-kesif="baslat-menu"
           aria-expanded={menuAcik}
         >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+          <svg viewBox="0 0 24 24" className={kareYerlesim ? 'ap-baslat-menu-btn-ikon' : 'h-5 w-5'} fill="currentColor" aria-hidden>
             <rect x="3" y="3" width="8" height="8" rx="1" />
             <rect x="13" y="3" width="8" height="8" rx="1" />
             <rect x="3" y="13" width="8" height="8" rx="1" />
@@ -116,6 +132,7 @@ export function AdminHeader({
         onKapat={() => menuAcikDegistir(false)}
         onModulSec={onModulSec}
         baslatButonRef={baslatBtnRef}
+        kareMod={kareYerlesim}
       />
     </>
   );

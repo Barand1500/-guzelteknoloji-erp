@@ -63,22 +63,36 @@ export function SekmeCubuguArama({ gorunum, onModulSec, konum = 'ust' }: SekmeCu
       }`}
     >
       {gorunum === 'ikon' ? (
-        <button
-          type="button"
-          className="ap-sekme-arama-ikon-btn"
-          onClick={() => {
-            setAcik((v) => !v);
-            if (!acik) setTimeout(() => inputRef.current?.focus(), 0);
-          }}
-          title="Modül ara"
-          aria-label="Modül ara"
-          aria-expanded={acik}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M20 20l-3-3" strokeLinecap="round" />
-          </svg>
-        </button>
+        <div className="ap-sekme-arama-ikon-satir">
+          {acik && (
+            <div className="ap-sekme-arama-ikon-giris">
+              <input
+                ref={inputRef}
+                type="search"
+                value={arama}
+                onChange={(e) => setArama(e.target.value)}
+                placeholder="Modül ara..."
+                className="ap-sekme-arama-input"
+              />
+            </div>
+          )}
+          <button
+            type="button"
+            className="ap-sekme-arama-ikon-btn"
+            onClick={() => {
+              setAcik((v) => !v);
+              if (!acik) setTimeout(() => inputRef.current?.focus(), 0);
+            }}
+            title="Modül ara"
+            aria-label="Modül ara"
+            aria-expanded={acik}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3-3" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
       ) : (
         <div className="ap-sekme-arama-input-kutu">
           <span className="ap-sekme-arama-input-ikon" aria-hidden>
@@ -105,21 +119,9 @@ export function SekmeCubuguArama({ gorunum, onModulSec, konum = 'ust' }: SekmeCu
 
       {gorunum === 'ikon' && acik && (
         <div className={`ap-sekme-arama-popup ${konum === 'alt' ? 'ap-sekme-arama-popup--alt' : ''}`}>
-          <div className="ap-arama ap-sekme-arama-popup-arama">
-            <div className="ap-arama-input-wrap">
-              <span className="ap-arama-ikon">🔍</span>
-              <input
-                ref={inputRef}
-                type="search"
-                value={arama}
-                onChange={(e) => setArama(e.target.value)}
-                placeholder="Modül ara..."
-                className="ap-arama-input ap-sekme-arama-popup-input"
-                autoFocus
-              />
-            </div>
+          <div className="ap-sekme-arama-popup-sonuclar">
+            <AramaSonuclari sonuclar={sonuclar} arama={arama} onSec={modulSec} t={t} />
           </div>
-          <AramaSonuclari sonuclar={sonuclar} arama={arama} onSec={modulSec} t={t} />
         </div>
       )}
 

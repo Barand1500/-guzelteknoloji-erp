@@ -3,6 +3,7 @@ import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 import { modulBul } from '@/admin/veri/adminMenuYapisi';
 import {
   sekmeAyarlariOku,
+  sekmeTabCssDegiskenleri,
   type SekmePanelAyarlari,
 } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 import { SekmeHoverOnizleme } from './SekmeHoverOnizleme';
@@ -163,42 +164,69 @@ function SekmeButonu({
         onHoverBitir?.();
       }}
       title={hoverOnizleme ? undefined : sekme.baslik}
-      className={`ap-sekme-tab group relative flex max-w-[200px] shrink-0 cursor-grab items-center rounded-t-md border border-b-0 active:cursor-grabbing ${
-        yerlesim === 'kare' ? 'ap-sekme-tab--kare max-w-none' : ''
-      } ${
-        gruplu ? 'rounded-none first:rounded-tl-md last:rounded-tr-md' : ''
-      } ${
-        sekmeVurgulu
-          ? 'ap-sekme-tab--kenarlik-aktif border-[var(--ap-border)] bg-[var(--ap-tab-active)] text-[var(--ap-heading)] shadow-sm'
-          : aktif
-            ? 'border-[var(--ap-border)] bg-[var(--ap-tab-active)] text-[var(--ap-heading)] shadow-sm'
-            : 'border-transparent bg-[var(--ap-tab-idle)] text-[var(--ap-text-muted)] hover:bg-[var(--ap-hover)]'
+      className={`ap-sekme-tab group relative shrink-0 cursor-grab active:cursor-grabbing ${
+        yerlesim === 'kare'
+          ? `ap-sekme-kare-tab flex shrink-0 flex-col items-center justify-center rounded-lg border ${
+              sekmeVurgulu
+                ? 'ap-sekme-kare-tab-aktif ap-sekme-tab--kenarlik-aktif border-[var(--ap-border)] bg-[color-mix(in_srgb,var(--ap-accent)_10%,var(--ap-surface))] text-[var(--ap-heading)]'
+                : 'border-[var(--ap-border)] bg-[var(--ap-tab-idle)] text-[var(--ap-text-muted)] hover:bg-[var(--ap-hover)]'
+            }`
+          : `flex max-w-[200px] items-center rounded-t-md border border-b-0 ${
+              gruplu ? 'rounded-none first:rounded-tl-md last:rounded-tr-md' : ''
+            } ${
+              sekmeVurgulu
+                ? 'ap-sekme-tab--kenarlik-aktif border-[var(--ap-border)] bg-[var(--ap-tab-active)] text-[var(--ap-heading)] shadow-sm'
+                : aktif
+                  ? 'border-[var(--ap-border)] bg-[var(--ap-tab-active)] text-[var(--ap-heading)] shadow-sm'
+                  : 'border-transparent bg-[var(--ap-tab-idle)] text-[var(--ap-text-muted)] hover:bg-[var(--ap-hover)]'
+            }`
       } ${tasinan ? 'opacity-50' : ''} ${
         hedef && dropMod === 'grup' ? 'ap-sekme-drop-grup' : ''
       } ${hedef && dropMod === 'once' ? 'ap-sekme-drop-once' : ''} ${
         hedef && dropMod === 'sonra' ? 'ap-sekme-drop-sonra' : ''
       }`}
-      style={{ minHeight: 'var(--ap-tab-height, 2rem)', fontSize: 'var(--ap-tab-font-size, 0.75rem)' }}
+      style={
+        yerlesim === 'kare'
+          ? { fontSize: 'var(--ap-tab-font-size, 0.75rem)' }
+          : { minHeight: 'var(--ap-tab-height, 2rem)', fontSize: 'var(--ap-tab-font-size, 0.75rem)' }
+      }
     >
       {sekmeVurgulu && (
         <AnimasyonluKenarlik
           animasyonAnahtar={`${sekme.id}-${kenarlikAnimKey}`}
           kapsayiciRef={tabRef}
-          ustYaricap={6}
+          ustYaricap={yerlesim === 'kare' ? 8 : 6}
         />
       )}
       <button
         type="button"
         draggable={false}
-        className="ap-sekme-tab-sec flex min-h-[inherit] min-w-0 flex-1 cursor-pointer items-center gap-1 truncate px-3 py-1.5"
+        className={
+          yerlesim === 'kare'
+            ? 'ap-sekme-kare-tab-sec flex w-full min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 px-1.5 py-2 text-center'
+            : 'ap-sekme-tab-sec flex min-h-[inherit] min-w-0 flex-1 cursor-pointer items-center gap-1 truncate px-3 py-1.5'
+        }
         onMouseDown={sekmeSecTikla}
       >
         {sekme.kaydedilmedi && (
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" title="Kaydedilmemiş değişiklik" />
+          <span
+            className={`shrink-0 rounded-full bg-amber-400 ${yerlesim === 'kare' ? 'absolute right-1 top-1 h-1.5 w-1.5' : 'h-1.5 w-1.5'}`}
+            title="Kaydedilmemiş değişiklik"
+          />
         )}
-        {ikonGoster && <span className="shrink-0 text-sm leading-none">{ikon}</span>}
-        {isimGoster && <span className="truncate">{sekme.baslik}</span>}
-        {!isimGoster && !ikonGoster && <span className="truncate">{sekme.baslik}</span>}
+        {ikonGoster && (
+          <span className={`shrink-0 leading-none ${yerlesim === 'kare' ? 'ap-sekme-kare-tab-ikon' : 'text-sm'}`}>{ikon}</span>
+        )}
+        {isimGoster && (
+          <span className={yerlesim === 'kare' ? 'ap-sekme-kare-tab-isim line-clamp-2 w-full leading-tight' : 'truncate'}>
+            {sekme.baslik}
+          </span>
+        )}
+        {!isimGoster && !ikonGoster && (
+          <span className={yerlesim === 'kare' ? 'ap-sekme-kare-tab-isim line-clamp-2 w-full leading-tight' : 'truncate'}>
+            {sekme.baslik}
+          </span>
+        )}
       </button>
       {sekmelerUzunluk > 1 && (
         <button
@@ -208,10 +236,16 @@ function SekmeButonu({
             e.stopPropagation();
             onSekmeKapat(sekme.id);
           }}
-          className="mr-1 shrink-0 rounded px-1 text-sm leading-none opacity-60 transition hover:bg-[var(--ap-hover)] hover:opacity-100 group-hover:opacity-100"
+          className={yerlesim === 'kare' ? 'ap-sekme-kare-tab-kapat' : 'ap-sekme-tab-kapat'}
           aria-label="Sekmeyi kapat"
         >
-          ×
+          {yerlesim === 'kare' ? (
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path strokeLinecap="round" d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          ) : (
+            '×'
+          )}
         </button>
       )}
     </div>
@@ -240,6 +274,7 @@ export function UstSekmeCubugu({
   const scrollTrackRef = useRef<HTMLDivElement>(null);
   const [solOk, setSolOk] = useState(false);
   const [sagOk, setSagOk] = useState(false);
+  const kareMod = ayarlar.sekmeYerlesim === 'kare';
   const surukleBaslangic = useRef<{ x: number; y: number; id: string } | null>(null);
   const onizlemeAcTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onizlemeKapatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -323,13 +358,10 @@ export function UstSekmeCubugu({
     return () => window.removeEventListener('ap-sekme-ayarlari-guncellendi', handler);
   }, []);
 
-  const tabCss = useMemo(() => {
-    const h =
-      ayarlar.sekmeYukseklik === 'kucuk' ? '1.75rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '2.5rem' : '2rem';
-    const f =
-      ayarlar.sekmeYukseklik === 'kucuk' ? '0.6875rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '0.875rem' : '0.75rem';
-    return { '--ap-tab-height': h, '--ap-tab-font-size': f } as React.CSSProperties;
-  }, [ayarlar.sekmeYukseklik]);
+  const tabCss = useMemo(
+    () => sekmeTabCssDegiskenleri(ayarlar),
+    [ayarlar.sekmeYukseklik, ayarlar.sekmeGorunumModu, ayarlar.sekmeYerlesim]
+  );
 
   const ogeler = useMemo(() => sekmeleriGrupla(sekmeler), [sekmeler]);
 
@@ -476,7 +508,7 @@ export function UstSekmeCubugu({
 
   return (
     <div
-      className={`ap-sekme-scroll-wrap ${ayarlar.sekmeYerlesim === 'kare' ? 'ap-sekme-scroll-wrap--kare' : ''}`}
+      className={`ap-sekme-scroll-wrap ${kareMod ? 'ap-sekme-scroll-wrap--kare' : ''}`}
       style={tabCss}
       data-ap-kesif="sekme-cubugu"
     >
@@ -511,7 +543,11 @@ export function UstSekmeCubugu({
             return (
               <div
                 key={oge.grupId}
-                className="ap-sekme-grup flex shrink-0 items-end rounded-t-lg border border-b-0 border-[var(--ap-border)] bg-[var(--ap-tab-idle)] p-0.5 shadow-sm"
+                className={
+                  kareMod
+                    ? 'ap-sekme-grup ap-sekme-grup--kare flex shrink-0 items-center gap-1 rounded-lg border border-[var(--ap-border)] bg-[var(--ap-tab-idle)] p-1'
+                    : 'ap-sekme-grup flex shrink-0 items-end rounded-t-lg border border-b-0 border-[var(--ap-border)] bg-[var(--ap-tab-idle)] p-0.5 shadow-sm'
+                }
               >
                 {oge.sekmeler.map((sekme) => (
                   <SekmeButonu
