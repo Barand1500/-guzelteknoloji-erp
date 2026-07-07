@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { AdminModulKabuk, AdminPanelKarti } from '@/admin/ortak/AdminBilesenleri';
-import { UstSekmeCubugu } from '@/admin/kabuk/sekme-cubugu/UstSekmeCubugu';
 import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 import {
   VARSAYILAN_SEKME_AYARLARI,
@@ -10,12 +9,6 @@ import {
   sekmeAyarlariOku,
   type SekmePanelAyarlari,
 } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
-
-const ORNEK_SEKMELER_BASLANGIC: AdminSekme[] = [
-  { id: 'o1', modulId: 'kullanicilar', baslik: 'Kullanıcılar' },
-  { id: 'o2', modulId: 'roller', baslik: 'Roller ve Yetkiler' },
-  { id: 'o3', modulId: 'ayarlar', baslik: 'Ayarlar' },
-];
 
 function ToggleSatir({
   etiket,
@@ -66,63 +59,10 @@ function ToggleSatir({
   );
 }
 
-function ornekSekmeTasi(
-  liste: AdminSekme[],
-  kaynakId: string,
-  hedefId: string,
-  mod: 'once' | 'sonra'
-): AdminSekme[] {
-  if (kaynakId === hedefId) return liste;
-  let yeni = [...liste];
-  const kaynakIdx = yeni.findIndex((s) => s.id === kaynakId);
-  const hedefIdx = yeni.findIndex((s) => s.id === hedefId);
-  if (kaynakIdx < 0 || hedefIdx < 0) return liste;
-
-  const kaynak = yeni[kaynakIdx];
-  const hedef = yeni[hedefIdx];
-  if (kaynak.grupId && kaynak.grupId !== hedef.grupId) {
-    yeni[kaynakIdx] = { ...kaynak, grupId: undefined };
-  }
-
-  const guncelIdx = yeni.findIndex((s) => s.id === kaynakId);
-  const [tasinan] = yeni.splice(guncelIdx, 1);
-  let insertIdx = yeni.findIndex((s) => s.id === hedefId);
-  if (mod === 'sonra') insertIdx += 1;
-  yeni.splice(insertIdx, 0, tasinan);
-
-  if (tasinan.grupId) {
-    const kalan = yeni.filter((s) => s.grupId === tasinan.grupId);
-    if (kalan.length === 1) {
-      yeni = yeni.map((s) => (s.grupId === tasinan.grupId ? { ...s, grupId: undefined } : s));
-    }
-  }
-  return yeni;
-}
-
-function ornekSekmeBirlestir(liste: AdminSekme[], kaynakId: string, hedefId: string): AdminSekme[] {
-  if (kaynakId === hedefId) return liste;
-  const kaynak = liste.find((s) => s.id === kaynakId);
-  const hedef = liste.find((s) => s.id === hedefId);
-  if (!kaynak || !hedef) return liste;
-
-  const grupId = hedef.grupId ?? `grup-onizleme-${Date.now()}`;
-  let guncel = liste.map((s) =>
-    s.id === kaynakId || s.id === hedefId ? { ...s, grupId } : s
-  );
-  const kaynakIdx = guncel.findIndex((s) => s.id === kaynakId);
-  const [tasinan] = guncel.splice(kaynakIdx, 1);
-  const hedefIdx = guncel.findIndex((s) => s.id === hedefId);
-  guncel.splice(hedefIdx + 1, 0, tasinan);
-  return guncel;
-}
-
 export function SekmeYonetimiSayfasi() {
   const logMesajiAyarla = useAdminLogMesaji();
   const [ayarlar, setAyarlar] = useState<SekmePanelAyarlari>(() => sekmeAyarlariOku());
   const [sonKayitli, setSonKayitli] = useState<SekmePanelAyarlari>(() => sekmeAyarlariOku());
-  const [ornekSekmeler, setOrnekSekmeler] = useState<AdminSekme[]>(ORNEK_SEKMELER_BASLANGIC);
-  const [ornekAktif, setOrnekAktif] = useState('o1');
-
   const kirli = useMemo(() => JSON.stringify(ayarlar) !== JSON.stringify(sonKayitli), [ayarlar, sonKayitli]);
 
   const kaydet = useCallback(() => {
@@ -152,7 +92,7 @@ export function SekmeYonetimiSayfasi() {
       aciklama="Üst sekme çubuğunun boyutunu ve davranışını ayarlayın."
       onizleGoster={false}
     >
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+      <div className="mt-6">
         <AdminPanelKarti baslik="Sekme Ayarları" altBaslik="Değişiklikler Kaydet ile uygulanır">
           <div className="space-y-4">
             <p className="ap-muted rounded-lg border border-dashed border-[var(--ap-border)] px-3 py-2 text-xs leading-relaxed">
@@ -404,61 +344,12 @@ export function SekmeYonetimiSayfasi() {
               type="button"
               onClick={() => {
                 setAyarlar({ ...VARSAYILAN_SEKME_AYARLARI });
-                setOrnekSekmeler(ORNEK_SEKMELER_BASLANGIC);
-                setOrnekAktif('o1');
               }}
               className="text-xs text-blue-400 hover:underline"
             >
               Varsayılana sıfırla
             </button>
           </div>
-        </AdminPanelKarti>
-
-        <AdminPanelKarti baslik="Canlı Önizleme" altBaslik="Sürükleyerek deneyin — ortaya bırak birleştirir">
-          <div
-            className="ap-sekme-onizleme-alan rounded-lg border border-[var(--ap-border)] bg-[var(--ap-header-bg)] p-2"
-            style={{
-              ['--ap-tab-height' as string]:
-                ayarlar.sekmeYukseklik === 'kucuk' ? '1.75rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '2.5rem' : '2rem',
-              ['--ap-tab-font-size' as string]:
-                ayarlar.sekmeYukseklik === 'kucuk' ? '0.6875rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '0.875rem' : '0.75rem',
-              ['--ap-tab-kare' as string]: ayarlar.sekmeYerlesim === 'kare' ? '1' : '0',
-            }}
-          >
-            <UstSekmeCubugu
-              sekmeler={ornekSekmeler}
-              aktifSekmeId={ornekAktif}
-              onSekmeSec={setOrnekAktif}
-              onSekmeKapat={(id) => {
-                setOrnekSekmeler((s) => {
-                  const kalan = s.filter((x) => x.id !== id);
-                  if (ornekAktif === id) {
-                    setOrnekAktif(kalan[0]?.id ?? '');
-                  }
-                  return kalan;
-                });
-              }}
-              onSekmeTasi={(k, h, mod) => setOrnekSekmeler((s) => ornekSekmeTasi(s, k, h, mod))}
-              onSekmeBirlestir={(k, h) => setOrnekSekmeler((s) => ornekSekmeBirlestir(s, k, h))}
-              sekmeAyarlari={ayarlar}
-            />
-          </div>
-          <p className="ap-muted mt-3 text-xs">
-            Boyut: <strong>{ayarlar.sekmeYukseklik}</strong> · Görünüm:{' '}
-            <strong>{ayarlar.sekmeGorunumModu}</strong> · Yerleşim:{' '}
-            <strong>{ayarlar.sekmeYerlesim === 'kare' ? 'Kare' : 'Dikdörtgen'}</strong> · Önizleme:{' '}
-            <strong>Yakında</strong> · Split:{' '}
-            <strong>{ayarlar.yanYanaAcilabilir ? 'Açık' : 'Kapalı'}</strong> · Başlat menüsü:{' '}
-            <strong>{ayarlar.baslatMenuTasarim === 'modern' ? 'Modern' : 'Klasik'}</strong>
-            {ayarlar.baslatMenuTasarim === 'modern' && (
-              <>
-                {' '}
-                · Kategori:{' '}
-                <strong>{ayarlar.baslatMenuKategoriGorunum === 'dikdortgen' ? 'Dikdörtgen' : 'Kare'}</strong> ·
-                Kutu: <strong>{ayarlar.baslatMenuKutuBoyutu}</strong>
-              </>
-            )}
-          </p>
         </AdminPanelKarti>
       </div>
     </AdminModulKabuk>

@@ -1453,6 +1453,15 @@ html:has(.admin-panel[data-tema='acik']) body {
   overflow: visible;
 }
 
+.ap-header--sekme-kare .ap-header-sag {
+  align-items: flex-end;
+  gap: 0.35rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
+
 .ap-baslat-menu-btn--kare {
   display: flex;
   align-items: center;
@@ -5952,6 +5961,46 @@ html:has(.admin-panel[data-tema='acik']) body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ap-header--sekme-kare .ap-profil-btn--kare {
+  flex-direction: column;
+  justify-content: center;
+  width: var(--ap-sekme-kare-boyut, 4.25rem);
+  height: var(--ap-sekme-kare-boyut, 4.25rem);
+  min-width: var(--ap-sekme-kare-boyut, 4.25rem);
+  min-height: var(--ap-sekme-kare-boyut, 4.25rem);
+  padding: 0.2rem 0.0625rem;
+  gap: 0.1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  border-bottom: none;
+  background: var(--ap-tab-idle);
+  margin-bottom: 0;
+}
+
+.ap-header--sekme-kare .ap-profil-btn--kare:hover {
+  background: var(--ap-hover);
+}
+
+.ap-header--sekme-kare .ap-profil-btn--kare .ap-profil-avatar {
+  height: 1.375rem;
+  width: 1.375rem;
+  font-size: 0.625rem;
+  flex-shrink: 0;
+}
+
+.ap-header--sekme-kare .ap-profil-btn--kare .ap-profil-ad {
+  max-width: 100%;
+  padding: 0 0.0625rem;
+  font-size: var(--ap-tab-font-size, 0.6875rem);
+  font-weight: 500;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .ap-dash-ayar-btn {
