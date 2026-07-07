@@ -1,9 +1,13 @@
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 
+import { gecerliBirim, type BirimKodu } from './birimVeri';
+import { urunKoduAdiCozumle, type UrunKaydi } from './urunAramaYardimci';
+
 export interface SiparisSatiri {
   id: string;
   urun: { sku: string; ad: string; kur?: string };
   miktar: number;
+  birim: BirimKodu;
   fiyat: number;
   tutar: number;
   satirIskontoYuzde: number;
@@ -18,7 +22,6 @@ export interface SiparisSatiri {
   pb: string;
   etiketler: { metin: string; renk: 'mavi' | 'yesil' | 'mor' | 'turuncu' }[];
   durum: boolean;
-  kategori: string;
   kayitTarihi: string;
   guncellemeTarihi: string;
 }
@@ -47,18 +50,19 @@ function etiketleriAyikla(ham?: string) {
 
 export function yeniSiparisSatiriOlustur(
   degerler: Record<string, string>,
-  kdvDahil = false
+  kdvDahil = false,
+  urunKatalogu: UrunKaydi[] = []
 ): SiparisSatiri {
   const bugun = new Date().toISOString().slice(0, 10);
-  const sku = degerler.stokKodu?.trim() || 'YENİ-KOD';
-  const ad = degerler.urun?.trim() || 'Yeni ürün';
+  const urunCozum = urunKoduAdiCozumle(degerler.urunKoduAdi, urunKatalogu);
   const durumHam = degerler.durum ?? 'true';
 
   return satirHesapla(
     {
       id: `y-${Date.now()}`,
-      urun: { sku, ad },
+      urun: { sku: urunCozum.sku, ad: urunCozum.ad, kur: urunCozum.kur },
       miktar: sayiDeger(degerler.miktar, 1),
+      birim: gecerliBirim(degerler.birim),
       fiyat: sayiDeger(degerler.fiyat, 0),
       tutar: 0,
       satirIskontoYuzde: iskontoDeger(degerler.satirIskonto, 0),
@@ -73,7 +77,6 @@ export function yeniSiparisSatiriOlustur(
       pb: '₺',
       etiketler: etiketleriAyikla(degerler.etiketler),
       durum: durumHam === 'true' || durumHam === '1',
-      kategori: degerler.kategori?.trim() || 'Genel',
       kayitTarihi: bugun,
       guncellemeTarihi: bugun,
     },
@@ -128,6 +131,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     id: '1',
     urun: urun('DJI-MINI-4K', 'DJI Mini 4K Fly More Combo', '$ = 41,5548'),
     miktar: 1,
+    birim: 'ADET',
     fiyat: 28499,
     tutar: 0,
     satirIskontoYuzde: 0,
@@ -142,7 +146,6 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Drone', renk: 'mavi' }],
     durum: true,
-    kategori: 'Elektronik',
     kayitTarihi: '2026-03-15',
     guncellemeTarihi: '2026-03-18',
   }),
@@ -150,6 +153,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     id: '2',
     urun: urun('INSTA-X4', 'Insta360 X4 Standart Bundle', '$ = 41,5548'),
     miktar: 2,
+    birim: 'ADET',
     fiyat: 18999,
     tutar: 0,
     satirIskontoYuzde: 10,
@@ -167,7 +171,6 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
       { metin: 'Kampanya', renk: 'turuncu' },
     ],
     durum: true,
-    kategori: 'Elektronik',
     kayitTarihi: '2026-03-10',
     guncellemeTarihi: '2026-03-16',
   }),
@@ -175,6 +178,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     id: '3',
     urun: urun('GT-PRO-12', 'Güzel Teknoloji Pro Lisans (12 Ay)'),
     miktar: 1,
+    birim: 'PAKET',
     fiyat: 4990,
     tutar: 0,
     satirIskontoYuzde: 0,
@@ -189,7 +193,6 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Yazılım', renk: 'yesil' }],
     durum: false,
-    kategori: 'Yazılım',
     kayitTarihi: '2026-02-28',
     guncellemeTarihi: '2026-03-01',
   }),
@@ -197,6 +200,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     id: '4',
     urun: urun('LOGI-MX3', 'Logitech MX Master 3S'),
     miktar: 3,
+    birim: 'ADET',
     fiyat: 3299,
     tutar: 0,
     satirIskontoYuzde: 0,
@@ -211,7 +215,6 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Aksesuar', renk: 'mavi' }],
     durum: true,
-    kategori: 'Aksesuar',
     kayitTarihi: '2026-03-20',
     guncellemeTarihi: '2026-03-20',
   }),
@@ -219,6 +222,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     id: '5',
     urun: urun('SAM-T7-1TB', 'Samsung T7 Shield 1TB Taşınabilir SSD'),
     miktar: 1,
+    birim: 'KUTU',
     fiyat: 4599,
     tutar: 0,
     satirIskontoYuzde: 15,
@@ -233,7 +237,6 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Depolama', renk: 'mor' }],
     durum: true,
-    kategori: 'Aksesuar',
     kayitTarihi: '2026-03-12',
     guncellemeTarihi: '2026-03-14',
   }),

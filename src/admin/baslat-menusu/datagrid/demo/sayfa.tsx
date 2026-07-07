@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 
-import type { HizliGirisApi, HizliGirisEnterBaglami } from '@/admin/ortak/datagrid/types';
+import type { HizliGirisApi, HizliGirisEnterBaglami, DataGridApi } from '@/admin/ortak/datagrid/types';
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
@@ -12,25 +13,158 @@ import { paraFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { DEMO_SIPARIS_SATIRLARI, satirHesapla, yeniSiparisSatiriOlustur, type SiparisSatiri } from './demoVeri';
 
 import { SatirDuzenlePanel } from './SatirDuzenlePanel';
-import { KategoriYonetimModal } from './KategoriYonetimModal';
-import { BASLANGIC_KATEGORILER, kategoriSecenekleri, type DemoKategori } from './kategoriVeri';
+import { birimEtiketi, birimSecenekleri, gecerliBirim } from './birimVeri';
 import { UrunAramaSlayt } from './UrunAramaSlayt';
 import { URUN_KATALOGU } from './urunKatalogu';
 import {
-  hizliGirisUrunAlaniDolu,
   hizliGirisUrunSorgusu,
   urunleriAra,
   yuzdeAramaModu,
   type UrunKaydi,
   URUN_ARAMA_ALANLARI,
 } from './urunAramaYardimci';
-import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
+import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { DatagridSagTikMenu } from './DatagridSagTikMenu';
 
 
 
-const VARSAYILAN_GIZLI = ['kayit', 'guncelleme', 'pb'];
+const VARSAYILAN_GIZLI = ['kayit', 'guncelleme'];
 
+const URUN_TOOLTIP_AC_GECIKME_MS = 450;
+const URUN_TOOLTIP_KAPAT_GECIKME_MS = 120;
 
+function UrunKoduAdiHucre({ satir }: { satir: SiparisSatiri }) {
+  const ad = satir.urun.ad?.trim() ?? '';
+  const kod = satir.urun.sku?.trim() ?? '';
+  const [tooltipAcik, setTooltipAcik] = useState(false);
+  const [konum, setKonum] = useState({ top: 0, left: 0, genislik: 200 });
+  const kabukRef = useRef<HTMLDivElement>(null);
+  const adRef = useRef<HTMLSpanElement>(null);
+  const acZamanRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const kapatZamanRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const portalKok = useMemo(
+    () => document.querySelector('.admin-panel') ?? document.body,
+    []
+  );
+
+  const ikili = Boolean(ad && kod && ad.toLowerCase() !== kod.toLowerCase());
+
+  const konumGuncelle = useCallback(() => {
+    const el = kabukRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setKonum({ top: rect.top - 8, left: rect.left, genislik: Math.max(rect.width, 160) });
+  }, []);
+
+  const tooltipGerekli = useCallback(() => {
+    if (!ad && !kod) return false;
+    const adEl = adRef.current;
+    if (adEl && ad && adEl.scrollWidth > adEl.clientWidth + 1) return true;
+    return ikili;
+  }, [ad, kod, ikili]);
+
+  const tooltipAc = useCallback(() => {
+    if (kapatZamanRef.current) {
+      clearTimeout(kapatZamanRef.current);
+      kapatZamanRef.current = null;
+    }
+    if (acZamanRef.current) clearTimeout(acZamanRef.current);
+    if (!tooltipGerekli()) return;
+    acZamanRef.current = setTimeout(() => {
+      acZamanRef.current = null;
+      konumGuncelle();
+      setTooltipAcik(true);
+    }, URUN_TOOLTIP_AC_GECIKME_MS);
+  }, [konumGuncelle, tooltipGerekli]);
+
+  const tooltipKapatGecikmeli = useCallback(() => {
+    if (acZamanRef.current) {
+      clearTimeout(acZamanRef.current);
+      acZamanRef.current = null;
+    }
+    kapatZamanRef.current = setTimeout(() => setTooltipAcik(false), URUN_TOOLTIP_KAPAT_GECIKME_MS);
+  }, []);
+
+  const tooltipKapatIptal = useCallback(() => {
+    if (kapatZamanRef.current) {
+      clearTimeout(kapatZamanRef.current);
+      kapatZamanRef.current = null;
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (acZamanRef.current) clearTimeout(acZamanRef.current);
+      if (kapatZamanRef.current) clearTimeout(kapatZamanRef.current);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!tooltipAcik) return;
+    const yenile = () => konumGuncelle();
+    window.addEventListener('scroll', yenile, true);
+    window.addEventListener('resize', yenile);
+    return () => {
+      window.removeEventListener('scroll', yenile, true);
+      window.removeEventListener('resize', yenile);
+    };
+  }, [tooltipAcik, konumGuncelle]);
+
+  if (!ad && !kod) return <>—</>;
+
+  const icerik = ikili ? (
+    <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
+      <span ref={adRef} className="dg-urun-adi-ust">
+        {ad}
+      </span>
+      <span className="dg-urun-kodu-alt">{kod}</span>
+    </div>
+  ) : (
+    <span ref={adRef} className="dg-urun-adi-ust">
+      {ad || kod}
+    </span>
+  );
+
+  const tooltipPortal =
+    tooltipAcik &&
+    createPortal(
+      <div
+        className="dg-urun-hover-tooltip"
+        style={{
+          position: 'fixed',
+          top: konum.top,
+          left: konum.left,
+          minWidth: konum.genislik,
+          maxWidth: Math.min(360, window.innerWidth - konum.left - 12),
+          transform: 'translateY(-100%)',
+        }}
+        onMouseEnter={tooltipKapatIptal}
+        onMouseLeave={tooltipKapatGecikmeli}
+        role="tooltip"
+      >
+        {ad ? <span className="dg-urun-tooltip-ad">{ad}</span> : null}
+        {ikili ? <span className="dg-urun-tooltip-kod">{kod}</span> : null}
+      </div>,
+      portalKok
+    );
+
+  return (
+    <>
+      <div
+        ref={kabukRef}
+        className="dg-urun-kodu-adi-kabuk"
+        onMouseEnter={tooltipAc}
+        onMouseLeave={tooltipKapatGecikmeli}
+        onFocus={tooltipAc}
+        onBlur={tooltipKapatGecikmeli}
+      >
+        {icerik}
+      </div>
+      {tooltipPortal}
+    </>
+  );
+}
 
 function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
@@ -46,57 +180,25 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerAl: () => null,
     },
     {
-      id: 'stokKodu',
-      baslik: 'Stok Kodu',
-      tip: 'metin',
-      genislik: 108,
-      minGenislik: 88,
+      id: 'urunKoduAdi',
+      baslik: 'Ürün Adı/Kodu',
+      tip: 'birlesik',
+      genislik: 240,
+      minGenislik: 120,
       zorunlu: true,
       siralama: true,
       duzenlenebilir: true,
-      degerAl: (s) => s.urun.sku,
-      degerYaz: (s, d) => satirHesapla({ ...s, urun: { ...s.urun, sku: String(d).trim() || s.urun.sku } }),
-      siralamaDegeri: (s) => s.urun.sku,
-      goster: (s) => <span className="dg-stok-kodu">{s.urun.sku}</span>,
-    },
-    {
-      id: 'urun',
-      baslik: 'Ürün',
-      tip: 'birlesik',
-      genislik: 200,
-      minGenislik: 88,
-      siralama: true,
-      duzenlenebilir: true,
-      degerAl: (s) => ({ ust: s.urun.ad, alt: s.urun.kur }),
+      degerAl: (s) => ({ ust: s.urun.ad, alt: s.urun.sku }),
       degerYaz: (s, d) =>
         satirHesapla({ ...s, urun: { ...s.urun, ad: String(d).trim() || s.urun.ad } }),
-      siralamaDegeri: (s) => s.urun.ad,
+      birlesikDuzenle: {
+        altDegerAl: (s) => s.urun.sku,
+        altDegerYaz: (s, d) =>
+          satirHesapla({ ...s, urun: { ...s.urun, sku: String(d).trim() || s.urun.sku } }),
+      },
+      siralamaDegeri: (s) => `${s.urun.ad} ${s.urun.sku}`,
+      goster: (s) => <UrunKoduAdiHucre satir={s} />,
     },
-
-    {
-
-      id: 'kategori',
-
-      baslik: 'Kategori',
-
-      tip: 'metin',
-
-      genislik: 88,
-
-      gruplama: true,
-
-      siralama: true,
-
-      duzenlenebilir: true,
-
-      degerAl: (s) => s.kategori,
-
-      degerYaz: (s, d) => satirHesapla({ ...s, kategori: String(d).trim() || s.kategori }),
-
-      goster: (s) => <span className="dg-kategori-etiket">{s.kategori}</span>,
-
-    },
-
     {
 
       id: 'miktar',
@@ -119,17 +221,37 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       siralamaDegeri: (s) => s.miktar,
 
-      goster: (s) => (
+      goster: (s) => <span className="dg-rozet">{s.miktar}</span>,
 
-        <span className="dg-miktar">
+    },
 
-          <span className="dg-rozet">{s.miktar}</span>
+    {
 
-          <span className="dg-miktar-birim">ADET</span>
+      id: 'birim',
 
-        </span>
+      baslik: 'Birim',
 
-      ),
+      tip: 'badge',
+
+      genislik: 80,
+
+      minGenislik: 68,
+
+      zorunlu: true,
+
+      siralama: true,
+
+      duzenlenebilir: true,
+
+      secenekler: birimSecenekleri(),
+
+      degerAl: (s) => s.birim,
+
+      degerYaz: (s, d) => satirHesapla({ ...s, birim: gecerliBirim(String(d), s.birim) }),
+
+      siralamaDegeri: (s) => s.birim,
+
+      goster: (s) => <span className="dg-birim-etiket">{birimEtiketi(s.birim)}</span>,
 
     },
 
@@ -186,11 +308,11 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       id: 'satirIskonto',
 
-      baslik: 'Satır İsk.',
+      baslik: 'Satır İskontosu',
 
       tip: 'iskonto',
 
-      genislik: 84,
+      genislik: 108,
 
       duzenlenebilir: true,
 
@@ -201,11 +323,9 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerAl: (s) => ({ yuzde: s.satirIskontoYuzde, tutar: s.satirIskontoTutar }),
 
       degerYaz: (s, d) => {
-
-        const yuzde = typeof d === 'number' ? d : Number(d);
-
+        const yuzde =
+          typeof d === 'number' ? d : ifadeHesapla(String(d), 'iskonto') ?? parseFloat(String(d).replace(',', '.')) ?? 0;
         return satirHesapla({ ...s, satirIskontoYuzde: yuzde });
-
       },
 
       siralamaDegeri: (s) => s.satirIskontoYuzde,
@@ -216,11 +336,11 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       id: 'netTutar',
 
-      baslik: 'Net',
+      baslik: 'Net Tutar',
 
       tip: 'para',
 
-      genislik: 88,
+      genislik: 96,
 
       siralama: true,
 
@@ -234,11 +354,11 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       id: 'altIskonto',
 
-      baslik: 'Alt İsk.',
+      baslik: 'Alt İskonto',
 
       tip: 'iskonto',
 
-      genislik: 84,
+      genislik: 96,
 
       duzenlenebilir: true,
 
@@ -249,11 +369,9 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerAl: (s) => ({ yuzde: s.altIskontoYuzde, tutar: s.altIskontoTutar }),
 
       degerYaz: (s, d) => {
-
-        const yuzde = typeof d === 'number' ? d : Number(d);
-
+        const yuzde =
+          typeof d === 'number' ? d : ifadeHesapla(String(d), 'iskonto') ?? parseFloat(String(d).replace(',', '.')) ?? 0;
         return satirHesapla({ ...s, altIskontoYuzde: yuzde });
-
       },
 
       siralamaDegeri: (s) => s.altIskontoYuzde,
@@ -264,11 +382,11 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       id: 'gercekToplam',
 
-      baslik: 'Gerçek',
+      baslik: 'Gerçek Tutar',
 
       tip: 'para',
 
-      genislik: 88,
+      genislik: 100,
 
       siralama: true,
 
@@ -297,11 +415,9 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerAl: (s) => ({ yuzde: s.toplamKdvYuzde, tutar: s.toplamKdvTutar }),
 
       degerYaz: (s, d) => {
-
-        const yuzde = typeof d === 'number' ? d : Number(d);
-
+        const yuzde =
+          typeof d === 'number' ? d : ifadeHesapla(String(d), 'sayi') ?? parseFloat(String(d).replace(',', '.')) ?? s.toplamKdvYuzde;
         return satirHesapla({ ...s, toplamKdvYuzde: Number.isFinite(yuzde) ? yuzde : s.toplamKdvYuzde });
-
       },
 
       goster: (s) => (
@@ -339,20 +455,6 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerAl: (s) => s.toplamTutar,
 
       siralamaDegeri: (s) => s.toplamTutar,
-
-    },
-
-    {
-
-      id: 'pb',
-
-      baslik: 'PB',
-
-      tip: 'metin',
-
-      genislik: 36,
-
-      degerAl: (s) => s.pb,
 
     },
 
@@ -456,10 +558,6 @@ export function DatagridDemoSayfasi() {
 
   const [satirlar, setSatirlar] = useState<SiparisSatiri[]>(DEMO_SIPARIS_SATIRLARI);
 
-  const [kategoriler, setKategoriler] = useState<DemoKategori[]>(BASLANGIC_KATEGORILER);
-
-  const [kategoriModalAcik, setKategoriModalAcik] = useState(false);
-
   const [kdvDahil, setKdvDahil] = useState(true);
 
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -470,10 +568,11 @@ export function DatagridDemoSayfasi() {
   const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
   const seciliSatirIdleriRef = useRef<string[]>([]);
   const hizliGirisApiRef = useRef<HizliGirisApi | null>(null);
+  const gridApiRef = useRef<DataGridApi | null>(null);
+  const sayfaRef = useRef<HTMLDivElement>(null);
+  const logMesajiAyarla = useAdminLogMesaji();
 
   const kolonlar = useMemo(() => siparisKolonlari(), []);
-
-  const kategoriListe = useMemo(() => kategoriSecenekleri(kategoriler), [kategoriler]);
 
   const gorunurSatirlar = useMemo(
     () => satirlar.map((s) => satirHesapla(s, kdvDahil)),
@@ -482,7 +581,7 @@ export function DatagridDemoSayfasi() {
 
   const hizliGirisOnizleme = useCallback(
     (degerler: Record<string, string>) => {
-      const s = yeniSiparisSatiriOlustur(degerler, kdvDahil);
+      const s = yeniSiparisSatiriOlustur(degerler, kdvDahil, URUN_KATALOGU);
       return {
         tutar: paraFormatla(s.tutar),
         netTutar: paraFormatla(s.netTutar),
@@ -502,6 +601,12 @@ export function DatagridDemoSayfasi() {
     setSlaytMod('arama');
   }, []);
 
+  const aramaSorgusuDegistir = useCallback((sorgu: string) => {
+    setAramaSorgusu(sorgu);
+    setAramaSonuclari(urunleriAra(URUN_KATALOGU, sorgu));
+    setSeciliIndeks(0);
+  }, []);
+
   const aramayiKapat = useCallback(() => {
     setSlaytMod('tablo');
     setAramaSorgusu('');
@@ -515,10 +620,9 @@ export function DatagridDemoSayfasi() {
       const mevcut = hizliGirisApiRef.current?.degerler ?? {};
       const degerler = {
         ...mevcut,
-        stokKodu: urun.sku,
-        urun: urun.ad,
+        urunKoduAdi: urun.sku,
       };
-      const yeni = yeniSiparisSatiriOlustur(degerler, kdvDahil);
+      const yeni = yeniSiparisSatiriOlustur(degerler, kdvDahil, URUN_KATALOGU);
       setSatirlar((onceki) => [yeni, ...onceki]);
       hizliGirisApiRef.current?.sifirla();
       setSlaytMod('tablo');
@@ -533,7 +637,7 @@ export function DatagridDemoSayfasi() {
   const hizliGirisUrunEnter = useCallback(
     ({ alanId, degerler, engelle }: HizliGirisEnterBaglami) => {
       if (!URUN_ARAMA_ALANLARI.includes(alanId as (typeof URUN_ARAMA_ALANLARI)[number])) return;
-      if (!hizliGirisUrunAlaniDolu(degerler)) return;
+      if (!yuzdeAramaModu(degerler.urunKoduAdi)) return;
       engelle();
       aramayiAc(hizliGirisUrunSorgusu(degerler, alanId));
     },
@@ -574,13 +678,17 @@ export function DatagridDemoSayfasi() {
 
   return (
 
-    <div className="dg-demo-sayfa">
+    <div ref={sayfaRef} className="dg-demo-sayfa dg-demo-sag-tik-alan">
 
-      <KategoriYonetimModal
-        acik={kategoriModalAcik}
-        onKapat={() => setKategoriModalAcik(false)}
-        kategoriler={kategoriler}
-        onDegistir={setKategoriler}
+      <DatagridSagTikMenu
+        konteynerRef={sayfaRef}
+        kolonlar={kolonlar}
+        satirlar={gorunurSatirlar}
+        kdvDahil={kdvDahil}
+        seciliSatirSayisi={seciliSatirSayisi}
+        gridApiRef={gridApiRef}
+        onSatirlarDegistir={setSatirlar}
+        onBilgi={logMesajiAyarla}
       />
 
       <UrunAramaSlayt
@@ -588,6 +696,7 @@ export function DatagridDemoSayfasi() {
         sorgu={aramaSorgusu}
         sonuclar={aramaSonuclari}
         seciliIndeks={seciliIndeks}
+        onSorguDegistir={aramaSorgusuDegistir}
         onSeciliDegistir={setSeciliIndeks}
         onSec={urunSecVeEkle}
         onGeri={aramayiKapat}
@@ -602,27 +711,24 @@ export function DatagridDemoSayfasi() {
 
         satirlar={gorunurSatirlar}
 
-        depolamaAnahtari="gt_datagrid_demo_v9"
+        depolamaAnahtari="gt_datagrid_demo_v14"
         hizliGirisKolonlari={[
           {
-            kolonId: 'secim',
-            colspan: 3,
-            anaAlan: 'urun',
-            placeholder: 'Ürün adı...',
-            birlesik: [{ kolonId: 'stokKodu', placeholder: 'Stok kodu / Barkod...' }],
+            kolonId: 'urunKoduAdi',
+            placeholder: 'Ürün adı veya kodu…',
+            ipucu: '% ile ara, Enter ile ekle',
           },
+          { kolonId: 'miktar', placeholder: '1 veya 2*5', ipucu: 'Miktar ifadesi', varsayilan: '1' },
           {
-            kolonId: 'kategori',
+            kolonId: 'birim',
             tip: 'secim',
-            placeholder: 'Seç...',
-            varsayilan: 'Genel',
-            secenekler: kategoriListe,
+            varsayilan: 'ADET',
+            secenekler: birimSecenekleri(),
           },
-          { kolonId: 'miktar', placeholder: '1', varsayilan: '1' },
           {
             kolonId: 'fiyat',
-            placeholder: kdvDahil ? 'KDV dahil fiyat' : 'KDV hariç fiyat',
-            ipucu: kdvDahil ? 'Birim fiyat (KDV dahil)' : 'Birim fiyat (KDV hariç)',
+            placeholder: '1000+%10',
+            ipucu: kdvDahil ? 'Fiyat ifadesi (KDV dahil)' : 'Fiyat ifadesi (KDV hariç)',
           },
           { kolonId: 'satirIskonto', placeholder: '0 veya 20+20', ipucu: 'Bileşik iskonto', varsayilan: '0' },
           { kolonId: 'altIskonto', placeholder: '0', varsayilan: '0' },
@@ -630,44 +736,26 @@ export function DatagridDemoSayfasi() {
           { kolonId: 'etiketler', placeholder: 'Drone, Yeni', ipucu: 'Virgülle ayırın' },
           { kolonId: 'durum', tip: 'toggle', varsayilan: 'true' },
         ]}
-        kolonBaslikEki={(kolonId) =>
-          kolonId === 'kategori' ? (
-            <button
-              type="button"
-              className="dg-baslik-aksiyon"
-              title="Kategori yönetimi"
-              onClick={(e) => {
-                e.stopPropagation();
-                setKategoriModalAcik(true);
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <span className="dg-baslik-aksiyon-arti">+</span>
-            </button>
-          ) : null
-        }
         satirSinifAdi={(s) => (!s.durum ? 'dg-satir--pasif' : undefined)}
         hizliGirisOnizleme={hizliGirisOnizleme}
         hizliGirisApiRef={hizliGirisApiRef}
+        gridApiRef={gridApiRef}
         onHizliGirisEnter={hizliGirisUrunEnter}
         hizliGirisInputSinif={(alanId, deger) =>
-          (alanId === 'stokKodu' || alanId === 'urun') && yuzdeAramaModu(deger)
-            ? 'dg-hizli-giris-girdi--arama'
-            : undefined
+          alanId === 'urunKoduAdi' && yuzdeAramaModu(deger) ? 'dg-hizli-giris-girdi--arama' : undefined
         }
         hizliGirisInputPlaceholder={(alanId, deger, varsayilan) => {
-          if ((alanId === 'stokKodu' || alanId === 'urun') && yuzdeAramaModu(deger)) {
-            return alanId === 'stokKodu' ? '%kod ile ara… Enter' : '%ad ile ara… Enter';
+          if (alanId === 'urunKoduAdi' && yuzdeAramaModu(deger)) {
+            return '% ile ara… Enter';
           }
-          if (alanId === 'stokKodu' || alanId === 'urun') {
-            return alanId === 'stokKodu' ? 'Stok kodu… Enter ile ara' : 'Ürün adı… Enter ile ara';
+          if (alanId === 'urunKoduAdi') {
+            return 'Ürün adı veya kodu… Enter ile ekle';
           }
           return varsayilan;
         }}
         onHizliGiris={(degerler) => {
-          if (hizliGirisUrunAlaniDolu(degerler)) return;
-          if (!degerler.stokKodu?.trim() && !degerler.urun?.trim()) return;
-          const yeni = yeniSiparisSatiriOlustur(degerler, kdvDahil);
+          if (!degerler.urunKoduAdi?.trim()) return;
+          const yeni = yeniSiparisSatiriOlustur(degerler, kdvDahil, URUN_KATALOGU);
           setSatirlar((onceki) => [yeni, ...onceki]);
         }}
 
@@ -697,8 +785,6 @@ export function DatagridDemoSayfasi() {
           <SatirDuzenlePanel
 
             satir={satir}
-
-            kategoriler={kategoriler.map((k) => k.ad)}
 
             kdvDahil={kdvDahil}
 

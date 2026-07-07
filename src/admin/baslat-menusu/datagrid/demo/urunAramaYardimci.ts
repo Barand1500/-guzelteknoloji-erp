@@ -2,7 +2,6 @@ export interface UrunKaydi {
   sku: string;
   ad: string;
   kur?: string;
-  kategori?: string;
 }
 
 /** Alan değeri % ile başlıyorsa arama modundadır. */
@@ -24,18 +23,6 @@ export function urunleriAra(katalog: UrunKaydi[], sorgu: string): UrunKaydi[] {
   );
 }
 
-export function hizliGirisYuzdeSorgusu(degerler: Record<string, string>, alanId: string): string | null {
-  const alanDeger = degerler[alanId];
-  if (yuzdeAramaModu(alanDeger)) return yuzdeAramaSorgusu(alanDeger);
-
-  const stok = yuzdeAramaSorgusu(degerler.stokKodu);
-  const urun = yuzdeAramaSorgusu(degerler.urun);
-  if (alanId === 'stokKodu' || alanId === 'urun') {
-    return stok ?? urun;
-  }
-  return stok ?? urun;
-}
-
 /** Ürün alanı metninden arama sorgusu üretir (% varsa kaldırır). */
 export function urunAramaSorgusuMetni(deger: string | undefined): string {
   if (!deger?.trim()) return '';
@@ -44,25 +31,47 @@ export function urunAramaSorgusuMetni(deger: string | undefined): string {
   return deger.trim();
 }
 
-export const URUN_ARAMA_ALANLARI = ['stokKodu', 'urun'] as const;
+export const URUN_ARAMA_ALANLARI = ['urunKoduAdi'] as const;
 
 export function hizliGirisUrunSorgusu(
   degerler: Record<string, string>,
   alanId: string
 ): string {
   const alanDeger = degerler[alanId];
-  const yuzdeSorgu = hizliGirisYuzdeSorgusu(degerler, alanId);
+  const yuzdeSorgu = yuzdeAramaModu(alanDeger) ? yuzdeAramaSorgusu(alanDeger) : null;
   if (yuzdeSorgu !== null) return yuzdeSorgu;
-
-  if (alanId === 'stokKodu' || alanId === 'urun') {
-    return urunAramaSorgusuMetni(alanDeger);
-  }
-
-  const stok = urunAramaSorgusuMetni(degerler.stokKodu);
-  const urun = urunAramaSorgusuMetni(degerler.urun);
-  return stok || urun;
+  return urunAramaSorgusuMetni(alanDeger ?? degerler.urunKoduAdi);
 }
 
 export function hizliGirisUrunAlaniDolu(degerler: Record<string, string>): boolean {
-  return Boolean(degerler.stokKodu?.trim() || degerler.urun?.trim());
+  return Boolean(degerler.urunKoduAdi?.trim());
+}
+
+/** Tek alandan ürün kodu ve adını çözümler. */
+export function urunKoduAdiCozumle(
+  ham: string | undefined,
+  katalog: UrunKaydi[] = []
+): { sku: string; ad: string; kur?: string } {
+  const metin = ham?.trim() ?? '';
+  if (!metin) return { sku: 'YENİ-KOD', ad: 'Yeni ürün' };
+
+  const aramaMetni = urunAramaSorgusuMetni(metin);
+
+  const skuTam = katalog.find((u) => u.sku.toLowerCase() === aramaMetni.toLowerCase());
+  if (skuTam) return { sku: skuTam.sku, ad: skuTam.ad, kur: skuTam.kur };
+
+  const adTam = katalog.find((u) => u.ad.toLowerCase() === aramaMetni.toLowerCase());
+  if (adTam) return { sku: adTam.sku, ad: adTam.ad, kur: adTam.kur };
+
+  if (aramaMetni) {
+    const sonuclar = urunleriAra(katalog, aramaMetni);
+    if (sonuclar.length === 1) {
+      return { sku: sonuclar[0].sku, ad: sonuclar[0].ad, kur: sonuclar[0].kur };
+    }
+  }
+
+  if (!metin.includes(' ')) {
+    return { sku: metin, ad: metin };
+  }
+  return { sku: 'YENİ-KOD', ad: metin };
 }

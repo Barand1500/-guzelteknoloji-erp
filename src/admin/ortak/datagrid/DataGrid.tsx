@@ -6,18 +6,40 @@
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import type { DataGridCizgiModu, DataGridProps, HizliGirisApi, KolonTanimi } from './types';
 import { useDataGridState, satirlariIsle, sayfala } from './useDataGridState';
-import { ifadeHesapla } from './formulaYardimci';
+import {
+  formulaIpucuMetni,
+  ifadeHesapla,
+} from './formulaYardimci';
+import { FormulaRehberiIcerik } from './FormulaRehberi';
 import { bosGosterim, csvIndir, paraFormatla, tarihFormatla, yuzdeFormatla } from './formatYardimci';
 import { DgIkon } from './DgIkonlar';
 import { EtiketHucre } from './EtiketHucre';
 import './datagrid.css';
 
+function kolonFormulaTipi<TRow>(kolon: KolonTanimi<TRow>): 'sayi' | 'iskonto' | null {
+  if (kolon.formulaTip) return kolon.formulaTip;
+  if (kolon.tip === 'iskonto') return 'iskonto';
+  if (kolon.tip === 'para' || kolon.tip === 'sayi') return 'sayi';
+  return null;
+}
+
 const SAYFA_BOYUTLARI = [5, 10, 25, 50];
+
+function portalMenuKonumHesapla(rect: DOMRect | undefined, genislik: number, maxH: number) {
+  if (!rect) return { top: 0, left: 0 };
+  let left = rect.right - genislik;
+  if (left < 8) left = 8;
+  if (left + genislik > window.innerWidth - 8) left = window.innerWidth - genislik - 8;
+  let top = rect.bottom + 6;
+  if (top + maxH > window.innerHeight - 8) top = Math.max(8, rect.top - maxH - 6);
+  return { top, left };
+}
 
 const CIZGI_MODLARI: { mod: DataGridCizgiModu; ikon: 'cizgi-yok' | 'cizgi-yatay' | 'cizgi-dikey' | 'cizgi-tam'; title: string }[] = [
   { mod: 'yok', ikon: 'cizgi-yok', title: 'Çizgisiz' },
@@ -33,6 +55,24 @@ interface OdakHucre {
 
 interface DuzenlemeHucre extends OdakHucre {
   hamDeger: string;
+  birlesikKatman?: 'ust' | 'alt';
+}
+
+function birlesikDuzenlemeKatmani<TRow>(
+  e: ReactMouseEvent<HTMLTableCellElement>,
+  satir: TRow,
+  kolon: KolonTanimi<TRow>
+): 'ust' | 'alt' {
+  if (!kolon.birlesikDuzenle?.altDegerAl) return 'ust';
+  const birlesik = kolon.degerAl(satir) as { ust?: string };
+  const ad = String(birlesik.ust ?? '').trim();
+  const kod = String(kolon.birlesikDuzenle.altDegerAl(satir) ?? '').trim();
+  if (ad && kod) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    return e.clientY - rect.top > rect.height / 2 ? 'alt' : 'ust';
+  }
+  if (kod && !ad) return 'alt';
+  return 'ust';
 }
 
 function DgKesilenHucre({
@@ -145,6 +185,7 @@ export function DataGrid<TRow extends { id: string }>({
   hizliGirisInputSinif,
   hizliGirisInputPlaceholder,
   hizliGirisApiRef,
+  gridApiRef,
   onSecimDegistir,
   hizliGirisOnizleme,
   kolonBaslikEki,
@@ -165,6 +206,8 @@ export function DataGrid<TRow extends { id: string }>({
   });
   const [hizliGirisGenisletildi, setHizliGirisGenisletildi] = useState(true);
   const [sutunMenuKonum, setSutunMenuKonum] = useState({ top: 0, left: 0 });
+  const [formulMenuAcik, setFormulMenuAcik] = useState(false);
+  const [formulMenuKonum, setFormulMenuKonum] = useState({ top: 0, left: 0 });
   const portalKok = useMemo(
     () => document.querySelector('.admin-panel') ?? document.body,
     []
@@ -173,9 +216,11 @@ export function DataGrid<TRow extends { id: string }>({
   const kabukRef = useRef<HTMLDivElement>(null);
   const [scrollYukseklik, setScrollYukseklik] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const formulMenuRef = useRef<HTMLDivElement>(null);
   const sutunTusRef = useRef<HTMLButtonElement>(null);
+  const formulTusRef = useRef<HTMLButtonElement>(null);
   const hizliGirisIlkRef = useRef<HTMLInputElement>(null);
-  const girdiRef = useRef<HTMLInputElement>(null);
+  const girdiRef = useRef<HTMLElement>(null);
   const theadRef = useRef<HTMLTableSectionElement>(null);
   const [baslikYukseklik, setBaslikYukseklik] = useState(40);
 
@@ -200,6 +245,17 @@ export function DataGrid<TRow extends { id: string }>({
       color: koyu ? '#e2e8f0' : '#334155',
     };
   }, [sutunMenuKonum, dg.sutunMenuAcik]);
+
+  const formulMenuPortalStil = useMemo(() => {
+    const koyu = document.querySelector('.admin-panel')?.getAttribute('data-tema') === 'koyu';
+    return {
+      top: formulMenuKonum.top,
+      left: formulMenuKonum.left,
+      backgroundColor: koyu ? '#1e293b' : '#ffffff',
+      borderColor: koyu ? '#475569' : '#cbd5e1',
+      color: koyu ? '#e2e8f0' : '#334155',
+    };
+  }, [formulMenuKonum, formulMenuAcik]);
 
   const islenmis = useMemo(
     () =>
@@ -229,15 +285,23 @@ export function DataGrid<TRow extends { id: string }>({
   }, [dg.gorunurKolonlar, dg.ayar.sabitlenmisKolonlar, dg.ayar.kolonGenislikleri]);
 
   useEffect(() => {
-    if (!dg.sutunMenuAcik) return;
+    if (!dg.sutunMenuAcik && !formulMenuAcik) return;
     const disTikla = (e: MouseEvent) => {
       const hedef = e.target as Node;
-      if (menuRef.current?.contains(hedef) || sutunTusRef.current?.contains(hedef)) return;
+      if (
+        menuRef.current?.contains(hedef) ||
+        formulMenuRef.current?.contains(hedef) ||
+        sutunTusRef.current?.contains(hedef) ||
+        formulTusRef.current?.contains(hedef)
+      ) {
+        return;
+      }
       dg.setSutunMenuAcik(false);
+      setFormulMenuAcik(false);
     };
     document.addEventListener('mousedown', disTikla);
     return () => document.removeEventListener('mousedown', disTikla);
-  }, [dg.sutunMenuAcik, dg]);
+  }, [dg.sutunMenuAcik, formulMenuAcik, dg]);
 
   useLayoutEffect(() => {
     const kabuk = kabukRef.current;
@@ -276,16 +340,11 @@ export function DataGrid<TRow extends { id: string }>({
   }, [dg.gorunurKolonlar.length]);
 
   const sutunMenuKonumGuncelle = useCallback(() => {
-    const rect = sutunTusRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const genislik = 300;
-    let left = rect.right - genislik;
-    if (left < 8) left = 8;
-    if (left + genislik > window.innerWidth - 8) left = window.innerWidth - genislik - 8;
-    let top = rect.bottom + 6;
-    const maxH = 420;
-    if (top + maxH > window.innerHeight - 8) top = Math.max(8, rect.top - maxH - 6);
-    setSutunMenuKonum({ top, left });
+    setSutunMenuKonum(portalMenuKonumHesapla(sutunTusRef.current?.getBoundingClientRect(), 300, 420));
+  }, []);
+
+  const formulMenuKonumGuncelle = useCallback(() => {
+    setFormulMenuKonum(portalMenuKonumHesapla(formulTusRef.current?.getBoundingClientRect(), 400, 560));
   }, []);
 
   useLayoutEffect(() => {
@@ -298,6 +357,17 @@ export function DataGrid<TRow extends { id: string }>({
       window.removeEventListener('scroll', sutunMenuKonumGuncelle, true);
     };
   }, [dg.sutunMenuAcik, sutunMenuKonumGuncelle]);
+
+  useLayoutEffect(() => {
+    if (!formulMenuAcik) return;
+    formulMenuKonumGuncelle();
+    window.addEventListener('resize', formulMenuKonumGuncelle);
+    window.addEventListener('scroll', formulMenuKonumGuncelle, true);
+    return () => {
+      window.removeEventListener('resize', formulMenuKonumGuncelle);
+      window.removeEventListener('scroll', formulMenuKonumGuncelle, true);
+    };
+  }, [formulMenuAcik, formulMenuKonumGuncelle]);
 
   const hizliGirisSifirla = useCallback(() => {
     const baslangic: Record<string, string> = {};
@@ -318,7 +388,7 @@ export function DataGrid<TRow extends { id: string }>({
 
     let engellendi = false;
     if (onHizliGirisEnter) {
-      const urunAlani = (['stokKodu', 'urun'] as const).find((id) => (hizliGiris[id] ?? '').trim());
+      const urunAlani = (['urunKoduAdi', 'stokKodu', 'urun'] as const).find((id) => (hizliGiris[id] ?? '').trim());
       if (urunAlani) {
         onHizliGirisEnter({
           alanId: urunAlani,
@@ -406,11 +476,13 @@ export function DataGrid<TRow extends { id: string }>({
   );
 
   const hucreDuzenlemeyiBitir = useCallback(
-    (satir: TRow, kolon: KolonTanimi<TRow>, ham: string) => {
+    (satir: TRow, kolon: KolonTanimi<TRow>, ham: string, birlesikKatman?: 'ust' | 'alt') => {
+      if (kolon.tip === 'birlesik' && birlesikKatman === 'alt' && kolon.birlesikDuzenle?.altDegerYaz) {
+        satirGuncelle(kolon.birlesikDuzenle.altDegerYaz(satir, ham));
+        return;
+      }
       if (!kolon.degerYaz) return;
-      const formulaTip =
-        kolon.formulaTip ??
-        (kolon.tip === 'iskonto' ? 'iskonto' : kolon.tip === 'para' || kolon.tip === 'sayi' ? 'sayi' : null);
+      const formulaTip = kolonFormulaTipi(kolon);
 
       if (formulaTip === 'iskonto') {
         const yuzde = ifadeHesapla(ham, 'iskonto') ?? parseFloat(ham.replace(',', '.')) ?? 0;
@@ -427,14 +499,20 @@ export function DataGrid<TRow extends { id: string }>({
     [satirGuncelle]
   );
 
-  const duzenlemeyiBaslat = (satir: TRow, kolon: KolonTanimi<TRow>) => {
+  const duzenlemeyiBaslat = (
+    satir: TRow,
+    kolon: KolonTanimi<TRow>,
+    birlesikKatman: 'ust' | 'alt' = 'ust'
+  ) => {
     if (!kolon.duzenlenebilir || kolon.tip === 'salt-okunur') return;
     const deger = kolon.degerAl(satir);
     let ham = '';
     if (kolon.tip === 'iskonto') ham = String((deger as { yuzde: number }).yuzde);
-    else if (kolon.tip === 'birlesik') ham = String((deger as { ust: string }).ust ?? '');
+    else if (kolon.tip === 'birlesik' && birlesikKatman === 'alt' && kolon.birlesikDuzenle?.altDegerAl) {
+      ham = String(kolon.birlesikDuzenle.altDegerAl(satir) ?? '');
+    } else if (kolon.tip === 'birlesik') ham = String((deger as { ust: string }).ust ?? '');
     else ham = String(deger ?? '');
-    setDuzenleme({ satirId: satir.id, kolonId: kolon.id, hamDeger: ham });
+    setDuzenleme({ satirId: satir.id, kolonId: kolon.id, hamDeger: ham, birlesikKatman });
     setOdak({ satirId: satir.id, kolonId: kolon.id });
   };
 
@@ -485,6 +563,24 @@ export function DataGrid<TRow extends { id: string }>({
     csvIndir(tabloBaslik.replace(/\s+/g, '-').toLowerCase(), basliklar, satirVeri);
   };
 
+  useEffect(() => {
+    if (!gridApiRef) return;
+    gridApiRef.current = {
+      satirDuzenleAc: (satirId) => {
+        const satir = satirlar.find((s) => s.id === satirId);
+        if (satir && satirDuzenlePaneli) setSatirPanel(satir);
+      },
+      csvIndir: (sadeceSecili) => csvAktar(sadeceSecili),
+      hizliGirisOdakla: () => {
+        requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
+      },
+      seciliIdler: () => [...dg.seciliIdler],
+    };
+    return () => {
+      gridApiRef.current = null;
+    };
+  }, [gridApiRef, satirlar, dg.seciliIdler, satirDuzenlePaneli]);
+
   const topluDurum = (aktif: boolean) => {
     if (!onSatirlarDegistir) return;
     onSatirlarDegistir(
@@ -496,8 +592,6 @@ export function DataGrid<TRow extends { id: string }>({
       })
     );
   };
-
-  const gruplamaKolon = kolonlar.find((k) => k.id === dg.ayar.gruplamaKolonId);
 
   const renderSatirlar = () => {
     if (yukleniyor) {
@@ -524,24 +618,8 @@ export function DataGrid<TRow extends { id: string }>({
     }
 
     const satirlarEl: ReactNode[] = [];
-    let oncekiGrup: string | null = null;
 
     for (const satir of sayfalama.satirlar) {
-      if (gruplamaKolon) {
-        const grupHam = gruplamaKolon.degerAl(satir);
-        const grupMetin = String(grupHam ?? '—');
-        if (grupMetin !== oncekiGrup) {
-          oncekiGrup = grupMetin;
-          satirlarEl.push(
-            <tr key={`grup-${grupMetin}`} className="dg-grup-satir">
-              <td colSpan={dg.gorunurKolonlar.length} className="dg-hucre">
-                {gruplamaKolon.baslik}: {grupMetin || '—'}
-              </td>
-            </tr>
-          );
-        }
-      }
-
       const secili = dg.seciliIdler.has(satir.id);
       const hover = hoverSatirId === satir.id;
       const ekSatirSinif = satirSinifAdi?.(satir) ?? '';
@@ -549,6 +627,7 @@ export function DataGrid<TRow extends { id: string }>({
       satirlarEl.push(
         <tr
           key={satir.id}
+          data-satir-id={satir.id}
           className={`dg-satir${secili ? ' dg-satir--secili' : ''}${hover ? ' dg-satir--hover' : ''}${duzenleme?.satirId === satir.id ? ' dg-satir--duzenleniyor' : ''}${ekSatirSinif ? ` ${ekSatirSinif}` : ''}`}
           onMouseEnter={() => setHoverSatirId(satir.id)}
           onMouseLeave={() => setHoverSatirId(null)}
@@ -568,16 +647,20 @@ export function DataGrid<TRow extends { id: string }>({
               return (
                 <td
                   key={kolon.id}
-                  className={`dg-hucre${sabit ? ' dg-hucre--sabit' : ''}`}
+                  data-kolon-id={kolon.id}
+                  data-satir-id={satir.id}
+                  className={`dg-hucre dg-hucre--secim${sabit ? ' dg-hucre--sabit' : ''}`}
                   style={{ width: genislik, left: sabit ? left : undefined }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <input
-                    type="checkbox"
-                    className="dg-checkbox"
-                    checked={secili}
-                    onChange={() => dg.secimToggle(satir.id)}
-                  />
+                  <span className="dg-secim-kabuk">
+                    <input
+                      type="checkbox"
+                      className="dg-checkbox"
+                      checked={secili}
+                      onChange={() => dg.secimToggle(satir.id)}
+                    />
+                  </span>
                 </td>
               );
             }
@@ -586,6 +669,8 @@ export function DataGrid<TRow extends { id: string }>({
               return (
                 <td
                   key={kolon.id}
+                  data-kolon-id={kolon.id}
+                  data-satir-id={satir.id}
                   className="dg-hucre dg-hucre--sag-sabit"
                   style={{ width: genislik }}
                   onClick={(e) => e.stopPropagation()}
@@ -607,6 +692,8 @@ export function DataGrid<TRow extends { id: string }>({
               return (
                 <td
                   key={kolon.id}
+                  data-kolon-id={kolon.id}
+                  data-satir-id={satir.id}
                   className={`dg-hucre dg-hucre--toggle${sabit ? ' dg-hucre--sabit' : ''}${odakta ? ' dg-hucre--odak' : ''}`}
                   style={{ width: genislik, minWidth: genislik, left: sabit ? left : undefined }}
                   tabIndex={0}
@@ -616,17 +703,19 @@ export function DataGrid<TRow extends { id: string }>({
                     if (kolon.degerYaz) satirGuncelle(kolon.degerYaz(satir, !acik));
                   }}
                 >
-                  <button
-                    type="button"
-                    className={`dg-switch${acik ? ' dg-switch--acik' : ''}`}
-                    aria-pressed={acik}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (kolon.degerYaz) satirGuncelle(kolon.degerYaz(satir, !acik));
-                    }}
-                  >
-                    <span className="dg-switch-thumb" />
-                  </button>
+                  <span className="dg-toggle-ortala">
+                    <button
+                      type="button"
+                      className={`dg-switch${acik ? ' dg-switch--acik' : ''}`}
+                      aria-pressed={acik}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (kolon.degerYaz) satirGuncelle(kolon.degerYaz(satir, !acik));
+                      }}
+                    >
+                      <span className="dg-switch-thumb" />
+                    </button>
+                  </span>
                 </td>
               );
             }
@@ -636,6 +725,8 @@ export function DataGrid<TRow extends { id: string }>({
             return (
               <td
                 key={kolon.id}
+                data-kolon-id={kolon.id}
+                data-satir-id={satir.id}
                 className={`dg-hucre${kesilebilir ? '' : ' dg-tooltip-kabuk'}${kolon.tip === 'etiket' ? ' dg-hucre--etiket' : ''}${kesilebilir ? ' dg-hucre--kesilebilir' : ''}${sabit ? ' dg-hucre--sabit' : ''}${kolon.tip === 'para' || kolon.tip === 'sayi' || kolon.tip === 'iskonto' ? ' dg-hucre--sayi' : ''}${odakta ? ' dg-hucre--odak' : ''}`}
                 style={{ width: genislik, minWidth: genislik, left: sabit ? left : undefined }}
                 tabIndex={0}
@@ -643,34 +734,73 @@ export function DataGrid<TRow extends { id: string }>({
                 onClick={() => setOdak({ satirId: satir.id, kolonId: kolon.id })}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
-                  duzenlemeyiBaslat(satir, kolon);
+                  const katman =
+                    kolon.tip === 'birlesik' && kolon.birlesikDuzenle
+                      ? birlesikDuzenlemeKatmani(e, satir, kolon)
+                      : 'ust';
+                  duzenlemeyiBaslat(satir, kolon, katman);
                 }}
               >
                 {kolon.duzenlenebilir && hover && !duzenliyor && (
                   <span className="dg-tooltip">Düzenlemek için çift tıklayın</span>
                 )}
                 {duzenliyor ? (
-                  <input
-                    ref={girdiRef}
-                    className="dg-hucre-girdi"
-                    value={duzenleme.hamDeger}
-                    onChange={(e) => setDuzenleme({ ...duzenleme, hamDeger: e.target.value })}
-                    onBlur={() => {
-                      hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger);
-                      setDuzenleme(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger);
+                  kolon.secenekler?.length ? (
+                    <select
+                      ref={girdiRef as React.RefObject<HTMLSelectElement>}
+                      className="dg-hucre-girdi dg-hucre-secim"
+                      value={duzenleme.hamDeger}
+                      onChange={(e) => {
+                        const yeni = e.target.value;
+                        hucreDuzenlemeyiBitir(satir, kolon, yeni);
                         setDuzenleme(null);
-                      }
-                      if (e.key === 'Escape') {
-                        e.stopPropagation();
+                      }}
+                      onBlur={() => setDuzenleme(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          e.stopPropagation();
+                          setDuzenleme(null);
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {kolon.secenekler.map((s) => (
+                        <option key={s.deger} value={s.deger}>
+                          {s.etiket}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      ref={girdiRef as React.RefObject<HTMLInputElement>}
+                      className="dg-hucre-girdi"
+                      value={duzenleme.hamDeger}
+                      title={(() => {
+                        const ft = kolonFormulaTipi(kolon);
+                        return ft ? formulaIpucuMetni(ft) : undefined;
+                      })()}
+                      placeholder={(() => {
+                        const ft = kolonFormulaTipi(kolon);
+                        return ft === 'sayi' ? '1000+%10' : ft === 'iskonto' ? '20+20' : undefined;
+                      })()}
+                      onChange={(e) => setDuzenleme({ ...duzenleme, hamDeger: e.target.value })}
+                      onBlur={() => {
+                        hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
                         setDuzenleme(null);
-                      }
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
+                          setDuzenleme(null);
+                        }
+                        if (e.key === 'Escape') {
+                          e.stopPropagation();
+                          setDuzenleme(null);
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  )
                 ) : (
                   <HucreGoster satir={satir} kolon={kolon} kdvDahil={kdvDahil} />
                 )}
@@ -788,7 +918,14 @@ export function DataGrid<TRow extends { id: string }>({
       };
 
       if (kolon.id === 'secim' && !girisAyar) {
-        return [];
+        return [
+          <td
+            key={kolon.id}
+            className={`dg-hucre dg-hizli-giris-hucre dg-hucre--secim${sabit ? ' dg-hucre--sabit' : ''}`}
+            style={hucreStil}
+            aria-hidden
+          />,
+        ];
       }
 
       if (kolon.id === 'islemler') {
@@ -875,15 +1012,17 @@ export function DataGrid<TRow extends { id: string }>({
             className={`dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--toggle dg-hucre--toggle${sabit ? ' dg-hucre--sabit' : ''}`}
             style={{ ...hucreStil, minWidth: genislik }}
           >
-            <button
-              type="button"
-              className={`dg-switch${acik ? ' dg-switch--acik' : ''}`}
-              aria-pressed={acik}
-              title={acik ? 'Aktif' : 'Pasif'}
-              onClick={() => girdiDegistir(kolon.id, acik ? 'false' : 'true')}
-            >
-              <span className="dg-switch-thumb" />
-            </button>
+            <span className="dg-toggle-ortala">
+              <button
+                type="button"
+                className={`dg-switch${acik ? ' dg-switch--acik' : ''}`}
+                aria-pressed={acik}
+                title={acik ? 'Aktif' : 'Pasif'}
+                onClick={() => girdiDegistir(kolon.id, acik ? 'false' : 'true')}
+              >
+                <span className="dg-switch-thumb" />
+              </button>
+            </span>
           </td>,
         ];
       }
@@ -981,6 +1120,29 @@ export function DataGrid<TRow extends { id: string }>({
       portalKok
     );
 
+  const formulMenuPanel =
+    formulMenuAcik &&
+    createPortal(
+      <div
+        ref={formulMenuRef}
+        className="dg-sutun-menu dg-sutun-menu-portal dg-formul-menu-portal"
+        style={formulMenuPortalStil}
+        role="dialog"
+        aria-label="Sayı formülleri"
+      >
+        <div className="dg-sutun-menu-baslik">
+          <div>
+            <h3>Sayı formülleri</h3>
+            <p>Fiyat ve miktar alanında çift tıklayıp yazın; Enter veya dışarı tıklayınca hesaplanır.</p>
+          </div>
+        </div>
+        <div className="dg-sutun-menu-liste dg-formul-menu-liste ap-scroll">
+          <FormulaRehberiIcerik />
+        </div>
+      </div>,
+      portalKok
+    );
+
   const sayfaIdleri = Array.from({ length: sayfalama.sayfaSayisi }, (_, i) => i);
   const gosterilecekSayfalar = sayfaIdleri.filter(
     (i) => i === 0 || i === sayfalama.sayfaSayisi - 1 || Math.abs(i - sayfalama.sayfa) <= 1
@@ -1049,17 +1211,24 @@ export function DataGrid<TRow extends { id: string }>({
             </div>
           )}
           <div className="dg-ikon-grup">
-            <button
-              type="button"
-              className={`dg-tus dg-tus-ikon${dg.ayar.gruplamaKolonId ? ' dg-tus-aktif' : ''}`}
-              title="Gruplama"
-              onClick={() => {
-                const ilk = kolonlar.find((k) => k.gruplama);
-                dg.gruplamaAyarla(dg.ayar.gruplamaKolonId ? null : (ilk?.id ?? null));
-              }}
-            >
-              <DgIkon ad="grup" />
-            </button>
+            <div className="dg-menu-wrap">
+              <button
+                ref={formulTusRef}
+                type="button"
+                className={`dg-tus dg-tus-ikon dg-tus-formul${formulMenuAcik ? ' dg-tus-aktif' : ''}`}
+                title="Sayı formülleri"
+                aria-pressed={formulMenuAcik}
+                onClick={() => {
+                  if (!formulMenuAcik) formulMenuKonumGuncelle();
+                  dg.setSutunMenuAcik(false);
+                  setFormulMenuAcik((a) => !a);
+                }}
+              >
+                <span className="dg-formul-tus-metin" aria-hidden>
+                  ƒx
+                </span>
+              </button>
+            </div>
             <div className="dg-menu-wrap">
               <button
                 ref={sutunTusRef}
@@ -1068,6 +1237,7 @@ export function DataGrid<TRow extends { id: string }>({
                 title="Sütun görünürlüğü"
                 onClick={() => {
                   if (!dg.sutunMenuAcik) sutunMenuKonumGuncelle();
+                  setFormulMenuAcik(false);
                   dg.setSutunMenuAcik((a) => !a);
                 }}
               >
@@ -1124,20 +1294,22 @@ export function DataGrid<TRow extends { id: string }>({
                   return (
                     <th
                       key={kolon.id}
-                      className={`dg-baslik-hucre${sabit ? ' dg-baslik-hucre--sabit' : ''}`}
+                      className={`dg-baslik-hucre dg-baslik-hucre--secim${sabit ? ' dg-baslik-hucre--sabit' : ''}`}
                       style={{ width: genislik, left: sabit ? left : undefined }}
                     >
-                      <input
-                        type="checkbox"
-                        className="dg-checkbox"
-                        checked={tumSecili}
-                        onChange={(e) =>
-                          dg.tumunuSec(
-                            sayfalama.satirlar.map((s) => s.id),
-                            e.target.checked
-                          )
-                        }
-                      />
+                      <span className="dg-secim-kabuk">
+                        <input
+                          type="checkbox"
+                          className="dg-checkbox"
+                          checked={tumSecili}
+                          onChange={(e) =>
+                            dg.tumunuSec(
+                              sayfalama.satirlar.map((s) => s.id),
+                              e.target.checked
+                            )
+                          }
+                        />
+                      </span>
                     </th>
                   );
                 }
@@ -1199,6 +1371,7 @@ export function DataGrid<TRow extends { id: string }>({
       </div>
 
       {sutunMenuPanel}
+      {formulMenuPanel}
 
       <div className="dg-alt">
         <span>

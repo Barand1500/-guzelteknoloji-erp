@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 import { paraFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { gecerliBirim, birimSecenekleri } from './birimVeri';
 import { satirHesapla, type SiparisSatiri } from './demoVeri';
 
 const KAPAT_ESIGI = 72;
 
 interface SatirDuzenlePanelProps {
   satir: SiparisSatiri;
-  kategoriler: string[];
   kdvDahil?: boolean;
   onKaydet: (satir: SiparisSatiri) => void;
   onKapat: () => void;
@@ -15,11 +15,11 @@ interface SatirDuzenlePanelProps {
 
 type FormDegerleri = {
   miktar: string;
+  birim: string;
   fiyat: string;
   satirIskonto: string;
   altIskonto: string;
   toplamKdv: string;
-  kategori: string;
 };
 
 function formdanSatirOlustur(
@@ -36,11 +36,11 @@ function formdanSatirOlustur(
     {
       ...satir,
       miktar,
+      birim: gecerliBirim(degerler.birim, satir.birim),
       fiyat,
       satirIskontoYuzde,
       altIskontoYuzde,
       toplamKdvYuzde,
-      kategori: degerler.kategori || satir.kategori,
     },
     kdvDahil
   );
@@ -48,18 +48,17 @@ function formdanSatirOlustur(
 
 export function SatirDuzenlePanel({
   satir,
-  kategoriler,
   kdvDahil = false,
   onKaydet,
   onKapat,
 }: SatirDuzenlePanelProps) {
   const [degerler, setDegerler] = useState<FormDegerleri>({
     miktar: String(satir.miktar),
+    birim: satir.birim,
     fiyat: String(satir.fiyat),
     satirIskonto: String(satir.satirIskontoYuzde),
     altIskonto: String(satir.altIskontoYuzde),
     toplamKdv: String(satir.toplamKdvYuzde),
-    kategori: satir.kategori,
   });
 
   const [surukleY, setSurukleY] = useState(0);
@@ -124,21 +123,22 @@ export function SatirDuzenlePanel({
 
       <div className="dg-duzenle-govde ap-scroll">
         <div className="dg-duzenle-alanlar">
-          <DuzenleSecim
-            etiket="Kategori"
-            deger={degerler.kategori}
-            secenekler={kategoriler}
-            onDegistir={(kategori) => setDegerler((d) => ({ ...d, kategori }))}
-          />
           <DuzenleAlan
             etiket="Miktar"
-            ipucu="Adet"
+            ipucu="2*5 veya 10+2"
             deger={degerler.miktar}
             onDegistir={(miktar) => setDegerler((d) => ({ ...d, miktar }))}
           />
+          <DuzenleSecim
+            etiket="Birim"
+            deger={degerler.birim}
+            secenekler={birimSecenekleri().map((b) => b.deger)}
+            etiketler={Object.fromEntries(birimSecenekleri().map((b) => [b.deger, b.etiket]))}
+            onDegistir={(birim) => setDegerler((d) => ({ ...d, birim }))}
+          />
           <DuzenleAlan
             etiket="Birim fiyat"
-            ipucu="10+10 gibi ifade"
+            ipucu="1000+%10 → 1100"
             deger={degerler.fiyat}
             onDegistir={(fiyat) => setDegerler((d) => ({ ...d, fiyat }))}
           />
@@ -156,7 +156,7 @@ export function SatirDuzenlePanel({
           />
           <DuzenleAlan
             etiket="KDV"
-            ipucu="Varsayılan %20"
+            ipucu="%20 veya 18+2"
             deger={degerler.toplamKdv}
             onDegistir={(toplamKdv) => setDegerler((d) => ({ ...d, toplamKdv }))}
           />
@@ -214,11 +214,13 @@ function DuzenleSecim({
   etiket,
   deger,
   secenekler,
+  etiketler,
   onDegistir,
 }: {
   etiket: string;
   deger: string;
   secenekler: string[];
+  etiketler?: Record<string, string>;
   onDegistir: (v: string) => void;
 }) {
   return (
@@ -229,7 +231,7 @@ function DuzenleSecim({
       <select className="dg-duzenle-girdi dg-duzenle-secim" value={deger} onChange={(e) => onDegistir(e.target.value)}>
         {secenekler.map((s) => (
           <option key={s} value={s}>
-            {s}
+            {etiketler?.[s] ?? s}
           </option>
         ))}
       </select>

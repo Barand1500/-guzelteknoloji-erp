@@ -6,6 +6,7 @@ interface UrunAramaSlaytProps {
   sorgu: string;
   sonuclar: UrunKaydi[];
   seciliIndeks: number;
+  onSorguDegistir: (sorgu: string) => void;
   onSeciliDegistir: (indeks: number) => void;
   onSec: (urun: UrunKaydi) => void;
   onGeri: () => void;
@@ -30,12 +31,14 @@ export function UrunAramaSlayt({
   sorgu,
   sonuclar,
   seciliIndeks,
+  onSorguDegistir,
   onSeciliDegistir,
   onSec,
   onGeri,
   children,
 }: UrunAramaSlaytProps) {
   const listeRef = useRef<HTMLDivElement>(null);
+  const girdiRef = useRef<HTMLInputElement>(null);
   const acilisKilidiRef = useRef(false);
   const aramaMod = mod === 'arama';
 
@@ -47,6 +50,18 @@ export function UrunAramaSlayt({
     }, 280);
     return () => window.clearTimeout(zamanlayici);
   }, [aramaMod, sorgu]);
+
+  useEffect(() => {
+    if (!aramaMod) return;
+    const id = requestAnimationFrame(() => {
+      const el = girdiRef.current;
+      if (!el) return;
+      el.focus();
+      const son = el.value.length;
+      el.setSelectionRange(son, son);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [aramaMod]);
 
   const klavyeIsle = useCallback(
     (e: KeyboardEvent) => {
@@ -104,21 +119,27 @@ export function UrunAramaSlayt({
       >
         <div className="dg-urun-arama">
           <header className="dg-urun-arama-baslik">
-            <div>
+            <div className="dg-urun-arama-baslik-sol">
               <p className="dg-urun-arama-etiket">Ürün arama</p>
-              <h3 className="dg-urun-arama-sorgu">
-                {sorgu ? (
-                  <>
-                    <span className="dg-urun-arama-yuzde">%</span>
-                    {sorgu}
-                  </>
-                ) : (
-                  <span className="dg-urun-arama-tumu">Tüm ürünler</span>
-                )}
-              </h3>
-              {sonuclar.length > 0 ? (
-                <p className="dg-urun-arama-adet">{sonuclar.length} sonuç</p>
-              ) : null}
+              <div className="dg-urun-arama-girdi-kabuk">
+                <span className="dg-urun-arama-yuzde" aria-hidden>
+                  %
+                </span>
+                <input
+                  ref={girdiRef}
+                  type="search"
+                  className="dg-urun-arama-girdi"
+                  value={sorgu}
+                  onChange={(e) => onSorguDegistir(e.target.value)}
+                  placeholder="Yazmaya devam edin…"
+                  aria-label="Ürün ara"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
+              <p className="dg-urun-arama-adet">
+                {sonuclar.length} sonuç{sorgu.trim() ? '' : ' — tüm ürünler'}
+              </p>
             </div>
             <button type="button" className="dg-urun-arama-geri" onClick={onGeri}>
               ← Tabloya dön
@@ -129,7 +150,7 @@ export function UrunAramaSlayt({
             {sonuclar.length === 0 ? (
               <div className="dg-urun-arama-bos">
                 <p>Sonuç bulunamadı.</p>
-                <span>Esc ile tabloya dönebilirsiniz.</span>
+                <span>Aramayı değiştirin veya Esc ile tabloya dönün.</span>
               </div>
             ) : (
               sonuclar.map((urun, i) => {
@@ -147,7 +168,6 @@ export function UrunAramaSlayt({
                   >
                     <span className="dg-urun-arama-sku">{urun.sku}</span>
                     <span className="dg-urun-arama-ad">{urun.ad}</span>
-                    {urun.kategori ? <span className="dg-urun-arama-kat">{urun.kategori}</span> : null}
                   </button>
                 );
               })
@@ -155,6 +175,7 @@ export function UrunAramaSlayt({
           </div>
 
           <footer className="dg-urun-arama-ipucu">
+            <span>Yazarak filtrele</span>
             <span>↑ ↓ gezin</span>
             <span>Enter seç ve ekle</span>
             <span>Esc geri</span>

@@ -23,8 +23,49 @@ function varsayilanAyar<TRow>(
     kolonGenislikleri: Object.fromEntries(kolonlar.map((k) => [k.id, k.genislik ?? 120])),
     sayfaBoyutu: 10,
     cizgiModu: 'tam',
-    gruplamaKolonId: null,
   };
+}
+
+function legacyKolonSirasiDuzenle(sirali: string[]): string[] {
+  if (!sirali.some((id) => id === 'stokKodu' || id === 'urun')) return sirali;
+  if (sirali.includes('urunKoduAdi')) {
+    return sirali.filter((id) => id !== 'stokKodu' && id !== 'urun');
+  }
+  const sonuc: string[] = [];
+  for (const id of sirali) {
+    if (id === 'stokKodu') {
+      if (!sonuc.includes('urunKoduAdi')) sonuc.push('urunKoduAdi');
+      continue;
+    }
+    if (id === 'urun') continue;
+    sonuc.push(id);
+  }
+  return sonuc;
+}
+
+function kolonSirasiniBirlestir(
+  kayitli: string[],
+  varsayilan: string[],
+  gecerliIdler: Set<string>
+): string[] {
+  const sonuc = kayitli.filter((id) => gecerliIdler.has(id));
+
+  for (let i = 0; i < varsayilan.length; i++) {
+    const id = varsayilan[i];
+    if (!gecerliIdler.has(id) || sonuc.includes(id)) continue;
+
+    let insertAt = sonuc.length;
+    for (let j = i - 1; j >= 0; j--) {
+      const oncekiIdx = sonuc.indexOf(varsayilan[j]);
+      if (oncekiIdx >= 0) {
+        insertAt = oncekiIdx + 1;
+        break;
+      }
+    }
+    sonuc.splice(insertAt, 0, id);
+  }
+
+  return sonuc;
 }
 
 function ayarOku(anahtar: string, kolonlar: KolonTanimi<unknown>[], gizliVarsayilan: string[]): DataGridAyar {
@@ -34,14 +75,17 @@ function ayarOku(anahtar: string, kolonlar: KolonTanimi<unknown>[], gizliVarsayi
     if (!ham) return varsayilan;
     const kayit = JSON.parse(ham) as Partial<DataGridAyar>;
     const gecerliIdler = new Set(kolonlar.map((k) => k.id));
-    const kolonSirasi = (kayit.kolonSirasi ?? varsayilan.kolonSirasi).filter((id) => gecerliIdler.has(id));
-    for (const k of kolonlar) {
-      if (!kolonSirasi.includes(k.id)) kolonSirasi.push(k.id);
-    }
+    const hamSira = legacyKolonSirasiDuzenle(kayit.kolonSirasi ?? varsayilan.kolonSirasi);
+    const kolonSirasi = kolonSirasiniBirlestir(
+      hamSira,
+      varsayilan.kolonSirasi,
+      gecerliIdler
+    );
     return {
       ...varsayilan,
       ...kayit,
       kolonSirasi,
+      kolonGenislikleri: { ...varsayilan.kolonGenislikleri, ...kayit.kolonGenislikleri },
       cizgiModu: cizgiModuOku(kayit, varsayilan.cizgiModu),
       gizliKolonlar: (kayit.gizliKolonlar ?? []).filter((id) => gecerliIdler.has(id)),
       sabitlenmisKolonlar: (kayit.sabitlenmisKolonlar ?? varsayilan.sabitlenmisKolonlar).filter((id) =>
@@ -155,10 +199,6 @@ export function useDataGridState<TRow>(
     setSayfa(0);
   }, []);
 
-  const gruplamaAyarla = useCallback((kolonId: string | null) => {
-    setAyar((a) => ({ ...a, gruplamaKolonId: kolonId }));
-  }, []);
-
   const siralamaToggle = useCallback((kolonId: string) => {
     setSiralama((onceki) => {
       if (!onceki || onceki.kolonId !== kolonId) return { kolonId, yon: 'asc' };
@@ -203,7 +243,6 @@ export function useDataGridState<TRow>(
     sabitlenmisToggle,
     cizgiModuAyarla,
     sayfaBoyutuAyarla,
-    gruplamaAyarla,
     sutunMenuAcik,
     setSutunMenuAcik,
     suruklenenKolon,

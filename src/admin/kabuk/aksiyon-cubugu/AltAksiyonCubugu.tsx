@@ -8,6 +8,7 @@ import { modulRehberBul } from '@/admin/veri/adminModulRehberleri';
 import { BildirimPaneli, useBildirimSayaci } from '../alt-panel/BildirimPaneli';
 import { LogPaneli } from '../alt-panel/LogPaneli';
 import { YedeklemeHizliPaneli } from '../alt-panel/YedeklemeHizliPaneli';
+import { HesapMakinesiPaneli } from '../alt-panel/HesapMakinesiPaneli';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { useAdminTema } from '@/baglamlar/AdminTemaContext';
 import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
@@ -41,6 +42,7 @@ function AltAksiyonCubuguGovde({
   const rehber = modulRehberBul(rehberModulId ?? focusModulId ?? '');
   const rehberKisayolu = kisayolAyarlariOku().rehber;
   const [acikPanel, setAcikPanel] = useState<AcikPanel>(null);
+  const [hesapAcik, setHesapAcik] = useState(false);
   const { okunmamisSayi, yenile } = useBildirimSayaci();
   const { aksiyonGeriBildirim } = useAdminAksiyon();
   const { temaDegistir, koyuMu } = useAdminTema();
@@ -53,14 +55,20 @@ function AltAksiyonCubuguGovde({
   }, []);
 
   function panelAc(panel: AcikPanel) {
+    setHesapAcik(false);
     setAcikPanel((onceki) => (onceki === panel ? null : panel));
     if (panel === 'bildirim') void yenile();
+  }
+
+  function hesapToggle() {
+    setAcikPanel(null);
+    setHesapAcik((onceki) => !onceki);
   }
 
   return (
     <footer
       ref={footerRef}
-      className={`ap-footer ap-gorev-cubugu flex h-12 shrink-0 items-center gap-2 border-t px-3${panelAcik ? ' ap-gorev-cubugu--panel-acik' : ''}`}
+      className={`ap-footer ap-gorev-cubugu flex h-12 shrink-0 items-center gap-2 border-t px-3${panelAcik || hesapAcik ? ' ap-gorev-cubugu--panel-acik' : ''}`}
       data-ap-kesif="aksiyon-cubugu"
     >
       <AksiyonCubuguUstCizgiSlot footerRef={footerRef} />
@@ -82,10 +90,13 @@ function AltAksiyonCubuguGovde({
         })}
       </div>
 
-      <div className="ap-aksiyon-cubugu-sag relative flex shrink-0 items-center gap-2 border-l border-[var(--ap-border)] pl-3">
-        {sekmeAyarlari.sekmeAramaAktif && onModulAc && (
+      {sekmeAyarlari.sekmeAramaAktif && onModulAc && (
+        <div className="ap-aksiyon-cubugu-arama shrink-0">
           <CubukModulArama onModulSec={(modul) => onModulAc(modul.id)} />
-        )}
+        </div>
+      )}
+
+      <div className="ap-aksiyon-cubugu-sag relative flex shrink-0 items-center gap-2 border-l border-[var(--ap-border)] pl-3">
         <button
           type="button"
           onClick={temaDegistir}
@@ -104,6 +115,22 @@ function AltAksiyonCubuguGovde({
             </svg>
           )}
         </button>
+        <div className="ap-tray-ikon-wrap ap-hesap-makinesi-wrap">
+          <button
+            type="button"
+            className={`ap-tray-ikon ap-hesap-makinesi-btn${hesapAcik ? ' ap-tray-ikon-aktif' : ''}`}
+            title="Hesap makinesi"
+            aria-label="Hesap makinesi"
+            aria-expanded={hesapAcik}
+            onClick={hesapToggle}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+              <rect x="4" y="3" width="16" height="18" rx="2" />
+              <path strokeLinecap="round" d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M16 15h0" />
+            </svg>
+          </button>
+          <HesapMakinesiPaneli acik={hesapAcik} onKapat={() => setHesapAcik(false)} />
+        </div>
         <button
           type="button"
           onClick={onRehberAc}
