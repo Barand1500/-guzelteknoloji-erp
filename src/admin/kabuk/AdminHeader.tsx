@@ -85,7 +85,6 @@ export function AdminHeader({
           onSekmeTasi={onSekmeTasi}
           onSekmeBirlestir={onSekmeBirlestir}
           onSekmeAyir={onSekmeAyir}
-          onModulSec={onModulSec}
           onSekmeSagTikIslem={onSekmeSagTikIslem}
           baslatMenuAcik={menuAcik}
         />

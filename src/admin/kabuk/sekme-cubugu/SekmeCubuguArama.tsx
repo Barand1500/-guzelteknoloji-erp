@@ -8,9 +8,10 @@ import type { SekmeAramaGorunum } from '@/admin/baslat-menusu/sistem/sekme-yonet
 interface SekmeCubuguAramaProps {
   gorunum: SekmeAramaGorunum;
   onModulSec: (modul: AdminModul) => void;
+  konum?: 'ust' | 'alt';
 }
 
-export function SekmeCubuguArama({ gorunum, onModulSec }: SekmeCubuguAramaProps) {
+export function SekmeCubuguArama({ gorunum, onModulSec, konum = 'ust' }: SekmeCubuguAramaProps) {
   const { t } = usePanelDil();
   const [acik, setAcik] = useState(gorunum === 'input');
   const [arama, setArama] = useState('');
@@ -57,7 +58,9 @@ export function SekmeCubuguArama({ gorunum, onModulSec }: SekmeCubuguAramaProps)
   return (
     <div
       ref={kapsayiciRef}
-      className={`ap-sekme-arama shrink-0 ${gorunum === 'input' ? 'ap-sekme-arama-input-mod' : 'ap-sekme-arama-ikon-mod'}`}
+      className={`ap-sekme-arama shrink-0 ${gorunum === 'input' ? 'ap-sekme-arama-input-mod' : 'ap-sekme-arama-ikon-mod'} ${
+        konum === 'alt' ? 'ap-sekme-arama--alt' : 'ap-sekme-arama--ust'
+      }`}
     >
       {gorunum === 'ikon' ? (
         <button
@@ -101,7 +104,7 @@ export function SekmeCubuguArama({ gorunum, onModulSec }: SekmeCubuguAramaProps)
       )}
 
       {gorunum === 'ikon' && acik && (
-        <div className="ap-sekme-arama-popup">
+        <div className={`ap-sekme-arama-popup ${konum === 'alt' ? 'ap-sekme-arama-popup--alt' : ''}`}>
           <div className="ap-arama ap-sekme-arama-popup-arama">
             <div className="ap-arama-input-wrap">
               <span className="ap-arama-ikon">🔍</span>
@@ -121,7 +124,7 @@ export function SekmeCubuguArama({ gorunum, onModulSec }: SekmeCubuguAramaProps)
       )}
 
       {gorunum === 'input' && panelAcik && (
-        <div className="ap-sekme-arama-dropdown">
+        <div className={`ap-sekme-arama-dropdown ${konum === 'alt' ? 'ap-sekme-arama-dropdown--alt' : ''}`}>
           <AramaSonuclari sonuclar={sonuclar} arama={arama} onSec={modulSec} t={t} />
         </div>
       )}

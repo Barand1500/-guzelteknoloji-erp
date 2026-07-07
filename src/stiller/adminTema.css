@@ -1621,42 +1621,96 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 /* Alt aksiyon cubugu butonlari */
 .ap-aksiyon-btn {
-  border: 1px solid transparent;
-  color: var(--ap-text);
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--ap-heading) 90%, transparent);
+  padding: 0.2rem 0.45rem 0.28rem;
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.ap-aksiyon-btn::after {
+  content: '';
+  position: absolute;
+  left: 0.35rem;
+  right: 0.35rem;
+  bottom: -0.12rem;
+  height: 1.5px;
+  background: var(--ap-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+  transition: transform 0.24s ease, opacity 0.24s ease;
+}
+
+.ap-aksiyon-btn-metin {
+  display: inline-flex;
+  gap: 0.01em;
+}
+
+.ap-aksiyon-harf {
+  display: inline-block;
+  color: inherit;
+  transform: translateY(0);
+  transition:
+    color 0.22s ease,
+    text-shadow 0.22s ease,
+    transform 0.22s ease;
+  transition-delay: calc(var(--harf-i, 0) * 17ms);
 }
 
 .ap-aksiyon-aktif {
-  background: var(--ap-surface-2);
-  border-color: var(--ap-border);
-  color: var(--ap-heading);
+  color: color-mix(in srgb, var(--ap-heading) 90%, transparent);
 }
 
-.ap-aksiyon-aktif:hover {
-  background: var(--ap-hover);
+.ap-aksiyon-aktif:hover .ap-aksiyon-harf,
+.ap-aksiyon-btn:focus-visible .ap-aksiyon-harf {
+  color: var(--ap-accent);
+  text-shadow: 0 0 0.55rem color-mix(in srgb, var(--ap-accent) 32%, transparent);
+  transform: translateY(-0.5px);
+}
+
+.ap-aksiyon-aktif:hover::after,
+.ap-aksiyon-btn:focus-visible::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .ap-aksiyon-birincil {
-  background: var(--ap-accent);
-  border-color: var(--ap-accent);
-  color: #fff;
+  color: color-mix(in srgb, var(--ap-accent) 88%, var(--ap-heading));
 }
 
-.ap-aksiyon-birincil:hover {
-  filter: brightness(1.08);
+.ap-aksiyon-birincil:hover .ap-aksiyon-harf {
+  color: var(--ap-accent);
+  text-shadow: 0 0 0.55rem color-mix(in srgb, var(--ap-accent) 38%, transparent);
+}
+
+.ap-aksiyon-pasif {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.ap-aksiyon-pasif::after {
+  display: none;
+}
+
+.ap-aksiyon-pasif .ap-aksiyon-harf {
+  transition: none;
 }
 
 .ap-aksiyon-basari {
-  background: #16a34a !important;
-  border-color: #16a34a !important;
-  color: #fff !important;
+  color: #16a34a !important;
   animation: ap-aksiyon-pulse 0.35s ease;
   cursor: default;
 }
 
 .ap-aksiyon-hata {
-  background: #dc2626 !important;
-  border-color: #dc2626 !important;
-  color: #fff !important;
+  color: #dc2626 !important;
   animation: ap-aksiyon-pulse 0.35s ease;
   cursor: default;
 }
@@ -2038,6 +2092,11 @@ html:has(.admin-panel[data-tema='acik']) body {
   overflow: hidden;
 }
 
+.ap-sekme-scroll-wrap--kare .ap-sekme-scroll {
+  align-items: stretch;
+  gap: 0.4rem;
+}
+
 .ap-sekme-scroll-rail {
   display: flex;
   min-width: 0;
@@ -2132,6 +2191,30 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-sekme-tab {
   position: relative;
+}
+
+.ap-sekme-tab--kare {
+  width: 6.25rem;
+  max-width: 6.25rem;
+  min-height: calc(var(--ap-tab-height, 2rem) + 0.85rem);
+  border-radius: 0.55rem 0.55rem 0 0;
+}
+
+.ap-sekme-tab--kare .ap-sekme-tab-sec {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0.3rem;
+  text-align: center;
+}
+
+.ap-sekme-tab--kare .ap-sekme-tab-sec > span:last-child {
+  max-width: 100%;
+  font-size: 0.67rem;
+}
+
+.ap-sekme-tab--kare .ap-sekme-tab-sec > span:first-child {
+  font-size: 0.95rem;
 }
 
 /* Sekme hover onizleme â€” Windows tarzi */
@@ -8811,8 +8894,16 @@ html:has(.admin-panel[data-tema='acik']) body {
   position: relative;
   z-index: 3;
   flex-shrink: 0;
+}
+
+.ap-sekme-arama--ust {
   align-self: flex-end;
   margin: 0 0.5rem 0.125rem;
+}
+
+.ap-sekme-arama--alt {
+  align-self: center;
+  margin: 0 0.15rem;
 }
 
 .ap-sekme-arama-input-mod {
@@ -8887,6 +8978,12 @@ html:has(.admin-panel[data-tema='acik']) body {
   border: 1px solid var(--ap-border);
   background: var(--ap-surface);
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+
+.ap-sekme-arama-popup--alt,
+.ap-sekme-arama-dropdown--alt {
+  top: auto;
+  bottom: calc(100% + 0.35rem);
 }
 
 .ap-sekme-arama-popup-arama {
