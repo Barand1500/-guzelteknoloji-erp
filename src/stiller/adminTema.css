@@ -2132,8 +2132,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   margin: 0 0 0.35rem;
   font-size: 0.72rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: var(--ap-muted);
 }
 
@@ -2318,8 +2317,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-hesap-gecmis-baslik {
   font-size: 0.62rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--ap-muted);
 }
 
@@ -2429,8 +2427,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-klasik-hesap-sonuc-etiket {
   font-size: 0.6rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: var(--ap-muted);
 }
 

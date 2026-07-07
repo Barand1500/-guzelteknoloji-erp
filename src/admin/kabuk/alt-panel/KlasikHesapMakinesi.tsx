@@ -281,7 +281,7 @@ export function KlasikHesapMakinesi({ aktif }: KlasikHesapMakinesiProps) {
           value={girdi}
           onChange={(e) => girdiGuncelle(e.target.value)}
           onKeyDown={klavyeIsle}
-          aria-label="Hesap makinesi girişi"
+          aria-label="Hesap Makinesi Girişi"
         />
       </div>
 
@@ -324,7 +324,7 @@ export function KlasikHesapMakinesi({ aktif }: KlasikHesapMakinesiProps) {
         {tusBas('=', esittir, 'ap-klasik-hesap-tus-esit', 4)}
       </div>
 
-      <p className="ap-klasik-hesap-ipucu">Klavye ile yazın veya tuşlara tıklayın · Enter = · Esc kapatır</p>
+      <p className="ap-klasik-hesap-ipucu">Klavye İle Yazın veya Tuşlara Tıklayın · Enter = · ESC Kapatır</p>
     </div>
   );
 }

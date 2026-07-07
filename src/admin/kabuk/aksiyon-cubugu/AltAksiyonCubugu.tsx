@@ -119,8 +119,8 @@ function AltAksiyonCubuguGovde({
           <button
             type="button"
             className={`ap-tray-ikon ap-hesap-makinesi-btn${hesapAcik ? ' ap-tray-ikon-aktif' : ''}`}
-            title="Hesap makinesi"
-            aria-label="Hesap makinesi"
+            title="Hesap Makinesi"
+            aria-label="Hesap Makinesi"
             aria-expanded={hesapAcik}
             onClick={hesapToggle}
           >

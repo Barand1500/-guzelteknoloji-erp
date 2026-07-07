@@ -19,9 +19,11 @@ const HESAP_MODU_ANAHTAR = 'gt_hesap_modu';
 function modOku(): HesapModu {
   try {
     const kayit = localStorage.getItem(HESAP_MODU_ANAHTAR);
-    return kayit === 'normal' ? 'normal' : 'hizli';
+    if (kayit === 'hizli') return 'hizli';
+    if (kayit === 'normal') return 'normal';
+    return 'normal';
   } catch {
-    return 'hizli';
+    return 'normal';
   }
 }
 
@@ -168,7 +170,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
       { etiket: 'KDV', deger: `${sayiGoster(h.kdv)} ₺`, kopya: String(h.kdv) },
       { etiket: 'Toplam', deger: `${sayiGoster(h.toplam)} ₺`, kopya: String(h.toplam) },
     ]);
-    gecmiseEkle('KDV ekle', `Matrah ${sayiGoster(h.matrah)} + %${oran}`, String(h.toplam));
+    gecmiseEkle('KDV Ekle', `Matrah ${sayiGoster(h.matrah)} + %${oran}`, String(h.toplam));
   };
 
   const kdvHaricYap = () => {
@@ -181,7 +183,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
       { etiket: 'KDV', deger: `${sayiGoster(h.kdv)} ₺`, kopya: String(h.kdv) },
       { etiket: 'Toplam', deger: `${sayiGoster(h.toplam)} ₺`, kopya: String(h.toplam) },
     ]);
-    gecmiseEkle('KDV çıkar', `Dahil ${sayiGoster(tutar)} → matrah`, String(h.matrah));
+    gecmiseEkle('KDV Çıkar', `Dahil ${sayiGoster(tutar)} → matrah`, String(h.matrah));
   };
 
   const iskontoHesapla = () => {
@@ -206,7 +208,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
       { etiket: 'Kar', deger: `${sayiGoster(kar)} ₺`, kopya: String(kar) },
       { etiket: 'Satış', deger: `${sayiGoster(satis)} ₺`, kopya: String(satis) },
     ]);
-    gecmiseEkle('Kar marjı', `%${sayiGoster(k, 1)} → ${sayiGoster(satis)}`, String(satis));
+    gecmiseEkle('Kar Marjı', `%${sayiGoster(k, 1)} → ${sayiGoster(satis)}`, String(satis));
   };
 
   const birimHesapla = () => {
@@ -222,7 +224,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     }
     satirlar.push({ etiket: 'Net', deger: `${sayiGoster(h.net)} ₺`, kopya: String(h.net) });
     setBirimSonuc(satirlar);
-    gecmiseEkle('Birim × miktar', `${sayiGoster(fiyat)} × ${sayiGoster(adet, 0)}`, String(h.net));
+    gecmiseEkle('Birim × Miktar', `${sayiGoster(fiyat)} × ${sayiGoster(adet, 0)}`, String(h.net));
   };
 
   const gecmisiTemizle = () => {
@@ -249,17 +251,17 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
       ref={panelRef}
       className={`ap-hesap-makinesi-panel ap-hesap-makinesi-panel--kenarlik-anim${mod === 'normal' ? ' ap-hesap-makinesi-panel--normal' : ''}`}
       role="dialog"
-      aria-label="Hesap makinesi"
+      aria-label="Hesap Makinesi"
     >
       <header className="ap-hesap-makinesi-baslik">
-        <h3>Hesap makinesi</h3>
-        <div className="ap-hesap-mod-sec" role="group" aria-label="Hesap makinesi modu">
+        <h3>Hesap Makinesi</h3>
+        <div className="ap-hesap-mod-sec" role="group" aria-label="Hesap Makinesi Modu">
           <button
             type="button"
             className={`ap-hesap-mod-sec-btn${mod === 'hizli' ? ' ap-hesap-mod-sec-btn--aktif' : ''}`}
             onClick={() => modDegistir('hizli')}
           >
-            Hızlı işlemler
+            Hızlı İşlemler
           </button>
           <button
             type="button"
@@ -283,7 +285,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
       ) : (
       <div className="ap-hesap-makinesi-icerik ap-scroll">
         <section className="ap-hesap-bolum">
-          <h4>Genel ifade</h4>
+          <h4>Genel Ifade</h4>
           <p className="ap-hesap-bolum-ipucu">1000+%10, 500*2, (100+50)*2</p>
           <div className="ap-hesap-girdi-satir">
             <input
@@ -315,10 +317,10 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
           </div>
           <div className="ap-hesap-aksiyonlar">
             <button type="button" className="ap-hesap-ikincil-btn" onClick={kdvDahilYap}>
-              KDV ekle
+              KDV Ekle
             </button>
             <button type="button" className="ap-hesap-ikincil-btn" onClick={kdvHaricYap}>
-              KDV çıkar
+              KDV Çıkar
             </button>
           </div>
           <SonucGrubu sonuclar={kdvSonuc} />
@@ -337,13 +339,13 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
             </label>
           </div>
           <button type="button" className="ap-hesap-ikincil-btn ap-hesap-ikincil-btn--tam" onClick={iskontoHesapla}>
-            İskonto hesapla
+            İskonto Hesapla
           </button>
           <SonucGrubu sonuclar={iskontoSonuc} />
         </section>
 
         <section className="ap-hesap-bolum">
-          <h4>Kar marjı</h4>
+          <h4>Kar Marjı</h4>
           <div className="ap-hesap-cift">
             <label className="ap-hesap-alan">
               <span>Maliyet</span>
@@ -355,13 +357,13 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
             </label>
           </div>
           <button type="button" className="ap-hesap-ikincil-btn ap-hesap-ikincil-btn--tam" onClick={karHesapla}>
-            Satış fiyatı
+            Satış Fiyatı
           </button>
           <SonucGrubu sonuclar={karSonuc} />
         </section>
 
         <section className="ap-hesap-bolum">
-          <h4>Birim × miktar</h4>
+          <h4>Birim × Miktar</h4>
           <div className="ap-hesap-uc">
             <label className="ap-hesap-alan">
               <span>Fiyat</span>
@@ -377,7 +379,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
             </label>
           </div>
           <button type="button" className="ap-hesap-ikincil-btn ap-hesap-ikincil-btn--tam" onClick={birimHesapla}>
-            Tutar hesapla
+            Tutar Hesapla
           </button>
           <SonucGrubu sonuclar={birimSonuc} />
         </section>
@@ -387,7 +389,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
             <div className="ap-hesap-gecmis-baslik-satir">
               <h4>Geçmiş</h4>
               <button type="button" className="ap-hesap-gecmis-temizle" onClick={gecmisiTemizle}>
-                Geçmişi temizle
+                Geçmişi Temizle
               </button>
             </div>
             {gecmis.length > 0 && (
