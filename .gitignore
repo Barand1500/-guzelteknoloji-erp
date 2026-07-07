@@ -5,6 +5,7 @@ dist
 tsconfig.tsbuildinfo
 ~$*.xlsx
 .env.example
+Yapılak yenilik
 
 # Arşivler (GitHub 100MB limiti)
 *.rar

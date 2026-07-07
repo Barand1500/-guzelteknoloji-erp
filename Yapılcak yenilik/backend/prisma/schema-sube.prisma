@@ -1,0 +1,200 @@
+// Guzel Teknoloji — SUBE_DB (sube1-db vb.)
+// Sube restoran paneli. Master tablolari YOK: moduller, bayiler, firmalar, subeler, paketler, lisanslar
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum YedeklemeFormati {
+  json
+  sql
+  rar
+  zip
+}
+
+enum YedekIslemTipi {
+  indir
+  geri_yukle
+}
+
+enum BildirimTipi {
+  sistem
+}
+
+enum EklentiDurum {
+  kurulu
+  aktif
+  pasif
+}
+
+enum EklentiKaynak {
+  katalog
+  yukleme
+}
+
+enum KullaniciTipi {
+  merkez
+  bayi
+  firma
+  sube
+}
+
+model Rol {
+  id               Int      @id @default(autoincrement())
+  rolAdi           String   @map("rol_adi") @db.VarChar(50)
+  modulId          Int      @default(0) @map("modul_id")
+  yetki            Json     @default("[]")
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+  durum            Boolean  @default(true)
+
+  kullanicilar Kullanici[]
+
+  @@unique([modulId, rolAdi])
+  @@index([rolAdi])
+  @@map("roller")
+}
+
+model Kullanici {
+  id             Int           @id @default(autoincrement())
+  rolId          Int           @map("rol_id")
+  bayiId         Int?          @map("bayi_id")
+  firmaId        Int?          @map("firma_id")
+  subeId         Int?          @map("sube_id")
+  ad             String        @map("ad_soyad") @db.VarChar(150)
+  gsm            String?       @db.VarChar(20)
+  email          String        @unique @map("eposta") @db.VarChar(191)
+  sifreHash      String        @map("sifre_hash") @db.VarChar(255)
+  kullaniciTipi  KullaniciTipi @default(sube) @map("kullanici_tipi")
+  iskonto        Decimal?      @db.Decimal(5, 2)
+  sonGirisTarihi DateTime?     @map("son_giris_tarihi")
+  aktif          Boolean       @default(true) @map("durum")
+  olusturma      DateTime      @default(now()) @map("kayit_tarihi")
+  guncelleme     DateTime      @updatedAt @map("guncelleme_tarihi")
+
+  rol            Rol                 @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  kisayolAyari   KullaniciKisayol?
+  sekmeAyari     KullaniciSekmeAyar?
+  loglar         Log[]
+  yedekKayitlari YedekKaydi[]
+
+  @@index([rolId])
+  @@map("kullanicilar")
+}
+
+model Log {
+  id          Int      @id @default(autoincrement())
+  kullaniciId Int?     @map("kullanici_id")
+  logTipi     String?  @map("log_tipi") @db.VarChar(30)
+  mesaj       String   @db.VarChar(1000)
+  ipAdresi    String?  @map("ip_adresi") @db.VarChar(45)
+  kayitTarihi DateTime @default(now()) @map("kayit_tarihi")
+
+  kullanici Kullanici? @relation(fields: [kullaniciId], references: [id], onDelete: SetNull)
+
+  @@index([kayitTarihi])
+  @@map("log")
+}
+
+model Ayar {
+  id               Int      @id @default(autoincrement())
+  subeId           Int      @default(0) @map("sube_id")
+  anahtar          String   @db.VarChar(100)
+  deger            Json
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+
+  @@unique([subeId, anahtar])
+  @@index([anahtar])
+  @@map("ayarlar")
+}
+
+model KullaniciKisayol {
+  kullaniciId Int  @id @map("kullanici_id")
+  harita      Json @default("{}")
+
+  kullanici Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@map("kullanici_kisayol")
+}
+
+model KullaniciSekmeAyar {
+  kullaniciId Int  @id @map("kullanici_id")
+  ayarlar     Json @default("{}")
+
+  kullanici Kullanici @relation(fields: [kullaniciId], references: [id], onDelete: Cascade)
+
+  @@map("kullanici_sekme_ayar")
+}
+
+model EklentiKatalog {
+  kod           String   @id @db.VarChar(100)
+  ad            String   @db.VarChar(150)
+  aciklama      String   @db.VarChar(1000)
+  gelistirici   String   @db.VarChar(100)
+  ikon          String   @db.VarChar(50)
+  kategori      String   @db.VarChar(50)
+  surum         String   @db.VarChar(30)
+  puan          Float    @default(0)
+  etkinKurulum  Int      @default(0) @map("etkin_kurulum")
+  sonGuncelleme DateTime @default(now()) @map("son_guncelleme")
+  publicHook    String?  @map("public_hook") @db.VarChar(100)
+  manifestJson  Json?    @map("manifest_json")
+
+  kurulumlar EklentiKurulum[]
+
+  @@map("eklenti_katalog")
+}
+
+model EklentiKurulum {
+  id            Int           @id @default(autoincrement())
+  subeId        Int           @default(0) @map("sube_id")
+  eklentiKodu   String        @map("eklenti_kodu") @db.VarChar(100)
+  durum         EklentiDurum  @default(kurulu)
+  kaynak        EklentiKaynak @default(katalog)
+  ayarlarJson   Json          @default("{}") @map("ayarlar_json")
+  kurulumTarihi DateTime      @default(now()) @map("kurulum_tarihi")
+  guncelleme    DateTime      @updatedAt @map("guncelleme")
+
+  eklenti EklentiKatalog @relation(fields: [eklentiKodu], references: [kod], onDelete: Cascade)
+
+  @@unique([subeId, eklentiKodu])
+  @@map("eklenti_kurulum")
+}
+
+model YedekKaydi {
+  id             Int              @id @default(autoincrement())
+  subeId         Int?             @map("sube_id")
+  kullaniciId    Int?             @map("kullanici_id")
+  kullaniciAd    String           @map("kullanici_ad") @db.VarChar(150)
+  kullaniciEmail String           @map("kullanici_email") @db.VarChar(191)
+  dosyaAdi       String           @map("dosya_adi") @db.VarChar(255)
+  tip            YedekIslemTipi
+  format         YedeklemeFormati @default(json)
+  olusturma      DateTime         @default(now()) @map("kayit_tarihi")
+
+  kullanici Kullanici? @relation(fields: [kullaniciId], references: [id], onDelete: SetNull)
+
+  @@index([olusturma])
+  @@map("yedek_kaydi")
+}
+
+model Bildirim {
+  id        Int          @id @default(autoincrement())
+  subeId    Int?         @map("sube_id")
+  tip       BildirimTipi
+  baslik    String       @db.VarChar(150)
+  mesaj     String       @db.VarChar(1000)
+  okundu    Boolean      @default(false)
+  link      String?      @db.VarChar(500)
+  olusturma DateTime     @default(now()) @map("kayit_tarihi")
+
+  @@index([okundu, olusturma])
+  @@map("bildirim")
+}

@@ -8463,10 +8463,49 @@ html:has(.admin-panel[data-tema='acik']) body {
   isolation: isolate;
 }
 
+.ap-takvim-ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ap-takvim-baslik {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.ap-takvim-nav {
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-input-bg);
+  color: var(--ap-heading);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.ap-takvim-nav:hover {
+  background: var(--ap-hover);
+  border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  color: var(--ap-accent);
+}
+
 .ap-takvim-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 3px;
   font-size: 0.6875rem;
 }
 
@@ -8474,12 +8513,29 @@ html:has(.admin-panel[data-tema='acik']) body {
   text-align: center;
   font-weight: 600;
   color: var(--ap-text-muted);
+  padding: 0.125rem 0;
 }
 
 .ap-takvim-gun {
-  text-align: center;
-  padding: 3px 0;
-  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--ap-heading);
+  font-size: inherit;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.12s;
+}
+
+.ap-takvim-gun:not(.ap-takvim-bos):hover {
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-hover));
+  border-color: color-mix(in srgb, var(--ap-accent) 25%, transparent);
+  transform: translateY(-1px);
 }
 
 .ap-takvim-bugun {
@@ -8488,8 +8544,121 @@ html:has(.admin-panel[data-tema='acik']) body {
   font-weight: 700;
 }
 
+.ap-takvim-bugun:hover {
+  background: color-mix(in srgb, var(--ap-accent) 88%, #fff);
+  color: #fff;
+}
+
+.ap-takvim-notlu:not(.ap-takvim-bugun) {
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  font-weight: 600;
+}
+
+.ap-takvim-notlu::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: var(--ap-accent);
+}
+
+.ap-takvim-bugun.ap-takvim-notlu::after {
+  background: #fff;
+}
+
+.ap-takvim-secili:not(.ap-takvim-bugun) {
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 30%, transparent);
+}
+
 .ap-takvim-bos {
   visibility: hidden;
+  pointer-events: none;
+}
+
+.ap-takvim-ipucu {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.625rem;
+  color: var(--ap-text-muted);
+}
+
+.ap-takvim-not-kart {
+  margin-top: 0.625rem;
+  border-top: 1px solid var(--ap-border);
+  padding-top: 0.625rem;
+}
+
+.ap-takvim-not-baslik {
+  margin-bottom: 0.375rem;
+}
+
+.ap-takvim-not-metin {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ap-heading);
+}
+
+.ap-takvim-not-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 4.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-input-bg);
+  padding: 0.5rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ap-heading);
+  outline: none;
+}
+
+.ap-takvim-not-textarea:focus {
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 18%, transparent);
+}
+
+.ap-takvim-not-aksiyonlar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.ap-takvim-not-tus {
+  border-radius: 0.375rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-input-bg);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ap-heading);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.ap-takvim-not-tus:hover {
+  background: var(--ap-hover);
+}
+
+.ap-takvim-not-tus--birincil {
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  color: var(--ap-accent);
+}
+
+.ap-takvim-not-tus--sil {
+  color: #ef4444;
+}
+
+.ap-takvim-not-tus--sil:hover {
+  background: color-mix(in srgb, #ef4444 10%, var(--ap-hover));
 }
 
 .ap-zengin-editor-toolbar {
