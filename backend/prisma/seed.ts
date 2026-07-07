@@ -73,7 +73,7 @@ async function varsayilanAyarlarOlustur(firmaId = 0) {
 }
 
 async function main() {
-  console.log('ERP tohum verisi yukleniyor (REST7.xlsx Sayfa2)...');
+  console.log('ERP tohum verisi yukleniyor...');
 
   for (const modul of PANEL_MODULLERI) {
     await prisma.modul.upsert({

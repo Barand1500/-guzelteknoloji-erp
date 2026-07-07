@@ -230,13 +230,11 @@ export function DataGrid<TRow extends { id: string }>({
       const ustBar = kabuk.querySelector('.dg-ust-bar') as HTMLElement | null;
       const topluBar = kabuk.querySelector('.dg-toplu-bar') as HTMLElement | null;
       const hataEl = kabuk.querySelector('.dg-hata') as HTMLElement | null;
-      const heKart = kabuk.querySelector('.dg-he-kart') as HTMLElement | null;
       const alt = kabuk.querySelector('.dg-alt') as HTMLElement | null;
       const disHaric =
         (ustBar?.offsetHeight ?? 0) +
         (topluBar?.offsetHeight ?? 0) +
         (hataEl?.offsetHeight ?? 0) +
-        (heKart?.offsetHeight ?? 0) +
         (alt?.offsetHeight ?? 0);
       setScrollYukseklik(Math.max(160, kabuk.clientHeight - disHaric));
     };
