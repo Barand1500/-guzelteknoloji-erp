@@ -142,7 +142,10 @@ export function UrunAramaSlayt({
               </p>
             </div>
             <button type="button" className="dg-urun-arama-geri" onClick={onGeri}>
-              ← Tabloya dön
+              <span className="dg-urun-arama-geri-ok" aria-hidden>
+                ←
+              </span>
+              <span>Tabloya dön</span>
             </button>
           </header>
 
