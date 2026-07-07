@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { AdminModulKabuk, AdminPanelKarti } from '@/admin/ortak/AdminBilesenleri';
-import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 import {
   VARSAYILAN_SEKME_AYARLARI,
   sekmeAyarlariKaydet,
