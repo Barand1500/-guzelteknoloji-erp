@@ -517,6 +517,7 @@
   background: var(--ap-input-bg);
   color: var(--ap-text);
   font-size: 0.75rem;
+  accent-color: var(--ap-accent);
 }
 
 .dg-tus {
@@ -1418,6 +1419,7 @@
 .dg-duzenle-secim {
   appearance: auto;
   cursor: pointer;
+  accent-color: var(--ap-accent);
 }
 
 .dg-duzenle-baslik {

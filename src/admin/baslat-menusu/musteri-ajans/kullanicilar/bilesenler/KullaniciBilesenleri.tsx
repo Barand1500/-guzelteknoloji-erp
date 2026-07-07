@@ -1,5 +1,6 @@
 import type { AdminKullanici, KullaniciFormDegeri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
 import { formInputSinifi } from '@/formlar/FormAlani';
+import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { AdminAnahtarDugme } from '@/admin/ortak/AdminFormBilesenleri';
 
 export interface AtanabilirRol {
@@ -98,17 +99,12 @@ export function KullaniciDuzenleFormu({
           autoComplete={seciliId ? 'new-password' : 'new-password'}
         />
 
-        <select
-          className={formInputSinifi}
+        <FormAcilirSecim
+          aria-label="Kullanıcı rolü"
           value={form.rol}
-          onChange={(e) => onChange({ ...form, rol: e.target.value })}
-        >
-          {atanabilirRoller.map((r) => (
-            <option key={r.kod} value={r.kod}>
-              {r.baslik}
-            </option>
-          ))}
-        </select>
+          onChange={(rol) => onChange({ ...form, rol })}
+          secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
+        />
 
         <AdminAnahtarDugme
           etiket="Aktif kullanıcı"

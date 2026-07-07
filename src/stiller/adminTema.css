@@ -50,6 +50,7 @@
   background-color: var(--ap-bg);
   color: var(--ap-text);
   min-height: 0;
+  accent-color: var(--ap-accent);
 }
 
 html:has(.admin-panel),
@@ -2007,6 +2008,23 @@ html:has(.admin-panel[data-tema='acik']) body {
   background-color: var(--ap-input-bg);
   border-color: var(--ap-border);
   color: var(--ap-text);
+}
+
+.admin-panel select {
+  accent-color: var(--ap-accent);
+  background-color: var(--ap-input-bg);
+  border-color: var(--ap-border);
+  color: var(--ap-text);
+}
+
+.admin-panel select option {
+  background-color: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+.admin-panel select option:hover {
+  background-color: var(--ap-accent);
+  color: #fff;
 }
 
 .admin-panel input:-webkit-autofill,
@@ -11093,13 +11111,24 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-form-acilir-secim-oge:hover {
-  background: var(--ap-hover);
+  background: var(--ap-accent);
+  color: #fff;
 }
 
 .ap-form-acilir-secim-oge-secili {
-  background: color-mix(in srgb, var(--ap-accent) 18%, var(--ap-surface));
-  color: var(--ap-heading);
+  background: transparent;
+  color: var(--ap-text);
   font-weight: 600;
+}
+
+.ap-form-acilir-secim-oge-secili:hover {
+  background: var(--ap-accent);
+  color: #fff;
+}
+
+.admin-panel--kenarlik-neon .ap-form-acilir-secim-oge:hover,
+.admin-panel--kenarlik-neon .ap-form-acilir-secim-oge-secili:hover {
+  box-shadow: var(--ap-accent-glow);
 }
 
 /* Log Takibi */
