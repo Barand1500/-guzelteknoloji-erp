@@ -6,8 +6,7 @@ import type { SiparisSatiri } from './demoVeri';
 export function hucrePanoyaMetni(
   satir: SiparisSatiri,
   kolonId: string | null,
-  kolonlar: KolonTanimi<SiparisSatiri>[],
-  kdvDahil: boolean
+  kolonlar: KolonTanimi<SiparisSatiri>[]
 ): string {
   if (!kolonId || kolonId === 'secim' || kolonId === 'islemler') return '';
 
@@ -31,10 +30,11 @@ export function hucrePanoyaMetni(
       return String((deger as { baslik?: string }).baslik ?? '');
     case 'iskonto': {
       const i = deger as { yuzde: number; tutar: number };
-      return `${yuzdeFormatla(i.yuzde)} (${paraFormatla(i.tutar)})`;
+      const pb = kolon.paraSembolu === false ? null : '₺';
+      return `${yuzdeFormatla(i.yuzde)} (${paraFormatla(i.tutar, pb)})`;
     }
     case 'para':
-      return paraFormatla(Number(deger), kdvDahil ? '₺' : '₺');
+      return paraFormatla(Number(deger), kolon.paraSembolu === false ? null : '₺');
     case 'tarih':
       return tarihFormatla(deger);
     case 'toggle':
