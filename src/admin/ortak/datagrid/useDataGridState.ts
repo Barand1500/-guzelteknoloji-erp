@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { DataGridAyar, KolonTanimi, SiralamaYonu } from './types';
+import type { DataGridAyar, DataGridCizgiModu, KolonTanimi, SiralamaYonu } from './types';
+
+const GECERLI_CIZGI_MODLARI: DataGridCizgiModu[] = ['yok', 'yatay', 'dikey', 'tam'];
+
+function cizgiModuOku(
+  kayit: Partial<DataGridAyar & { cizgilerAcik?: boolean }>,
+  varsayilan: DataGridCizgiModu
+): DataGridCizgiModu {
+  if (kayit.cizgiModu && GECERLI_CIZGI_MODLARI.includes(kayit.cizgiModu)) return kayit.cizgiModu;
+  if (typeof kayit.cizgilerAcik === 'boolean') return kayit.cizgilerAcik ? 'tam' : 'yatay';
+  return varsayilan;
+}
 
 function varsayilanAyar<TRow>(
   kolonlar: KolonTanimi<TRow>[],
@@ -11,7 +22,7 @@ function varsayilanAyar<TRow>(
     sabitlenmisKolonlar: [],
     kolonGenislikleri: Object.fromEntries(kolonlar.map((k) => [k.id, k.genislik ?? 120])),
     sayfaBoyutu: 10,
-    cizgilerAcik: false,
+    cizgiModu: 'tam',
     gruplamaKolonId: null,
   };
 }
@@ -31,6 +42,7 @@ function ayarOku(anahtar: string, kolonlar: KolonTanimi<unknown>[], gizliVarsayi
       ...varsayilan,
       ...kayit,
       kolonSirasi,
+      cizgiModu: cizgiModuOku(kayit, varsayilan.cizgiModu),
       gizliKolonlar: (kayit.gizliKolonlar ?? []).filter((id) => gecerliIdler.has(id)),
       sabitlenmisKolonlar: (kayit.sabitlenmisKolonlar ?? varsayilan.sabitlenmisKolonlar).filter((id) =>
         gecerliIdler.has(id)
@@ -56,7 +68,6 @@ export function useDataGridState<TRow>(
   );
   const [sayfa, setSayfa] = useState(0);
   const [siralama, setSiralama] = useState<{ kolonId: string; yon: SiralamaYonu } | null>(null);
-  const [filtreler, setFiltreler] = useState<Record<string, string>>({});
   const [seciliIdler, setSeciliIdler] = useState<Set<string>>(new Set());
   const [sutunMenuAcik, setSutunMenuAcik] = useState(false);
   const [suruklenenKolon, setSuruklenenKolon] = useState<string | null>(null);
@@ -76,7 +87,6 @@ export function useDataGridState<TRow>(
     setAyar(varsayilanAyar(kolonlar, varsayilanGizliKolonlar));
     setSayfa(0);
     setSiralama(null);
-    setFiltreler({});
   }, [kolonlar, varsayilanGizliKolonlar]);
 
   const kolonGizle = useCallback((kolonId: string, gizle: boolean) => {
@@ -136,8 +146,8 @@ export function useDataGridState<TRow>(
     });
   }, []);
 
-  const cizgiToggle = useCallback(() => {
-    setAyar((a) => ({ ...a, cizgilerAcik: !a.cizgilerAcik }));
+  const cizgiModuAyarla = useCallback((mod: DataGridCizgiModu) => {
+    setAyar((a) => ({ ...a, cizgiModu: mod }));
   }, []);
 
   const sayfaBoyutuAyarla = useCallback((boyut: number) => {
@@ -155,11 +165,6 @@ export function useDataGridState<TRow>(
       if (onceki.yon === 'asc') return { kolonId, yon: 'desc' };
       return null;
     });
-    setSayfa(0);
-  }, []);
-
-  const filtreAyarla = useCallback((kolonId: string, deger: string) => {
-    setFiltreler((f) => ({ ...f, [kolonId]: deger }));
     setSayfa(0);
   }, []);
 
@@ -185,8 +190,6 @@ export function useDataGridState<TRow>(
     setSayfa,
     siralama,
     siralamaToggle,
-    filtreler,
-    filtreAyarla,
     seciliIdler,
     secimToggle,
     tumunuSec,
@@ -198,7 +201,7 @@ export function useDataGridState<TRow>(
     kolonSurukleBirak,
     kolonGenislikAyarla,
     sabitlenmisToggle,
-    cizgiToggle,
+    cizgiModuAyarla,
     sayfaBoyutuAyarla,
     gruplamaAyarla,
     sutunMenuAcik,
@@ -211,22 +214,9 @@ export function useDataGridState<TRow>(
 export function satirlariIsle<TRow extends { id: string }>(
   satirlar: TRow[],
   kolonlar: KolonTanimi<TRow>[],
-  filtreler: Record<string, string>,
   siralama: { kolonId: string; yon: 'asc' | 'desc' } | null
 ): TRow[] {
   let sonuc = [...satirlar];
-
-  const aktifFiltreler = Object.entries(filtreler).filter(([, v]) => v.trim());
-  if (aktifFiltreler.length) {
-    sonuc = sonuc.filter((satir) =>
-      aktifFiltreler.every(([kolonId, aranan]) => {
-        const kolon = kolonlar.find((k) => k.id === kolonId);
-        if (!kolon) return true;
-        const metin = (kolon.filtreDegeri?.(satir) ?? String(kolon.degerAl(satir) ?? '')).toLowerCase();
-        return metin.includes(aranan.toLowerCase());
-      })
-    );
-  }
 
   if (siralama?.yon) {
     const kolon = kolonlar.find((k) => k.id === siralama.kolonId);
