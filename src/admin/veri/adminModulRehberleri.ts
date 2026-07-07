@@ -1,4 +1,5 @@
 import type { RehberKart } from '@/admin/ortak/AdminRehberModal';
+import { modulBul } from '@/admin/veri/adminMenuYapisi';
 
 export interface ModulRehber {
   baslik: string;
@@ -62,6 +63,13 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Sistem Ayarları',
     kartlar: [
       {
+        ikon: '🎨',
+        baslik: 'Kenarlık Rengi',
+        aciklama:
+          'Genel sekmesindeki «Border rengi seçiniz» alanından sekme, menü, aksiyon çubuğu ve rehber vurgu rengini değiştirebilirsiniz. Neon anahtarı parlaklık efektini açar.',
+        renk: 'turuncu',
+      },
+      {
         ikon: '🌐',
         baslik: 'Site Durumu',
         aciklama: 'Site aktif/pasif ve bakım modu buradan yönetilir. Bakım modunda ziyaretçilere mesaj gösterilir.',
@@ -80,6 +88,7 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         renk: 'camgobegi',
       },
     ],
+    ipucu: 'Kenarlık rengi değişikliği kaydettikten sonra panel genelinde anında uygulanır.',
   },
 
   loglar: {
@@ -151,6 +160,46 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     ipucu: 'Çakışan kısayollar uyarı verir; kaydetmeden önce kontrol edin.',
   },
 
+  'datagrid-demo': {
+    baslik: 'Sipariş Tablosu Rehberi',
+    altBaslik: 'Datagrid demo modülü',
+    bolumBaslik: 'Sipariş İçeriği',
+    kartlar: [
+      {
+        ikon: '⚡',
+        baslik: 'Hızlı Giriş',
+        aciklama:
+          'Tablonun altındaki hızlı giriş satırından ürün adı/kodu yazıp Enter ile satır ekleyin. % ile arama, miktar için 2*5 gibi ifadeler kullanılabilir.',
+        renk: 'yesil',
+      },
+      {
+        ikon: '🧮',
+        baslik: 'Formül Desteği',
+        aciklama: 'Fiyat ve iskonto alanlarında 1000+%10, 20+20 gibi ifadeler desteklenir. Formül rehberine sütun başlığından ulaşabilirsiniz.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '📋',
+        baslik: 'Sütun Yönetimi',
+        aciklama: 'Sütunları sürükleyerek sıralayın, gizleyin veya genişliklerini ayarlayın. Tercihler tarayıcıda saklanır.',
+        renk: 'mor',
+      },
+      {
+        ikon: '🖱️',
+        baslik: 'Sağ Tık Menüsü',
+        aciklama: 'Satıra sağ tıklayarak kopyala, sil, satır düzenle ve toplu işlemlere erişin. Seçili satırlarla çoklu işlem yapılabilir.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '💰',
+        baslik: 'KDV Modu',
+        aciklama: 'KDV dahil/hariç anahtarı fiyat hesaplamalarını etkiler. Satır toplamları buna göre otomatik güncellenir.',
+        renk: 'camgobegi',
+      },
+    ],
+    ipucu: 'Ürün hücresine fareyle gelince detay kartı görünür. Değişiklikleri alt çubuktan Kaydet ile kaydedin.',
+  },
+
   'veri-yedekleme': {
     baslik: 'Yedekleme Rehberi',
     altBaslik: 'Veri güvenliği',
@@ -191,9 +240,20 @@ const VARSAYILAN_REHBER: ModulRehber = {
       renk: 'mavi',
     },
   ],
+  ipucu: 'Aksiyon çubuğundaki ? simgesinden de rehbere ulaşabilirsiniz.',
 };
 
 export function modulRehberBul(modulId: string): ModulRehber {
   if (ADMIN_MODUL_REHBERLERI[modulId]) return ADMIN_MODUL_REHBERLERI[modulId];
-  return VARSAYILAN_REHBER;
+
+  const modul = modulBul(modulId);
+  const baslik = modul?.baslik ?? 'Modül';
+
+  return {
+    baslik: `${baslik} Rehberi`,
+    altBaslik: `${baslik} modülü hakkında`,
+    bolumBaslik: baslik,
+    kartlar: VARSAYILAN_REHBER.kartlar,
+    ipucu: VARSAYILAN_REHBER.ipucu,
+  };
 }

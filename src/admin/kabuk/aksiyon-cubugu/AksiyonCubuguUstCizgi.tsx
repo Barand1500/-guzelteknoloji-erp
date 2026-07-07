@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
 
 const CIZGI_KALINLIK = 5;
 const PANEL_YARICAP = 10;
+const STROKE_PAD = CIZGI_KALINLIK / 2;
 
 function ustCizgiYoluOlustur(
   footerGenislik: number,
@@ -16,14 +17,15 @@ function ustCizgiYoluOlustur(
   const l = Math.round(pLeft);
   const rr = Math.round(pRight);
   const ly = Math.round(lineY);
+  const pt = Math.round(pTop);
 
   return [
     `M 0 ${ly}`,
     `H ${Math.max(0, l)}`,
-    `V ${pTop + guvenliR}`,
-    `Q ${l} ${pTop} ${l + guvenliR} ${pTop}`,
+    `V ${pt + guvenliR}`,
+    `Q ${l} ${pt} ${l + guvenliR} ${pt}`,
     `H ${rr - guvenliR}`,
-    `Q ${rr} ${pTop} ${rr} ${pTop + guvenliR}`,
+    `Q ${rr} ${pt} ${rr} ${pt + guvenliR}`,
     `V ${ly}`,
     `H ${Math.round(footerGenislik)}`,
   ].join(' ');
@@ -68,7 +70,7 @@ export function AksiyonCubuguUstCizgi({ footerRef, panelEl, panelAktif }: Aksiyo
         setGeometri({
           yol: `M 0 ${lineY} H ${Math.round(fr.width)}`,
           genislik: fr.width,
-          yukseklik: CIZGI_KALINLIK + 2,
+          yukseklik: CIZGI_KALINLIK,
           ustOfset: 0,
         });
         return;
@@ -77,15 +79,15 @@ export function AksiyonCubuguUstCizgi({ footerRef, panelEl, panelAktif }: Aksiyo
       const pr = panelEl.getBoundingClientRect();
       const pLeft = pr.left - fr.left;
       const pRight = pr.right - fr.left;
-      const footerLineY = fr.top - pr.top + CIZGI_KALINLIK / 2;
-      const yukseklik = footerLineY + CIZGI_KALINLIK + 2;
-      const yol = ustCizgiYoluOlustur(fr.width, footerLineY, pLeft, pRight, 0);
+      const footerLineY = fr.top - pr.top + STROKE_PAD + STROKE_PAD;
+      const yukseklik = Math.ceil(footerLineY + STROKE_PAD);
+      const yol = ustCizgiYoluOlustur(fr.width, footerLineY, pLeft, pRight, STROKE_PAD);
 
       setGeometri({
         yol,
         genislik: fr.width,
         yukseklik,
-        ustOfset: pr.top - fr.top,
+        ustOfset: pr.top - fr.top - STROKE_PAD,
       });
     };
 
