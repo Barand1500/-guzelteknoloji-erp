@@ -1,4 +1,4 @@
-import {
+﻿import {
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type WheelEvent,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -26,6 +27,12 @@ interface OdakHucre {
 
 interface DuzenlemeHucre extends OdakHucre {
   hamDeger: string;
+}
+
+interface UrunAramaKaydi {
+  sku: string;
+  ad: string;
+  kur?: string;
 }
 
 function HucreGoster<TRow>({
@@ -143,6 +150,8 @@ export function DataGrid<TRow extends { id: string }>({
     return baslangic;
   });
   const [hizliGirisGenisletildi, setHizliGirisGenisletildi] = useState(true);
+  const [urunAramaPanelAcik, setUrunAramaPanelAcik] = useState(false);
+  const [urunAramaSeciliIdx, setUrunAramaSeciliIdx] = useState(0);
   const [sutunMenuKonum, setSutunMenuKonum] = useState({ top: 0, left: 0 });
   const portalKok = useMemo(
     () => document.querySelector('.admin-panel') ?? document.body,
@@ -154,16 +163,44 @@ export function DataGrid<TRow extends { id: string }>({
   const menuRef = useRef<HTMLDivElement>(null);
   const sutunTusRef = useRef<HTMLButtonElement>(null);
   const hizliGirisIlkRef = useRef<HTMLInputElement>(null);
+  const urunAramaListeRef = useRef<HTMLDivElement>(null);
   const girdiRef = useRef<HTMLInputElement>(null);
   const theadRef = useRef<HTMLTableSectionElement>(null);
   const [baslikYukseklik, setBaslikYukseklik] = useState(40);
 
   const hizliGirisKartModu = hizliGirisModu === 'kart' && Boolean(hizliGirisKolonlari?.length && onHizliGiris);
   const hizliGirisAktif = Boolean(hizliGirisKolonlari?.length && onHizliGiris);
+  const urunAramaHam = (hizliGiris.urun ?? '').trim();
+  const urunAramaTetikli = urunAramaHam.startsWith('%');
+  const urunAramaSorgu = urunAramaTetikli ? urunAramaHam.slice(1).trim().toLocaleLowerCase('tr-TR') : '';
   const hizliGirisSet = useMemo(
     () => new Set(hizliGirisKolonlari?.map((k) => k.kolonId) ?? []),
     [hizliGirisKolonlari]
   );
+  const urunAramaKayitlari = useMemo<UrunAramaKaydi[]>(() => {
+    const map = new Map<string, UrunAramaKaydi>();
+    for (const satir of satirlar as Array<TRow & { urun?: { sku?: string; ad?: string; kur?: string } }>) {
+      const urun = satir.urun;
+      const ad = urun?.ad?.trim();
+      if (!ad) continue;
+      const sku = urun?.sku?.trim() ?? '';
+      const kur = urun?.kur;
+      const key = `${sku}::${ad}`.toLocaleLowerCase('tr-TR');
+      if (!map.has(key)) map.set(key, { sku, ad, kur });
+    }
+    return [...map.values()];
+  }, [satirlar]);
+  const urunAramaSonuclari = useMemo(() => {
+    if (!urunAramaTetikli) return [];
+    if (!urunAramaSorgu) return urunAramaKayitlari.slice(0, 60);
+    return urunAramaKayitlari
+      .filter((u) => u.ad.toLocaleLowerCase('tr-TR').includes(urunAramaSorgu))
+      .slice(0, 120);
+  }, [urunAramaKayitlari, urunAramaSorgu, urunAramaTetikli]);
+  const urunAramaGosterimListesi = useMemo(() => {
+    if (urunAramaSonuclari.length) return urunAramaSonuclari;
+    return urunAramaKayitlari.slice(0, 120);
+  }, [urunAramaSonuclari, urunAramaKayitlari]);
   const hizliGirisOnizle = useMemo(
     () => (hizliGirisOnizleme && hizliGirisAktif ? hizliGirisOnizleme(hizliGiris) : {}),
     [hizliGirisOnizleme, hizliGirisAktif, hizliGiris, kdvDahil]
@@ -331,6 +368,19 @@ export function DataGrid<TRow extends { id: string }>({
   }, [duzenleme]);
 
   useEffect(() => {
+    if (!urunAramaTetikli) setUrunAramaPanelAcik(false);
+  }, [urunAramaTetikli]);
+
+  useEffect(() => {
+    setUrunAramaSeciliIdx(0);
+  }, [urunAramaSorgu]);
+
+  useEffect(() => {
+    if (!urunAramaPanelAcik) return;
+    urunAramaListeRef.current?.focus();
+  }, [urunAramaPanelAcik]);
+
+  useEffect(() => {
     if (!resize) return;
     const hareket = (e: MouseEvent) => {
       const fark = e.clientX - resize.baslangicX;
@@ -454,6 +504,54 @@ export function DataGrid<TRow extends { id: string }>({
   };
 
   const gruplamaKolon = kolonlar.find((k) => k.id === dg.ayar.gruplamaKolonId);
+
+  const urunAramaSec = useCallback((urun: UrunAramaKaydi) => {
+    setHizliGiris((onceki) => ({
+      ...onceki,
+      urun: urun.ad,
+      stokKodu: urun.sku || onceki.stokKodu || '',
+    }));
+    setUrunAramaPanelAcik(false);
+  }, []);
+
+  const urunAramaSeciliDolas = useCallback(
+    (yon: 1 | -1) => {
+      if (!urunAramaGosterimListesi.length) return;
+      setUrunAramaSeciliIdx((i) => Math.min(Math.max(i + yon, 0), urunAramaGosterimListesi.length - 1));
+    },
+    [urunAramaGosterimListesi.length]
+  );
+
+  const urunAramaListeTus = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      if (!urunAramaPanelAcik) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        urunAramaSeciliDolas(1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        urunAramaSeciliDolas(-1);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const secili = urunAramaGosterimListesi[urunAramaSeciliIdx] ?? urunAramaGosterimListesi[0];
+        if (secili) urunAramaSec(secili);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setUrunAramaPanelAcik(false);
+        hizliGirisIlkRef.current?.focus();
+      }
+    },
+    [urunAramaPanelAcik, urunAramaSeciliDolas, urunAramaSeciliIdx, urunAramaSec, urunAramaGosterimListesi]
+  );
+
+  const urunAramaListeTeker = useCallback(
+    (e: WheelEvent<HTMLDivElement>) => {
+      if (!urunAramaPanelAcik || !urunAramaGosterimListesi.length) return;
+      e.preventDefault();
+      urunAramaSeciliDolas(e.deltaY > 0 ? 1 : -1);
+    },
+    [urunAramaPanelAcik, urunAramaGosterimListesi.length, urunAramaSeciliDolas]
+  );
 
   const renderSatirlar = () => {
     if (yukleniyor) {
@@ -662,7 +760,8 @@ export function DataGrid<TRow extends { id: string }>({
       placeholder: string,
       ipucu: string,
       refAta: boolean,
-      kucuk?: boolean
+      kucuk?: boolean,
+      ozelTus?: (e: KeyboardEvent<HTMLInputElement>) => void
     ) => (
       <input
         ref={refAta ? hizliGirisIlkRef : undefined}
@@ -673,6 +772,8 @@ export function DataGrid<TRow extends { id: string }>({
         value={hizliGiris[kolonId] ?? ''}
         onChange={(e) => girdiDegistir(kolonId, e.target.value)}
         onKeyDown={(e) => {
+          ozelTus?.(e);
+          if (e.defaultPrevented) return;
           if (e.key === 'Enter') {
             e.preventDefault();
             hizliGirisGonder();
@@ -777,9 +878,11 @@ export function DataGrid<TRow extends { id: string }>({
                   true
                 )
               )}
-              {girisAyar.tip === 'secim' && girisAyar.secenekler?.length
-                ? secimGirdi(anaAlanId, girisAyar)
-                : metinGirdi(anaAlanId, placeholder, ipucu, refAta && !girisAyar.birlesik.length)}
+              {girisAyar.tip === 'secim' && girisAyar.secenekler?.length ? (
+                secimGirdi(anaAlanId, girisAyar)
+              ) : (
+                metinGirdi(anaAlanId, placeholder, ipucu, refAta && !girisAyar.birlesik.length)
+              )}
             </div>
           </td>,
         ];

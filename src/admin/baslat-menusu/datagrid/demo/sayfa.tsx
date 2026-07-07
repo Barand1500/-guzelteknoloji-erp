@@ -580,7 +580,7 @@ export function DatagridDemoSayfasi() {
               }}
               onMouseDown={(e) => e.stopPropagation()}
             >
-              +
+              <span className="dg-baslik-aksiyon-arti">+</span>
             </button>
           ) : null
         }
