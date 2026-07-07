@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { paraFormatla, yuzdeFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { birimEtiketi } from './birimVeri';
 import type { UrunKaydi } from './urunAramaYardimci';
 
 interface UrunAramaSlaytProps {
@@ -12,6 +14,8 @@ interface UrunAramaSlaytProps {
   onGeri: () => void;
   children: ReactNode;
 }
+
+const TABLO_KOLONLARI = ['Ürün Kodu', 'Adı', 'Birimi', 'Fiyatı', 'Envanter', 'KDV'] as const;
 
 function listeIcindeKaydir(liste: HTMLElement, oge: HTMLElement) {
   const ogeUst = oge.offsetTop;
@@ -138,14 +142,11 @@ export function UrunAramaSlayt({
                 />
               </div>
               <p className="dg-urun-arama-adet">
-                {sonuclar.length} sonuç{sorgu.trim() ? '' : ' — tüm ürünler'}
+                {sonuclar.length} Sonuç{sorgu.trim() ? '' : ' — Tüm Ürünler'}
               </p>
             </div>
-            <button type="button" className="dg-urun-arama-geri" onClick={onGeri}>
-              <span className="dg-urun-arama-geri-ok" aria-hidden>
-                ←
-              </span>
-              <span>Tabloya dön</span>
+            <button type="button" className="dg-urun-arama-geri" onClick={onGeri} aria-label="ESC ile tabloya dön">
+              ESC
             </button>
           </header>
 
@@ -153,35 +154,53 @@ export function UrunAramaSlayt({
             {sonuclar.length === 0 ? (
               <div className="dg-urun-arama-bos">
                 <p>Sonuç bulunamadı.</p>
-                <span>Aramayı değiştirin veya Esc ile tabloya dönün.</span>
+                <span>Aramayı değiştirin veya ESC ile tabloya dönün.</span>
               </div>
             ) : (
-              sonuclar.map((urun, i) => {
-                const secili = i === seciliIndeks;
-                return (
-                  <button
-                    key={`${urun.sku}-${i}`}
-                    type="button"
-                    role="option"
-                    aria-selected={secili}
-                    data-secili={secili ? 'true' : undefined}
-                    className={`dg-urun-arama-oge${secili ? ' dg-urun-arama-oge--secili' : ''}`}
-                    onMouseEnter={() => onSeciliDegistir(i)}
-                    onClick={() => onSec(urun)}
-                  >
-                    <span className="dg-urun-arama-sku">{urun.sku}</span>
-                    <span className="dg-urun-arama-ad">{urun.ad}</span>
-                  </button>
-                );
-              })
+              <table className="dg-urun-arama-tablo">
+                <thead>
+                  <tr>
+                    {TABLO_KOLONLARI.map((baslik) => (
+                      <th key={baslik} scope="col" className="dg-urun-arama-th">
+                        {baslik}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sonuclar.map((urun, i) => {
+                    const secili = i === seciliIndeks;
+                    return (
+                      <tr
+                        key={`${urun.sku}-${i}`}
+                        role="option"
+                        aria-selected={secili}
+                        data-secili={secili ? 'true' : undefined}
+                        className={`dg-urun-arama-satir${secili ? ' dg-urun-arama-satir--secili' : ''}`}
+                        onMouseEnter={() => onSeciliDegistir(i)}
+                        onClick={() => onSec(urun)}
+                      >
+                        <td className="dg-urun-arama-hucre dg-urun-arama-hucre--kod">{urun.sku}</td>
+                        <td className="dg-urun-arama-hucre dg-urun-arama-hucre--ad">{urun.ad}</td>
+                        <td className="dg-urun-arama-hucre dg-urun-arama-hucre--birim">{birimEtiketi(urun.birim)}</td>
+                        <td className="dg-urun-arama-hucre dg-urun-arama-hucre--sayi">{paraFormatla(urun.fiyat)}</td>
+                        <td className="dg-urun-arama-hucre dg-urun-arama-hucre--sayi">
+                          {urun.envanter.toLocaleString('tr-TR')}
+                        </td>
+                        <td className="dg-urun-arama-hucre dg-urun-arama-hucre--sayi">{yuzdeFormatla(urun.kdv)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
 
           <footer className="dg-urun-arama-ipucu">
-            <span>Yazarak filtrele</span>
-            <span>↑ ↓ gezin</span>
-            <span>Enter seç ve ekle</span>
-            <span>Esc geri</span>
+            <span>Yazarak Filtrele</span>
+            <span>↑ ↓ Gezin</span>
+            <span>Enter Seç ve Ekle</span>
+            <span>ESC Geri</span>
           </footer>
         </div>
       </div>

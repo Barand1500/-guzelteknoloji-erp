@@ -2,6 +2,10 @@ export interface UrunKaydi {
   sku: string;
   ad: string;
   kur?: string;
+  birim: string;
+  fiyat: number;
+  envanter: number;
+  kdv: number;
 }
 
 /** Alan değeri % ile başlıyorsa arama modundadır. */
