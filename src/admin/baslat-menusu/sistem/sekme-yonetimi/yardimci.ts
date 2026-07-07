@@ -25,7 +25,7 @@ export interface SekmePanelAyarlari {
 
 export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
   sekmeYukseklik: 'orta',
-  hoverOnizleme: true,
+  hoverOnizleme: false,
   varsayilanAcilis: 'yeni-sekme',
   yanYanaAcilabilir: true,
   surukleAyirPencere: true,
@@ -110,4 +110,33 @@ export function sekmeYukseklikCss(ayar: SekmeYukseklik) {
     default:
       return { height: '2rem', fontSize: '0.75rem', padding: '0.375rem 0.75rem' };
   }
+}
+
+/** Kare sekme yerleşiminde kare boyutu */
+export function sekmeKareOlcusu(yukseklik: SekmeYukseklik, _gorunum?: SekmeGorunumModu) {
+  const boy =
+    yukseklik === 'kucuk' ? '3.25rem' : yukseklik === 'buyuk' ? '5.5rem' : '4.25rem';
+  const ikon =
+    yukseklik === 'kucuk' ? '0.9375rem' : yukseklik === 'buyuk' ? '1.375rem' : '1.125rem';
+  return { boy, genislik: boy, ikon };
+}
+
+export function sekmeTabCssDegiskenleri(
+  ayarlar: Pick<SekmePanelAyarlari, 'sekmeYukseklik' | 'sekmeGorunumModu' | 'sekmeYerlesim'>
+) {
+  const h =
+    ayarlar.sekmeYukseklik === 'kucuk' ? '1.75rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '2.5rem' : '2rem';
+  const f =
+    ayarlar.sekmeYukseklik === 'kucuk' ? '0.6875rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '0.875rem' : '0.75rem';
+  const kare = sekmeKareOlcusu(ayarlar.sekmeYukseklik, ayarlar.sekmeGorunumModu);
+  const headerYuk =
+    ayarlar.sekmeYerlesim === 'kare' ? `calc(${kare.boy} + 0.25rem)` : '3rem';
+  return {
+    '--ap-tab-height': h,
+    '--ap-tab-font-size': f,
+    '--ap-sekme-kare-genislik': kare.genislik,
+    '--ap-sekme-kare-boyut': kare.boy,
+    '--ap-sekme-kare-ikon-boyut': kare.ikon,
+    '--ap-header-yukseklik': headerYuk,
+  } as Record<string, string>;
 }

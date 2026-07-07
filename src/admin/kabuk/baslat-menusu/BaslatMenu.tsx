@@ -11,9 +11,10 @@ interface BaslatMenuProps {
   onKapat: () => void;
   onModulSec: (modul: AdminModul) => void;
   baslatButonRef?: RefObject<HTMLButtonElement | null>;
+  kareMod?: boolean;
 }
 
-export function BaslatMenu({ acik, onKapat, onModulSec, baslatButonRef }: BaslatMenuProps) {
+export function BaslatMenu({ acik, onKapat, onModulSec, baslatButonRef, kareMod = false }: BaslatMenuProps) {
   const menuDurumu = useBaslatMenuDurumu();
   const [tasarim, setTasarim] = useState(() => sekmeAyarlariOku().baslatMenuTasarim);
   const [dockStil, setDockStil] = useState<CSSProperties>();
@@ -48,6 +49,8 @@ export function BaslatMenu({ acik, onKapat, onModulSec, baslatButonRef }: Baslat
     };
   }, [acik, dockAktif, baslatButonRef]);
 
+  const dockYerlesim: 'kare' | 'dikdortgen' = kareMod ? 'kare' : 'dikdortgen';
+
   const menuProps = {
     ref: menuRef,
     menuDurumu,
@@ -55,7 +58,7 @@ export function BaslatMenu({ acik, onKapat, onModulSec, baslatButonRef }: Baslat
     onKapat,
     kenarlikAnim: dockAktif && acik,
     dockStil: dockAktif && acik ? dockStil : undefined,
-    dockYerlesim: 'dikdortgen' as const,
+    dockYerlesim,
   };
 
   return (
