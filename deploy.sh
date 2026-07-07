@@ -53,6 +53,9 @@ GIT_BRANCH="main"
 PM2_NAME="erp-api"
 API_PORT="3006"
 DB_RESET="${DB_RESET:-0}"
+# Geçici: login API hazır değilken admin paneli mock (offline) modda aç.
+# Hazır olduğunda: FRONTEND_MOCK_AUTH=0 ./deploy.sh
+FRONTEND_MOCK_AUTH="${FRONTEND_MOCK_AUTH:-1}"
 # ----------------------------------------
 
 echo ""
@@ -97,7 +100,13 @@ echo "  Son commit: $(git log -1 --oneline)"
 echo "[2/6] Frontend build..."
 cd "$SITE/repo"
 npm ci
-VITE_API_URL=/api npm run build
+if [ "$FRONTEND_MOCK_AUTH" = "1" ]; then
+  echo "  Frontend: MOCK auth aktif (VITE_BACKEND_YOK=true)"
+  VITE_API_URL=/api VITE_BACKEND_YOK=true npm run build
+else
+  echo "  Frontend: gerçek backend auth (VITE_BACKEND_YOK=false)"
+  VITE_API_URL=/api VITE_BACKEND_YOK=false npm run build
+fi
 rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
 FRONTEND_JS="$(grep -oE 'index-[^"]+\.js' "$SITE/frontend/index.html" | head -1 || true)"
 echo "  Çıktı: $SITE/frontend/ (${FRONTEND_JS:-?})"
