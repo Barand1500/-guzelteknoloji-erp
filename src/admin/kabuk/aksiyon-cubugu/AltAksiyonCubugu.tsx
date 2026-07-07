@@ -72,7 +72,7 @@ function AltAksiyonCubuguGovde({
 
           return (
             <AksiyonCubuguButon
-              key={`${aksiyon.id}-${etiket}-${geriBildirim?.tur ?? ''}`}
+              key={aksiyon.id}
               etiket={etiket}
               aktif={aksiyon.aktif || Boolean(geriBildirim)}
               geriBildirim={geriBildirim?.tur === 'basari' || geriBildirim?.tur === 'hata' ? geriBildirim.tur : null}

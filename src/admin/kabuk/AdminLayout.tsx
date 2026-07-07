@@ -502,21 +502,23 @@ function AdminPanelGovde() {
         onBaslatMenuAcikDegistir={setBaslatMenuAcik}
       />
 
-      <main className="ap-scroll flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--ap-bg)]">
-        {splitSekmeler ? (
-          <div className="ap-sekme-split-alan flex min-h-0 flex-1">
-            {splitSekmeler.map((sekme) => icerikPanel(sekme, aktifSekmeId === sekme.id, true))}
-          </div>
-        ) : (
-          aktifModul &&
-          !ayriPencereler.some((p) => p.sekmeId === aktifSekmeId) &&
-          icerikPanel(
-            aktifSekme ?? { id: aktifSekmeId, modulId: aktifModul.id, baslik: aktifModul.baslik },
-            true
-          )
-        )}
-        <Outlet context={{ aktifModul }} />
-      </main>
+      <div className="ap-govde-alan flex min-h-0 flex-1 overflow-hidden">
+        <main className="ap-scroll flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--ap-bg)]">
+          {splitSekmeler ? (
+            <div className="ap-sekme-split-alan flex min-h-0 flex-1">
+              {splitSekmeler.map((sekme) => icerikPanel(sekme, aktifSekmeId === sekme.id, true))}
+            </div>
+          ) : (
+            aktifModul &&
+            !ayriPencereler.some((p) => p.sekmeId === aktifSekmeId) &&
+            icerikPanel(
+              aktifSekme ?? { id: aktifSekmeId, modulId: aktifModul.id, baslik: aktifModul.baslik },
+              true
+            )
+          )}
+          <Outlet context={{ aktifModul }} />
+        </main>
+      </div>
 
       {ayriPencereler.map((pencere) => (
         <div key={pencere.sekmeId} className="ap-ayri-pencere">
