@@ -1,41 +1,79 @@
 #!/bin/bash
 set -euo pipefail
 
-# ERP — CloudPanel deploy
-# Sunucu klasor yapisi:
-#   ~/htdocs/panel.ornek.com/
-#     deploy.sh
-#     repo/       <- git clone
-#     frontend/   <- nginx root
-#     backend/    <- PM2 (port 3006, .env burada kalir)
+# =============================================================================
+# GÜZEL TEKNOLOJİ ERP — TEK DOSYA DEPLOY
+# =============================================================================
 #
-# Ilk kurulum:
-#   cd ~/htdocs/panel.ornek.com
-#   git clone <repo-url> repo
-#   cp repo/backend/.env.example backend/.env && nano backend/.env
-#   chmod +x deploy.sh && ./deploy.sh
+# Sunucu klasör yapısı (CloudPanel / htdocs):
 #
-# Nginx (CloudPanel vhost):
-#   location /api/ { proxy_pass http://127.0.0.1:3006/api/; ... }
-#   location /uploads/ { proxy_pass http://127.0.0.1:3006/uploads/; ... }
+#   /home/guzelteknoloji-erp/htdocs/erp.guzelteknoloji.com/
+#     deploy.sh          <- bu dosya (repo'dan otomatik kopyalanır)
+#     repo/              <- git projesi
+#     frontend/          <- nginx document root (Vite build çıktısı)
+#     backend/           <- PM2 çalışma dizini (.env burada kalır)
+#
+# İlk kurulum:
+#   cd ~/htdocs/erp.guzelteknoloji.com
+#   git clone https://github.com/Barand1500/-guzelteknoloji-erp.git repo
+#   cp repo/deploy.sh .
+#   mkdir -p backend
+#   cp repo/backend/.env.example backend/.env
+#   nano backend/.env          # DATABASE_URL, JWT_SECRET, PORT=3006
+#   chmod +x deploy.sh
+#   ./deploy.sh
+#
+# Sonraki güncellemeler (git'ten son veriyi çeker):
+#   cd ~/htdocs/erp.guzelteknoloji.com
+#   ./deploy.sh
+#
+# Nginx (vhost) — /api ve /uploads Node'a gitmeli:
+#   location /api/ {
+#     proxy_pass http://127.0.0.1:3006/api/;
+#     proxy_http_version 1.1;
+#     proxy_set_header Host $host;
+#     proxy_set_header X-Real-IP $remote_addr;
+#     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#     proxy_set_header X-Forwarded-Proto $scheme;
+#   }
+#   location /uploads/ {
+#     proxy_pass http://127.0.0.1:3006/uploads/;
+#     proxy_set_header Host $host;
+#   }
+#
+# Veritabanı sıfırlama (TÜM VERİ SİLİNİR):
+#   DB_RESET=1 ./deploy.sh
+#
+# =============================================================================
 
-# --- AYARLAR ---
-SITE="${DEPLOY_SITE:-/home/panel/htdocs/panel.ornek.com}"
-PM2_NAME="erp-api"
+# --- AYARLAR (sunucuya göre değiştir) ---
+SITE="${DEPLOY_SITE:-$HOME/htdocs/erp.guzelteknoloji.com}"
+GIT_REMOTE="https://github.com/Barand1500/-guzelteknoloji-erp.git"
 GIT_BRANCH="main"
+PM2_NAME="erp-api"
 API_PORT="3006"
-# Ilk kurulumda veya sema sifirlanacaksa: DB_RESET=1 ./deploy.sh
 DB_RESET="${DB_RESET:-0}"
-# ---------------
+# ----------------------------------------
 
 echo ""
-echo "=== SADEPANEL DEPLOY BASLIYOR ==="
+echo "=== GÜZEL TEKNOLOJİ ERP — DEPLOY BAŞLIYOR ==="
+echo "  Site : $SITE"
+echo "  Branch: $GIT_BRANCH"
 echo ""
 
+# --- Git repo kontrolü ---
 if [ ! -d "$SITE/repo/.git" ]; then
-  echo "HATA: $SITE/repo klasorunde git projesi yok."
+  echo "HATA: $SITE/repo klasöründe git projesi yok."
+  echo ""
+  echo "İlk kurulum:"
+  echo "  mkdir -p $SITE"
   echo "  cd $SITE"
-  echo "  git clone <repo-url> repo"
+  echo "  git clone $GIT_REMOTE repo"
+  echo "  cp repo/deploy.sh ."
+  echo "  mkdir -p backend"
+  echo "  cp repo/backend/.env.example backend/.env"
+  echo "  nano backend/.env"
+  echo "  chmod +x deploy.sh && ./deploy.sh"
   exit 1
 fi
 
@@ -46,31 +84,25 @@ if [ ! -f "$SITE/backend/.env" ]; then
   exit 1
 fi
 
-echo "[1/6] Git guncelleniyor..."
+# [1/6] Git — origin'den son commit
+echo "[1/6] Git güncelleniyor (origin/$GIT_BRANCH)..."
 cd "$SITE/repo"
 git fetch origin "$GIT_BRANCH"
 git reset --hard "origin/$GIT_BRANCH"
 cp "$SITE/repo/deploy.sh" "$SITE/deploy.sh"
 chmod +x "$SITE/deploy.sh"
+echo "  Son commit: $(git log -1 --oneline)"
 
+# [2/6] Frontend build (Vite → frontend/)
 echo "[2/6] Frontend build..."
 cd "$SITE/repo"
 npm ci
 VITE_API_URL=/api npm run build
 rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
 FRONTEND_JS="$(grep -oE 'index-[^"]+\.js' "$SITE/frontend/index.html" | head -1 || true)"
-echo "  Frontend: $SITE/frontend/ (${FRONTEND_JS:-index bulunamadi})"
-if [ -f "$SITE/index.html" ]; then
-  KOK_JS="$(grep -oE 'index-[^"]+\.js' "$SITE/index.html" | head -1 || true)"
-  if [ -n "$KOK_JS" ] && [ "$KOK_JS" != "$FRONTEND_JS" ]; then
-    echo ""
-    echo "  UYARI: Site kokunde ESKI index.html var ($KOK_JS)"
-    echo "  CloudPanel Document Root su olmali: $SITE/frontend"
-    echo "  Degilse nginx eski dosyalari gosterir."
-    echo ""
-  fi
-fi
+echo "  Çıktı: $SITE/frontend/ (${FRONTEND_JS:-?})"
 
+# [3/6] Backend build (TypeScript → dist/)
 echo "[3/6] Backend build..."
 cd "$SITE/repo/backend"
 npm ci
@@ -80,30 +112,35 @@ rsync -a \
   --exclude='.env' \
   --exclude='uploads' \
   "$SITE/repo/backend/" "$SITE/backend/"
+echo "  Çıktı: $SITE/backend/dist/"
 
-echo "[4/6] Backend bagimliliklari (sunucu)..."
+# [4/6] Sunucu bağımlılıkları
+echo "[4/6] Backend bağımlılıkları (production)..."
 cd "$SITE/backend"
-npm ci
+npm ci --omit=dev
 chmod +x scripts/db-push-safe.sh 2>/dev/null || true
 
-echo "[5/6] Veritabani..."
+# [5/6] Veritabanı (Prisma)
+echo "[5/6] Veritabanı..."
 PRISMA_SCHEMA="$(bash scripts/prisma-sema.sh)"
-echo "  DB sema: $PRISMA_SCHEMA"
+echo "  Şema: $PRISMA_SCHEMA"
 npx prisma generate --schema "$PRISMA_SCHEMA"
 DB_OK=1
 export DB_RESET
 if bash scripts/db-push-safe.sh; then
-  echo "  Veritabani guncellendi."
+  echo "  Veritabanı güncellendi."
 else
   DB_OK=0
   echo ""
-  echo "  UYARI: Veritabani adimi basarisiz — deploy DEVAM EDIYOR (PM2 yenilenecek)."
+  echo "  UYARI: Veritabanı adımı başarısız — deploy devam ediyor (PM2 yenilenecek)."
   echo "  Manuel: cd $SITE/backend && bash scripts/db-push-safe.sh"
-  echo "  Sifir kurulum (TUM VERI SILINIR): DB_RESET=1 ./deploy.sh"
+  echo "  Sıfır kurulum: DB_RESET=1 ./deploy.sh"
   echo ""
 fi
 
+# [6/6] PM2
 echo "[6/6] PM2 ($PM2_NAME, port $API_PORT)..."
+cd "$SITE/backend"
 if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
   pm2 restart "$PM2_NAME" --update-env
 else
@@ -111,37 +148,38 @@ else
 fi
 pm2 save
 
+# --- Sağlık kontrolü ---
 echo ""
 if [ "$DB_OK" = "1" ]; then
   echo "=== DEPLOY TAMAMLANDI ==="
 else
-  echo "=== DEPLOY TAMAMLANDI (veritabani uyarisi var) ==="
+  echo "=== DEPLOY TAMAMLANDI (veritabanı uyarısı var) ==="
 fi
+
+echo ""
 echo "API kontrolleri (127.0.0.1:${API_PORT})..."
 HEALTH_OK=0
 OTURUM_OK=0
+
 if curl -sf "http://127.0.0.1:${API_PORT}/api/health" >/dev/null; then
   HEALTH_OK=1
   echo "  OK  /api/health"
 else
-  echo "  HATA /api/health — PM2 log: pm2 logs ${PM2_NAME} --lines 30"
+  echo "  HATA /api/health — log: pm2 logs ${PM2_NAME} --lines 30"
 fi
+
 if curl -sf "http://127.0.0.1:${API_PORT}/api/admin/auth/oturum-secenekleri" | grep -q '"firmalar"'; then
   OTURUM_OK=1
   echo "  OK  /api/admin/auth/oturum-secenekleri"
 else
-  echo "  HATA /api/admin/auth/oturum-secenekleri (login combobox bos kalir)"
-  echo "        Eski dist olabilir: cd $SITE/backend && npm run build && pm2 restart ${PM2_NAME}"
-  echo "        Nginx dogru: location /api/ { proxy_pass http://127.0.0.1:${API_PORT}/api/; }"
+  echo "  HATA /api/admin/auth/oturum-secenekleri"
+  echo "        Nginx: location /api/ { proxy_pass http://127.0.0.1:${API_PORT}/api/; }"
 fi
-if [ "$HEALTH_OK" = "0" ] && curl -sf "http://127.0.0.1:${API_PORT}/health" >/dev/null; then
-  echo "  UYARI: /api/health basarisiz ama /health calisiyor — nginx proxy_pass on ekini dusuruyor olabilir."
-  echo "        Duzelt: proxy_pass http://127.0.0.1:${API_PORT}/api/;"
-fi
+
 echo ""
 if [ "$OTURUM_OK" = "1" ]; then
-  echo "Frontend guncellendi. Tarayicida Ctrl+Shift+R ile sert yenileme yapin."
+  echo "Frontend güncellendi. Tarayıcıda Ctrl+Shift+R ile sert yenileme yapın."
 else
-  echo "Deploy tamamlandi ancak login API hazir degil — yukaridaki HATA satirlarini kontrol edin."
+  echo "Deploy bitti; login API hazır değilse yukarıdaki HATA satırlarını kontrol edin."
 fi
 echo ""
