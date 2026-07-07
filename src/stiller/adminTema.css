@@ -8337,6 +8337,28 @@ html:has(.admin-panel[data-tema='acik']) body {
   color: var(--ap-heading);
 }
 
+.ap-tray-bildirim-sayi {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  display: flex;
+  height: 1rem;
+  min-width: 1rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0 0.25rem;
+  background: var(--ap-accent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.admin-panel--kenarlik-neon .ap-tray-bildirim-sayi {
+  box-shadow: var(--ap-accent-glow);
+}
+
 .ap-tray-panel {
   position: absolute;
   bottom: calc(100% + 0.5rem);

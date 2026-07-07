@@ -131,7 +131,7 @@ function AltAksiyonCubuguGovde({
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .53-.21 1.04-.59 1.4L4 17h5m6 0a3 3 0 11-6 0" />
           </svg>
           {okunmamisSayi > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+            <span className="ap-tray-bildirim-sayi">
               {okunmamisSayi > 9 ? '9+' : okunmamisSayi}
             </span>
           )}
