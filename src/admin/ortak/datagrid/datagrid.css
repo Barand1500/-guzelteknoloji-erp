@@ -24,6 +24,266 @@
   height: 100%;
 }
 
+.dg-demo-sayfa > .dg-kabuk,
+.dg-demo-sayfa > .dg-urun-slayt-kabuk {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.dg-demo-sayfa .dg-urun-slayt-tablo > .dg-kabuk {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+/* % ürün arama — sağdan kayan sonuç paneli */
+.dg-urun-slayt-kabuk {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.dg-urun-slayt-tablo {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.dg-urun-slayt-sonuc {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.46s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s ease;
+  will-change: transform, opacity;
+}
+
+.dg-urun-slayt-sonuc--acik {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dg-urun-slayt-kabuk--arama .dg-urun-slayt-tablo {
+  pointer-events: none;
+}
+
+.dg-urun-arama {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  border-radius: 1rem;
+  background: var(--ap-surface);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--ap-accent) 8%, transparent);
+  overflow: hidden;
+}
+
+.dg-urun-arama-baslik {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem 0.85rem;
+  border-bottom: 1px solid var(--ap-border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface)),
+    var(--ap-surface)
+  );
+}
+
+.dg-urun-arama-etiket {
+  margin: 0 0 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ap-text-muted);
+}
+
+.dg-urun-arama-sorgu {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+  line-height: 1.2;
+}
+
+.dg-urun-arama-yuzde {
+  color: var(--ap-accent);
+  margin-right: 0.1rem;
+}
+
+.dg-urun-arama-tumu {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+}
+
+.dg-urun-arama-adet {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ap-text-muted);
+}
+
+.dg-urun-arama-geri {
+  flex-shrink: 0;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.5rem;
+  background: var(--ap-surface);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.dg-urun-arama-geri:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
+}
+
+.dg-urun-arama-liste {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.5rem;
+}
+
+.dg-urun-arama-oge {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, auto) 1fr auto;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  background: transparent;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.dg-urun-arama-oge:hover {
+  background: var(--ap-hover);
+}
+
+.dg-urun-arama-oge--secili {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 20%, transparent);
+  transform: translateX(4px);
+}
+
+.dg-urun-arama-sku {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ap-accent);
+}
+
+.dg-urun-arama-ad {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.dg-urun-arama-kat {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+  border: 1px solid var(--ap-border);
+  border-radius: 9999px;
+  padding: 0.15rem 0.45rem;
+  white-space: nowrap;
+}
+
+.dg-urun-arama-bos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 12rem;
+  color: var(--ap-text-muted);
+  text-align: center;
+}
+
+.dg-urun-arama-bos p {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.dg-urun-arama-ipucu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--ap-border);
+  font-size: 0.6875rem;
+  color: var(--ap-text-muted);
+}
+
+.dg-hizli-giris-girdi--arama {
+  border-color: color-mix(in srgb, var(--ap-border) 85%, transparent) !important;
+  border-bottom: 2px solid var(--ap-accent) !important;
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: color-mix(in srgb, var(--ap-accent) 5%, var(--ap-input-bg, var(--ap-surface))) !important;
+  color: var(--ap-heading);
+  font-weight: 600;
+  box-shadow: none;
+  transition:
+    border-color 0.2s ease,
+    border-bottom-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.dg-hizli-giris-girdi--arama:focus {
+  outline: none;
+  border-bottom-width: 2px;
+  border-bottom-color: var(--ap-accent) !important;
+  box-shadow: 0 2px 0 0 color-mix(in srgb, var(--ap-accent) 35%, transparent);
+}
+
+.dg-hizli-giris-girdi--arama::placeholder {
+  color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-text-muted));
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-urun-slayt-sonuc {
+    transition: none;
+  }
+
+  .dg-urun-arama-oge--secili {
+    transform: none;
+  }
+}
+
 .dg-kabuk {
   display: flex;
   flex-direction: column;
@@ -696,6 +956,35 @@
 }
 
 .dg-switch--acik .dg-switch-thumb { transform: translateX(0.75rem); }
+
+/* Durum / toggle sütunu — hizalı orta */
+.dg-baslik-hucre--toggle {
+  text-align: center;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
+
+.dg-baslik-hucre--toggle .dg-baslik-icerik {
+  justify-content: center;
+  gap: 0.15rem;
+}
+
+.dg-baslik-hucre--toggle .dg-surukle-tutamac {
+  display: none;
+}
+
+.dg-hucre--toggle,
+.dg-hizli-giris-hucre--toggle {
+  text-align: center;
+  padding-left: 0.35rem !important;
+  padding-right: 0.35rem !important;
+}
+
+.dg-hucre--toggle .dg-switch,
+.dg-hizli-giris-hucre--toggle .dg-switch {
+  display: inline-block;
+  vertical-align: middle;
+}
 
 .dg-islem-tus {
   width: 1.625rem;
@@ -1404,10 +1693,6 @@
   line-height: 1;
   cursor: pointer;
   transition: background 0.12s;
-}
-
-.dg-hizli-giris-hucre--toggle {
-  text-align: center;
 }
 
 .dg-hizli-giris-onizle {

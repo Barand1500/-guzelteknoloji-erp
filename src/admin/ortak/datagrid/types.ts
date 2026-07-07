@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { MutableRefObject, ReactNode } from 'react';
 
 export type SiralamaYonu = 'asc' | 'desc' | null;
 
@@ -63,10 +63,17 @@ export interface HizliGirisKolonu {
   modalAksiyon?: boolean;
 }
 
+export interface HizliGirisEnterBaglami {
+  alanId: string;
+  degerler: Record<string, string>;
+  engelle: () => void;
+}
+
 export interface HizliGirisApi {
   degerler: Record<string, string>;
   alanAyarla: (kolonId: string, deger: string) => void;
   onEkle: () => void;
+  sifirla: () => void;
   onizleme: Record<string, ReactNode>;
   kolonlar: HizliGirisKolonu[];
   genisletildi: boolean;
@@ -94,6 +101,10 @@ export interface DataGridProps<TRow extends { id: string }> {
   hizliGirisModu?: 'satir' | 'kart';
   hizliGirisKarti?: (api: HizliGirisApi) => ReactNode;
   onHizliGiris?: (degerler: Record<string, string>) => void;
+  onHizliGirisEnter?: (baglam: HizliGirisEnterBaglami) => void;
+  hizliGirisInputSinif?: (alanId: string, deger: string) => string | undefined;
+  hizliGirisInputPlaceholder?: (alanId: string, deger: string, varsayilan: string) => string;
+  hizliGirisApiRef?: MutableRefObject<HizliGirisApi | null>;
   hizliGirisOnizleme?: (degerler: Record<string, string>) => Record<string, ReactNode>;
   hizliGirisModalAc?: (kolonId: string) => void;
   kolonBaslikEki?: (kolonId: string) => ReactNode | null;

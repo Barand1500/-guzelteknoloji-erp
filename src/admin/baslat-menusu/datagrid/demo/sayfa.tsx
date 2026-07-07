@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 
+import type { HizliGirisApi, HizliGirisEnterBaglami } from '@/admin/ortak/datagrid/types';
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
@@ -13,6 +14,16 @@ import { DEMO_SIPARIS_SATIRLARI, satirHesapla, yeniSiparisSatiriOlustur, type Si
 import { SatirDuzenlePanel } from './SatirDuzenlePanel';
 import { KategoriYonetimModal } from './KategoriYonetimModal';
 import { BASLANGIC_KATEGORILER, kategoriSecenekleri, type DemoKategori } from './kategoriVeri';
+import { UrunAramaSlayt } from './UrunAramaSlayt';
+import { URUN_KATALOGU } from './urunKatalogu';
+import {
+  hizliGirisUrunAlaniDolu,
+  hizliGirisUrunSorgusu,
+  urunleriAra,
+  yuzdeAramaModu,
+  type UrunKaydi,
+  URUN_ARAMA_ALANLARI,
+} from './urunAramaYardimci';
 
 
 
@@ -473,6 +484,11 @@ export function DatagridDemoSayfasi() {
   const [kdvDahil, setKdvDahil] = useState(true);
 
   const [yukleniyor, setYukleniyor] = useState(true);
+  const [slaytMod, setSlaytMod] = useState<'tablo' | 'arama'>('tablo');
+  const [aramaSorgusu, setAramaSorgusu] = useState('');
+  const [aramaSonuclari, setAramaSonuclari] = useState<UrunKaydi[]>([]);
+  const [seciliIndeks, setSeciliIndeks] = useState(0);
+  const hizliGirisApiRef = useRef<HizliGirisApi | null>(null);
 
   const kolonlar = useMemo(() => siparisKolonlari(), []);
 
@@ -496,6 +512,51 @@ export function DatagridDemoSayfasi() {
       };
     },
     [kdvDahil]
+  );
+
+  const aramayiAc = useCallback((sorgu: string) => {
+    setAramaSorgusu(sorgu);
+    setAramaSonuclari(urunleriAra(URUN_KATALOGU, sorgu));
+    setSeciliIndeks(0);
+    setSlaytMod('arama');
+  }, []);
+
+  const aramayiKapat = useCallback(() => {
+    setSlaytMod('tablo');
+    setAramaSorgusu('');
+    setAramaSonuclari([]);
+    setSeciliIndeks(0);
+    requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.dg-hizli-giris-girdi')?.focus());
+  }, []);
+
+  const urunSecVeEkle = useCallback(
+    (urun: UrunKaydi) => {
+      const mevcut = hizliGirisApiRef.current?.degerler ?? {};
+      const degerler = {
+        ...mevcut,
+        stokKodu: urun.sku,
+        urun: urun.ad,
+      };
+      const yeni = yeniSiparisSatiriOlustur(degerler, kdvDahil);
+      setSatirlar((onceki) => [yeni, ...onceki]);
+      hizliGirisApiRef.current?.sifirla();
+      setSlaytMod('tablo');
+      setAramaSorgusu('');
+      setAramaSonuclari([]);
+      setSeciliIndeks(0);
+      requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.dg-hizli-giris-girdi')?.focus());
+    },
+    [kdvDahil]
+  );
+
+  const hizliGirisUrunEnter = useCallback(
+    ({ alanId, degerler, engelle }: HizliGirisEnterBaglami) => {
+      if (!URUN_ARAMA_ALANLARI.includes(alanId as (typeof URUN_ARAMA_ALANLARI)[number])) return;
+      if (!hizliGirisUrunAlaniDolu(degerler)) return;
+      engelle();
+      aramayiAc(hizliGirisUrunSorgusu(degerler, alanId));
+    },
+    [aramayiAc]
   );
 
 
@@ -530,6 +591,15 @@ export function DatagridDemoSayfasi() {
         onDegistir={setKategoriler}
       />
 
+      <UrunAramaSlayt
+        mod={slaytMod}
+        sorgu={aramaSorgusu}
+        sonuclar={aramaSonuclari}
+        seciliIndeks={seciliIndeks}
+        onSeciliDegistir={setSeciliIndeks}
+        onSec={urunSecVeEkle}
+        onGeri={aramayiKapat}
+      >
       <DataGrid
 
         tabloBaslik="Sipariş İçeriği"
@@ -586,7 +656,24 @@ export function DatagridDemoSayfasi() {
         }
         satirSinifAdi={(s) => (!s.durum ? 'dg-satir--pasif' : undefined)}
         hizliGirisOnizleme={hizliGirisOnizleme}
+        hizliGirisApiRef={hizliGirisApiRef}
+        onHizliGirisEnter={hizliGirisUrunEnter}
+        hizliGirisInputSinif={(alanId, deger) =>
+          (alanId === 'stokKodu' || alanId === 'urun') && yuzdeAramaModu(deger)
+            ? 'dg-hizli-giris-girdi--arama'
+            : undefined
+        }
+        hizliGirisInputPlaceholder={(alanId, deger, varsayilan) => {
+          if ((alanId === 'stokKodu' || alanId === 'urun') && yuzdeAramaModu(deger)) {
+            return alanId === 'stokKodu' ? '%kod ile ara… Enter' : '%ad ile ara… Enter';
+          }
+          if (alanId === 'stokKodu' || alanId === 'urun') {
+            return alanId === 'stokKodu' ? 'Stok kodu… Enter ile ara' : 'Ürün adı… Enter ile ara';
+          }
+          return varsayilan;
+        }}
         onHizliGiris={(degerler) => {
+          if (hizliGirisUrunAlaniDolu(degerler)) return;
           if (!degerler.stokKodu?.trim() && !degerler.urun?.trim()) return;
           const yeni = yeniSiparisSatiriOlustur(degerler, kdvDahil);
           setSatirlar((onceki) => [yeni, ...onceki]);
@@ -627,6 +714,8 @@ export function DatagridDemoSayfasi() {
         )}
 
       />
+
+      </UrunAramaSlayt>
 
     </div>
 

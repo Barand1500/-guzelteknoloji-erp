@@ -124,6 +124,10 @@ export function DataGrid<TRow extends { id: string }>({
   hizliGirisModu = 'satir',
   hizliGirisKarti,
   onHizliGiris,
+  onHizliGirisEnter,
+  hizliGirisInputSinif,
+  hizliGirisInputPlaceholder,
+  hizliGirisApiRef,
   hizliGirisOnizleme,
   kolonBaslikEki,
   satirSinifAdi,
@@ -298,6 +302,22 @@ export function DataGrid<TRow extends { id: string }>({
 
   const hizliGirisGonder = useCallback(() => {
     if (!onHizliGiris || !hizliGirisKolonlari) return;
+
+    let engellendi = false;
+    if (onHizliGirisEnter) {
+      const urunAlani = (['stokKodu', 'urun'] as const).find((id) => (hizliGiris[id] ?? '').trim());
+      if (urunAlani) {
+        onHizliGirisEnter({
+          alanId: urunAlani,
+          degerler: hizliGiris,
+          engelle: () => {
+            engellendi = true;
+          },
+        });
+      }
+    }
+    if (engellendi) return;
+
     const dolu = hizliGirisKolonlari.some((k) => {
       const alanlar = [
         k.kolonId,
@@ -311,20 +331,26 @@ export function DataGrid<TRow extends { id: string }>({
     hizliGirisSifirla();
     dg.setSayfa(0);
     requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
-  }, [onHizliGiris, hizliGirisKolonlari, hizliGiris, dg, hizliGirisSifirla]);
+  }, [onHizliGiris, onHizliGirisEnter, hizliGirisKolonlari, hizliGiris, dg, hizliGirisSifirla]);
 
   const hizliGirisApi = useMemo<HizliGirisApi>(
     () => ({
       degerler: hizliGiris,
       alanAyarla: (kolonId, deger) => setHizliGiris((o) => ({ ...o, [kolonId]: deger })),
       onEkle: hizliGirisGonder,
+      sifirla: hizliGirisSifirla,
       onizleme: hizliGirisOnizle,
       kolonlar: hizliGirisKolonlari ?? [],
       genisletildi: hizliGirisGenisletildi,
       genisletToggle: () => setHizliGirisGenisletildi((a) => !a),
     }),
-    [hizliGiris, hizliGirisGonder, hizliGirisOnizle, hizliGirisKolonlari, hizliGirisGenisletildi]
+    [hizliGiris, hizliGirisGonder, hizliGirisSifirla, hizliGirisOnizle, hizliGirisKolonlari, hizliGirisGenisletildi]
   );
+
+  useEffect(() => {
+    if (!hizliGirisApiRef) return;
+    hizliGirisApiRef.current = hizliGirisApi;
+  }, [hizliGirisApi, hizliGirisApiRef]);
 
   useEffect(() => {
     if (duzenleme) girdiRef.current?.focus();
@@ -563,8 +589,8 @@ export function DataGrid<TRow extends { id: string }>({
               return (
                 <td
                   key={kolon.id}
-                  className={`dg-hucre${sabit ? ' dg-hucre--sabit' : ''}${odakta ? ' dg-hucre--odak' : ''}`}
-                  style={{ width: genislik, left: sabit ? left : undefined }}
+                  className={`dg-hucre dg-hucre--toggle${sabit ? ' dg-hucre--sabit' : ''}${odakta ? ' dg-hucre--odak' : ''}`}
+                  style={{ width: genislik, minWidth: genislik, left: sabit ? left : undefined }}
                   tabIndex={0}
                   onKeyDown={(e) => klavyeNav(e, satir, kolonIdx)}
                   onClick={(e) => {
@@ -663,23 +689,42 @@ export function DataGrid<TRow extends { id: string }>({
       ipucu: string,
       refAta: boolean,
       kucuk?: boolean
-    ) => (
-      <input
-        ref={refAta ? hizliGirisIlkRef : undefined}
-        type="text"
-        className={`dg-hizli-giris-girdi${kucuk ? ' dg-hizli-giris-girdi--kucuk' : ''}`}
-        placeholder={placeholder}
-        title={ipucu}
-        value={hizliGiris[kolonId] ?? ''}
-        onChange={(e) => girdiDegistir(kolonId, e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            hizliGirisGonder();
-          }
-        }}
-      />
-    );
+    ) => {
+      const deger = hizliGiris[kolonId] ?? '';
+      const gosterilenPlaceholder =
+        hizliGirisInputPlaceholder?.(kolonId, deger, placeholder) ?? placeholder;
+      const ekSinif = hizliGirisInputSinif?.(kolonId, deger);
+
+      return (
+        <input
+          ref={refAta ? hizliGirisIlkRef : undefined}
+          type="text"
+          className={`dg-hizli-giris-girdi${kucuk ? ' dg-hizli-giris-girdi--kucuk' : ''}${ekSinif ? ` ${ekSinif}` : ''}`}
+          placeholder={gosterilenPlaceholder}
+          title={ipucu}
+          value={deger}
+          onChange={(e) => girdiDegistir(kolonId, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              let engellendi = false;
+              onHizliGirisEnter?.({
+                alanId: kolonId,
+                degerler: hizliGiris,
+                engelle: () => {
+                  engellendi = true;
+                },
+              });
+              if (engellendi) {
+                e.stopPropagation();
+                return;
+              }
+              hizliGirisGonder();
+            }
+          }}
+        />
+      );
+    };
 
     const secimGirdi = (
       kolonId: string,
@@ -802,8 +847,8 @@ export function DataGrid<TRow extends { id: string }>({
         return [
           <td
             key={kolon.id}
-            className={`dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--toggle${sabit ? ' dg-hucre--sabit' : ''}`}
-            style={hucreStil}
+            className={`dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--toggle dg-hucre--toggle${sabit ? ' dg-hucre--sabit' : ''}`}
+            style={{ ...hucreStil, minWidth: genislik }}
           >
             <button
               type="button"
@@ -1081,7 +1126,7 @@ export function DataGrid<TRow extends { id: string }>({
                 return (
                   <th
                     key={kolon.id}
-                    className={`dg-baslik-hucre${kolon.sabitSag ? ' dg-baslik-hucre--sag-sabit' : ''}${sabit ? ' dg-baslik-hucre--sabit' : ''}${dg.suruklenenKolon === kolon.id ? ' dg-baslik-hucre--surukleniyor' : ''}`}
+                    className={`dg-baslik-hucre${kolon.tip === 'toggle' ? ' dg-baslik-hucre--toggle' : ''}${kolon.sabitSag ? ' dg-baslik-hucre--sag-sabit' : ''}${sabit ? ' dg-baslik-hucre--sabit' : ''}${dg.suruklenenKolon === kolon.id ? ' dg-baslik-hucre--surukleniyor' : ''}`}
                     style={{ width: genislik, minWidth: genislik, left: sabit ? left : undefined }}
                     draggable={!kolon.sabitSag}
                     onDragStart={() => !kolon.sabitSag && dg.setSuruklenenKolon(kolon.id)}
