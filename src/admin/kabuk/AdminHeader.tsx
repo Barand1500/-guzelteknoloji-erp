@@ -105,22 +105,28 @@ export function AdminHeader({
           baslatMenuAcik={menuAcik}
         />
 
-        <div className="flex items-center gap-3 border-l border-[var(--ap-border)] px-4">
+        <div
+          className={`ml-auto flex shrink-0 items-center gap-2 self-stretch border-l border-[var(--ap-border)] ${
+            kareYerlesim ? 'ap-header-sag px-2' : 'px-4'
+          }`}
+        >
           <button
             type="button"
             onClick={() => setProfilAcik(true)}
-            className="ap-profil-btn"
+            className={kareYerlesim ? 'ap-profil-btn ap-profil-btn--kare' : 'ap-profil-btn'}
             title="Profil ayarları"
           >
             <span className="ap-profil-avatar">{basHarf}</span>
-            <span className="ap-profil-ad hidden sm:block">{kullanici?.ad ?? 'Profil'}</span>
-            <svg viewBox="0 0 20 20" className="ap-profil-ok hidden h-3.5 w-3.5 opacity-60 sm:block" fill="currentColor">
-              <path
-                fillRule="evenodd"
-                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <span className={`ap-profil-ad ${kareYerlesim ? '' : 'hidden sm:block'}`}>{kullanici?.ad ?? 'Profil'}</span>
+            {!kareYerlesim && (
+              <svg viewBox="0 0 20 20" className="ap-profil-ok hidden h-3.5 w-3.5 opacity-60 sm:block" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
           </button>
         </div>
       </header>

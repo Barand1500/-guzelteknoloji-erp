@@ -8,7 +8,6 @@
     "dev": "tsx watch src/index.ts",
     "build": "node ./node_modules/typescript/bin/tsc",
     "start": "node dist/index.js",
-    "setup": "bash scripts/db-push-safe.sh",
     "db:generate": "node scripts/prisma-generate.mjs",
     "db:push": "bash scripts/db-push-safe.sh",
     "db:reset": "DB_RESET=1 bash scripts/db-push-safe.sh",
