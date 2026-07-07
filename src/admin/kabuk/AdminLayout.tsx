@@ -364,12 +364,13 @@ function AdminPanelGovde() {
     const modul = modulYolundanBul(location.pathname);
     if (!modul) return;
 
+    const liste = sekmelerRef.current;
     const urlDegisti = sonUrlRef.current !== location.pathname;
     sonUrlRef.current = location.pathname;
 
     if (beklenenSekmeIdRef.current) {
       const beklenenId = beklenenSekmeIdRef.current;
-      const beklenenSekme = sekmeler.find((s) => s.id === beklenenId);
+      const beklenenSekme = liste.find((s) => s.id === beklenenId);
       if (!beklenenSekme) {
         beklenenSekmeIdRef.current = null;
       } else if (beklenenSekme.modulId === modul.id) {
@@ -388,17 +389,17 @@ function AdminPanelGovde() {
     // Sekme listesi güncellenince (navigate öncesi) eski URL'ye göre aktif sekmeyi geri alma
     if (!urlDegisti) return;
 
-    const aktifModulId = sekmeler.find((s) => s.id === aktifSekmeId)?.modulId;
+    const aktifModulId = liste.find((s) => s.id === aktifSekmeIdRef.current)?.modulId;
     if (aktifModulId === modul.id) return;
 
-    const mevcutSekme = sekmeler.find((s) => s.modulId === modul.id);
+    const mevcutSekme = liste.find((s) => s.modulId === modul.id);
     if (mevcutSekme) {
       setAktifSekmeId(mevcutSekme.id);
       return;
     }
 
     sekmeAc(modul);
-  }, [location.pathname, sekmeler, sekmeAc, setAktifSekmeId]);
+  }, [location.pathname, sekmeAc, setAktifSekmeId]);
 
   async function logKaydet(islem: string, modulId?: string, aksiyonId?: string) {
     try {

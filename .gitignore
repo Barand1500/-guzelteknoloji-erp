@@ -4,6 +4,7 @@ dist
 .DS_Store
 tsconfig.tsbuildinfo
 ~$*.xlsx
+.env.example
 
 # Arşivler (GitHub 100MB limiti)
 *.rar

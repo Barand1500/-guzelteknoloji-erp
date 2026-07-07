@@ -233,12 +233,16 @@ export function useAdminSekmeler() {
   );
 
   const kaydedilmediIsaretle = useCallback((sekmeId: string, kirli: boolean) => {
-    setDurum((onceki) => ({
-      ...onceki,
-      sekmeler: onceki.sekmeler.map((s) =>
-        s.id === sekmeId ? { ...s, kaydedilmedi: kirli } : s
-      ),
-    }));
+    setDurum((onceki) => {
+      const hedef = onceki.sekmeler.find((s) => s.id === sekmeId);
+      if (!hedef || Boolean(hedef.kaydedilmedi) === kirli) return onceki;
+      return {
+        ...onceki,
+        sekmeler: onceki.sekmeler.map((s) =>
+          s.id === sekmeId ? { ...s, kaydedilmedi: kirli } : s
+        ),
+      };
+    });
   }, []);
 
   const sonKapananlariGeriGetir = useCallback((): AdminSekme | null => {

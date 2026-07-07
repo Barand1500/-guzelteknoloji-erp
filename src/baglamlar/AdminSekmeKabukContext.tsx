@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 interface AdminSekmeKabukContextType {
   sekmeId: string;
@@ -16,8 +16,13 @@ export function AdminSekmeKabuk({
   kaydedilmediIsaretle: (sekmeId: string, kirli: boolean) => void;
   children: ReactNode;
 }) {
+  const deger = useMemo(
+    () => ({ sekmeId, kaydedilmediIsaretle }),
+    [sekmeId, kaydedilmediIsaretle]
+  );
+
   return (
-    <AdminSekmeKabukContext.Provider value={{ sekmeId, kaydedilmediIsaretle }}>
+    <AdminSekmeKabukContext.Provider value={deger}>
       {children}
     </AdminSekmeKabukContext.Provider>
   );

@@ -272,8 +272,10 @@ export function UstSekmeCubugu({
   const [dropMod, setDropMod] = useState<DropMod | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollTrackRef = useRef<HTMLDivElement>(null);
-  const [solOk, setSolOk] = useState(false);
-  const [sagOk, setSagOk] = useState(false);
+  const solOkRef = useRef(false);
+  const sagOkRef = useRef(false);
+  const kaydirmaRafRef = useRef<number | null>(null);
+  const [kaydirmaSurumu, setKaydirmaSurumu] = useState(0);
   const kareMod = ayarlar.sekmeYerlesim === 'kare';
   const surukleBaslangic = useRef<{ x: number; y: number; id: string } | null>(null);
   const onizlemeAcTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -365,25 +367,54 @@ export function UstSekmeCubugu({
 
   const ogeler = useMemo(() => sekmeleriGrupla(sekmeler), [sekmeler]);
 
-  const kaydirmaGuncelle = () => {
+  const sekmeListeAnahtari = useMemo(
+    () => sekmeler.map((s) => `${s.id}:${s.grupId ?? ''}:${s.kaydedilmedi ? 1 : 0}`).join('|'),
+    [sekmeler]
+  );
+
+  const kaydirmaGuncelle = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setSolOk(el.scrollLeft > 4);
-    setSagOk(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-  };
+    const yeniSol = el.scrollLeft > 4;
+    const yeniSag = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    if (solOkRef.current === yeniSol && sagOkRef.current === yeniSag) return;
+    solOkRef.current = yeniSol;
+    sagOkRef.current = yeniSag;
+    setKaydirmaSurumu((n) => n + 1);
+  }, []);
+
+  const kaydirmaGuncelleCerceve = useCallback(() => {
+    if (kaydirmaRafRef.current !== null) return;
+    kaydirmaRafRef.current = requestAnimationFrame(() => {
+      kaydirmaRafRef.current = null;
+      kaydirmaGuncelle();
+    });
+  }, [kaydirmaGuncelle]);
+
+  const solOk = solOkRef.current;
+  const sagOk = sagOkRef.current;
+  void kaydirmaSurumu;
 
   useEffect(() => {
     kaydirmaGuncelle();
     const el = scrollRef.current;
     if (!el) return;
-    el.addEventListener('scroll', kaydirmaGuncelle, { passive: true });
-    const gozlemci = new ResizeObserver(kaydirmaGuncelle);
+    el.addEventListener('scroll', kaydirmaGuncelleCerceve, { passive: true });
+    const gozlemci = new ResizeObserver(kaydirmaGuncelleCerceve);
     gozlemci.observe(el);
     return () => {
-      el.removeEventListener('scroll', kaydirmaGuncelle);
+      if (kaydirmaRafRef.current !== null) cancelAnimationFrame(kaydirmaRafRef.current);
+      el.removeEventListener('scroll', kaydirmaGuncelleCerceve);
       gozlemci.disconnect();
     };
-  }, [ogeler]);
+  }, [
+    sekmeListeAnahtari,
+    ayarlar.sekmeGorunumModu,
+    ayarlar.sekmeYerlesim,
+    ayarlar.sekmeYukseklik,
+    kaydirmaGuncelle,
+    kaydirmaGuncelleCerceve,
+  ]);
 
   useEffect(() => {
     const alan = scrollTrackRef.current;
@@ -402,7 +433,7 @@ export function UstSekmeCubugu({
 
     alan.addEventListener('wheel', tekerlekKaydir, { passive: false });
     return () => alan.removeEventListener('wheel', tekerlekKaydir);
-  }, [ogeler]);
+  }, [sekmeListeAnahtari, ayarlar.sekmeGorunumModu, ayarlar.sekmeYerlesim]);
 
   function kaydir(yon: 'sol' | 'sag') {
     const el = scrollRef.current;
@@ -473,6 +504,8 @@ export function UstSekmeCubugu({
   function sekmeSagTikIslem(sekmeId: string, islem: SekmeSagTikIslem) {
     onSekmeSagTikIslem?.(sekmeId, islem);
   }
+
+  const sagTikMenuKapat = useCallback(() => setSagTikMenu(null), []);
 
   const sekmeSecAnim = useCallback(
     (id: string) => {
@@ -582,7 +615,7 @@ export function UstSekmeCubugu({
         menu={sagTikMenu}
         sekmeler={sekmeler}
         kapananGecmisSayisi={kapananGecmisSayisi}
-        onKapat={() => setSagTikMenu(null)}
+        onKapat={sagTikMenuKapat}
         onIslem={sekmeSagTikIslem}
       />
 
