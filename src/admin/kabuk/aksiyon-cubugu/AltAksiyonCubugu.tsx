@@ -1,7 +1,7 @@
-import { useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { AksiyonButonu } from '@/admin/ortak/tipler/admin';
-import { GorevCubuguTray } from './GorevCubuguTray';
 import { AksiyonCubuguButon } from './AksiyonCubuguButon';
+import { GorevCubuguTray } from './GorevCubuguTray';
 import { SaatTakvimWidget } from '../alt-panel/SaatTakvimWidget';
 import { modulRehberBul } from '@/admin/veri/adminModulRehberleri';
 import { BildirimPaneli, useBildirimSayaci } from '../alt-panel/BildirimPaneli';
@@ -10,6 +10,8 @@ import { YedeklemeHizliPaneli } from '../alt-panel/YedeklemeHizliPaneli';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { useAdminTema } from '@/baglamlar/AdminTemaContext';
 import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
+import { sekmeAyarlariOku, type SekmePanelAyarlari } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import { SekmeCubuguArama } from '../sekme-cubugu/SekmeCubuguArama';
 import {
   AksiyonCubuguPanelProvider,
   AksiyonCubuguUstCizgiSlot,
@@ -42,6 +44,13 @@ function AltAksiyonCubuguGovde({
   const { okunmamisSayi, yenile } = useBildirimSayaci();
   const { aksiyonGeriBildirim } = useAdminAksiyon();
   const { temaDegistir, koyuMu } = useAdminTema();
+  const [sekmeAyarlari, setSekmeAyarlari] = useState<SekmePanelAyarlari>(() => sekmeAyarlariOku());
+
+  useEffect(() => {
+    const handler = () => setSekmeAyarlari(sekmeAyarlariOku());
+    window.addEventListener('ap-sekme-ayarlari-guncellendi', handler);
+    return () => window.removeEventListener('ap-sekme-ayarlari-guncellendi', handler);
+  }, []);
 
   function panelAc(panel: AcikPanel) {
     setAcikPanel((onceki) => (onceki === panel ? null : panel));
@@ -74,6 +83,13 @@ function AltAksiyonCubuguGovde({
       </div>
 
       <div className="ap-aksiyon-cubugu-sag relative flex shrink-0 items-center gap-2 border-l border-[var(--ap-border)] pl-3">
+        {sekmeAyarlari.sekmeAramaAktif && onModulAc && (
+          <SekmeCubuguArama
+            gorunum={sekmeAyarlari.sekmeAramaGorunum}
+            konum="alt"
+            onModulSec={(modul) => onModulAc(modul.id)}
+          />
+        )}
         <button
           type="button"
           onClick={temaDegistir}

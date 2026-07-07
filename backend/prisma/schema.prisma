@@ -1,4 +1,4 @@
-// Guzel Teknoloji ERP — REST7.xlsx (Sayfa2) tek veritabani semasi
+// Guzel Teknoloji ERP — Prisma veritabani semasi
 // NOT: Sayfa1'deki eski yapi (bayiler, db_bilgileri, MASTER_DB, SUBE_DB, paketler, lisanslar) KULLANILMAZ.
 
 generator client {
@@ -45,7 +45,7 @@ model Rol {
 }
 
 // ---------------------------------------------------------------------------
-// REST7.xlsx Sayfa2 — ERP tablolari (panel tablolarina dokunulmaz)
+// ERP tablolari (panel tablolarina dokunulmaz)
 // ---------------------------------------------------------------------------
 
 model Firma {

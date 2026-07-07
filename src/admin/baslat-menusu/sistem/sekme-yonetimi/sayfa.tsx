@@ -22,23 +22,42 @@ function ToggleSatir({
   aciklama,
   acik,
   onDegistir,
+  devreDisi = false,
+  etiketRozeti,
 }: {
   etiket: string;
   aciklama?: string;
   acik: boolean;
   onDegistir: (v: boolean) => void;
+  devreDisi?: boolean;
+  etiketRozeti?: string;
 }) {
   return (
-    <label className="flex items-center justify-between gap-3 rounded-lg border border-[var(--ap-border)] p-3">
+    <label
+      className={`flex items-center justify-between gap-3 rounded-lg border border-[var(--ap-border)] p-3 ${
+        devreDisi ? 'opacity-70' : ''
+      }`}
+    >
       <div>
-        <p className="ap-heading text-sm font-medium">{etiket}</p>
+        <p className="ap-heading flex items-center gap-2 text-sm font-medium">
+          {etiket}
+          {etiketRozeti ? (
+            <span className="rounded-full border border-[var(--ap-border)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--ap-text-muted)]">
+              {etiketRozeti}
+            </span>
+          ) : null}
+        </p>
         {aciklama && <p className="ap-muted text-xs">{aciklama}</p>}
       </div>
       <button
         type="button"
         role="switch"
         aria-checked={acik}
-        onClick={() => onDegistir(!acik)}
+        disabled={devreDisi}
+        onClick={() => {
+          if (devreDisi) return;
+          onDegistir(!acik);
+        }}
         className={`ap-toggle ${acik ? 'ap-toggle-on' : ''}`}
       >
         <span className="ap-toggle-thumb" />
@@ -107,9 +126,11 @@ export function SekmeYonetimiSayfasi() {
   const kirli = useMemo(() => JSON.stringify(ayarlar) !== JSON.stringify(sonKayitli), [ayarlar, sonKayitli]);
 
   const kaydet = useCallback(() => {
-    sekmeAyarlariKaydet(ayarlar);
-    setSonKayitli({ ...ayarlar });
-    logMesajiAyarla(sekmeAyarlariLogOzeti(ayarlar));
+    const kaydedilecek = { ...ayarlar, hoverOnizleme: false };
+    setAyarlar(kaydedilecek);
+    sekmeAyarlariKaydet(kaydedilecek);
+    setSonKayitli(kaydedilecek);
+    logMesajiAyarla(sekmeAyarlariLogOzeti(kaydedilecek));
     window.dispatchEvent(new CustomEvent('ap-sekme-ayarlari-guncellendi'));
   }, [ayarlar, logMesajiAyarla]);
 
@@ -167,6 +188,35 @@ export function SekmeYonetimiSayfasi() {
             </div>
 
             <div>
+              <p className="ap-heading mb-1 text-sm font-medium">Sekme yerleşimi</p>
+              <p className="ap-muted mb-2 text-xs">
+                Kare modda sekmeler üst çubukta yatay sıralanır; her sekme kare kutu şeklinde görünür.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    { id: 'dikdortgen', ad: 'Dikdörtgen', alt: 'Üst çubukta yatay' },
+                    { id: 'kare', ad: 'Kare', alt: 'Çoklu kutucuk kartı' },
+                  ] as const
+                ).map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setAyarlar((a) => ({ ...a, sekmeYerlesim: m.id }))}
+                    className={`rounded-lg border px-3 py-1.5 text-left text-sm ${
+                      ayarlar.sekmeYerlesim === m.id
+                        ? 'border-blue-500 bg-blue-600/20 text-blue-400'
+                        : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
+                    }`}
+                  >
+                    <span className="block leading-tight">{m.ad}</span>
+                    <span className="ap-muted block text-[10px]">{m.alt}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <p className="ap-heading mb-2 text-sm font-medium">Varsayılan açılış</p>
               <select
                 className="w-full rounded-lg border border-[var(--ap-border)] bg-[var(--ap-input-bg)] px-3 py-2 text-sm"
@@ -206,8 +256,10 @@ export function SekmeYonetimiSayfasi() {
             <ToggleSatir
               etiket="Üzerine gelince önizleme"
               aciklama="Sekme üzerine gelindiğinde Windows tarzı içerik önizlemesi (ekran görüntüsü) gösterilir"
-              acik={ayarlar.hoverOnizleme}
-              onDegistir={(hoverOnizleme) => setAyarlar((a) => ({ ...a, hoverOnizleme }))}
+              acik={false}
+              devreDisi
+              etiketRozeti="Yakında"
+              onDegistir={() => {}}
             />
             <ToggleSatir
               etiket="Yan yana split (Chrome)"
@@ -224,7 +276,7 @@ export function SekmeYonetimiSayfasi() {
 
             <ToggleSatir
               etiket="Sekmelerde arama"
-              aciklama="Üst sekme çubuğunda modül arama alanı gösterilir"
+              aciklama="Alt aksiyon çubuğunda (gece/gündüz düğmesinin yanında) modül arama gösterilir"
               acik={ayarlar.sekmeAramaAktif}
               onDegistir={(sekmeAramaAktif) => setAyarlar((a) => ({ ...a, sekmeAramaAktif }))}
             />
@@ -370,6 +422,7 @@ export function SekmeYonetimiSayfasi() {
                 ayarlar.sekmeYukseklik === 'kucuk' ? '1.75rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '2.5rem' : '2rem',
               ['--ap-tab-font-size' as string]:
                 ayarlar.sekmeYukseklik === 'kucuk' ? '0.6875rem' : ayarlar.sekmeYukseklik === 'buyuk' ? '0.875rem' : '0.75rem',
+              ['--ap-tab-kare' as string]: ayarlar.sekmeYerlesim === 'kare' ? '1' : '0',
             }}
           >
             <UstSekmeCubugu
@@ -388,13 +441,13 @@ export function SekmeYonetimiSayfasi() {
               onSekmeTasi={(k, h, mod) => setOrnekSekmeler((s) => ornekSekmeTasi(s, k, h, mod))}
               onSekmeBirlestir={(k, h) => setOrnekSekmeler((s) => ornekSekmeBirlestir(s, k, h))}
               sekmeAyarlari={ayarlar}
-              onModulSec={() => {}}
             />
           </div>
           <p className="ap-muted mt-3 text-xs">
             Boyut: <strong>{ayarlar.sekmeYukseklik}</strong> · Görünüm:{' '}
-            <strong>{ayarlar.sekmeGorunumModu}</strong> · Önizleme:{' '}
-            <strong>{ayarlar.hoverOnizleme ? 'Açık' : 'Kapalı'}</strong> · Split:{' '}
+            <strong>{ayarlar.sekmeGorunumModu}</strong> · Yerleşim:{' '}
+            <strong>{ayarlar.sekmeYerlesim === 'kare' ? 'Kare' : 'Dikdörtgen'}</strong> · Önizleme:{' '}
+            <strong>Yakında</strong> · Split:{' '}
             <strong>{ayarlar.yanYanaAcilabilir ? 'Açık' : 'Kapalı'}</strong> · Başlat menüsü:{' '}
             <strong>{ayarlar.baslatMenuTasarim === 'modern' ? 'Modern' : 'Klasik'}</strong>
             {ayarlar.baslatMenuTasarim === 'modern' && (

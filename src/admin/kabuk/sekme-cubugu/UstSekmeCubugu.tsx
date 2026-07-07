@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState, useCallback, type DragEvent, type MouseEvent } from 'react';
-import type { AdminModul, AdminSekme } from '@/admin/ortak/tipler/admin';
+import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 import { modulBul } from '@/admin/veri/adminMenuYapisi';
 import {
   sekmeAyarlariOku,
   type SekmePanelAyarlari,
 } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
-import { SekmeCubuguArama } from './SekmeCubuguArama';
 import { SekmeHoverOnizleme } from './SekmeHoverOnizleme';
 import { sekmeOnizlemeAl } from './sekmeOnizlemeOnbellek';
 import { sekmeOnizlemeGuncelle } from './sekmeOnizlemeYakala';
@@ -23,7 +22,6 @@ interface UstSekmeCubuguProps {
   onSekmeBirlestir: (kaynakId: string, hedefId: string) => void;
   sekmeAyarlari?: SekmePanelAyarlari;
   onSekmeAyir?: (sekmeId: string) => void;
-  onModulSec?: (modul: AdminModul) => void;
   onSekmeSagTikIslem?: (sekmeId: string, islem: SekmeSagTikIslem) => void;
   baslatMenuAcik?: boolean;
 }
@@ -74,6 +72,7 @@ function SekmeButonu({
   dropMod,
   hoverOnizleme,
   gorunumModu,
+  yerlesim,
   onSekmeSec,
   onSekmeKapat,
   sekmelerUzunluk,
@@ -98,6 +97,7 @@ function SekmeButonu({
   dropMod: DropMod | null;
   hoverOnizleme: boolean;
   gorunumModu: SekmePanelAyarlari['sekmeGorunumModu'];
+  yerlesim: SekmePanelAyarlari['sekmeYerlesim'];
   onSekmeSec: (id: string) => void;
   onSekmeKapat: (id: string) => void;
   sekmelerUzunluk: number;
@@ -164,6 +164,8 @@ function SekmeButonu({
       }}
       title={hoverOnizleme ? undefined : sekme.baslik}
       className={`ap-sekme-tab group relative flex max-w-[200px] shrink-0 cursor-grab items-center rounded-t-md border border-b-0 active:cursor-grabbing ${
+        yerlesim === 'kare' ? 'ap-sekme-tab--kare max-w-none' : ''
+      } ${
         gruplu ? 'rounded-none first:rounded-tl-md last:rounded-tr-md' : ''
       } ${
         sekmeVurgulu
@@ -226,7 +228,6 @@ export function UstSekmeCubugu({
   onSekmeBirlestir,
   sekmeAyarlari: disAyarlari,
   onSekmeAyir,
-  onModulSec,
   onSekmeSagTikIslem,
   baslatMenuAcik = false,
 }: UstSekmeCubuguProps) {
@@ -455,6 +456,7 @@ export function UstSekmeCubugu({
     dropMod,
     hoverOnizleme: ayarlar.hoverOnizleme,
     gorunumModu: ayarlar.sekmeGorunumModu,
+    yerlesim: ayarlar.sekmeYerlesim,
     baslatMenuAcik,
     kenarlikAnimKey,
     onSekmeSec: sekmeSecAnim,
@@ -473,7 +475,11 @@ export function UstSekmeCubugu({
   };
 
   return (
-    <div className="ap-sekme-scroll-wrap" style={tabCss} data-ap-kesif="sekme-cubugu">
+    <div
+      className={`ap-sekme-scroll-wrap ${ayarlar.sekmeYerlesim === 'kare' ? 'ap-sekme-scroll-wrap--kare' : ''}`}
+      style={tabCss}
+      data-ap-kesif="sekme-cubugu"
+    >
       <div ref={scrollTrackRef} className="ap-sekme-scroll-rail">
         <button
           type="button"
@@ -535,10 +541,6 @@ export function UstSekmeCubugu({
           </svg>
         </button>
       </div>
-
-      {ayarlar.sekmeAramaAktif && onModulSec && (
-        <SekmeCubuguArama gorunum={ayarlar.sekmeAramaGorunum} onModulSec={onModulSec} />
-      )}
 
       <SekmeSagTikMenu
         menu={sagTikMenu}
