@@ -745,6 +745,10 @@
   background: color-mix(in srgb, var(--ap-surface-2) 50%, var(--ap-surface));
 }
 
+.dg-baslik-hucre--sabit-sinir {
+  box-shadow: 4px 0 8px color-mix(in srgb, var(--ap-border) 18%, transparent);
+}
+
 .dg-sabit-igne {
   position: absolute;
   top: 0.2rem;
@@ -905,6 +909,10 @@
   left: 0;
   z-index: 2;
   background: inherit;
+}
+
+.dg-hucre--sabit-sinir {
+  box-shadow: 4px 0 8px color-mix(in srgb, var(--ap-border) 18%, transparent);
 }
 
 .dg-satir--hover .dg-hucre--sabit,
@@ -2066,6 +2074,10 @@
   background: var(--dg-hizli-bg);
   vertical-align: middle;
   padding: 0.5rem 0.5rem;
+}
+
+.dg-hizli-giris-satir td.dg-hucre--sabit {
+  z-index: 4;
 }
 
 .dg-hizli-giris-satir td.dg-hucre--toggle,
