@@ -58,6 +58,9 @@ function AdminPanelGovde() {
     sekmeTopluKapat,
     sekmeTasi,
     sekmeBirlestir,
+    sekmeGruptanAyir,
+    grupGorunumuAyarla,
+    grupGorunumuAl,
     kaydedilmediIsaretle,
     kapananGecmisSayisi,
     sonKapananlariGeriGetir,
@@ -117,6 +120,10 @@ function AdminPanelGovde() {
   const splitSekmeler = useMemo(
     () => splitSekmeleriHesapla(sekmeler, aktifSekme, sekmeAyarlari.yanYanaAcilabilir),
     [sekmeler, aktifSekme, sekmeAyarlari.yanYanaAcilabilir]
+  );
+  const splitGorunum = useMemo(
+    () => grupGorunumuAl(aktifSekme?.grupId),
+    [grupGorunumuAl, aktifSekme?.grupId]
   );
 
   useEffect(() => {
@@ -379,6 +386,14 @@ function AdminPanelGovde() {
   }
 
   function sekmeSagTikIslemHandler(hedefId: string, islem: SekmeSagTikIslem) {
+    if (islem === 'gruptanAyir') {
+      sekmeGruptanAyir(hedefId);
+      return;
+    }
+    if (islem === 'grupYanYana' || islem === 'grupAltAlta') {
+      grupGorunumuAyarla(hedefId, islem === 'grupAltAlta' ? 'altAlta' : 'yanYana');
+      return;
+    }
     if (islem === 'sonKapananlariGeriGetir') {
       const hedef = sonKapananlariGeriGetir();
       if (!hedef) return;
@@ -551,7 +566,9 @@ function AdminPanelGovde() {
       <div className="ap-govde-alan flex min-h-0 flex-1 overflow-hidden">
         <main className="ap-scroll flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--ap-bg)]">
           {splitSekmeler ? (
-            <div className="ap-sekme-split-alan flex min-h-0 flex-1">
+            <div
+              className={`ap-sekme-split-alan min-h-0 flex-1 ${splitGorunum === 'altAlta' ? 'ap-sekme-split-alan--alt-alta' : ''}`}
+            >
               {splitSekmeler.map((sekme) => icerikPanel(sekme, aktifSekmeId === sekme.id, true))}
             </div>
           ) : (

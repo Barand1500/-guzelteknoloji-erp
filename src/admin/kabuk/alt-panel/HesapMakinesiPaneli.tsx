@@ -106,6 +106,8 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
   useAksiyonCubuguPanelSync(acik, panelRef);
 
   const [mod, setMod] = useState<HesapModu>(modOku);
+  const [hizliAramaAcik, setHizliAramaAcik] = useState(false);
+  const [hizliArama, setHizliArama] = useState('');
 
   const modDegistir = (yeni: HesapModu) => {
     setMod(yeni);
@@ -135,6 +137,12 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
   const [miktar, setMiktar] = useState('1');
   const [satirIskonto, setSatirIskonto] = useState('');
   const [birimSonuc, setBirimSonuc] = useState<SonucGosterimi[]>([]);
+  const [eskiDeger, setEskiDeger] = useState('');
+  const [yeniDeger, setYeniDeger] = useState('');
+  const [degisimSonuc, setDegisimSonuc] = useState<SonucGosterimi[]>([]);
+  const [toplamTutar, setToplamTutar] = useState('');
+  const [toplamAdet, setToplamAdet] = useState('');
+  const [toplamdanBirimSonuc, setToplamdanBirimSonuc] = useState<SonucGosterimi[]>([]);
 
   const [gecmis, setGecmis] = useState<GecmisKayit[]>([]);
 
@@ -227,6 +235,33 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     gecmiseEkle('Birim × Miktar', `${sayiGoster(fiyat)} × ${sayiGoster(adet, 0)}`, String(h.net));
   };
 
+  const degisimHesapla = () => {
+    const eski = sayiCoz(eskiDeger);
+    const yeni = sayiCoz(yeniDeger);
+    if (eski === null || yeni === null || eski === 0) return;
+    const fark = yeni - eski;
+    const yuzde = (fark / eski) * 100;
+    setDegisimSonuc([
+      { etiket: 'Fark', deger: `${sayiGoster(fark)} ₺`, kopya: String(fark) },
+      { etiket: 'Değişim', deger: `%${sayiGoster(yuzde, 2)}`, kopya: String(yuzde) },
+      { etiket: 'Yeni Değer', deger: `${sayiGoster(yeni)} ₺`, kopya: String(yeni) },
+    ]);
+    gecmiseEkle('Yüzde Değişim', `${sayiGoster(eski)} → ${sayiGoster(yeni)}`, String(yuzde));
+  };
+
+  const toplamdanBirimHesapla = () => {
+    const toplam = sayiCoz(toplamTutar);
+    const adet = sayiCoz(toplamAdet);
+    if (toplam === null || adet === null || adet === 0) return;
+    const birim = toplam / adet;
+    setToplamdanBirimSonuc([
+      { etiket: 'Toplam', deger: `${sayiGoster(toplam)} ₺`, kopya: String(toplam) },
+      { etiket: 'Adet', deger: sayiGoster(adet, 2), kopya: String(adet) },
+      { etiket: 'Birim Fiyat', deger: `${sayiGoster(birim)} ₺`, kopya: String(birim) },
+    ]);
+    gecmiseEkle('Toplamdan Birim', `${sayiGoster(toplam)} / ${sayiGoster(adet, 2)}`, String(birim));
+  };
+
   const gecmisiTemizle = () => {
     setGecmis([]);
     setIfadeSonuc([]);
@@ -234,6 +269,8 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     setIskontoSonuc([]);
     setKarSonuc([]);
     setBirimSonuc([]);
+    setDegisimSonuc([]);
+    setToplamdanBirimSonuc([]);
   };
 
   const gecmisVar =
@@ -242,7 +279,13 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     kdvSonuc.length > 0 ||
     iskontoSonuc.length > 0 ||
     karSonuc.length > 0 ||
-    birimSonuc.length > 0;
+    birimSonuc.length > 0 ||
+    degisimSonuc.length > 0 ||
+    toplamdanBirimSonuc.length > 0;
+
+  const arama = hizliArama.trim().toLocaleLowerCase('tr-TR');
+  const bolumGoster = (...anahtarlar: string[]) =>
+    !arama || anahtarlar.some((k) => k.toLocaleLowerCase('tr-TR').includes(arama));
 
   if (!acik) return null;
 
@@ -271,6 +314,23 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
             Normal
           </button>
         </div>
+        {mod === 'hizli' && (
+          <button
+            type="button"
+            className={`ap-hesap-arama-btn${hizliAramaAcik ? ' ap-hesap-arama-btn--aktif' : ''}`}
+            onClick={() => {
+              setHizliAramaAcik((v) => !v);
+              if (hizliAramaAcik) setHizliArama('');
+            }}
+            aria-label="Hızlı işlemlerde ara"
+            title="Hızlı işlemlerde ara"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <circle cx="11" cy="11" r="7" />
+              <path strokeLinecap="round" d="m20 20-3.5-3.5" />
+            </svg>
+          </button>
+        )}
         <button type="button" className="ap-hesap-makinesi-kapat" onClick={onKapat} aria-label="Kapat">
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
             <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
@@ -284,6 +344,31 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
         </div>
       ) : (
       <div className="ap-hesap-makinesi-icerik ap-scroll">
+        {hizliAramaAcik && (
+          <div className="ap-hesap-hizli-arama">
+            <input
+              type="search"
+              className="ap-hesap-girdi"
+              value={hizliArama}
+              onChange={(e) => setHizliArama(e.target.value)}
+              placeholder="Hızlı işlem ara (KDV, iskonto, birim...)"
+            />
+          </div>
+        )}
+        {!bolumGoster(
+          'genel ifade',
+          'kdv',
+          'iskonto',
+          'kar marjı',
+          'birim miktar',
+          'yüzde değişim',
+          'toplamdan birim'
+        ) && (
+          <div className="ap-hesap-bolum">
+            <p className="ap-hesap-bolum-ipucu">Aramaya uygun hızlı işlem bulunamadı.</p>
+          </div>
+        )}
+        {bolumGoster('genel ifade', 'ifade', 'hesap') && (
         <section className="ap-hesap-bolum">
           <h4>Genel Ifade</h4>
           <p className="ap-hesap-bolum-ipucu">1000+%10, 500*2, (100+50)*2</p>
@@ -302,7 +387,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
           </div>
           <SonucGrubu sonuclar={ifadeSonuc} />
         </section>
+        )}
 
+        {bolumGoster('kdv', 'vergi', 'dahil', 'hariç') && (
         <section className="ap-hesap-bolum">
           <h4>KDV</h4>
           <div className="ap-hesap-cift">
@@ -325,7 +412,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
           </div>
           <SonucGrubu sonuclar={kdvSonuc} />
         </section>
+        )}
 
+        {bolumGoster('iskonto', 'indirim', 'net') && (
         <section className="ap-hesap-bolum">
           <h4>İskonto</h4>
           <div className="ap-hesap-cift">
@@ -343,7 +432,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
           </button>
           <SonucGrubu sonuclar={iskontoSonuc} />
         </section>
+        )}
 
+        {bolumGoster('kar marjı', 'maliyet', 'satış') && (
         <section className="ap-hesap-bolum">
           <h4>Kar Marjı</h4>
           <div className="ap-hesap-cift">
@@ -361,7 +452,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
           </button>
           <SonucGrubu sonuclar={karSonuc} />
         </section>
+        )}
 
+        {bolumGoster('birim', 'miktar', 'tutar') && (
         <section className="ap-hesap-bolum">
           <h4>Birim × Miktar</h4>
           <div className="ap-hesap-uc">
@@ -383,8 +476,49 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
           </button>
           <SonucGrubu sonuclar={birimSonuc} />
         </section>
+        )}
 
-        {gecmisVar && (
+        {bolumGoster('yüzde değişim', 'fark', 'artış', 'azalış') && (
+          <section className="ap-hesap-bolum">
+            <h4>Yüzde Değişim</h4>
+            <div className="ap-hesap-cift">
+              <label className="ap-hesap-alan">
+                <span>Eski Değer</span>
+                <input type="text" className="ap-hesap-girdi" value={eskiDeger} onChange={(e) => setEskiDeger(e.target.value)} placeholder="1000" />
+              </label>
+              <label className="ap-hesap-alan">
+                <span>Yeni Değer</span>
+                <input type="text" className="ap-hesap-girdi" value={yeniDeger} onChange={(e) => setYeniDeger(e.target.value)} placeholder="1250" />
+              </label>
+            </div>
+            <button type="button" className="ap-hesap-ikincil-btn ap-hesap-ikincil-btn--tam" onClick={degisimHesapla}>
+              Değişimi Hesapla
+            </button>
+            <SonucGrubu sonuclar={degisimSonuc} />
+          </section>
+        )}
+
+        {bolumGoster('toplamdan birim', 'birim fiyat', 'toplam', 'adet') && (
+          <section className="ap-hesap-bolum">
+            <h4>Toplamdan Birim Fiyat</h4>
+            <div className="ap-hesap-cift">
+              <label className="ap-hesap-alan">
+                <span>Toplam Tutar</span>
+                <input type="text" className="ap-hesap-girdi" value={toplamTutar} onChange={(e) => setToplamTutar(e.target.value)} placeholder="5000" />
+              </label>
+              <label className="ap-hesap-alan ap-hesap-alan--dar">
+                <span>Adet</span>
+                <input type="text" className="ap-hesap-girdi" value={toplamAdet} onChange={(e) => setToplamAdet(e.target.value)} placeholder="12" />
+              </label>
+            </div>
+            <button type="button" className="ap-hesap-ikincil-btn ap-hesap-ikincil-btn--tam" onClick={toplamdanBirimHesapla}>
+              Birim Fiyatı Bul
+            </button>
+            <SonucGrubu sonuclar={toplamdanBirimSonuc} />
+          </section>
+        )}
+
+        {gecmisVar && bolumGoster('geçmiş', 'history', 'sonuç') && (
           <section className="ap-hesap-bolum ap-hesap-bolum--gecmis">
             <div className="ap-hesap-gecmis-baslik-satir">
               <h4>Geçmiş</h4>

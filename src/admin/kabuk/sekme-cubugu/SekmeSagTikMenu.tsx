@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 import type { SekmeSagTikIslem } from './sekmeSagTikYardimci';
 
@@ -81,6 +81,28 @@ function SekmeSagTikIkon({ tip }: { tip: SekmeSagTikIslem }) {
           <rect x="8.5" y="4.5" width="4.5" height="7" rx="0.9" fill="currentColor" fillOpacity="0.12" stroke="currentColor" strokeWidth="1.1" />
         </svg>
       );
+    case 'grupYanYana':
+      return (
+        <svg {...ortak}>
+          <rect x="2" y="4" width="5.5" height="8" rx="0.8" fill="none" stroke="currentColor" strokeWidth="1.1" />
+          <rect x="8.5" y="4" width="5.5" height="8" rx="0.8" fill="none" stroke="currentColor" strokeWidth="1.1" />
+        </svg>
+      );
+    case 'grupAltAlta':
+      return (
+        <svg {...ortak}>
+          <rect x="3" y="2.5" width="10" height="4.5" rx="0.8" fill="none" stroke="currentColor" strokeWidth="1.1" />
+          <rect x="3" y="9" width="10" height="4.5" rx="0.8" fill="none" stroke="currentColor" strokeWidth="1.1" />
+        </svg>
+      );
+    case 'gruptanAyir':
+      return (
+        <svg {...ortak}>
+          <rect x="2.25" y="4.25" width="4.5" height="7.5" rx="0.8" fill="none" stroke="currentColor" strokeWidth="1.1" />
+          <rect x="9.25" y="4.25" width="4.5" height="7.5" rx="0.8" fill="none" stroke="currentColor" strokeWidth="1.1" />
+          <path d="M7.1 8h1.8" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+        </svg>
+      );
     default:
       return null;
   }
@@ -88,6 +110,7 @@ function SekmeSagTikIkon({ tip }: { tip: SekmeSagTikIslem }) {
 
 export function SekmeSagTikMenu({ menu, sekmeler, kapananGecmisSayisi, onKapat, onIslem }: SekmeSagTikMenuProps) {
   const kokRef = useRef<HTMLDivElement>(null);
+  const [ayarFlyoutAcik, setAyarFlyoutAcik] = useState(false);
   const hedefIdx = menu ? sekmeler.findIndex((s) => s.id === menu.sekmeId) : -1;
   const tekSekme = sekmeler.length <= 1;
   const soldaSekmeYok = hedefIdx <= 0;
@@ -112,7 +135,13 @@ export function SekmeSagTikMenu({ menu, sekmeler, kapananGecmisSayisi, onKapat, 
     };
   }, [kapat]);
 
+  useEffect(() => {
+    if (!menu) setAyarFlyoutAcik(false);
+  }, [menu]);
+
   if (!menu) return null;
+  const hedefSekme = sekmeler.find((s) => s.id === menu.sekmeId);
+  const gruptaMi = Boolean(hedefSekme?.grupId);
 
   const ogeler: MenuOgesi[] = [
     { id: 'kapat', etiket: 'Sekmeyi Kapat', devreDisi: tekSekme },
@@ -140,6 +169,73 @@ export function SekmeSagTikMenu({ menu, sekmeler, kapananGecmisSayisi, onKapat, 
       style={{ top: menuUst, left: menuSol }}
       role="menu"
     >
+      {gruptaMi && (
+        <>
+          <div className="ap-sag-tik-flyout-wrap">
+            <button
+              type="button"
+              className={`ap-sag-tik-oge${ayarFlyoutAcik ? ' ap-sag-tik-oge-aktif' : ''}`}
+              onMouseEnter={() => setAyarFlyoutAcik(true)}
+              onClick={() => setAyarFlyoutAcik((v) => !v)}
+            >
+              <span className="ap-sekme-sag-tik-ikon-wrap" aria-hidden>
+                <svg className="ap-sekme-sag-tik-ikon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.15">
+                  <path d="M6.5 2.5h3M8 1.75v1.5M3.25 8h1.5m8 0h1.5M6.5 13.5h3M8 12.75v1.5" strokeLinecap="round" />
+                  <circle cx="8" cy="8" r="2.2" />
+                  <path d="M5.2 5.2 4.1 4.1m6.7 6.7-1.1-1.1M10.8 5.2l1.1-1.1M5.2 10.8 4.1 11.9" strokeLinecap="round" />
+                </svg>
+              </span>
+              <span>Ayarlar</span>
+              <span className="ap-sag-tik-ok">›</span>
+            </button>
+            {ayarFlyoutAcik && (
+              <div className="ap-sag-tik-flyout" onMouseLeave={() => setAyarFlyoutAcik(false)}>
+                <button
+                  type="button"
+                  className="ap-sag-tik-oge"
+                  onClick={() => {
+                    onIslem(menu.sekmeId, 'gruptanAyir');
+                    kapat();
+                  }}
+                >
+                  <span className="ap-sekme-sag-tik-ikon-wrap">
+                    <SekmeSagTikIkon tip="gruptanAyir" />
+                  </span>
+                  <span>Gruptan Ayır</span>
+                </button>
+                <button
+                  type="button"
+                  className="ap-sag-tik-oge"
+                  onClick={() => {
+                    onIslem(menu.sekmeId, 'grupYanYana');
+                    kapat();
+                  }}
+                >
+                  <span className="ap-sekme-sag-tik-ikon-wrap">
+                    <SekmeSagTikIkon tip="grupYanYana" />
+                  </span>
+                  <span>Görünüm: Yan Yana</span>
+                </button>
+                <button
+                  type="button"
+                  className="ap-sag-tik-oge"
+                  onClick={() => {
+                    onIslem(menu.sekmeId, 'grupAltAlta');
+                    kapat();
+                  }}
+                >
+                  <span className="ap-sekme-sag-tik-ikon-wrap">
+                    <SekmeSagTikIkon tip="grupAltAlta" />
+                  </span>
+                  <span>Görünüm: Alt Alta</span>
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="ap-sag-tik-ayirici" role="separator" />
+        </>
+      )}
+
       {ogeler.map((oge) => (
         <div key={oge.id}>
           {oge.ayiriciOnce && <div className="ap-sag-tik-ayirici" role="separator" />}

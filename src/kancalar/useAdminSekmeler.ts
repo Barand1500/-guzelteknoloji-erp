@@ -62,6 +62,8 @@ interface SekmeDurumu {
   aktifSekmeId: string;
 }
 
+type GrupGorunum = 'yanYana' | 'altAlta';
+
 export function useAdminSekmeler() {
   const [durum, setDurum] = useState<SekmeDurumu>({
     sekmeler: VARSAYILAN_SEKMELER,
@@ -69,6 +71,7 @@ export function useAdminSekmeler() {
   });
   const kapananGecmisRef = useRef<AdminSekme[]>([]);
   const [kapananGecmisSayisi, setKapananGecmisSayisi] = useState(0);
+  const [grupGorunumleri, setGrupGorunumleri] = useState<Record<string, GrupGorunum>>({});
 
   const { sekmeler, aktifSekmeId } = durum;
 
@@ -177,6 +180,7 @@ export function useAdminSekmeler() {
 
       const kaynak = liste[kaynakIdx];
       const hedef = liste[hedefIdx];
+      const kaynakEskiGrupId = kaynak.grupId;
 
       if (kaynak.grupId && kaynak.grupId !== hedef.grupId) {
         liste[kaynakIdx] = { ...kaynak, grupId: undefined };
@@ -188,11 +192,11 @@ export function useAdminSekmeler() {
       if (mod === 'sonra') yeniHedefIdx += 1;
       liste.splice(yeniHedefIdx, 0, tasinan);
 
-      if (tasinan.grupId) {
-        const gruptakiler = liste.filter((s) => s.grupId === tasinan.grupId);
+      if (kaynakEskiGrupId) {
+        const gruptakiler = liste.filter((s) => s.grupId === kaynakEskiGrupId);
         if (gruptakiler.length === 1) {
           liste = liste.map((s) =>
-            s.grupId === tasinan.grupId ? { ...s, grupId: undefined } : s
+            s.grupId === kaynakEskiGrupId ? { ...s, grupId: undefined } : s
           );
         }
       }
@@ -227,6 +231,28 @@ export function useAdminSekmeler() {
       return { sekmeler: liste, aktifSekmeId: kaynakId };
     });
   }, []);
+
+  const sekmeGruptanAyir = useCallback((sekmeId: string) => {
+    setDurum((onceki) => {
+      const hedef = onceki.sekmeler.find((s) => s.id === sekmeId);
+      if (!hedef?.grupId) return onceki;
+      const grupId = hedef.grupId;
+      let liste = onceki.sekmeler.map((s) => (s.id === sekmeId ? { ...s, grupId: undefined } : s));
+      liste = grupIdleriTemizle(liste);
+      return { ...onceki, sekmeler: liste };
+    });
+  }, []);
+
+  const grupGorunumuAyarla = useCallback((sekmeId: string, gorunum: GrupGorunum) => {
+    const sekme = sekmeler.find((s) => s.id === sekmeId);
+    if (!sekme?.grupId) return;
+    setGrupGorunumleri((onceki) => ({ ...onceki, [sekme.grupId!]: gorunum }));
+  }, [sekmeler]);
+
+  const grupGorunumuAl = useCallback((grupId: string | undefined): GrupGorunum => {
+    if (!grupId) return 'yanYana';
+    return grupGorunumleri[grupId] ?? 'yanYana';
+  }, [grupGorunumleri]);
 
   const aktifModul = modulBul(
     sekmeler.find((s) => s.id === aktifSekmeId)?.modulId ?? 'dashboard'
@@ -296,6 +322,9 @@ export function useAdminSekmeler() {
     sekmeTopluKapat,
     sekmeTasi,
     sekmeBirlestir,
+    sekmeGruptanAyir,
+    grupGorunumuAyarla,
+    grupGorunumuAl,
     kaydedilmediIsaretle,
     sonKapananlariGeriGetir,
   };

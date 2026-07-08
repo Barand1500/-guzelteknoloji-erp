@@ -2108,6 +2108,30 @@ html:has(.admin-panel[data-tema='acik']) body {
   cursor: pointer;
 }
 
+.ap-hesap-arama-btn {
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.375rem;
+  background: var(--ap-surface);
+  color: var(--ap-text-muted);
+  cursor: pointer;
+}
+
+.ap-hesap-arama-btn:hover {
+  color: var(--ap-heading);
+  background: var(--ap-hover);
+}
+
+.ap-hesap-arama-btn--aktif {
+  color: var(--ap-accent);
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+}
+
 .ap-hesap-makinesi-kapat:hover {
   background: var(--ap-hover);
   color: var(--ap-heading);
@@ -2119,6 +2143,10 @@ html:has(.admin-panel[data-tema='acik']) body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.ap-hesap-hizli-arama {
+  margin-bottom: 0.1rem;
 }
 
 .ap-hesap-bolum {
@@ -3215,12 +3243,25 @@ html:has(.admin-panel[data-tema='acik']) body {
   background: var(--ap-bg);
 }
 
+.ap-sekme-split-alan--alt-alta {
+  flex-direction: column;
+}
+
 .ap-sekme-split-pane {
   border-right: 1px solid var(--ap-border);
 }
 
 .ap-sekme-split-pane:last-child {
   border-right: none;
+}
+
+.ap-sekme-split-alan--alt-alta .ap-sekme-split-pane {
+  border-right: none;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.ap-sekme-split-alan--alt-alta .ap-sekme-split-pane:last-child {
+  border-bottom: none;
 }
 
 .ap-sekme-split-baslik {

@@ -6,14 +6,17 @@ export type SekmeSagTikIslem =
   | 'solundakileriKapat'
   | 'saginiKapat'
   | 'tumunuKapat'
-  | 'sonKapananlariGeriGetir';
+  | 'sonKapananlariGeriGetir'
+  | 'gruptanAyir'
+  | 'grupYanYana'
+  | 'grupAltAlta';
 
 export function kapatilacakSekmeIdleri(
   sekmeler: AdminSekme[],
   hedefId: string,
   islem: SekmeSagTikIslem
 ): string[] {
-  if (islem === 'sonKapananlariGeriGetir') return [];
+  if (islem === 'sonKapananlariGeriGetir' || islem === 'grupYanYana' || islem === 'grupAltAlta' || islem === 'gruptanAyir') return [];
   if (sekmeler.length <= 1 && islem !== 'kapat') return [];
 
   const idx = sekmeler.findIndex((s) => s.id === hedefId);
@@ -44,7 +47,9 @@ export function sekmeKapatSonrasiAktifId(
   const kapatilacak = new Set(kapatilacakSekmeIdleri(sekmeler, hedefId, islem));
   const kalan = sekmeler.filter((s) => !kapatilacak.has(s.id));
 
-  if (islem === 'sonKapananlariGeriGetir') return mevcutAktifId;
+  if (islem === 'sonKapananlariGeriGetir' || islem === 'grupYanYana' || islem === 'grupAltAlta' || islem === 'gruptanAyir') {
+    return mevcutAktifId;
+  }
 
   if (islem === 'kapat') {
     if (mevcutAktifId !== hedefId) return mevcutAktifId;
