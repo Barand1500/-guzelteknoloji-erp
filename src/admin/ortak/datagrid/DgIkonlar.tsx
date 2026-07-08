@@ -1,5 +1,15 @@
 interface DgIkonProps {
-  ad: 'cizgi-yok' | 'cizgi-yatay' | 'cizgi-dikey' | 'cizgi-tam' | 'grup' | 'sutun' | 'indir' | 'tablo' | 'sil';
+  ad:
+    | 'cizgi-yok'
+    | 'cizgi-yatay'
+    | 'cizgi-dikey'
+    | 'cizgi-tam'
+    | 'grup'
+    | 'sutun'
+    | 'indir'
+    | 'tablo'
+    | 'sil'
+    | 'igne';
   className?: string;
 }
 
@@ -88,6 +98,17 @@ export function DgIkon({ ad, className = '' }: DgIkonProps) {
             strokeLinejoin="round"
           />
           <path d="M6.5 7.25v4M8 7.25v4M9.5 7.25v4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+        </svg>
+      );
+    case 'igne':
+      return (
+        <svg {...ortak}>
+          <path
+            d="M10.9 2.9 13 5l-2 2-1.2-1.2-1.8 1.8 2.5 2.5-.9.9-2.5-2.5-2.7 2.7a.8.8 0 0 1-1.1 0l-.2-.2a.8.8 0 0 1 0-1.1l2.7-2.7-1.2-1.2 2-2 1.2 1.2 1.8-1.8-1.2-1.2z"
+            stroke="currentColor"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     default:

@@ -36,6 +36,7 @@ import {
   type SekmeSagTikIslem,
 } from '@/admin/kabuk/sekme-cubugu/sekmeSagTikYardimci';
 import { SekmeKapatOnayModal } from '@/admin/kabuk/sekme-cubugu/SekmeKapatOnayModal';
+import { SekmeGecisOnayModal } from '@/admin/kabuk/sekme-cubugu/SekmeGecisOnayModal';
 import { AdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import type { AdminModul, AdminSekme } from '@/admin/ortak/tipler/admin';
 import '@/stiller/adminTema.css';
@@ -79,6 +80,12 @@ function AdminPanelGovde() {
     kirliSayisi: number;
   } | null>(null);
   const [sekmeKapatYukleniyor, setSekmeKapatYukleniyor] = useState(false);
+  const [sekmeGecisOnay, setSekmeGecisOnay] = useState<{
+    kaynakSekmeId: string;
+    hedefSekmeId?: string;
+    hedefModulId?: string;
+  } | null>(null);
+  const [sekmeGecisYukleniyor, setSekmeGecisYukleniyor] = useState(false);
   /** Kapatılan sekmenin modülü — URL gecikince useEffect'in sekmeyi yeniden açmasını engeller */
   const sonKapatilanModulRef = useRef<string | null>(null);
   /** Üst sekme tıklaması sonrası URL senkronunu bekletir (eski URL ile yanlış sekmeye dönmeyi önler) */
@@ -174,7 +181,7 @@ function AdminPanelGovde() {
     return () => window.removeEventListener('keydown', tusHandler);
   }, [aksiyonCalistir, focusModulId]);
 
-  function modulAcHandler(modul: AdminModul) {
+  function modulAcUygula(modul: AdminModul) {
     const hedefSekmeId = sekmeAc(modul);
     beklenenSekmeIdRef.current = hedefSekmeId;
     setFocusModulId(modul.id);
@@ -189,11 +196,30 @@ function AdminPanelGovde() {
     beklenenSekmeIdRef.current = null;
   }
 
+  async function modulAcHandler(modul: AdminModul) {
+    setSekmeGecisOnay(null);
+    const otomatikKaydetAcik = sekmeAyarlariOku().sekmeGecisindeOtomatikKaydet;
+    const aktifSekmeKirli = sekmelerRef.current.find((s) => s.id === aktifSekmeIdRef.current)?.kaydedilmedi;
+    const modulDegisiyor = modul.id !== sekmelerRef.current.find((s) => s.id === aktifSekmeIdRef.current)?.modulId;
+    if (aktifSekmeKirli && modulDegisiyor) {
+      if (otomatikKaydetAcik) {
+        await sekmeKaydetAsync(aktifSekmeIdRef.current);
+      } else {
+        setSekmeGecisOnay({
+          kaynakSekmeId: aktifSekmeIdRef.current,
+          hedefModulId: modul.id,
+        });
+        return;
+      }
+    }
+    modulAcUygula(modul);
+  }
+
   function modulSecHandler(modulId: string) {
     const modul = modulBul(modulId);
     if (modul) {
       setFocusModulId(modulId);
-      modulAcHandler(modul);
+      void modulAcHandler(modul);
     }
   }
 
@@ -232,7 +258,7 @@ function AdminPanelGovde() {
     sekmeKapat(sekmeId);
   }
 
-  function sekmeSecHandler(sekmeId: string) {
+  function sekmeSecUygula(sekmeId: string) {
     const sekme = sekmeler.find((s) => s.id === sekmeId);
     const modul = sekme ? modulBul(sekme.modulId) : undefined;
     if (!modul) return;
@@ -249,6 +275,25 @@ function AdminPanelGovde() {
     if (mevcut !== hedef) {
       navigate(hedef);
     }
+  }
+
+  async function sekmeSecHandler(sekmeId: string) {
+    if (sekmeId === aktifSekmeIdRef.current) return;
+    setSekmeGecisOnay(null);
+    const otomatikKaydetAcik = sekmeAyarlariOku().sekmeGecisindeOtomatikKaydet;
+    const aktifSekmeKirli = sekmelerRef.current.find((s) => s.id === aktifSekmeIdRef.current)?.kaydedilmedi;
+    if (aktifSekmeKirli) {
+      if (otomatikKaydetAcik) {
+        await sekmeKaydetAsync(aktifSekmeIdRef.current);
+      } else {
+        setSekmeGecisOnay({
+          kaynakSekmeId: aktifSekmeIdRef.current,
+          hedefSekmeId: sekmeId,
+        });
+        return;
+      }
+    }
+    sekmeSecUygula(sekmeId);
   }
 
   async function modulKaydetHandlerBekle(modulId: string) {
@@ -446,7 +491,7 @@ function AdminPanelGovde() {
   }
 
   function pencereDock(sekmeId: string) {
-    sekmeSecHandler(sekmeId);
+    void sekmeSecHandler(sekmeId);
     pencereKapat(sekmeId);
   }
 
@@ -574,6 +619,38 @@ function AdminPanelGovde() {
         onKaydetmedenKapat={() => {
           if (!sekmeKapatOnay) return;
           void sekmeKapatUygula(sekmeKapatOnay.hedefId, sekmeKapatOnay.islem, false);
+        }}
+      />
+      <SekmeGecisOnayModal
+        acik={sekmeGecisOnay !== null}
+        yukleniyor={sekmeGecisYukleniyor}
+        onKapat={() => !sekmeGecisYukleniyor && setSekmeGecisOnay(null)}
+        onKaydetVeGec={() => {
+          if (!sekmeGecisOnay) return;
+          void (async () => {
+            setSekmeGecisYukleniyor(true);
+            await sekmeKaydetAsync(sekmeGecisOnay.kaynakSekmeId);
+            setSekmeGecisYukleniyor(false);
+            const hedefSekmeId = sekmeGecisOnay.hedefSekmeId;
+            const hedefModulId = sekmeGecisOnay.hedefModulId;
+            setSekmeGecisOnay(null);
+            if (hedefSekmeId) sekmeSecUygula(hedefSekmeId);
+            if (hedefModulId) {
+              const modul = modulBul(hedefModulId);
+              if (modul) modulAcUygula(modul);
+            }
+          })();
+        }}
+        onKaydetmedenGec={() => {
+          if (!sekmeGecisOnay) return;
+          const hedefSekmeId = sekmeGecisOnay.hedefSekmeId;
+          const hedefModulId = sekmeGecisOnay.hedefModulId;
+          setSekmeGecisOnay(null);
+          if (hedefSekmeId) sekmeSecUygula(hedefSekmeId);
+          if (hedefModulId) {
+            const modul = modulBul(hedefModulId);
+            if (modul) modulAcUygula(modul);
+          }
         }}
       />
     </div>

@@ -229,7 +229,7 @@
   top: 0;
   z-index: 2;
   padding: 0.45rem 0.65rem;
-  border-bottom: 1px solid var(--ap-border);
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 92%, var(--ap-heading) 8%);
   background: color-mix(in srgb, var(--ap-hover) 55%, var(--ap-surface));
   font-size: 0.625rem;
   font-weight: 700;
@@ -262,7 +262,7 @@
 
 .dg-urun-arama-hucre {
   padding: 0.55rem 0.65rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 90%, transparent);
   color: var(--ap-text);
   vertical-align: middle;
 }
@@ -743,6 +743,25 @@
   left: 0;
   z-index: 5;
   background: color-mix(in srgb, var(--ap-surface-2) 50%, var(--ap-surface));
+}
+
+.dg-sabit-igne {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--ap-accent);
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.dg-sabit-igne .dg-svg-ikon {
+  width: 0.72rem;
+  height: 0.72rem;
 }
 
 .dg-baslik-hucre--sag-sabit {
@@ -1973,6 +1992,10 @@
   line-height: 1.2;
 }
 
+.dg-iskonto-hucre.dg-urun-kodu-adi-hucre {
+  align-items: flex-start;
+}
+
 .dg-iskonto-yuzde {
   font-size: 0.6rem;
   color: var(--ap-muted);
@@ -2019,13 +2042,17 @@
 
 /* Hızlı giriş satırı — tablo içi inline ekleme */
 .dg-hizli-giris-satir {
-  --dg-hizli-bg: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
-  --dg-hizli-border: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-border));
+  --dg-hizli-bg: color-mix(in srgb, var(--ap-accent) 11%, var(--ap-surface));
+  --dg-hizli-border: color-mix(in srgb, var(--ap-accent) 24%, var(--ap-border));
   --dg-hizli-input-bg: var(--ap-input-bg);
   --dg-hizli-input-border: var(--ap-border);
   --dg-hizli-input-focus: var(--ap-accent);
   background: var(--dg-hizli-bg);
+  border-top: 1px solid var(--dg-hizli-border);
   border-bottom: 1px solid var(--dg-hizli-border);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ap-accent) 12%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--ap-accent) 10%, transparent);
 }
 
 .dg-hizli-giris-satir .dg-hucre {

@@ -21,6 +21,7 @@ export interface SekmePanelAyarlari {
   baslatMenuTasarim: BaslatMenuTasarim;
   baslatMenuKategoriGorunum: BaslatMenuKategoriGorunum;
   baslatMenuKutuBoyutu: BaslatMenuKutuBoyutu;
+  sekmeGecisindeOtomatikKaydet: boolean;
 }
 
 export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
@@ -36,6 +37,7 @@ export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
   baslatMenuTasarim: 'klasik',
   baslatMenuKategoriGorunum: 'kare',
   baslatMenuKutuBoyutu: 'orta',
+  sekmeGecisindeOtomatikKaydet: true,
 };
 
 const STORAGE_KEY = 'ap-sekme-panel-ayarlari';
@@ -97,6 +99,9 @@ export function sekmeAyarlariLogOzeti(ayarlar: SekmePanelAyarlari): string {
     ayarlar.yanYanaAcilabilir ? 'yan yana sekme açık' : 'yan yana sekme kapalı',
     ayarlar.surukleAyirPencere ? 'sürükleyerek ayırma açık' : 'sürükleyerek ayırma kapalı',
     ayarlar.sekmeAramaAktif ? 'sekme araması açık' : 'sekme araması kapalı',
+    ayarlar.sekmeGecisindeOtomatikKaydet
+      ? 'sekme geçişinde otomatik kaydet açık'
+      : 'sekme geçişinde otomatik kaydet kapalı',
   ];
   return `Sekme Yönetimi sayfasında sekme paneli ayarlarını kaydetti (${parcalar.join(', ')})`;
 }

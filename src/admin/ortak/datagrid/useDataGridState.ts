@@ -183,9 +183,8 @@ export function useDataGridState<TRow>(
       const varMi = a.sabitlenmisKolonlar.includes(kolonId);
       return {
         ...a,
-        sabitlenmisKolonlar: varMi
-          ? a.sabitlenmisKolonlar.filter((id) => id !== kolonId)
-          : [...a.sabitlenmisKolonlar, kolonId],
+        // Aynı anda tek bir sütun sabitlenir.
+        sabitlenmisKolonlar: varMi ? [] : [kolonId],
       };
     });
   }, []);

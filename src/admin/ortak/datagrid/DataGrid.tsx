@@ -283,7 +283,7 @@ export function DataGrid<TRow extends { id: string }>({
   );
 
   const sabitLeftMap = useMemo(() => {
-    let left = 40;
+    let left = 0;
     const map = new Map<string, number>();
     for (const k of dg.gorunurKolonlar) {
       if (dg.ayar.sabitlenmisKolonlar.includes(k.id)) {
@@ -857,10 +857,12 @@ export function DataGrid<TRow extends { id: string }>({
 
     const colspanAtlanan = new Set<string>();
     for (const k of hizliGirisKolonlari ?? []) {
-      if (!k.colspan || k.colspan <= 1) continue;
+      const kolonSabit = dg.ayar.sabitlenmisKolonlar.includes(k.kolonId);
+      const etkinColspan = kolonSabit ? 1 : (k.colspan ?? 1);
+      if (etkinColspan <= 1) continue;
       const idx = dg.gorunurKolonlar.findIndex((c) => c.id === k.kolonId);
       if (idx < 0) continue;
-      for (let i = 1; i < k.colspan; i++) {
+      for (let i = 1; i < etkinColspan; i++) {
         const sonraki = dg.gorunurKolonlar[idx + i];
         if (sonraki) colspanAtlanan.add(sonraki.id);
       }
@@ -943,7 +945,6 @@ export function DataGrid<TRow extends { id: string }>({
       if (colspanAtlanan.has(kolon.id)) return [];
 
       const sabit = dg.ayar.sabitlenmisKolonlar.includes(kolon.id);
-      const left = sabitLeftMap.get(kolon.id);
       const genislik = dg.ayar.kolonGenislikleri[kolon.id] ?? kolon.genislik ?? 120;
       const girisAyar = hizliGirisKolonlari?.find((k) => k.kolonId === kolon.id);
       const placeholder = girisAyar?.placeholder ?? kolon.baslik;
@@ -952,14 +953,13 @@ export function DataGrid<TRow extends { id: string }>({
       const hucreStil = {
         width: genislik,
         minWidth: genislik,
-        left: sabit ? left : undefined,
       };
 
       if (kolon.id === 'secim' && !girisAyar) {
         return [
           <td
             key={kolon.id}
-            className={`dg-hucre dg-hizli-giris-hucre dg-hucre--secim${sabit ? ' dg-hucre--sabit' : ''}`}
+            className="dg-hucre dg-hizli-giris-hucre dg-hucre--secim"
             style={hucreStil}
             aria-hidden
           />,
@@ -991,7 +991,7 @@ export function DataGrid<TRow extends { id: string }>({
         return [
           <td
             key={kolon.id}
-            className={`dg-hucre dg-hizli-giris-hucre${onizleme ? ' dg-hizli-giris-onizle' : ' dg-hizli-giris-hucre--pasif'}${kolon.tip === 'para' || kolon.tip === 'iskonto' || kolon.tip === 'sayi' ? ' dg-hucre--sayi' : ''}${sabit ? ' dg-hucre--sabit' : ''}`}
+            className={`dg-hucre dg-hizli-giris-hucre${onizleme ? ' dg-hizli-giris-onizle' : ' dg-hizli-giris-hucre--pasif'}${kolon.tip === 'para' || kolon.tip === 'iskonto' || kolon.tip === 'sayi' ? ' dg-hucre--sayi' : ''}`}
             style={hucreStil}
           >
             {onizleme ?? null}
@@ -1002,12 +1002,16 @@ export function DataGrid<TRow extends { id: string }>({
       const refAta = ilkGirdi;
       if (ilkGirdi) ilkGirdi = false;
 
-      if (girisAyar?.birlesik?.length) {
+      const kolonSabit = dg.ayar.sabitlenmisKolonlar.includes(kolon.id);
+      const birlesikAktif =
+        Boolean(girisAyar?.birlesik?.length) && !kolonSabit && (girisAyar?.colspan ?? 1) > 1;
+
+      if (birlesikAktif) {
         return [
           <td
             key={kolon.id}
             colSpan={girisAyar.colspan}
-            className={`dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--birlesik${sabit ? ' dg-hucre--sabit' : ''}`}
+            className="dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--birlesik"
             style={hucreStil}
           >
             <div className="dg-hizli-giris-yigin">
@@ -1034,7 +1038,7 @@ export function DataGrid<TRow extends { id: string }>({
         return [
           <td
             key={kolon.id}
-            className={`dg-hucre dg-hizli-giris-hucre${sabit ? ' dg-hucre--sabit' : ''}`}
+            className="dg-hucre dg-hizli-giris-hucre"
             style={hucreStil}
           >
             {secimGirdi(kolon.id, girisAyar)}
@@ -1047,7 +1051,7 @@ export function DataGrid<TRow extends { id: string }>({
         return [
           <td
             key={kolon.id}
-            className={`dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--toggle dg-hucre--toggle${sabit ? ' dg-hucre--sabit' : ''}`}
+            className="dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--toggle dg-hucre--toggle"
             style={{ ...hucreStil, minWidth: genislik }}
           >
             <span className="dg-toggle-ortala">
@@ -1068,7 +1072,7 @@ export function DataGrid<TRow extends { id: string }>({
       return [
         <td
           key={kolon.id}
-          className={`dg-hucre dg-hizli-giris-hucre${sabit ? ' dg-hucre--sabit' : ''}${kolon.tip === 'para' || kolon.tip === 'iskonto' || kolon.tip === 'sayi' ? ' dg-hucre--sayi' : ''}`}
+          className={`dg-hucre dg-hizli-giris-hucre${kolon.tip === 'para' || kolon.tip === 'iskonto' || kolon.tip === 'sayi' ? ' dg-hucre--sayi' : ''}`}
           style={hucreStil}
         >
           {metinGirdi(kolon.id, placeholder, ipucu, refAta)}
@@ -1390,6 +1394,11 @@ export function DataGrid<TRow extends { id: string }>({
                         </button>
                       )}
                     </div>
+                    {sabit && !kolon.sabitSag && (
+                      <span className="dg-sabit-igne" title="Sabit sütun" aria-hidden>
+                        <DgIkon ad="igne" />
+                      </span>
+                    )}
                     {kolon.id !== 'islemler' && (
                       <span
                         className="dg-genislik-tutamac"
