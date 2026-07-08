@@ -31,9 +31,19 @@ function kolonFormulaTipi<TRow>(kolon: KolonTanimi<TRow>): 'sayi' | 'iskonto' | 
 
 const SAYFA_BOYUTLARI = [5, 10, 25, 50];
 
-function portalMenuKonumHesapla(rect: DOMRect | undefined, genislik: number, maxH: number) {
+type MenuHizalama = 'sag' | 'sol';
+
+function portalMenuKonumHesapla(
+  rect: DOMRect | undefined,
+  genislik: number,
+  maxH: number,
+  hizalama: MenuHizalama = 'sag'
+) {
   if (!rect) return { top: 0, left: 0 };
-  let left = rect.right - genislik;
+  let left = hizalama === 'sol' ? rect.left : rect.right - genislik;
+  if (hizalama === 'sol' && left + genislik > window.innerWidth - 8) {
+    left = rect.right - genislik;
+  }
   if (left < 8) left = 8;
   if (left + genislik > window.innerWidth - 8) left = window.innerWidth - genislik - 8;
   let top = rect.bottom + 6;
@@ -344,7 +354,9 @@ export function DataGrid<TRow extends { id: string }>({
   }, []);
 
   const formulMenuKonumGuncelle = useCallback(() => {
-    setFormulMenuKonum(portalMenuKonumHesapla(formulTusRef.current?.getBoundingClientRect(), 400, 560));
+    const rect = formulTusRef.current?.getBoundingClientRect();
+    const genislik = formulMenuRef.current?.offsetWidth ?? Math.min(400, window.innerWidth - 16);
+    setFormulMenuKonum(portalMenuKonumHesapla(rect, genislik, 560, 'sol'));
   }, []);
 
   useLayoutEffect(() => {
@@ -361,9 +373,11 @@ export function DataGrid<TRow extends { id: string }>({
   useLayoutEffect(() => {
     if (!formulMenuAcik) return;
     formulMenuKonumGuncelle();
+    const id = requestAnimationFrame(() => formulMenuKonumGuncelle());
     window.addEventListener('resize', formulMenuKonumGuncelle);
     window.addEventListener('scroll', formulMenuKonumGuncelle, true);
     return () => {
+      cancelAnimationFrame(id);
       window.removeEventListener('resize', formulMenuKonumGuncelle);
       window.removeEventListener('scroll', formulMenuKonumGuncelle, true);
     };
@@ -1219,9 +1233,12 @@ export function DataGrid<TRow extends { id: string }>({
                 title="Sayı formülleri"
                 aria-pressed={formulMenuAcik}
                 onClick={() => {
-                  if (!formulMenuAcik) formulMenuKonumGuncelle();
+                  if (formulMenuAcik) {
+                    setFormulMenuAcik(false);
+                    return;
+                  }
                   dg.setSutunMenuAcik(false);
-                  setFormulMenuAcik((a) => !a);
+                  setFormulMenuAcik(true);
                 }}
               >
                 <span className="dg-formul-tus-metin" aria-hidden>
