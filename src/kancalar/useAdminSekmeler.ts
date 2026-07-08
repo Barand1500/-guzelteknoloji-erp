@@ -236,7 +236,6 @@ export function useAdminSekmeler() {
     setDurum((onceki) => {
       const hedef = onceki.sekmeler.find((s) => s.id === sekmeId);
       if (!hedef?.grupId) return onceki;
-      const grupId = hedef.grupId;
       let liste = onceki.sekmeler.map((s) => (s.id === sekmeId ? { ...s, grupId: undefined } : s));
       liste = grupIdleriTemizle(liste);
       return { ...onceki, sekmeler: liste };

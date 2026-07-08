@@ -944,7 +944,6 @@ export function DataGrid<TRow extends { id: string }>({
     const hucreler = dg.gorunurKolonlar.flatMap((kolon) => {
       if (colspanAtlanan.has(kolon.id)) return [];
 
-      const sabit = dg.ayar.sabitlenmisKolonlar.includes(kolon.id);
       const genislik = dg.ayar.kolonGenislikleri[kolon.id] ?? kolon.genislik ?? 120;
       const girisAyar = hizliGirisKolonlari?.find((k) => k.kolonId === kolon.id);
       const placeholder = girisAyar?.placeholder ?? kolon.baslik;
@@ -1006,28 +1005,29 @@ export function DataGrid<TRow extends { id: string }>({
       const birlesikAktif =
         Boolean(girisAyar?.birlesik?.length) && !kolonSabit && (girisAyar?.colspan ?? 1) > 1;
 
-      if (birlesikAktif) {
+      if (birlesikAktif && girisAyar?.birlesik?.length) {
+        const birlesikAlanlar = girisAyar.birlesik;
         return [
           <td
             key={kolon.id}
-            colSpan={girisAyar.colspan}
+            colSpan={girisAyar.colspan ?? 1}
             className="dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--birlesik"
             style={hucreStil}
           >
             <div className="dg-hizli-giris-yigin">
-              {girisAyar.birlesik.map((b) =>
+              {birlesikAlanlar.map((b) =>
                 metinGirdi(
                   b.kolonId,
                   b.placeholder ?? '',
                   b.placeholder ?? '',
-                  refAta && b === girisAyar.birlesik![0],
+                  refAta && b === birlesikAlanlar[0],
                   true
                 )
               )}
               {girisAyar.tip === 'secim' && girisAyar.secenekler?.length ? (
                 secimGirdi(anaAlanId, girisAyar)
               ) : (
-                metinGirdi(anaAlanId, placeholder, ipucu, refAta && !girisAyar.birlesik.length)
+                metinGirdi(anaAlanId, placeholder, ipucu, refAta && birlesikAlanlar.length === 0)
               )}
             </div>
           </td>,
