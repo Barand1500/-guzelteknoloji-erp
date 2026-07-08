@@ -1346,7 +1346,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   width: 100%;
   pointer-events: none;
   z-index: 6;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .ap-gorev-cubugu-ust-cizgi-yol {
@@ -1576,6 +1576,8 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-hesap-makinesi-panel--kenarlik-anim {
   border-color: transparent !important;
+  overflow: visible;
+  isolation: isolate;
 }
 
 .ap-takvim-panel--kenarlik-anim {
@@ -1999,33 +2001,34 @@ html:has(.admin-panel[data-tema='acik']) body {
 /* Hesap makinesi paneli */
 .ap-hesap-makinesi-wrap {
   position: relative;
+  overflow: visible;
 }
 
 .ap-hesap-makinesi-panel {
   position: absolute;
-  bottom: calc(100% + 0.5rem);
+  bottom: 100%;
   right: 0;
   z-index: 50;
   display: flex;
   width: min(380px, calc(100vw - 1.5rem));
   max-height: min(520px, 58vh);
   flex-direction: column;
-  overflow: hidden;
-  border-radius: 0.625rem;
+  overflow: visible;
+  isolation: isolate;
+  border-radius: 0.625rem 0.625rem 0 0;
   border: 1px solid var(--ap-border);
+  border-bottom: none;
   background: var(--ap-surface);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
   animation: ap-hesap-panel-giris 0.18s ease-out;
 }
 
 @keyframes ap-hesap-panel-giris {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -2035,7 +2038,9 @@ html:has(.admin-panel[data-tema='acik']) body {
   justify-content: space-between;
   gap: 0.5rem;
   border-bottom: 1px solid var(--ap-border);
+  border-radius: 0.625rem 0.625rem 0 0;
   padding: 0.7rem 0.85rem;
+  background: var(--ap-surface);
 }
 
 .ap-hesap-makinesi-baslik h3 {
@@ -4861,7 +4866,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   color: #b91c1c;
 }
 
-/* Rehber modal */
+/* Rehber modal — vurgu rengi --ap-accent (kenarlık rengi ayarından) */
 .ap-rehber-overlay {
   position: fixed;
   inset: 0;
@@ -4875,7 +4880,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-rehber-backdrop {
   position: absolute;
   inset: 0;
-  background: rgb(15 23 42 / 0.55);
+  background: color-mix(in srgb, var(--ap-bg, #0f172a) 55%, transparent);
   backdrop-filter: blur(4px);
   border: none;
   pointer-events: none;
@@ -4890,8 +4895,12 @@ html:has(.admin-panel[data-tema='acik']) body {
   flex-direction: column;
   overflow: hidden;
   border-radius: 1rem;
-  border: 1px solid #d1fae5;
-  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 12%);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ap-accent) 9%, var(--ap-surface)) 0%,
+    var(--ap-surface) 14%
+  );
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.35);
 }
 
@@ -4917,39 +4926,44 @@ html:has(.admin-panel[data-tema='acik']) body {
   align-items: center;
   justify-content: center;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent),
+    color-mix(in srgb, var(--ap-accent) 72%, #000)
+  );
   font-size: 1.25rem;
   font-weight: 800;
   color: white;
-  box-shadow: 0 4px 14px rgb(34 197 94 / 0.35);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--ap-accent) 38%, transparent);
 }
 
 .ap-rehber-baslik {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #14532d;
+  color: var(--ap-heading);
 }
 
 .ap-rehber-alt {
   margin-top: 0.125rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #16a34a;
+  color: var(--ap-accent);
 }
 
 .ap-rehber-kapat {
   border-radius: 9999px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-hover);
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--ap-text-muted);
   transition: background-color 0.15s;
 }
 
 .ap-rehber-kapat:hover {
-  background: #f1f5f9;
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-hover));
+  color: var(--ap-text);
 }
 
 .ap-rehber-icerik {
@@ -4965,7 +4979,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   margin-bottom: 0.875rem;
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ap-heading);
 }
 
 .ap-rehber-bolum-cizgi {
@@ -4973,36 +4987,39 @@ html:has(.admin-panel[data-tema='acik']) body {
   width: 4px;
   height: 1.125rem;
   border-radius: 2px;
-  background: #22c55e;
+  background: var(--ap-accent);
 }
 
 .ap-rehber-kart {
   border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ap-border);
   border-left-width: 4px;
-  background: white;
+  border-left-color: var(--ap-accent);
+  background: var(--ap-surface);
   padding: 0.875rem 1rem;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.04);
 }
 
-.ap-rehber-kart-mor { border-left-color: #a855f7; }
-.ap-rehber-kart-turuncu { border-left-color: #f97316; }
-.ap-rehber-kart-mavi { border-left-color: #3b82f6; }
-.ap-rehber-kart-sari { border-left-color: #eab308; }
-.ap-rehber-kart-yesil { border-left-color: #22c55e; }
-.ap-rehber-kart-camgobegi { border-left-color: #14b8a6; }
+.ap-rehber-kart-mor,
+.ap-rehber-kart-turuncu,
+.ap-rehber-kart-mavi,
+.ap-rehber-kart-sari,
+.ap-rehber-kart-yesil,
+.ap-rehber-kart-camgobegi {
+  border-left-color: color-mix(in srgb, var(--ap-accent) 82%, var(--ap-border));
+}
 
 .ap-rehber-kart-baslik {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--ap-heading);
 }
 
 .ap-rehber-kart-metin {
   margin-top: 0.375rem;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: #64748b;
+  color: var(--ap-text-muted);
 }
 
 .ap-rehber-ipucu {
@@ -5010,12 +5027,12 @@ html:has(.admin-panel[data-tema='acik']) body {
   gap: 0.625rem;
   margin-top: 1rem;
   border-radius: 0.75rem;
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
   padding: 0.875rem 1rem;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: #166534;
+  color: var(--ap-text);
 }
 
 .ap-rehber-footer {
@@ -5023,41 +5040,45 @@ html:has(.admin-panel[data-tema='acik']) body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-top: 1px solid #e2e8f0;
-  background: #fafafa;
+  border-top: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-hover) 45%, var(--ap-surface));
   padding: 0.875rem 1.25rem;
 }
 
 .ap-rehber-kisayol {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--ap-text-muted);
 }
 
 .ap-rehber-kbd {
   display: inline-block;
   border-radius: 0.25rem;
-  border: 1px solid #e2e8f0;
-  background: white;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
   padding: 0.125rem 0.375rem;
   font-size: 0.6875rem;
   font-family: inherit;
-  color: #64748b;
+  color: var(--ap-text-muted);
 }
 
 .ap-rehber-tamam {
   border-radius: 0.625rem;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent),
+    color-mix(in srgb, var(--ap-accent) 75%, #000)
+  );
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 700;
   color: white;
-  box-shadow: 0 4px 12px rgb(34 197 94 / 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ap-accent) 32%, transparent);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .ap-rehber-tamam:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgb(34 197 94 / 0.4);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ap-accent) 42%, transparent);
 }
 
 .ap-rehber-ac-btn {
@@ -5068,17 +5089,21 @@ html:has(.admin-panel[data-tema='acik']) body {
   justify-content: center;
   border-radius: 9999px;
   border: none;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent),
+    color-mix(in srgb, var(--ap-accent) 75%, #000)
+  );
   font-size: 1rem;
   font-weight: 800;
   color: white;
-  box-shadow: 0 4px 14px rgb(34 197 94 / 0.35);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--ap-accent) 38%, transparent);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .ap-rehber-ac-btn:hover {
   transform: scale(1.06);
-  box-shadow: 0 6px 18px rgb(34 197 94 / 0.45);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--ap-accent) 48%, transparent);
 }
 
 .ap-rehber-float {
@@ -5089,11 +5114,17 @@ html:has(.admin-panel[data-tema='acik']) body {
   flex-shrink: 0;
 }
 
+.ap-rehber-cubuk-btn:hover .ap-rehber-cubuk-soru,
+.ap-rehber-cubuk-btn:focus-visible .ap-rehber-cubuk-soru {
+  color: var(--ap-accent);
+}
+
 .ap-rehber-cubuk-soru {
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1;
   color: inherit;
+  transition: color 0.15s ease;
 }
 
 .ap-rehber-float-legacy {
@@ -5108,26 +5139,33 @@ html:has(.admin-panel[data-tema='acik']) body {
   justify-content: center;
   border-radius: 9999px;
   border: none;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent),
+    color-mix(in srgb, var(--ap-accent) 75%, #000)
+  );
   font-size: 1.125rem;
   font-weight: 800;
   color: white;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgb(34 197 94 / 0.4);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--ap-accent) 42%, transparent);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .ap-rehber-float:hover {
   transform: scale(1.08);
-  box-shadow: 0 6px 22px rgb(34 197 94 / 0.5);
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--ap-accent) 52%, transparent);
 }
 
 .ap-rehber-float:active {
   transform: scale(0.96);
 }
 
-.admin-panel[data-tema='koyu'] .ap-rehber-float {
-  box-shadow: 0 4px 16px rgb(34 197 94 / 0.25), 0 0 0 1px rgb(34 197 94 / 0.2);
+.admin-panel--kenarlik-neon .ap-rehber-ikon,
+.admin-panel--kenarlik-neon .ap-rehber-tamam,
+.admin-panel--kenarlik-neon .ap-rehber-ac-btn,
+.admin-panel--kenarlik-neon .ap-rehber-bolum-cizgi {
+  filter: var(--ap-accent-neon-filter);
 }
 
 /* Site Ayarlari form bilesenleri */

@@ -31,6 +31,8 @@ export interface KolonTanimi<TRow> {
   degerYaz?: (satir: TRow, deger: unknown) => TRow;
   goster?: (satir: TRow, deger: unknown) => ReactNode;
   siralamaDegeri?: (satir: TRow) => string | number;
+  /** false ise para/iskonto tutar hücrelerinde yalnızca sayı gösterilir (₺ vb. sembol yok) */
+  paraSembolu?: boolean;
   /** birlesik tipinde alt satır (ör. ürün kodu) ayrı düzenlenebilir */
   birlesikDuzenle?: {
     altDegerAl: (satir: TRow) => string;

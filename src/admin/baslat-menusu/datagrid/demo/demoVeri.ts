@@ -53,7 +53,7 @@ export function yeniSiparisSatiriOlustur(
   kdvDahil = false,
   urunKatalogu: UrunKaydi[] = []
 ): SiparisSatiri {
-  const bugun = new Date().toISOString().slice(0, 10);
+  const simdi = new Date().toISOString();
   const urunCozum = urunKoduAdiCozumle(degerler.urunKoduAdi, urunKatalogu);
   const durumHam = degerler.durum ?? 'true';
 
@@ -77,8 +77,8 @@ export function yeniSiparisSatiriOlustur(
       pb: '₺',
       etiketler: etiketleriAyikla(degerler.etiketler),
       durum: durumHam === 'true' || durumHam === '1',
-      kayitTarihi: bugun,
-      guncellemeTarihi: bugun,
+      kayitTarihi: simdi,
+      guncellemeTarihi: simdi,
     },
     kdvDahil
   );
@@ -146,8 +146,8 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Drone', renk: 'mavi' }],
     durum: true,
-    kayitTarihi: '2026-03-15',
-    guncellemeTarihi: '2026-03-18',
+    kayitTarihi: '2026-03-15T09:42:00',
+    guncellemeTarihi: '2026-03-18T14:22:00',
   }),
   satirHesapla({
     id: '2',
@@ -171,8 +171,8 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
       { metin: 'Kampanya', renk: 'turuncu' },
     ],
     durum: true,
-    kayitTarihi: '2026-03-10',
-    guncellemeTarihi: '2026-03-16',
+    kayitTarihi: '2026-03-10T14:15:00',
+    guncellemeTarihi: '2026-03-16T11:35:00',
   }),
   satirHesapla({
     id: '3',
@@ -193,8 +193,8 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Yazılım', renk: 'yesil' }],
     durum: false,
-    kayitTarihi: '2026-02-28',
-    guncellemeTarihi: '2026-03-01',
+    kayitTarihi: '2026-02-28T11:03:00',
+    guncellemeTarihi: '2026-03-01T09:18:00',
   }),
   satirHesapla({
     id: '4',
@@ -215,8 +215,8 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Aksesuar', renk: 'mavi' }],
     durum: true,
-    kayitTarihi: '2026-03-20',
-    guncellemeTarihi: '2026-03-20',
+    kayitTarihi: '2026-03-20T16:28:00',
+    guncellemeTarihi: '2026-03-20T16:28:00',
   }),
   satirHesapla({
     id: '5',
@@ -237,8 +237,8 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     pb: '₺',
     etiketler: [{ metin: 'Depolama', renk: 'mor' }],
     durum: true,
-    kayitTarihi: '2026-03-12',
-    guncellemeTarihi: '2026-03-14',
+    kayitTarihi: '2026-03-12T10:51:00',
+    guncellemeTarihi: '2026-03-14T08:47:00',
   }),
 ];
 

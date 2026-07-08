@@ -8,7 +8,7 @@ import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 
-import { paraFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { sayiFormatla, tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 
 import { DEMO_SIPARIS_SATIRLARI, satirHesapla, yeniSiparisSatiriOlustur, type SiparisSatiri } from './demoVeri';
 
@@ -24,7 +24,7 @@ import {
   URUN_ARAMA_ALANLARI,
 } from './urunAramaYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
-import { DatagridSagTikMenu } from './DatagridSagTikMenu';
+import { DatagridSagTikMenu, type SatirEkleKonumu } from './DatagridSagTikMenu';
 
 
 
@@ -181,7 +181,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
     },
     {
       id: 'urunKoduAdi',
-      baslik: 'Ürün Adı/Kodu',
+      baslik: 'Ürün Kodu/Adı',
       tip: 'birlesik',
       genislik: 240,
       minGenislik: 120,
@@ -265,6 +265,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       genislik: 100,
       minGenislik: 88,
+      paraSembolu: false,
 
       duzenlenebilir: true,
 
@@ -295,6 +296,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       tip: 'para',
 
       genislik: 88,
+      paraSembolu: false,
 
       siralama: true,
 
@@ -313,6 +315,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       tip: 'iskonto',
 
       genislik: 108,
+      paraSembolu: false,
 
       duzenlenebilir: true,
 
@@ -341,6 +344,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       tip: 'para',
 
       genislik: 96,
+      paraSembolu: false,
 
       siralama: true,
 
@@ -359,6 +363,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       tip: 'iskonto',
 
       genislik: 96,
+      paraSembolu: false,
 
       duzenlenebilir: true,
 
@@ -387,6 +392,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       tip: 'para',
 
       genislik: 100,
+      paraSembolu: false,
 
       siralama: true,
 
@@ -449,12 +455,31 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       tip: 'para',
 
       genislik: 90,
+      paraSembolu: false,
 
       siralama: true,
 
       degerAl: (s) => s.toplamTutar,
 
       siralamaDegeri: (s) => s.toplamTutar,
+
+    },
+
+    {
+
+      id: 'pb',
+
+      baslik: 'PB',
+
+      tip: 'metin',
+
+      genislik: 44,
+
+      minGenislik: 36,
+
+      siralama: false,
+
+      degerAl: (s) => s.pb,
 
     },
 
@@ -482,13 +507,15 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'tarih',
 
-      genislik: 108,
+      genislik: 132,
 
       siralama: true,
 
       degerAl: (s) => s.kayitTarihi,
 
       siralamaDegeri: (s) => s.kayitTarihi,
+
+      goster: (s) => <span>{tarihSaatFormatla(s.kayitTarihi)}</span>,
 
     },
 
@@ -500,13 +527,15 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'tarih',
 
-      genislik: 108,
+      genislik: 132,
 
       siralama: true,
 
       degerAl: (s) => s.guncellemeTarihi,
 
       siralamaDegeri: (s) => s.guncellemeTarihi,
+
+      goster: (s) => <span>{tarihSaatFormatla(s.guncellemeTarihi)}</span>,
 
     },
 
@@ -538,7 +567,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'salt-okunur',
 
-      genislik: 44,
+      genislik: 68,
 
       sabitSag: true,
 
@@ -566,6 +595,9 @@ export function DatagridDemoSayfasi() {
   const [aramaSonuclari, setAramaSonuclari] = useState<UrunKaydi[]>([]);
   const [seciliIndeks, setSeciliIndeks] = useState(0);
   const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
+  const [satirEkleBaglam, setSatirEkleBaglam] = useState<{ satirId: string; konum: SatirEkleKonumu } | null>(
+    null
+  );
   const seciliSatirIdleriRef = useRef<string[]>([]);
   const hizliGirisApiRef = useRef<HizliGirisApi | null>(null);
   const gridApiRef = useRef<DataGridApi | null>(null);
@@ -583,12 +615,12 @@ export function DatagridDemoSayfasi() {
     (degerler: Record<string, string>) => {
       const s = yeniSiparisSatiriOlustur(degerler, kdvDahil, URUN_KATALOGU);
       return {
-        tutar: paraFormatla(s.tutar),
-        netTutar: paraFormatla(s.netTutar),
-        gercekToplam: paraFormatla(s.gercekToplam),
-        toplamTutar: <span className="dg-onizle-toplam">{paraFormatla(s.toplamTutar)}</span>,
-        satirIskonto: paraFormatla(s.satirIskontoTutar),
-        altIskonto: paraFormatla(s.altIskontoTutar),
+        tutar: sayiFormatla(s.tutar),
+        netTutar: sayiFormatla(s.netTutar),
+        gercekToplam: sayiFormatla(s.gercekToplam),
+        toplamTutar: <span className="dg-onizle-toplam">{sayiFormatla(s.toplamTutar)}</span>,
+        satirIskonto: sayiFormatla(s.satirIskontoTutar),
+        altIskonto: sayiFormatla(s.altIskontoTutar),
       };
     },
     [kdvDahil]
@@ -597,6 +629,14 @@ export function DatagridDemoSayfasi() {
   const aramayiAc = useCallback((sorgu: string) => {
     setAramaSorgusu(sorgu);
     setAramaSonuclari(urunleriAra(URUN_KATALOGU, sorgu));
+    setSeciliIndeks(0);
+    setSlaytMod('arama');
+  }, []);
+
+  const sagTikSatirEkleBaslat = useCallback((konum: SatirEkleKonumu, satirId: string) => {
+    setSatirEkleBaglam({ satirId, konum });
+    setAramaSorgusu('');
+    setAramaSonuclari(urunleriAra(URUN_KATALOGU, ''));
     setSeciliIndeks(0);
     setSlaytMod('arama');
   }, []);
@@ -612,26 +652,42 @@ export function DatagridDemoSayfasi() {
     setAramaSorgusu('');
     setAramaSonuclari([]);
     setSeciliIndeks(0);
+    setSatirEkleBaglam(null);
     requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.dg-hizli-giris-girdi')?.focus());
   }, []);
 
   const urunSecVeEkle = useCallback(
     (urun: UrunKaydi) => {
-      const mevcut = hizliGirisApiRef.current?.degerler ?? {};
-      const degerler = {
-        ...mevcut,
-        urunKoduAdi: urun.sku,
-      };
-      const yeni = yeniSiparisSatiriOlustur(degerler, kdvDahil, URUN_KATALOGU);
-      setSatirlar((onceki) => [yeni, ...onceki]);
-      hizliGirisApiRef.current?.sifirla();
+      const yeni = yeniSiparisSatiriOlustur({ urunKoduAdi: urun.sku, miktar: '1' }, kdvDahil, URUN_KATALOGU);
+
+      if (satirEkleBaglam) {
+        const { satirId, konum } = satirEkleBaglam;
+        setSatirlar((onceki) => {
+          const idx = onceki.findIndex((s) => s.id === satirId);
+          if (idx < 0) return [yeni, ...onceki];
+          const liste = [...onceki];
+          liste.splice(konum === 'ust' ? idx : idx + 1, 0, yeni);
+          return liste;
+        });
+        setSatirEkleBaglam(null);
+      } else {
+        const mevcut = hizliGirisApiRef.current?.degerler ?? {};
+        const degerler = {
+          ...mevcut,
+          urunKoduAdi: urun.sku,
+        };
+        const hizliGirisSatiri = yeniSiparisSatiriOlustur(degerler, kdvDahil, URUN_KATALOGU);
+        setSatirlar((onceki) => [hizliGirisSatiri, ...onceki]);
+        hizliGirisApiRef.current?.sifirla();
+      }
+
       setSlaytMod('tablo');
       setAramaSorgusu('');
       setAramaSonuclari([]);
       setSeciliIndeks(0);
       requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.dg-hizli-giris-girdi')?.focus());
     },
-    [kdvDahil]
+    [kdvDahil, satirEkleBaglam]
   );
 
   const hizliGirisUrunEnter = useCallback(
@@ -688,6 +744,7 @@ export function DatagridDemoSayfasi() {
         seciliSatirSayisi={seciliSatirSayisi}
         gridApiRef={gridApiRef}
         onSatirlarDegistir={setSatirlar}
+        onSatirEkleBaslat={sagTikSatirEkleBaslat}
         onBilgi={logMesajiAyarla}
       />
 

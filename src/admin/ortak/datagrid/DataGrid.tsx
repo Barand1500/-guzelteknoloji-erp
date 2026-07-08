@@ -109,14 +109,14 @@ function DgKesilenHucre({
 function HucreGoster<TRow>({
   satir,
   kolon,
-  kdvDahil,
 }: {
   satir: TRow;
   kolon: KolonTanimi<TRow>;
-  kdvDahil?: boolean;
 }) {
   const deger = kolon.degerAl(satir);
   if (kolon.goster) return <>{kolon.goster(satir, deger)}</>;
+
+  const paraPb = kolon.paraSembolu === false ? null : '₺';
 
   switch (kolon.tip) {
     case 'zengin': {
@@ -153,12 +153,12 @@ function HucreGoster<TRow>({
       return (
         <div className="dg-iskonto-hucre">
           <span className="dg-iskonto-yuzde">{yuzdeFormatla(i.yuzde)}</span>
-          <span>{paraFormatla(i.tutar)}</span>
+          <span>{paraFormatla(i.tutar, paraPb)}</span>
         </div>
       );
     }
     case 'para':
-      return paraFormatla(Number(deger), kdvDahil ? '₺' : '₺');
+      return paraFormatla(Number(deger), paraPb);
     case 'tarih':
       return tarihFormatla(deger);
     case 'sayi':
@@ -607,6 +607,16 @@ export function DataGrid<TRow extends { id: string }>({
     );
   };
 
+  const satirSil = useCallback(
+    (satirId: string) => {
+      if (!onSatirlarDegistir) return;
+      if (!confirm('Bu satır silinsin mi?')) return;
+      onSatirlarDegistir(satirlar.filter((s) => s.id !== satirId));
+      setSatirPanel((onceki) => (onceki?.id === satirId ? null : onceki));
+    },
+    [onSatirlarDegistir, satirlar]
+  );
+
   const renderSatirlar = () => {
     if (yukleniyor) {
       return Array.from({ length: 4 }).map((_, i) => (
@@ -689,14 +699,28 @@ export function DataGrid<TRow extends { id: string }>({
                   style={{ width: genislik }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button
-                    type="button"
-                    className="dg-islem-tus"
-                    title="Satırı düzenle"
-                    onClick={() => setSatirPanel(satir)}
-                  >
-                    ✎
-                  </button>
+                  <div className="dg-islem-grup">
+                    <button
+                      type="button"
+                      className="dg-islem-tus"
+                      title="Satırı düzenle"
+                      aria-label="Satırı düzenle"
+                      onClick={() => setSatirPanel(satir)}
+                    >
+                      ✎
+                    </button>
+                    {onSatirlarDegistir && (
+                      <button
+                        type="button"
+                        className="dg-islem-tus dg-islem-tus--tehlike"
+                        title="Satırı sil"
+                        aria-label="Satırı sil"
+                        onClick={() => satirSil(satir.id)}
+                      >
+                        <DgIkon ad="sil" />
+                      </button>
+                    )}
+                  </div>
                 </td>
               );
             }
@@ -816,7 +840,7 @@ export function DataGrid<TRow extends { id: string }>({
                     />
                   )
                 ) : (
-                  <HucreGoster satir={satir} kolon={kolon} kdvDahil={kdvDahil} />
+                  <HucreGoster satir={satir} kolon={kolon} />
                 )}
               </td>
             );
@@ -1142,11 +1166,11 @@ export function DataGrid<TRow extends { id: string }>({
         className="dg-sutun-menu dg-sutun-menu-portal dg-formul-menu-portal"
         style={formulMenuPortalStil}
         role="dialog"
-        aria-label="Sayı formülleri"
+        aria-label="Sayı Formülleri"
       >
         <div className="dg-sutun-menu-baslik">
           <div>
-            <h3>Sayı formülleri</h3>
+            <h3>Sayı Formülleri</h3>
             <p>Fiyat ve miktar alanında çift tıklayıp yazın; Enter veya dışarı tıklayınca hesaplanır.</p>
           </div>
         </div>
@@ -1230,7 +1254,7 @@ export function DataGrid<TRow extends { id: string }>({
                 ref={formulTusRef}
                 type="button"
                 className={`dg-tus dg-tus-ikon dg-tus-formul${formulMenuAcik ? ' dg-tus-aktif' : ''}`}
-                title="Sayı formülleri"
+                title="Sayı Formülleri"
                 aria-pressed={formulMenuAcik}
                 onClick={() => {
                   if (formulMenuAcik) {
