@@ -1,8 +1,9 @@
-import { type ReactNode } from 'react';
+import { type CSSProperties, type ReactNode } from 'react';
 
 interface DonenMaviCerceveProps {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
   /** Kare yerine yuvarlak cerceve (sosyal ikonlar icin) */
   yuvarlak?: boolean;
   /** Hover disinda da hafif parlama */
@@ -12,6 +13,7 @@ interface DonenMaviCerceveProps {
 export function DonenMaviCerceve({
   children,
   className = '',
+  style,
   yuvarlak = false,
   surekli = false,
 }: DonenMaviCerceveProps) {
@@ -25,6 +27,7 @@ export function DonenMaviCerceve({
       ]
         .filter(Boolean)
         .join(' ')}
+      style={style}
     >
       <span className="erp-donen-cerceve-iz" aria-hidden />
       <div className="erp-donen-cerceve-icerik">{children}</div>

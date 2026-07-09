@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 
 export interface RehberKart {
   baslik: string;
@@ -52,59 +53,58 @@ export function AdminRehberModal({
   return (
     <div className="ap-rehber-overlay" role="dialog" aria-modal="true" aria-labelledby="rehber-baslik">
       <div className="ap-rehber-backdrop" aria-hidden="true" />
-      <div className="ap-rehber-modal">
-        <header className="ap-rehber-header">
-          <div className="ap-rehber-header-sol">
-            <span className="ap-rehber-ikon">?</span>
-            <div>
-              <h2 id="rehber-baslik" className="ap-rehber-baslik">
-                {baslik}
-              </h2>
-              <p className="ap-rehber-alt">{altBaslik}</p>
+      <DonenAccentCerceve className="ap-rehber-donen-cerceve">
+        <div className="ap-rehber-modal">
+          <header className="ap-rehber-header">
+            <div className="ap-rehber-header-sol">
+              <span className="ap-rehber-ikon">?</span>
+              <div>
+                <h2 id="rehber-baslik" className="ap-rehber-baslik">
+                  {baslik}
+                </h2>
+                <p className="ap-rehber-alt">{altBaslik}</p>
+              </div>
             </div>
-          </div>
-          <button type="button" className="ap-rehber-kapat" onClick={kapat}>
-            ✕ ESC
-          </button>
-        </header>
+            <button type="button" className="ap-rehber-kapat" onClick={kapat}>
+              ✕ ESC
+            </button>
+          </header>
 
-        <div className="ap-scroll ap-rehber-icerik">
-          <h3 className="ap-rehber-bolum">
-            <span className="ap-rehber-bolum-cizgi" />
-            {bolumBaslik}
-          </h3>
+          <div className="ap-scroll ap-rehber-icerik">
+            <h3 className="ap-rehber-bolum">
+              <span className="ap-rehber-bolum-cizgi" />
+              {bolumBaslik}
+            </h3>
 
-          <div className="space-y-3">
-            {kartlar.map((kart) => (
-              <article key={kart.baslik} className={`ap-rehber-kart ap-rehber-kart-${kart.renk}`}>
-                <h4 className="ap-rehber-kart-baslik">
-                  {kart.ikon && <span className="mr-1">{kart.ikon}</span>}
-                  {kart.baslik}
-                </h4>
-                <p className="ap-rehber-kart-metin">{kart.aciklama}</p>
-              </article>
-            ))}
-          </div>
-
-          {ipucu && (
-            <div className="ap-rehber-ipucu">
-              <span>💡</span>
-              <p>
-                <strong>İpucu:</strong> {ipucu}
-              </p>
+            <div className="space-y-3">
+              {kartlar.map((kart) => (
+                <article key={kart.baslik} className={`ap-rehber-kart ap-rehber-kart-${kart.renk}`}>
+                  <h4 className="ap-rehber-kart-baslik">
+                    {kart.ikon && <span className="mr-1">{kart.ikon}</span>}
+                    {kart.baslik}
+                  </h4>
+                  <p className="ap-rehber-kart-metin">{kart.aciklama}</p>
+                </article>
+              ))}
             </div>
-          )}
+
+            {ipucu && (
+              <div className="ap-rehber-ipucu">
+                <span>💡</span>
+                <p>
+                  <strong>İpucu:</strong> {ipucu}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <footer className="ap-rehber-footer">
+            <button type="button" className="ap-rehber-tamam" onClick={kapat}>
+              Anladım ✓
+            </button>
+          </footer>
         </div>
-
-        <footer className="ap-rehber-footer">
-          <p className="ap-rehber-kisayol">
-            <kbd className="ap-rehber-kbd">ESC</kbd> veya ✕ ile kapat
-          </p>
-          <button type="button" className="ap-rehber-tamam" onClick={kapat}>
-            Anladım ✓
-          </button>
-        </footer>
-      </div>
+      </DonenAccentCerceve>
     </div>
   );
 }

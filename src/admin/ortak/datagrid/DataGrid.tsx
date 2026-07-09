@@ -10,6 +10,7 @@
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import type { DataGridCizgiModu, DataGridProps, HizliGirisApi, KolonTanimi } from './types';
 import { useDataGridState, satirlariIsle, sayfala } from './useDataGridState';
 import {
@@ -672,15 +673,6 @@ export function DataGrid<TRow extends { id: string }>({
     setSatirPanel((onceki) => (onceki?.id === silmeOnay.satirId ? null : onceki));
     setSilmeOnay(null);
   }, [silmeOnay, onSatirlarDegistir, satirlar]);
-
-  useEffect(() => {
-    if (!silmeOnay) return;
-    const kapat = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'Escape') setSilmeOnay(null);
-    };
-    document.addEventListener('keydown', kapat);
-    return () => document.removeEventListener('keydown', kapat);
-  }, [silmeOnay]);
 
   const renderSatirlar = () => {
     if (yukleniyor) {
@@ -1542,30 +1534,16 @@ export function DataGrid<TRow extends { id: string }>({
           portalKok
         )}
 
-      {silmeOnay &&
-        createPortal(
-          <div className="dg-sil-onay-modal" role="dialog" aria-modal="true" aria-label="Satır silme onayı">
-            <div className="dg-sil-onay-arka" aria-hidden="true" />
-            <div className="dg-sil-onay-kart">
-              <div className="dg-sil-onay-ikon" aria-hidden>
-                !
-              </div>
-              <h3 className="dg-sil-onay-baslik">Bu satırı silmek istiyor musunuz?</h3>
-              <p className="dg-sil-onay-metin">
-                <strong>{silmeOnay.metin}</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
-              </p>
-              <div className="dg-sil-onay-aksiyonlar">
-                <button type="button" className="dg-sil-onay-tus dg-sil-onay-tus--iptal" onClick={() => setSilmeOnay(null)}>
-                  Vazgeç
-                </button>
-                <button type="button" className="dg-sil-onay-tus dg-sil-onay-tus--onay" onClick={satirSilOnayla}>
-                  Evet, Sil
-                </button>
-              </div>
-            </div>
-          </div>,
-          portalKok
-        )}
+      {silmeOnay && (
+        <SilmeOnayModal
+          acik
+          onKapat={() => setSilmeOnay(null)}
+          onOnayla={satirSilOnayla}
+          baslik="Bu satırı silmek istiyor musunuz?"
+          hedefMetin={silmeOnay.metin}
+          ariaLabel="Satır silme onayı"
+        />
+      )}
     </div>
   );
 }

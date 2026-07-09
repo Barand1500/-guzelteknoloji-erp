@@ -1316,7 +1316,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: var(--ap-aksiyon-kenarlik-kalinlik, 5px);
   background: var(--ap-accent);
   z-index: 25;
   pointer-events: none;
@@ -1370,10 +1370,11 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-gorev-cubugu--panel-acik .ap-alt-panel--kenarlik-anim,
 .ap-gorev-cubugu--panel-acik .ap-hesap-makinesi-panel--kenarlik-anim,
 .ap-gorev-cubugu--panel-acik .ap-takvim-panel--kenarlik-anim,
-.ap-gorev-cubugu--panel-acik .ap-cubuk-arama-oneri--kenarlik-anim {
+.ap-gorev-cubugu--panel-acik .ap-cubuk-arama-panel--kenarlik-anim {
   border-color: transparent !important;
   border-radius: 0.625rem 0.625rem 0 0;
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.1);
+  overflow: visible;
 }
 
 .ap-kenarlik-anim {
@@ -2895,13 +2896,33 @@ html:has(.admin-panel[data-tema='acik']) body {
   flex-shrink: 0;
 }
 
-.ap-cubuk-arama {
+.ap-cubuk-arama-wrap {
   position: relative;
-  display: inline-flex;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.ap-cubuk-arama-panel {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  z-index: 50;
+  display: flex;
   flex-direction: column;
   align-items: stretch;
-  flex-shrink: 0;
-  width: fit-content;
+  width: min(300px, calc(100vw - 1.5rem));
+  border-radius: 0.625rem 0.625rem 0 0;
+  border: 1px solid var(--ap-border);
+  border-bottom: none;
+  background: var(--ap-surface);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
+  overflow: visible;
+  isolation: isolate;
+}
+
+.ap-cubuk-arama-panel--kenarlik-anim {
+  border-color: transparent !important;
+  overflow: visible;
 }
 
 .ap-cubuk-arama-grup {
@@ -2910,25 +2931,18 @@ html:has(.admin-panel[data-tema='acik']) body {
   justify-content: flex-end;
   align-items: center;
   gap: 0.25rem;
+  padding: 0.35rem 0.35rem 0.35rem 0.5rem;
 }
 
-.ap-cubuk-arama-input-sarm {
-  overflow: hidden;
-  width: 0;
-  max-width: 0;
-  opacity: 0;
-  flex-shrink: 0;
-  transition: max-width 0.28s ease, width 0.28s ease, opacity 0.2s ease;
-}
-
-.ap-cubuk-arama--acik .ap-cubuk-arama-input-sarm {
+.ap-cubuk-arama-panel .ap-cubuk-arama-input-sarm {
   width: min(240px, 42vw);
   max-width: min(240px, 42vw);
   opacity: 1;
+  overflow: visible;
 }
 
 .ap-cubuk-arama-input {
-  width: min(240px, 42vw);
+  width: 100%;
   height: 2rem;
   padding: 0 0.75rem;
   border-radius: 0.375rem;
@@ -2938,6 +2952,10 @@ html:has(.admin-panel[data-tema='acik']) body {
   font-size: 0.8125rem;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ap-cubuk-arama-panel .ap-cubuk-arama-input {
+  border-color: color-mix(in srgb, var(--ap-border) 80%, transparent);
 }
 
 .ap-cubuk-arama-input::placeholder {
@@ -2954,26 +2972,20 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-cubuk-arama-oneri {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  z-index: 60;
   width: 100%;
-  border-radius: 0.625rem 0.625rem 0 0;
-  border: 1px solid var(--ap-border);
-  border-bottom: none;
+  border-bottom: 1px solid var(--ap-border);
   background: var(--ap-surface);
-  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
-  isolation: isolate;
 }
 
-.ap-cubuk-arama-oneri--kenarlik-anim {
+.ap-cubuk-arama-oneri--kenarlik-anim,
+.ap-cubuk-arama-panel--kenarlik-anim .ap-cubuk-arama-oneri {
   border-color: transparent !important;
+  box-shadow: none;
   overflow: visible;
 }
 
-.admin-panel--kenarlik-neon .ap-cubuk-arama-oneri--kenarlik-anim .ap-kenarlik-anim-yol {
+.admin-panel--kenarlik-neon .ap-cubuk-arama-oneri--kenarlik-anim .ap-kenarlik-anim-yol,
+.admin-panel--kenarlik-neon .ap-cubuk-arama-panel--kenarlik-anim .ap-kenarlik-anim-yol {
   filter: var(--ap-accent-neon-filter);
 }
 
@@ -5039,16 +5051,215 @@ html:has(.admin-panel[data-tema='acik']) body {
   pointer-events: none;
 }
 
+.ap-rehber-donen-cerceve,
+.ap-accent-donen-cerceve {
+  position: relative;
+  z-index: 1;
+  --cerceve-yaricap: 1rem;
+  width: 100%;
+}
+
+.ap-rehber-donen-cerceve .erp-donen-cerceve-iz::before,
+.ap-accent-donen-cerceve .erp-donen-cerceve-iz::before {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 200deg,
+    color-mix(in srgb, var(--ap-accent) 12%, transparent) 235deg,
+    var(--ap-accent) 285deg,
+    color-mix(in srgb, var(--ap-accent) 75%, #fff) 312deg,
+    color-mix(in srgb, var(--ap-accent) 45%, #fff) 334deg,
+    transparent 360deg
+  );
+}
+
+.admin-panel--kenarlik-neon .ap-rehber-donen-cerceve .erp-donen-cerceve-iz::before,
+.admin-panel--kenarlik-neon .ap-accent-donen-cerceve .erp-donen-cerceve-iz::before {
+  filter: var(--ap-accent-neon-filter);
+}
+
+.ap-rehber-donen-cerceve .erp-donen-cerceve-icerik,
+.ap-accent-donen-cerceve .erp-donen-cerceve-icerik {
+  border-radius: calc(var(--cerceve-yaricap) - 2px);
+  overflow: hidden;
+}
+
+.ap-rehber-donen-cerceve {
+  width: min(100%, 520px);
+}
+
+.ap-accent-donen-cerceve--sil {
+  --cerceve-yaricap: 1.1rem;
+  width: min(520px, calc(100vw - 2rem));
+}
+
+.ap-accent-donen-cerceve--sil .erp-donen-cerceve-icerik {
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+.ap-accent-donen-cerceve--sistem {
+  width: min(720px, 100%);
+  max-height: 90vh;
+}
+
+.ap-accent-donen-cerceve--sistem .ap-sistem-modal {
+  border: none;
+  box-shadow: none;
+}
+
+.ap-accent-donen-cerceve--profil {
+  width: min(100%, 480px);
+  --cerceve-yaricap: 1rem;
+}
+
+.ap-accent-donen-cerceve--profil .ap-admin-modal {
+  border: none;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.35);
+}
+
+/* Silme onay modalı — datagrid ile aynı yapı */
+.ap-sil-onay-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.ap-sil-onay-modal > .ap-accent-donen-cerceve {
+  position: relative;
+  z-index: 1;
+}
+
+.ap-sil-onay-arka {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: color-mix(in srgb, #0f172a 52%, transparent);
+  backdrop-filter: blur(3px);
+  animation: ap-sil-onay-fade-in 0.2s ease;
+  cursor: default;
+}
+
+@keyframes ap-sil-onay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ap-sil-onay-kart {
+  position: relative;
+  width: 100%;
+  border-radius: calc(var(--cerceve-yaricap, 1.1rem) - 2px);
+  border: none;
+  background: var(--ap-surface);
+  padding: 1.75rem 1.75rem 0;
+  text-align: center;
+  overflow: hidden;
+  animation: ap-sil-onay-giris 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes ap-sil-onay-giris {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ap-sil-onay-ikon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.95rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--ap-accent) 84%, #ffffff);
+  background: color-mix(in srgb, var(--ap-accent) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 58%, transparent);
+}
+
+.ap-sil-onay-baslik {
+  margin: 0;
+  color: var(--ap-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ap-sil-onay-metin {
+  margin: 0.85rem 0 1.35rem;
+  color: var(--ap-text-muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.ap-sil-onay-metin strong {
+  color: var(--ap-text);
+  font-weight: 700;
+}
+
+.ap-sil-onay-aksiyonlar {
+  margin: 0 -1.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--ap-surface);
+  border-radius: 0 0 calc(var(--cerceve-yaricap, 1.1rem) - 2px) calc(var(--cerceve-yaricap, 1.1rem) - 2px);
+  overflow: hidden;
+}
+
+.ap-sil-onay-tus {
+  appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ap-text);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ap-sil-onay-tus + .ap-sil-onay-tus {
+  box-shadow: -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.ap-sil-onay-tus--iptal:hover {
+  background: color-mix(in srgb, var(--ap-hover) 62%, transparent);
+}
+
+.ap-sil-onay-tus--onay {
+  color: #fff;
+  background: color-mix(in srgb, var(--ap-accent) 84%, #000000);
+}
+
+.ap-sil-onay-tus--onay:hover {
+  background: var(--ap-accent);
+}
+
 .ap-rehber-modal {
   position: relative;
   z-index: 1;
   display: flex;
   max-height: min(90vh, 720px);
-  width: min(100%, 520px);
+  width: 100%;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+  border-radius: calc(1rem - 2px);
+  border: none;
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--ap-accent) 9%, var(--ap-surface)) 0%,
@@ -5191,7 +5402,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-rehber-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 1rem;
   border-top: 1px solid var(--ap-border);
   background: color-mix(in srgb, var(--ap-hover) 45%, var(--ap-surface));

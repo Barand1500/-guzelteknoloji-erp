@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { KullaniciDuzenleFormu, KullaniciListesi, type AtanabilirRol } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleri';
+import {
+  KullaniciDuzenleFormu,
+  KullaniciListesi,
+  type AtanabilirRol,
+} from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleri';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useAuth } from '@/baglamlar/AuthContext';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
@@ -45,6 +50,7 @@ export function KullanicilarSayfasi() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState('');
+  const [silModalAcik, setSilModalAcik] = useState(false);
   const [tumRoller, setTumRoller] = useState<AtanabilirRol[]>([]);
   const [rolBasliklari, setRolBasliklari] = useState<Record<string, string>>(VARSAYILAN_ROL_ETIKETLERI);
 
@@ -108,10 +114,16 @@ export function KullanicilarSayfasi() {
     }
   }, [form, seciliId, sifreDegisti, yeniBaslat, logMesajiAyarla]);
 
-  const sil = useCallback(async () => {
-    if (!seciliId || !confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?')) return;
+  const sil = useCallback(() => {
+    if (seciliId) setSilModalAcik(true);
+  }, [seciliId]);
+
+  const silOnayla = useCallback(async () => {
+    if (!seciliId) return;
     const silinen = kullanicilar.find((k) => k.id === seciliId);
+    setSilModalAcik(false);
     setKaydediliyor(true);
+    setHata('');
     try {
       await adminKullaniciSil(seciliId);
       if (silinen) {
@@ -205,6 +217,19 @@ export function KullanicilarSayfasi() {
           </div>
         </div>
       )}
+
+      <SilmeOnayModal
+        acik={silModalAcik}
+        onKapat={() => setSilModalAcik(false)}
+        onOnayla={() => void silOnayla()}
+        baslik="Bu kullanıcıyı silmek istiyor musunuz?"
+        hedefMetin={
+          seciliKullanici
+            ? `${seciliKullanici.ad} (${seciliKullanici.email})`
+            : 'Seçili kullanıcı'
+        }
+        ariaLabel="Kullanıcı silme onayı"
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/baglamlar/AuthContext';
 import { rolEtiketi } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
+import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { FormAlani, formInputSinifi } from '@/formlar/FormAlani';
 
 interface AdminProfilModalProps {
@@ -77,7 +78,8 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
   return (
     <div className="ap-admin-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profil-modal-baslik">
       <div className="ap-admin-modal-backdrop" aria-hidden="true" />
-      <div className="ap-admin-modal">
+      <DonenAccentCerceve className="ap-accent-donen-cerceve--profil">
+        <div className="ap-admin-modal">
         <header className="ap-admin-modal-header">
           <div className="flex items-center gap-3">
             <span className="ap-admin-modal-avatar">{basHarf}</span>
@@ -172,7 +174,8 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
             </button>
           </div>
         </footer>
-      </div>
+        </div>
+      </DonenAccentCerceve>
     </div>
   );
 }
