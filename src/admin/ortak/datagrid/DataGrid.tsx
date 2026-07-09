@@ -68,6 +68,11 @@ interface DuzenlemeHucre extends OdakHucre {
   birlesikKatman?: 'ust' | 'alt';
 }
 
+interface SilmeOnayDurumu {
+  satirId: string;
+  metin: string;
+}
+
 function birlesikDuzenlemeKatmani<TRow>(
   e: ReactMouseEvent<HTMLTableCellElement>,
   satir: TRow,
@@ -206,6 +211,7 @@ export function DataGrid<TRow extends { id: string }>({
   const [odak, setOdak] = useState<OdakHucre | null>(null);
   const [duzenleme, setDuzenleme] = useState<DuzenlemeHucre | null>(null);
   const [satirPanel, setSatirPanel] = useState<TRow | null>(null);
+  const [silmeOnay, setSilmeOnay] = useState<SilmeOnayDurumu | null>(null);
   const [resize, setResize] = useState<{ kolonId: string; baslangicX: number; baslangicGenislik: number } | null>(null);
   const [hizliGiris, setHizliGiris] = useState<Record<string, string>>(() => {
     const baslangic: Record<string, string> = {};
@@ -645,12 +651,36 @@ export function DataGrid<TRow extends { id: string }>({
   const satirSil = useCallback(
     (satirId: string) => {
       if (!onSatirlarDegistir) return;
-      if (!confirm('Bu satır silinsin mi?')) return;
-      onSatirlarDegistir(satirlar.filter((s) => s.id !== satirId));
-      setSatirPanel((onceki) => (onceki?.id === satirId ? null : onceki));
+      const satir = satirlar.find((s) => s.id === satirId);
+      const urunKolon = kolonlar.find((k) => k.id === 'urunKoduAdi');
+      const urunDegeri = satir && urunKolon ? urunKolon.degerAl(satir) : null;
+      const urunMetni =
+        urunDegeri && typeof urunDegeri === 'object' && 'ust' in (urunDegeri as Record<string, unknown>)
+          ? String((urunDegeri as { ust?: string }).ust ?? '').trim()
+          : '';
+      setSilmeOnay({
+        satirId,
+        metin: urunMetni || `Satır #${satirId}`,
+      });
     },
-    [onSatirlarDegistir, satirlar]
+    [onSatirlarDegistir, satirlar, kolonlar]
   );
+
+  const satirSilOnayla = useCallback(() => {
+    if (!silmeOnay || !onSatirlarDegistir) return;
+    onSatirlarDegistir(satirlar.filter((s) => s.id !== silmeOnay.satirId));
+    setSatirPanel((onceki) => (onceki?.id === silmeOnay.satirId ? null : onceki));
+    setSilmeOnay(null);
+  }, [silmeOnay, onSatirlarDegistir, satirlar]);
+
+  useEffect(() => {
+    if (!silmeOnay) return;
+    const kapat = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setSilmeOnay(null);
+    };
+    document.addEventListener('keydown', kapat);
+    return () => document.removeEventListener('keydown', kapat);
+  }, [silmeOnay]);
 
   const renderSatirlar = () => {
     if (yukleniyor) {
@@ -1502,6 +1532,31 @@ export function DataGrid<TRow extends { id: string }>({
                 },
                 () => setSatirPanel(null)
               )}
+            </div>
+          </div>,
+          portalKok
+        )}
+
+      {silmeOnay &&
+        createPortal(
+          <div className="dg-sil-onay-modal" role="dialog" aria-modal="true" aria-label="Satır silme onayı">
+            <div className="dg-sil-onay-arka" aria-hidden="true" />
+            <div className="dg-sil-onay-kart">
+              <div className="dg-sil-onay-ikon" aria-hidden>
+                !
+              </div>
+              <h3 className="dg-sil-onay-baslik">Bu satırı silmek istiyor musunuz?</h3>
+              <p className="dg-sil-onay-metin">
+                <strong>{silmeOnay.metin}</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+              </p>
+              <div className="dg-sil-onay-aksiyonlar">
+                <button type="button" className="dg-sil-onay-tus dg-sil-onay-tus--iptal" onClick={() => setSilmeOnay(null)}>
+                  Vazgeç
+                </button>
+                <button type="button" className="dg-sil-onay-tus dg-sil-onay-tus--onay" onClick={satirSilOnayla}>
+                  Evet, Sil
+                </button>
+              </div>
             </div>
           </div>,
           portalKok

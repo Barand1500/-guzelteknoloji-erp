@@ -63,6 +63,21 @@ export function SekmeYonetimiSayfasi() {
   const [ayarlar, setAyarlar] = useState<SekmePanelAyarlari>(() => sekmeAyarlariOku());
   const [sonKayitli, setSonKayitli] = useState<SekmePanelAyarlari>(() => sekmeAyarlariOku());
   const kirli = useMemo(() => JSON.stringify(ayarlar) !== JSON.stringify(sonKayitli), [ayarlar, sonKayitli]);
+  const seciliButonStili = {
+    borderColor: 'var(--ap-accent)',
+    backgroundColor: 'color-mix(in srgb, var(--ap-accent) 18%, transparent)',
+    color: 'color-mix(in srgb, var(--ap-accent) 72%, var(--ap-text))',
+  } as const;
+  const seciliHafifButonStili = {
+    borderColor: 'var(--ap-accent)',
+    backgroundColor: 'color-mix(in srgb, var(--ap-accent) 14%, transparent)',
+    boxShadow: '0 0 0 1px color-mix(in srgb, var(--ap-accent) 35%, transparent) inset',
+  } as const;
+  const vurguRozetStili = {
+    borderColor: 'color-mix(in srgb, var(--ap-accent) 45%, transparent)',
+    backgroundColor: 'color-mix(in srgb, var(--ap-accent) 12%, transparent)',
+    color: 'color-mix(in srgb, var(--ap-accent) 70%, var(--ap-text))',
+  } as const;
 
   const kaydet = useCallback(() => {
     const kaydedilecek = { ...ayarlar, hoverOnizleme: false };
@@ -121,9 +136,10 @@ export function SekmeYonetimiSayfasi() {
                         onClick={() => setAyarlar((a) => ({ ...a, sekmeGorunumModu: m.id }))}
                         className={`rounded-lg border px-3 py-1.5 text-sm ${
                           ayarlar.sekmeGorunumModu === m.id
-                            ? 'border-blue-500 bg-blue-600/20 text-blue-400'
+                            ? ''
                             : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
                         }`}
+                        style={ayarlar.sekmeGorunumModu === m.id ? seciliButonStili : undefined}
                       >
                         {m.ad}
                       </button>
@@ -146,9 +162,10 @@ export function SekmeYonetimiSayfasi() {
                         onClick={() => setAyarlar((a) => ({ ...a, sekmeYerlesim: m.id }))}
                         className={`rounded-lg border px-3 py-1.5 text-left text-sm ${
                           ayarlar.sekmeYerlesim === m.id
-                            ? 'border-blue-500 bg-blue-600/20 text-blue-400'
+                            ? ''
                             : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
                         }`}
+                        style={ayarlar.sekmeYerlesim === m.id ? seciliButonStili : undefined}
                       >
                         <span className="block leading-tight">{m.ad}</span>
                         <span className="ap-muted block text-[10px]">{m.alt}</span>
@@ -167,9 +184,10 @@ export function SekmeYonetimiSayfasi() {
                         onClick={() => setAyarlar((a) => ({ ...a, sekmeYukseklik: b }))}
                         className={`rounded-lg border px-3 py-1.5 text-sm capitalize ${
                           ayarlar.sekmeYukseklik === b
-                            ? 'border-blue-500 bg-blue-600/20 text-blue-400'
+                            ? ''
                             : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
                         }`}
+                        style={ayarlar.sekmeYukseklik === b ? seciliButonStili : undefined}
                       >
                         {b === 'kucuk' ? 'Küçük' : b === 'buyuk' ? 'Büyük' : 'Orta'}
                       </button>
@@ -193,9 +211,10 @@ export function SekmeYonetimiSayfasi() {
                           onClick={() => setAyarlar((a) => ({ ...a, sekmeAramaGorunum: m.id }))}
                           className={`rounded-lg border px-3 py-1.5 text-sm ${
                             ayarlar.sekmeAramaGorunum === m.id
-                              ? 'border-blue-500 bg-blue-600/20 text-blue-400'
+                              ? ''
                               : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
                           }`}
+                          style={ayarlar.sekmeAramaGorunum === m.id ? seciliButonStili : undefined}
                         >
                           {m.ad}
                         </button>
@@ -208,7 +227,10 @@ export function SekmeYonetimiSayfasi() {
                   <div className="space-y-3 rounded-lg border border-dashed border-[var(--ap-border)] bg-[var(--ap-hover)]/20 p-3">
                     <div className="flex items-center justify-between">
                       <p className="ap-heading text-xs font-semibold">Modern Başlat Menüsü</p>
-                      <span className="rounded-full border border-blue-500/40 bg-blue-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-blue-300">
+                      <span
+                        className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide"
+                        style={vurguRozetStili}
+                      >
                         Modern mod
                       </span>
                     </div>
@@ -228,9 +250,10 @@ export function SekmeYonetimiSayfasi() {
                               onClick={() => setAyarlar((a) => ({ ...a, baslatMenuKategoriGorunum: m.id }))}
                               className={`rounded-lg border px-3 py-1.5 text-sm ${
                                 ayarlar.baslatMenuKategoriGorunum === m.id
-                                  ? 'border-blue-500 bg-blue-600/20 text-blue-400'
+                                  ? ''
                                   : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
                               }`}
+                              style={ayarlar.baslatMenuKategoriGorunum === m.id ? seciliButonStili : undefined}
                             >
                               {m.ad}
                             </button>
@@ -254,9 +277,10 @@ export function SekmeYonetimiSayfasi() {
                               onClick={() => setAyarlar((a) => ({ ...a, baslatMenuKutuBoyutu: m.id }))}
                               className={`rounded-lg border px-3 py-1.5 text-sm ${
                                 ayarlar.baslatMenuKutuBoyutu === m.id
-                                  ? 'border-blue-500 bg-blue-600/20 text-blue-400'
+                                  ? ''
                                   : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
                               }`}
+                              style={ayarlar.baslatMenuKutuBoyutu === m.id ? seciliButonStili : undefined}
                             >
                               {m.ad}
                             </button>
@@ -340,9 +364,10 @@ export function SekmeYonetimiSayfasi() {
                     onClick={() => setAyarlar((a) => ({ ...a, baslatMenuTasarim: t.id }))}
                     className={`ap-baslat-tasarim-secim rounded-lg border p-3 text-left transition ${
                       ayarlar.baslatMenuTasarim === t.id
-                        ? 'border-blue-500 bg-blue-600/15 ring-1 ring-blue-500/40'
+                        ? ''
                         : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
                     }`}
+                    style={ayarlar.baslatMenuTasarim === t.id ? seciliHafifButonStili : undefined}
                   >
                     <div
                       className={`ap-baslat-tasarim-onizleme ap-baslat-tasarim-onizleme-${t.id} mb-2`}
@@ -362,7 +387,8 @@ export function SekmeYonetimiSayfasi() {
                 onClick={() => {
                   setAyarlar({ ...VARSAYILAN_SEKME_AYARLARI });
                 }}
-                className="rounded-lg border border-[var(--ap-border)] px-3 py-1.5 text-xs text-blue-400 hover:bg-[var(--ap-hover)]"
+                className="rounded-lg border border-[var(--ap-border)] px-3 py-1.5 text-xs hover:bg-[var(--ap-hover)]"
+                style={{ color: 'color-mix(in srgb, var(--ap-accent) 72%, var(--ap-text))' }}
               >
                 Varsayılana sıfırla
               </button>

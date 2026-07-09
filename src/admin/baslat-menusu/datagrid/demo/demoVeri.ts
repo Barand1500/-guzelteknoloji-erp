@@ -1,6 +1,7 @@
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 
 import { gecerliBirim, type BirimKodu } from './birimVeri';
+import { type ParaBirimiKodu } from './paraBirimiVeri';
 import { urunKoduAdiCozumle, type UrunKaydi } from './urunAramaYardimci';
 
 export interface SiparisSatiri {
@@ -19,7 +20,7 @@ export interface SiparisSatiri {
   toplamKdvYuzde: number;
   toplamKdvTutar: number;
   toplamTutar: number;
-  pb: string;
+  pb: ParaBirimiKodu;
   etiketler: { metin: string; renk: 'mavi' | 'yesil' | 'mor' | 'turuncu' }[];
   durum: boolean;
   kayitTarihi: string;
@@ -74,7 +75,7 @@ export function yeniSiparisSatiriOlustur(
       toplamKdvYuzde: sayiDeger(degerler.toplamKdv, 20),
       toplamKdvTutar: 0,
       toplamTutar: 0,
-      pb: '₺',
+      pb: 'TRY',
       etiketler: etiketleriAyikla(degerler.etiketler),
       durum: durumHam === 'true' || durumHam === '1',
       kayitTarihi: simdi,
@@ -143,7 +144,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     toplamKdvYuzde: 20,
     toplamKdvTutar: 0,
     toplamTutar: 0,
-    pb: '₺',
+    pb: 'TRY',
     etiketler: [{ metin: 'Drone', renk: 'mavi' }],
     durum: true,
     kayitTarihi: '2026-03-15T09:42:00',
@@ -165,7 +166,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     toplamKdvYuzde: 20,
     toplamKdvTutar: 0,
     toplamTutar: 0,
-    pb: '₺',
+    pb: 'TRY',
     etiketler: [
       { metin: 'Aksiyon', renk: 'mor' },
       { metin: 'Kampanya', renk: 'turuncu' },
@@ -190,7 +191,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     toplamKdvYuzde: 20,
     toplamKdvTutar: 0,
     toplamTutar: 0,
-    pb: '₺',
+    pb: 'TRY',
     etiketler: [{ metin: 'Yazılım', renk: 'yesil' }],
     durum: false,
     kayitTarihi: '2026-02-28T11:03:00',
@@ -212,7 +213,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     toplamKdvYuzde: 20,
     toplamKdvTutar: 0,
     toplamTutar: 0,
-    pb: '₺',
+    pb: 'TRY',
     etiketler: [{ metin: 'Aksesuar', renk: 'mavi' }],
     durum: true,
     kayitTarihi: '2026-03-20T16:28:00',
@@ -234,7 +235,7 @@ export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [
     toplamKdvYuzde: 20,
     toplamKdvTutar: 0,
     toplamTutar: 0,
-    pb: '₺',
+    pb: 'TRY',
     etiketler: [{ metin: 'Depolama', renk: 'mor' }],
     durum: true,
     kayitTarihi: '2026-03-12T10:51:00',

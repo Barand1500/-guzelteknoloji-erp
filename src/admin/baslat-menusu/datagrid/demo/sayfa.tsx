@@ -14,6 +14,7 @@ import { DEMO_SIPARIS_SATIRLARI, satirHesapla, yeniSiparisSatiriOlustur, type Si
 
 import { SatirDuzenlePanel } from './SatirDuzenlePanel';
 import { birimEtiketi, birimSecenekleri, gecerliBirim } from './birimVeri';
+import { gecerliParaBirimi, paraBirimiEtiketi, paraBirimiSecenekleri } from './paraBirimiVeri';
 import { UrunAramaSlayt } from './UrunAramaSlayt';
 import { URUN_KATALOGU } from './urunKatalogu';
 import {
@@ -28,7 +29,7 @@ import { DatagridSagTikMenu, type SatirEkleKonumu } from './DatagridSagTikMenu';
 
 
 
-const VARSAYILAN_GIZLI = ['kayit', 'guncelleme'];
+const VARSAYILAN_GIZLI = ['etiketler', 'kayit', 'guncelleme'];
 
 const URUN_TOOLTIP_AC_GECIKME_MS = 450;
 const URUN_TOOLTIP_KAPAT_GECIKME_MS = 120;
@@ -471,15 +472,25 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       baslik: 'PB',
 
-      tip: 'metin',
+      tip: 'badge',
 
-      genislik: 44,
+      genislik: 52,
 
-      minGenislik: 36,
+      minGenislik: 44,
 
-      siralama: false,
+      siralama: true,
+
+      duzenlenebilir: true,
+
+      secenekler: paraBirimiSecenekleri(),
 
       degerAl: (s) => s.pb,
+
+      degerYaz: (s, d) => satirHesapla({ ...s, pb: gecerliParaBirimi(String(d), s.pb) }),
+
+      siralamaDegeri: (s) => s.pb,
+
+      goster: (s) => <span className="dg-birim-etiket">{paraBirimiEtiketi(s.pb)}</span>,
 
     },
 

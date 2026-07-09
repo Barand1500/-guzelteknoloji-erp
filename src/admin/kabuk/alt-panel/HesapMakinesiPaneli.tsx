@@ -162,7 +162,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
   const ifadeHesapla = () => {
     const sonuc = ifadeSonucu(ifade);
     if (sonuc === null) return;
-    const goster = `${sayiGoster(sonuc)} ₺`;
+    const goster = sayiGoster(sonuc);
     const kopya = String(sonuc);
     setIfadeSonuc([{ etiket: 'Sonuç', deger: goster, kopya }]);
     gecmiseEkle('İfade', `${ifade} → ${sayiGoster(sonuc)}`, kopya);
@@ -174,9 +174,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     if (tutar === null) return;
     const h = kdvMatrahtanDahil(tutar, oran);
     setKdvSonuc([
-      { etiket: 'Matrah', deger: `${sayiGoster(h.matrah)} ₺`, kopya: String(h.matrah) },
-      { etiket: 'KDV', deger: `${sayiGoster(h.kdv)} ₺`, kopya: String(h.kdv) },
-      { etiket: 'Toplam', deger: `${sayiGoster(h.toplam)} ₺`, kopya: String(h.toplam) },
+      { etiket: 'Matrah', deger: sayiGoster(h.matrah), kopya: String(h.matrah) },
+      { etiket: 'KDV', deger: sayiGoster(h.kdv), kopya: String(h.kdv) },
+      { etiket: 'Toplam', deger: sayiGoster(h.toplam), kopya: String(h.toplam) },
     ]);
     gecmiseEkle('KDV Ekle', `Matrah ${sayiGoster(h.matrah)} + %${oran}`, String(h.toplam));
   };
@@ -187,9 +187,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     if (tutar === null) return;
     const h = kdvDahildenHariç(tutar, oran);
     setKdvSonuc([
-      { etiket: 'Matrah', deger: `${sayiGoster(h.matrah)} ₺`, kopya: String(h.matrah) },
-      { etiket: 'KDV', deger: `${sayiGoster(h.kdv)} ₺`, kopya: String(h.kdv) },
-      { etiket: 'Toplam', deger: `${sayiGoster(h.toplam)} ₺`, kopya: String(h.toplam) },
+      { etiket: 'Matrah', deger: sayiGoster(h.matrah), kopya: String(h.matrah) },
+      { etiket: 'KDV', deger: sayiGoster(h.kdv), kopya: String(h.kdv) },
+      { etiket: 'Toplam', deger: sayiGoster(h.toplam), kopya: String(h.toplam) },
     ]);
     gecmiseEkle('KDV Çıkar', `Dahil ${sayiGoster(tutar)} → matrah`, String(h.matrah));
   };
@@ -200,8 +200,8 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     const h = iskontoUygula(tutar, iskontoOran);
     setIskontoSonuc([
       { etiket: 'İskonto', deger: `%${sayiGoster(h.yuzde, 1)}`, kopya: String(h.yuzde) },
-      { etiket: 'İndirim', deger: `${sayiGoster(h.indirim)} ₺`, kopya: String(h.indirim) },
-      { etiket: 'Net', deger: `${sayiGoster(h.net)} ₺`, kopya: String(h.net) },
+      { etiket: 'İndirim', deger: sayiGoster(h.indirim), kopya: String(h.indirim) },
+      { etiket: 'Net', deger: sayiGoster(h.net), kopya: String(h.net) },
     ]);
     gecmiseEkle('İskonto', `%${sayiGoster(h.yuzde, 1)} → ${sayiGoster(h.net)}`, String(h.net));
   };
@@ -213,8 +213,8 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     const satis = karMarjiSatisFiyati(m, k);
     const kar = satis - m;
     setKarSonuc([
-      { etiket: 'Kar', deger: `${sayiGoster(kar)} ₺`, kopya: String(kar) },
-      { etiket: 'Satış', deger: `${sayiGoster(satis)} ₺`, kopya: String(satis) },
+      { etiket: 'Kar', deger: sayiGoster(kar), kopya: String(kar) },
+      { etiket: 'Satış', deger: sayiGoster(satis), kopya: String(satis) },
     ]);
     gecmiseEkle('Kar Marjı', `%${sayiGoster(k, 1)} → ${sayiGoster(satis)}`, String(satis));
   };
@@ -225,12 +225,12 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     if (fiyat === null) return;
     const h = birimTutarHesapla(fiyat, adet, satirIskonto);
     const satirlar: SonucGosterimi[] = [
-      { etiket: 'Brüt', deger: `${sayiGoster(h.brut)} ₺`, kopya: String(h.brut) },
+      { etiket: 'Brüt', deger: sayiGoster(h.brut), kopya: String(h.brut) },
     ];
     if (h.indirim > 0) {
-      satirlar.push({ etiket: 'İndirim', deger: `${sayiGoster(h.indirim)} ₺`, kopya: String(h.indirim) });
+      satirlar.push({ etiket: 'İndirim', deger: sayiGoster(h.indirim), kopya: String(h.indirim) });
     }
-    satirlar.push({ etiket: 'Net', deger: `${sayiGoster(h.net)} ₺`, kopya: String(h.net) });
+    satirlar.push({ etiket: 'Net', deger: sayiGoster(h.net), kopya: String(h.net) });
     setBirimSonuc(satirlar);
     gecmiseEkle('Birim × Miktar', `${sayiGoster(fiyat)} × ${sayiGoster(adet, 0)}`, String(h.net));
   };
@@ -242,9 +242,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     const fark = yeni - eski;
     const yuzde = (fark / eski) * 100;
     setDegisimSonuc([
-      { etiket: 'Fark', deger: `${sayiGoster(fark)} ₺`, kopya: String(fark) },
+      { etiket: 'Fark', deger: sayiGoster(fark), kopya: String(fark) },
       { etiket: 'Değişim', deger: `%${sayiGoster(yuzde, 2)}`, kopya: String(yuzde) },
-      { etiket: 'Yeni Değer', deger: `${sayiGoster(yeni)} ₺`, kopya: String(yeni) },
+      { etiket: 'Yeni Değer', deger: sayiGoster(yeni), kopya: String(yeni) },
     ]);
     gecmiseEkle('Yüzde Değişim', `${sayiGoster(eski)} → ${sayiGoster(yeni)}`, String(yuzde));
   };
@@ -255,9 +255,9 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
     if (toplam === null || adet === null || adet === 0) return;
     const birim = toplam / adet;
     setToplamdanBirimSonuc([
-      { etiket: 'Toplam', deger: `${sayiGoster(toplam)} ₺`, kopya: String(toplam) },
+      { etiket: 'Toplam', deger: sayiGoster(toplam), kopya: String(toplam) },
       { etiket: 'Adet', deger: sayiGoster(adet, 2), kopya: String(adet) },
-      { etiket: 'Birim Fiyat', deger: `${sayiGoster(birim)} ₺`, kopya: String(birim) },
+      { etiket: 'Birim Fiyat', deger: sayiGoster(birim), kopya: String(birim) },
     ]);
     gecmiseEkle('Toplamdan Birim', `${sayiGoster(toplam)} / ${sayiGoster(adet, 2)}`, String(birim));
   };

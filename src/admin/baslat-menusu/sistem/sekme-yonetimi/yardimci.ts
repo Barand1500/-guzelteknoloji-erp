@@ -25,17 +25,17 @@ export interface SekmePanelAyarlari {
 }
 
 export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
-  sekmeYukseklik: 'orta',
+  sekmeYukseklik: 'buyuk',
   hoverOnizleme: false,
-  varsayilanAcilis: 'yeni-sekme',
+  varsayilanAcilis: 'tek-sekme',
   yanYanaAcilabilir: true,
   surukleAyirPencere: true,
   sekmeGorunumModu: 'ikon-isim',
   sekmeYerlesim: 'dikdortgen',
-  sekmeAramaAktif: false,
+  sekmeAramaAktif: true,
   sekmeAramaGorunum: 'ikon',
-  baslatMenuTasarim: 'klasik',
-  baslatMenuKategoriGorunum: 'kare',
+  baslatMenuTasarim: 'modern',
+  baslatMenuKategoriGorunum: 'dikdortgen',
   baslatMenuKutuBoyutu: 'orta',
   sekmeGecisindeOtomatikKaydet: true,
 };

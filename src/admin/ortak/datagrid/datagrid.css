@@ -1795,6 +1795,110 @@
   accent-color: var(--ap-accent);
 }
 
+.dg-sil-onay-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.dg-sil-onay-arka {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, #0f172a 52%, transparent);
+  backdrop-filter: blur(3px);
+  animation: dg-fade-in 0.2s ease;
+}
+
+.dg-sil-onay-kart {
+  position: relative;
+  width: min(520px, calc(100vw - 2rem));
+  border-radius: 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 78%, transparent);
+  background: var(--ap-surface);
+  box-shadow: 0 24px 50px color-mix(in srgb, #0f172a 22%, transparent);
+  padding: 1.75rem 1.75rem 0;
+  text-align: center;
+  overflow: hidden;
+  animation: dg-sheet-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dg-sil-onay-ikon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.95rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--ap-accent) 84%, #ffffff);
+  background: color-mix(in srgb, var(--ap-accent) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 58%, transparent);
+}
+
+.dg-sil-onay-baslik {
+  margin: 0;
+  color: var(--ap-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dg-sil-onay-metin {
+  margin: 0.85rem 0 1.35rem;
+  color: var(--ap-text-muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.dg-sil-onay-metin strong {
+  color: var(--ap-text);
+  font-weight: 700;
+}
+
+.dg-sil-onay-aksiyonlar {
+  margin: 0 -1.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--ap-surface);
+}
+
+.dg-sil-onay-tus {
+  appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ap-text);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dg-sil-onay-tus + .dg-sil-onay-tus {
+  box-shadow: -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.dg-sil-onay-tus--iptal:hover {
+  background: color-mix(in srgb, var(--ap-hover) 62%, transparent);
+}
+
+.dg-sil-onay-tus--onay {
+  color: #fff;
+  background: color-mix(in srgb, var(--ap-accent) 84%, #000000);
+}
+
+.dg-sil-onay-tus--onay:hover {
+  background: var(--ap-accent);
+}
+
 .dg-duzenle-baslik {
   padding: 0.85rem 1.25rem 1rem;
   border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 60%, transparent);
