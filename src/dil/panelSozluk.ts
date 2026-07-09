@@ -24,7 +24,7 @@ export const PANEL_SOZLUK_TR: Record<string, string> = {
 
   // Header / footer
   'header.baslatMenu': 'Başlat Menüsü',
-  'header.modulAra': 'Modül veya ayar ara',
+  'header.modulAra': 'Modül veya Ayar Ara',
   'header.profil': 'Profil',
   'header.bildirimler': 'Bildirimler',
   'header.geceModu': 'Gece moduna geç',

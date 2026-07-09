@@ -12,7 +12,6 @@ import {
 } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemSekmeleri';
 import {
   Sistem404Sekme,
-  SistemBilgiPaneli,
   SistemGuvenlikSekme,
 } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/Sistem404VeGuvenlik';
 import { SistemScriptSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemScriptSekme';
@@ -38,8 +37,6 @@ export function SistemAyarlariSayfasi() {
   const [form, setForm] = useState<SistemAyarlariForm>(bosSistemForm);
   const [sayfalar, setSayfalar] = useState<AdminSayfa[]>([]);
   const [siteAdi, setSiteAdi] = useState('');
-  const [siteSlug, setSiteSlug] = useState('');
-  const [surum, setSurum] = useState('');
   const [sekme, setSekme] = useState<SistemSekmeId>('genel');
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
@@ -56,8 +53,6 @@ export function SistemAyarlariSayfasi() {
       const veri = await sistemAyarlariGuncelle(form);
       basariBildir('Sistem ayarları kaydedildi.');
       setSiteAdi(veri.site.ad);
-      setSiteSlug(veri.site.slug);
-      setSurum(veri.surum);
       const yeniForm = sistemdenForm(veri.site, veri.sistem);
       setForm(yeniForm);
       setSonKayitliForm(yeniForm);
@@ -87,8 +82,6 @@ export function SistemAyarlariSayfasi() {
         basariBildir(aktif ? 'Site yayına alındı.' : 'Site kapatıldı. Ziyaretçiler erişemez.');
         aksiyonGeriBildirimiGoster('kaydet');
         setSiteAdi(veri.site.ad);
-        setSiteSlug(veri.site.slug);
-        setSurum(veri.surum);
         const yeniForm = sistemdenForm(veri.site, veri.sistem);
         setForm(yeniForm);
         dilAyarla(yeniForm.panelDili);
@@ -105,35 +98,6 @@ export function SistemAyarlariSayfasi() {
     [form, dilAyarla, cevirileriAyarla, basariBildir, hataBildir, aksiyonGeriBildirimiGoster]
   );
 
-  const bakimModuToggle = useCallback(async () => {
-    const yeniBakim = !form.bakimModu;
-    const guncel = { ...form, bakimModu: yeniBakim };
-    setForm(guncel);
-    if (yeniBakim) setSekme('bakim');
-
-    setKaydediliyor(true);
-    try {
-      const veri = await sistemAyarlariGuncelle(guncel);
-      basariBildir(yeniBakim ? 'Bakım modu açıldı.' : 'Bakım modu kapatıldı.');
-      aksiyonGeriBildirimiGoster('kaydet');
-      setSiteAdi(veri.site.ad);
-      setSiteSlug(veri.site.slug);
-      setSurum(veri.surum);
-      const yeniForm = sistemdenForm(veri.site, veri.sistem);
-      setForm(yeniForm);
-      setSonKayitliForm(yeniForm);
-      dilAyarla(yeniForm.panelDili);
-      cevirileriAyarla(yeniForm.panelCeviriler);
-      siteVerisiGuncellendiYayinla();
-      sagTikAyarlariYayinla();
-    } catch (err) {
-      setForm(form);
-      hataBildir(err instanceof Error ? err.message : 'Bakım modu güncellenemedi');
-    } finally {
-      setKaydediliyor(false);
-    }
-  }, [form, dilAyarla, cevirileriAyarla, basariBildir, hataBildir, aksiyonGeriBildirimiGoster]);
-
   useEffect(() => {
     void (async () => {
       try {
@@ -143,8 +107,6 @@ export function SistemAyarlariSayfasi() {
         ]);
         setSayfalar(sayfaListesi);
         setSiteAdi(veri.site.ad);
-        setSiteSlug(veri.site.slug);
-        setSurum(veri.surum);
         const yuklenen = sistemdenForm(veri.site, veri.sistem);
         setForm(yuklenen);
         setSonKayitliForm(yuklenen);
@@ -172,16 +134,6 @@ export function SistemAyarlariSayfasi() {
         <div className="ap-sistem-layout">
           <aside className="ap-sistem-sol">
             <SistemSekmeCubugu aktif={sekme} onDegistir={setSekme} />
-            <div className="mt-4">
-              <SistemBilgiPaneli
-                siteSlug={siteSlug}
-                surum={surum}
-                siteAdi={siteAdi}
-                form={form}
-                onBakimToggle={bakimModuToggle}
-                bakimIslemYukleniyor={kaydediliyor}
-              />
-            </div>
           </aside>
 
           <div className="ap-sistem-icerik">

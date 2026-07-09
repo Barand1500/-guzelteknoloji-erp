@@ -26,10 +26,10 @@ export function hexRenkGecerli(deger: string): boolean {
 }
 
 export function kenarlikRenkCoz(deger: string | undefined, tema: AdminTema): string {
-  if (deger === 'turuncu') return TURUNCU;
-  if (deger === 'mavi' || !deger) return VARSAYILAN_MAVI[tema];
+  if (deger === 'mavi') return VARSAYILAN_MAVI[tema];
+  if (deger === 'turuncu' || !deger) return TURUNCU;
   if (hexRenkGecerli(deger)) return deger.trim();
-  return VARSAYILAN_MAVI[tema];
+  return TURUNCU;
 }
 
 export function kenarlikAyariNormalize(
@@ -39,9 +39,9 @@ export function kenarlikAyariNormalize(
   const kaynak =
     typeof girdi === 'string' ? { renk: girdi, neon: neonLegacy === true } : (girdi ?? {});
 
-  const hamRenk = typeof kaynak.renk === 'string' ? kaynak.renk.trim() : 'mavi';
+  const hamRenk = typeof kaynak.renk === 'string' ? kaynak.renk.trim() : 'turuncu';
   const cozulmusRenk =
-    hamRenk === 'turuncu' || hamRenk === 'mavi' || hexRenkGecerli(hamRenk) ? hamRenk : 'mavi';
+    hamRenk === 'turuncu' || hamRenk === 'mavi' || hexRenkGecerli(hamRenk) ? hamRenk : 'turuncu';
 
   return {
     renk: cozulmusRenk,

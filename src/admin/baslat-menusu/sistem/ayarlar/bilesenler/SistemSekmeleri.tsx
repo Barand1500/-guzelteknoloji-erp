@@ -250,7 +250,7 @@ export function SistemGenelSekme({
         />
       </FormAlani>
       <FormAlani
-        etiket="Border rengi seçiniz"
+        etiket="Border Rengi Seçiniz"
         aciklama="Sekme, menü ve aksiyon çubuğu kenarlık vurgu rengi (tasarım aynı kalır, yalnızca renk değişir)"
       >
         <KenarlikRenkSecici

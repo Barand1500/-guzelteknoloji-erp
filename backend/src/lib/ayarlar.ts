@@ -22,10 +22,10 @@ export const AYAR_ANAHTARLARI = {
 type AyarAnahtar = (typeof AYAR_ANAHTARLARI)[keyof typeof AYAR_ANAHTARLARI];
 
 function kenarlikRenkDogrula(deger: unknown): string {
-  const s = String(deger ?? 'mavi').trim();
+  const s = String(deger ?? 'turuncu').trim();
   if (s === 'turuncu' || s === 'mavi') return s;
   if (/^#[0-9A-Fa-f]{6}$/.test(s)) return s;
-  return 'mavi';
+  return 'turuncu';
 }
 
 async function ayarKaydet(firmaId: number, anahtar: AyarAnahtar, deger: unknown) {
@@ -81,7 +81,7 @@ export async function tumAyarlarOku(firmaId = PANEL_FIRMA_ID) {
     ayarOku(firmaId, AYAR_ANAHTARLARI.panelDili, 'tr'),
     ayarOku(firmaId, AYAR_ANAHTARLARI.panelCeviriler, {} as Record<string, Record<string, string>>),
     ayarOku(firmaId, AYAR_ANAHTARLARI.logSaklamaGun, 90),
-    ayarOku(firmaId, AYAR_ANAHTARLARI.kenarlikRenk, 'mavi'),
+    ayarOku(firmaId, AYAR_ANAHTARLARI.kenarlikRenk, 'turuncu'),
     ayarOku(firmaId, AYAR_ANAHTARLARI.kenarlikNeon, false),
     ayarOku(firmaId, AYAR_ANAHTARLARI.yedekleme, {
       otomatik: false,
@@ -160,7 +160,7 @@ export async function varsayilanAyarlarOlustur(firmaId = PANEL_FIRMA_ID) {
       bakimBaslik: 'Bakim Calismasi',
       bakimMesaji: 'Site gecici olarak bakimda. Lutfen daha sonra tekrar deneyin.',
       logSaklamaGun: 90,
-      kenarlikRenk: 'mavi',
+      kenarlikRenk: 'turuncu',
       kenarlikNeon: false,
       panelDili: 'tr',
       otomatikYedekleme: false,

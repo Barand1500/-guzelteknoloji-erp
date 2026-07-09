@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminModulleri, modulBul } from '@/admin/veri/adminMenuYapisi';
-import { adminSayfalariGetir, type AdminSayfa } from '@/admin/ortak/api/sayfaApi';
 import { useSagTikPanel } from '@/baglamlar/SagTikPanelContext';
 import { sagTikOgeTanimBul } from '@/admin/baslat-menusu/sistem/ayarlar/veri-sag-tik';
 import type { SagTikOgeId } from '@/admin/ortak/tipler/sagTikPaneli';
@@ -17,7 +16,6 @@ export interface AdminSagTikAksiyonlar {
   onKaydet: () => void;
   onGuncelle: () => void;
   onTemaDegistir: () => void;
-  onSistemKesif: () => void;
 }
 
 interface MenuDurum {
@@ -29,15 +27,12 @@ interface MenuDurum {
 export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyonlar }) {
   const { ayarlar } = useSagTikPanel();
   const [menu, setMenu] = useState<MenuDurum | null>(null);
-  const [sayfalar, setSayfalar] = useState<AdminSayfa[]>([]);
-  const [sayfaAra, setSayfaAra] = useState('');
-  const [flyout, setFlyout] = useState<'moduller' | 'sayfalar' | null>(null);
+  const [flyout, setFlyout] = useState<'moduller' | null>(null);
   const kokRef = useRef<HTMLDivElement>(null);
 
   const kapat = useCallback(() => {
     setMenu(null);
     setFlyout(null);
-    setSayfaAra('');
   }, []);
 
   useEffect(() => {
@@ -70,9 +65,6 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
       e.preventDefault();
       setMenu({ x: e.clientX, y: e.clientY, hedef: e.target });
       setFlyout(null);
-      void adminSayfalariGetir()
-        .then(setSayfalar)
-        .catch(() => setSayfalar([]));
     }
 
     document.addEventListener('contextmenu', sagTik);
@@ -96,32 +88,19 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
       case 'tumunuSec':
         tumunuSec(hedef);
         break;
-      case 'dashboard':
-        aksiyonlar.onModulAc('dashboard');
-        break;
-      case 'yeniSayfa':
-        aksiyonlar.onModulAc('sayfalar');
-        window.dispatchEvent(new CustomEvent('ap-admin-yeni-sayfa'));
-        break;
       case 'kaydet':
         aksiyonlar.onKaydet();
         break;
       case 'guncelle':
         aksiyonlar.onGuncelle();
         break;
-      case 'siteAc':
-        window.open('/', '_blank');
-        break;
       case 'tema':
         aksiyonlar.onTemaDegistir();
-        break;
-      case 'sistemKesif':
-        aksiyonlar.onSistemKesif();
         break;
       default:
         break;
     }
-    if (id !== 'moduller' && id !== 'sayfalar') kapat();
+    if (id !== 'moduller') kapat();
   }
 
   function ogeDevreDisi(id: SagTikOgeId): boolean {
@@ -141,12 +120,6 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
   const moduller = ayarlar.modulIdler
     .map((id) => modulBul(id) ?? adminModulleri.find((m) => m.id === id))
     .filter(Boolean);
-
-  const filtreliSayfalar = sayfalar.filter((s) => {
-    const q = sayfaAra.trim().toLowerCase();
-    if (!q) return true;
-    return s.baslik.toLowerCase().includes(q) || s.slug.toLowerCase().includes(q);
-  });
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -199,60 +172,6 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
                       </button>
                     ) : null
                   )}
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        if (oge.id === 'sayfalar') {
-          return (
-            <div key={oge.id} className="ap-sag-tik-flyout-wrap">
-              <button
-                type="button"
-                className={`ap-sag-tik-oge ${flyout === 'sayfalar' ? 'ap-sag-tik-oge-aktif' : ''}`}
-                onMouseEnter={() => setFlyout('sayfalar')}
-                onClick={() => setFlyout((f) => (f === 'sayfalar' ? null : 'sayfalar'))}
-              >
-                <span>{tanim.ikon}</span>
-                <span>{tanim.etiket}</span>
-                <span className="ap-sag-tik-ok">›</span>
-              </button>
-              {flyout === 'sayfalar' && (
-                <div className="ap-sag-tik-flyout ap-sag-tik-flyout-genis">
-                  <input
-                    type="search"
-                    className="ap-sag-tik-ara"
-                    placeholder="Sayfa ara…"
-                    value={sayfaAra}
-                    onChange={(e) => setSayfaAra(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="ap-sag-tik-flyout-scroll">
-                    {filtreliSayfalar.length === 0 && (
-                      <p className="ap-sag-tik-bos">Sayfa bulunamadı</p>
-                    )}
-                    {filtreliSayfalar.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        className="ap-sag-tik-oge ap-sag-tik-sayfa-oge"
-                        onClick={() => {
-                          aksiyonlar.onModulAc('sayfalar');
-                          window.dispatchEvent(
-                            new CustomEvent('ap-admin-sayfa-sec', { detail: { sayfaId: s.id } })
-                          );
-                          kapat();
-                        }}
-                      >
-                        <span>{s.yayinda ? '✅' : '📄'}</span>
-                        <span>
-                          <strong>{s.baslik}</strong>
-                          <small>/{s.slug}</small>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
             </div>

@@ -7,6 +7,14 @@ import {
 import { SAG_TIK_OGE_TANIMLARI } from '@/admin/baslat-menusu/sistem/ayarlar/veri-sag-tik';
 
 const GECERLI_IDLER = new Set(SAG_TIK_OGE_TANIMLARI.map((o) => o.id));
+const KALDIRILAN_OGELER = new Set([
+  'sayfalar',
+  'yeniSayfa',
+  'dashboard',
+  'siteAc',
+  'sistemKesif',
+  'onizle',
+]);
 
 export function sagTikPanelNormalize(kaynak?: Partial<SagTikPanelAyarlari> | null): SagTikPanelAyarlari {
   if (!kaynak) return { ...VARSAYILAN_SAG_TIK_PANEL, ogeler: [...VARSAYILAN_SAG_TIK_PANEL.ogeler] };
@@ -18,6 +26,7 @@ export function sagTikPanelNormalize(kaynak?: Partial<SagTikPanelAyarlari> | nul
     for (const o of kaynak.ogeler) {
       if (!o?.id) continue;
       const id = ((o.id as string) === 'onizle' ? 'guncelle' : o.id) as SagTikOgeId;
+      if (KALDIRILAN_OGELER.has(id)) continue;
       if (GECERLI_IDLER.has(id)) gelenMap.set(id, Boolean(o.aktif));
     }
   }
@@ -31,15 +40,13 @@ export function sagTikPanelNormalize(kaynak?: Partial<SagTikPanelAyarlari> | nul
     if (!ogeler.some((o) => o.id === id)) ogeler.push({ id, aktif });
   }
 
-  const modulIdler =
-    Array.isArray(kaynak.modulIdler) && kaynak.modulIdler.every((x) => typeof x === 'string')
-      ? kaynak.modulIdler
-      : VARSAYILAN_SAG_TIK_PANEL.modulIdler;
-
   return {
     aktif: typeof kaynak.aktif === 'boolean' ? kaynak.aktif : VARSAYILAN_SAG_TIK_PANEL.aktif,
-    ogeler,
-    modulIdler,
+    ogeler: ogeler.filter((o) => !KALDIRILAN_OGELER.has(o.id)),
+    modulIdler:
+      Array.isArray(kaynak.modulIdler) && kaynak.modulIdler.every((x) => typeof x === 'string')
+        ? kaynak.modulIdler
+        : VARSAYILAN_SAG_TIK_PANEL.modulIdler,
   };
 }
 

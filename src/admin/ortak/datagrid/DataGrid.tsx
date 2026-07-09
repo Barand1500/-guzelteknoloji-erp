@@ -1160,15 +1160,15 @@ export function DataGrid<TRow extends { id: string }>({
         className="dg-sutun-menu dg-sutun-menu-portal"
         style={sutunMenuPortalStil}
         role="dialog"
-        aria-label="Sütun ayarları"
+        aria-label="Sütunlar"
       >
         <div className="dg-sutun-menu-baslik">
           <div>
-            <h3>{tabloBaslik} Sütunları</h3>
+            <h3>Sütunlar</h3>
             <p>{tabloAltBaslik ?? 'Görünür sütunlar ve sırası'}</p>
           </div>
           <button type="button" className="dg-sutun-menu-sifirla" onClick={dg.varsayilanaDon}>
-            Varsayılana dön
+            Varsayılana Dön
           </button>
         </div>
         <div className="dg-sutun-menu-liste ap-scroll">
@@ -1194,6 +1194,7 @@ export function DataGrid<TRow extends { id: string }>({
                     type="button"
                     className={`dg-sutun-ok${sabitli ? ' dg-sutun-ok--aktif' : ''}`}
                     title={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
+                    aria-label={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
                     onClick={() => dg.sabitlenmisToggle(id)}
                   >
                     •
@@ -1203,6 +1204,8 @@ export function DataGrid<TRow extends { id: string }>({
                       type="button"
                       className="dg-sutun-ok"
                       disabled={idx === 0 || kolon.sabitSag}
+                      title="Sütunu yukarı taşı"
+                      aria-label="Sütunu yukarı taşı"
                       onClick={() => dg.kolonTasi(id, 'yukari')}
                     >
                       ▲
@@ -1211,6 +1214,8 @@ export function DataGrid<TRow extends { id: string }>({
                       type="button"
                       className="dg-sutun-ok"
                       disabled={idx === arr.length - 1 || kolon.sabitSag}
+                      title="Sütunu aşağı taşı"
+                      aria-label="Sütunu aşağı taşı"
                       onClick={() => dg.kolonTasi(id, 'asagi')}
                     >
                       ▼
@@ -1362,16 +1367,16 @@ export function DataGrid<TRow extends { id: string }>({
         <div className="dg-toplu-bar">
           <span>{dg.seciliIdler.size} kayıt seçili</span>
           <button type="button" className="dg-tus" onClick={() => topluDurum(true)}>
-            Aktif yap
+            Aktif Yap
           </button>
           <button type="button" className="dg-tus" onClick={() => topluDurum(false)}>
-            Pasif yap
+            Pasif Yap
           </button>
           <button type="button" className="dg-tus" onClick={() => csvAktar(true)}>
-            Dışa aktar
+            Dışa Aktar
           </button>
           <button type="button" className="dg-tus" onClick={dg.secimiTemizle}>
-            Seçimi temizle
+            Seçimi Temizle
           </button>
         </div>
       )}

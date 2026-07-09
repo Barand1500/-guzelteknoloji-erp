@@ -122,7 +122,7 @@ export const bosSistemForm: SistemAyarlariForm = {
   bakimTahminiSure: '',
   bakimIpBeyazListe: [],
   logSaklamaGun: 90,
-  kenarlikRenk: 'mavi',
+  kenarlikRenk: 'turuncu',
   kenarlikNeon: false,
   panelDili: 'tr',
   panelCeviriler: {},

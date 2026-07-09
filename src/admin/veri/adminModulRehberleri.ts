@@ -66,7 +66,7 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         ikon: '🎨',
         baslik: 'Kenarlık Rengi',
         aciklama:
-          'Genel sekmesindeki «Border rengi seçiniz» alanından sekme, menü, aksiyon çubuğu ve rehber vurgu rengini değiştirebilirsiniz. Neon anahtarı parlaklık efektini açar.',
+          'Genel sekmesindeki «Border Rengi Seçiniz» alanından sekme, menü, aksiyon çubuğu ve rehber vurgu rengini değiştirebilirsiniz. Neon anahtarı parlaklık efektini açar.',
         renk: 'turuncu',
       },
       {

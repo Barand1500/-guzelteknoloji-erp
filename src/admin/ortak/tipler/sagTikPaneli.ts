@@ -5,14 +5,9 @@ export type SagTikOgeId =
   | 'tumunuSec'
   | 'ayirici1'
   | 'moduller'
-  | 'sayfalar'
-  | 'yeniSayfa'
-  | 'dashboard'
   | 'ayirici2'
   | 'kaydet'
   | 'guncelle'
-  | 'siteAc'
-  | 'sistemKesif'
   | 'tema';
 
 export interface SagTikOgeAyari {
@@ -38,15 +33,10 @@ export const VARSAYILAN_SAG_TIK_PANEL: SagTikPanelAyarlari = {
     { id: 'tumunuSec', aktif: true },
     { id: 'ayirici1', aktif: true },
     { id: 'moduller', aktif: true },
-    { id: 'sayfalar', aktif: true },
-    { id: 'yeniSayfa', aktif: true },
-    { id: 'dashboard', aktif: true },
     { id: 'ayirici2', aktif: true },
     { id: 'kaydet', aktif: true },
     { id: 'guncelle', aktif: true },
-    { id: 'siteAc', aktif: true },
     { id: 'tema', aktif: true },
-    { id: 'sistemKesif', aktif: false },
   ],
   modulIdler: [
     'dashboard',

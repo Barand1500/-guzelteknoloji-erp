@@ -16,7 +16,7 @@ import { adminLogApi } from '@/admin/ortak/api/adminSistemApi';
 import { adminBildirimleriYenile } from '@/araclar/adminBildirimOlaylari';
 import { GirisSayfasi } from '@/admin/giris/sayfa';
 import { ModulRehberSistemi } from '@/admin/ortak/ModulRehberSistemi';
-import { SistemKesifProvider, useSistemKesifOptional } from '@/baglamlar/SistemKesifContext';
+import { SistemKesifProvider } from '@/baglamlar/SistemKesifContext';
 import { SagTikPanelProvider } from '@/baglamlar/SagTikPanelContext';
 import { AdminSagTikMenu } from '@/admin/kabuk/sag-tik/AdminSagTikMenu';
 import { PanelDilKabuk } from '@/admin/kabuk/PanelDilKabuk';
@@ -686,16 +686,14 @@ function AdminSagTikMenuKabuk({
   onGuncelle: () => void;
   onTemaDegistir: () => void;
 }) {
-  const kesif = useSistemKesifOptional();
   const aksiyonlar = useMemo(
     () => ({
       onModulAc,
       onKaydet,
       onGuncelle,
       onTemaDegistir,
-      onSistemKesif: () => kesif?.modalAc(),
     }),
-    [onModulAc, onKaydet, onGuncelle, onTemaDegistir, kesif]
+    [onModulAc, onKaydet, onGuncelle, onTemaDegistir]
   );
   return <AdminSagTikMenu aksiyonlar={aksiyonlar} />;
 }

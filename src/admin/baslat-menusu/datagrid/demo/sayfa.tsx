@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 
@@ -31,140 +30,23 @@ import { DatagridSagTikMenu, type SatirEkleKonumu } from './DatagridSagTikMenu';
 
 const VARSAYILAN_GIZLI = ['etiketler', 'kayit', 'guncelleme'];
 
-const URUN_TOOLTIP_AC_GECIKME_MS = 450;
-const URUN_TOOLTIP_KAPAT_GECIKME_MS = 120;
-
 function UrunKoduAdiHucre({ satir }: { satir: SiparisSatiri }) {
   const ad = satir.urun.ad?.trim() ?? '';
   const kod = satir.urun.sku?.trim() ?? '';
-  const [tooltipAcik, setTooltipAcik] = useState(false);
-  const [konum, setKonum] = useState({ top: 0, left: 0, genislik: 200 });
-  const kabukRef = useRef<HTMLDivElement>(null);
-  const adRef = useRef<HTMLSpanElement>(null);
-  const acZamanRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const kapatZamanRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const portalKok = useMemo(
-    () => document.querySelector('.admin-panel') ?? document.body,
-    []
-  );
-
   const ikili = Boolean(ad && kod && ad.toLowerCase() !== kod.toLowerCase());
-
-  const konumGuncelle = useCallback(() => {
-    const el = kabukRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setKonum({ top: rect.top - 8, left: rect.left, genislik: Math.max(rect.width, 160) });
-  }, []);
-
-  const tooltipGerekli = useCallback(() => {
-    if (!ad && !kod) return false;
-    const adEl = adRef.current;
-    if (adEl && ad && adEl.scrollWidth > adEl.clientWidth + 1) return true;
-    return ikili;
-  }, [ad, kod, ikili]);
-
-  const tooltipAc = useCallback(() => {
-    if (kapatZamanRef.current) {
-      clearTimeout(kapatZamanRef.current);
-      kapatZamanRef.current = null;
-    }
-    if (acZamanRef.current) clearTimeout(acZamanRef.current);
-    if (!tooltipGerekli()) return;
-    acZamanRef.current = setTimeout(() => {
-      acZamanRef.current = null;
-      konumGuncelle();
-      setTooltipAcik(true);
-    }, URUN_TOOLTIP_AC_GECIKME_MS);
-  }, [konumGuncelle, tooltipGerekli]);
-
-  const tooltipKapatGecikmeli = useCallback(() => {
-    if (acZamanRef.current) {
-      clearTimeout(acZamanRef.current);
-      acZamanRef.current = null;
-    }
-    kapatZamanRef.current = setTimeout(() => setTooltipAcik(false), URUN_TOOLTIP_KAPAT_GECIKME_MS);
-  }, []);
-
-  const tooltipKapatIptal = useCallback(() => {
-    if (kapatZamanRef.current) {
-      clearTimeout(kapatZamanRef.current);
-      kapatZamanRef.current = null;
-    }
-  }, []);
-
-  useEffect(
-    () => () => {
-      if (acZamanRef.current) clearTimeout(acZamanRef.current);
-      if (kapatZamanRef.current) clearTimeout(kapatZamanRef.current);
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (!tooltipAcik) return;
-    const yenile = () => konumGuncelle();
-    window.addEventListener('scroll', yenile, true);
-    window.addEventListener('resize', yenile);
-    return () => {
-      window.removeEventListener('scroll', yenile, true);
-      window.removeEventListener('resize', yenile);
-    };
-  }, [tooltipAcik, konumGuncelle]);
 
   if (!ad && !kod) return <>—</>;
 
-  const icerik = ikili ? (
-    <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
-      <span ref={adRef} className="dg-urun-adi-ust">
-        {ad}
-      </span>
-      <span className="dg-urun-kodu-alt">{kod}</span>
-    </div>
-  ) : (
-    <span ref={adRef} className="dg-urun-adi-ust">
-      {ad || kod}
-    </span>
-  );
-
-  const tooltipPortal =
-    tooltipAcik &&
-    createPortal(
-      <div
-        className="dg-urun-hover-tooltip"
-        style={{
-          position: 'fixed',
-          top: konum.top,
-          left: konum.left,
-          minWidth: konum.genislik,
-          maxWidth: Math.min(360, window.innerWidth - konum.left - 12),
-          transform: 'translateY(-100%)',
-        }}
-        onMouseEnter={tooltipKapatIptal}
-        onMouseLeave={tooltipKapatGecikmeli}
-        role="tooltip"
-      >
-        {ad ? <span className="dg-urun-tooltip-ad">{ad}</span> : null}
-        {ikili ? <span className="dg-urun-tooltip-kod">{kod}</span> : null}
-      </div>,
-      portalKok
-    );
-
-  return (
-    <>
-      <div
-        ref={kabukRef}
-        className="dg-urun-kodu-adi-kabuk"
-        onMouseEnter={tooltipAc}
-        onMouseLeave={tooltipKapatGecikmeli}
-        onFocus={tooltipAc}
-        onBlur={tooltipKapatGecikmeli}
-      >
-        {icerik}
+  if (ikili) {
+    return (
+      <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
+        <span className="dg-urun-adi-ust">{ad}</span>
+        <span className="dg-urun-kodu-alt">{kod}</span>
       </div>
-      {tooltipPortal}
-    </>
-  );
+    );
+  }
+
+  return <span className="dg-urun-adi-ust">{ad || kod}</span>;
 }
 
 function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
@@ -783,8 +665,8 @@ export function DatagridDemoSayfasi() {
         hizliGirisKolonlari={[
           {
             kolonId: 'urunKoduAdi',
-            placeholder: 'Ürün adı veya kodu…',
-            ipucu: '% ile ara, Enter ile ekle',
+            placeholder: 'Ürün Adı veya Kodu…',
+            ipucu: '% İle Ara, ENTER ile Ekle',
           },
           { kolonId: 'miktar', placeholder: '1 veya 2*5', ipucu: 'Miktar ifadesi', varsayilan: '1' },
           {
@@ -814,10 +696,10 @@ export function DatagridDemoSayfasi() {
         }
         hizliGirisInputPlaceholder={(alanId, deger, varsayilan) => {
           if (alanId === 'urunKoduAdi' && yuzdeAramaModu(deger)) {
-            return '% ile ara… Enter';
+            return '% İle Ara… ENTER';
           }
           if (alanId === 'urunKoduAdi') {
-            return 'Ürün adı veya kodu… Enter ile ekle';
+            return 'Ürün Adı veya Kodu… ENTER ile Ekle';
           }
           return varsayilan;
         }}

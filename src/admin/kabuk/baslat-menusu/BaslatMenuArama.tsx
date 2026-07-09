@@ -15,7 +15,7 @@ export function BaslatMenuArama({ deger, onDegistir, variant = 'klasik' }: Basla
           type="search"
           value={deger}
           onChange={(e) => onDegistir(e.target.value)}
-          placeholder="Modül veya ayar ara..."
+          placeholder="Modül veya Ayar Ara..."
           className="ap-baslat-modern-arama-input"
           autoFocus
         />

@@ -85,7 +85,7 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
           <div className="ap-baslat-modern-baslik-alan">
             <p className="ap-baslat-modern-baslik">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
             <p className="ap-baslat-modern-alt">
-              {toplamModul} modül · {t('header.modulAra', 'Modül veya ayar ara')}
+              {toplamModul} modül · {t('header.modulAra', 'Modül veya Ayar Ara')}
             </p>
           </div>
           <button

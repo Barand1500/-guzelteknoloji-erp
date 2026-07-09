@@ -34,7 +34,7 @@ export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps
     >
       <div className="border-b border-[var(--ap-border)] bg-[var(--ap-header-bg)] px-3 py-2">
         <p className="ap-heading text-xs font-bold">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
-        <p className="ap-muted text-[10px]">{t('header.modulAra', 'Modül veya ayar ara')}</p>
+        <p className="ap-muted text-[10px]">{t('header.modulAra', 'Modül veya Ayar Ara')}</p>
       </div>
 
       <BaslatMenuArama deger={arama} onDegistir={setArama} variant="klasik" />

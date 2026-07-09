@@ -15,7 +15,7 @@
   --ap-tab-idle: rgba(51, 65, 85, 0.5);
   --ap-input-bg: #0f172a;
   --ap-hover: #334155;
-  --ap-accent: #3b82f6;
+  --ap-accent: #FF6000;
   --ap-code-bg: #1e293b;
   --ap-code-gutter: #172033;
   --ap-uyari-bg: rgba(245, 158, 11, 0.12);
@@ -38,7 +38,7 @@
   --ap-tab-idle: #e2e8f0;
   --ap-input-bg: #ffffff;
   --ap-hover: #e2e8f0;
-  --ap-accent: #2563eb;
+  --ap-accent: #FF6000;
   --ap-code-bg: #ffffff;
   --ap-code-gutter: #f1f5f9;
   --ap-uyari-bg: #fffbeb;
