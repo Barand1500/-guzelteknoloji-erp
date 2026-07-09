@@ -54,14 +54,18 @@ export async function adminKullaniciSil(id: string): Promise<void> {
 }
 
 export const VARSAYILAN_ROL_ETIKETLERI: Record<string, string> = {
-  YONETICI: 'Yonetici',
+  YONETICI: 'Yönetici',
   SUPER_ADMIN: 'Super Admin',
   AJANS_ADMIN: 'Ajans Admin',
-  MUSTERI_ADMIN: 'Musteri Admin',
-  EDITOR: 'Editor',
-  SEO_EDITOR: 'SEO Editoru',
-  GORUNTULEME: 'Sadece Goruntuleme',
+  MUSTERI_ADMIN: 'Müşteri Admin',
+  EDITOR: 'Editör',
+  SEO_EDITOR: 'SEO Editörü',
+  GORUNTULEME: 'Sadece Görüntüleme',
 };
+
+export function rolEtiketi(kod: string, etiketler: Record<string, string> = VARSAYILAN_ROL_ETIKETLERI): string {
+  return etiketler[kod] ?? kod.replace(/_/g, ' ');
+}
 
 function payloadHazirla(form: KullaniciFormDegeri, sifreDahil: boolean) {
   const payload: Record<string, unknown> = {

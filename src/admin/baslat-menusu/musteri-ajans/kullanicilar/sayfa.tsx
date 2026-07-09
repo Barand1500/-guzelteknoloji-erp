@@ -85,7 +85,7 @@ export function KullanicilarSayfasi() {
 
   const kaydet = useCallback(async () => {
     if (!form.ad.trim() || !form.email.trim()) {
-      setHata('Ad ve e-posta zorunludur');
+      setHata('Ad ve E-Posta zorunludur');
       return;
     }
     const hedef = `«${form.ad.trim()}» (${form.email.trim()}) kullanıcısını`;
@@ -170,35 +170,39 @@ export function KullanicilarSayfasi() {
   }
 
   return (
-    <div>
-      <h1 className="text-xl font-bold text-white">Kullanıcılar</h1>
-      <p className="mt-1 text-sm text-slate-400">
-        Panel kullanıcılarını oluşturun, rollerini atayın ve erişimlerini yönetin.
-      </p>
-      {hata && <p className="mt-4 text-sm text-red-400">{hata}</p>}
-      {kaydediliyor && <p className="mt-4 text-sm text-slate-400">İşlem yapılıyor...</p>}
+    <div className="ap-kullanicilar-sayfa">
+      <div className="ap-kullanicilar-sayfa-ust">
+        <h1 className="text-xl font-bold text-white">Kullanıcılar</h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Panel kullanıcılarını oluşturun, rollerini atayın ve erişimlerini yönetin.
+        </p>
+        {hata && <p className="mt-4 text-sm text-red-400">{hata}</p>}
+        {kaydediliyor && <p className="mt-4 text-sm text-slate-400">İşlem yapılıyor...</p>}
+      </div>
 
       {yukleniyor ? (
         <p className="mt-6 text-sm text-slate-400">Yükleniyor...</p>
       ) : (
-        <div className="mt-6 grid gap-4 lg:grid-cols-[320px_1fr]">
-          <KullaniciListesi
-            kullanicilar={kullanicilar}
-            seciliId={seciliId}
-            rolBasliklari={rolBasliklari}
-            onSec={(k) => {
-              setSeciliId(k.id);
-              setForm(kullanicidanForm(k));
-              setSifreDegisti(false);
-            }}
-          />
-          <KullaniciDuzenleFormu
-            form={form}
-            seciliId={seciliId}
-            atanabilirRoller={atanabilirRoller}
-            onSifreDegisti={setSifreDegisti}
-            onChange={setForm}
-          />
+        <div className="ap-kullanicilar-sayfa-govde">
+          <div className="ap-kullanicilar-sayfa-grid">
+            <KullaniciListesi
+              kullanicilar={kullanicilar}
+              seciliId={seciliId}
+              rolBasliklari={rolBasliklari}
+              onSec={(k) => {
+                setSeciliId(k.id);
+                setForm(kullanicidanForm(k));
+                setSifreDegisti(false);
+              }}
+            />
+            <KullaniciDuzenleFormu
+              form={form}
+              seciliId={seciliId}
+              atanabilirRoller={atanabilirRoller}
+              onSifreDegisti={setSifreDegisti}
+              onChange={setForm}
+            />
+          </div>
         </div>
       )}
     </div>

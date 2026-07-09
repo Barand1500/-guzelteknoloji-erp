@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/baglamlar/AuthContext';
+import { rolEtiketi } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
 import { FormAlani, formInputSinifi } from '@/formlar/FormAlani';
 
 interface AdminProfilModalProps {
@@ -84,7 +85,7 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
               <h2 id="profil-modal-baslik" className="ap-admin-modal-baslik">
                 Profil Ayarları
               </h2>
-              <p className="ap-admin-modal-alt">{kullanici.rol.replace(/_/g, ' ')}</p>
+              <p className="ap-admin-modal-alt">{rolEtiketi(kullanici.rol)}</p>
             </div>
           </div>
           <button type="button" className="ap-admin-modal-kapat" onClick={kapat}>
@@ -107,7 +108,7 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
             />
           </FormAlani>
 
-          <FormAlani etiket="E-posta">
+          <FormAlani etiket="E-Posta">
             <input
               type="email"
               className={formInputSinifi}

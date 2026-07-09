@@ -79,9 +79,9 @@ export function sekmeAyarlariKaydet(ayarlar: SekmePanelAyarlari) {
 
 export function sekmeAyarlariLogOzeti(ayarlar: SekmePanelAyarlari): string {
   const gorunum: Record<SekmeGorunumModu, string> = {
-    'ikon-isim': 'İkon + İsim',
-    isim: 'Sadece İsim',
-    ikon: 'Sadece İkon',
+    'ikon-isim': 'İkon + isim',
+    isim: 'Sadece isim',
+    ikon: 'Sadece ikon',
   };
   const boyut: Record<SekmeYukseklik, string> = {
     kucuk: 'Küçük',

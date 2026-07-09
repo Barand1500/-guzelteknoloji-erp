@@ -3608,6 +3608,75 @@ html:has(.admin-panel[data-tema='acik']) body {
   overflow: hidden;
 }
 
+.ap-kullanici-editor-panel {
+  align-self: start;
+  height: fit-content;
+}
+
+.ap-kullanici-editor-icerik {
+  padding-bottom: 1.5rem;
+}
+
+.ap-kullanici-sidebar-panel {
+  align-self: start;
+}
+
+.ap-kullanici-sidebar-panel .ap-kullanici-sidebar-liste {
+  flex: none;
+  max-height: calc(5 * 5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ap-kullanici-sidebar-panel .ap-kullanici-sidebar-liste::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.ap-kullanicilar-sayfa {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ap-modul-panel:has(.ap-kullanicilar-sayfa) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+
+.ap-kullanicilar-sayfa-ust {
+  flex-shrink: 0;
+}
+
+.ap-kullanicilar-sayfa-govde {
+  margin-top: 1.5rem;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.ap-kullanicilar-sayfa-grid {
+  display: grid;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .ap-kullanicilar-sayfa-grid {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+}
+
 .ap-editor-ust {
   padding: 1.5rem 1.5rem 0;
   border-bottom: 1px solid var(--ap-border);

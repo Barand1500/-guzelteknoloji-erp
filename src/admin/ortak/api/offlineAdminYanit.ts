@@ -58,22 +58,22 @@ const OFFLINE_YETKILER = [
 const OFFLINE_ROLLER = [
   {
     kod: 'YONETICI',
-    baslik: 'Yonetici',
-    aciklama: 'Firma yoneticisi — tam ERP erisimi',
+    baslik: 'Yönetici',
+    aciklama: 'Firma yöneticisi — tam ERP erişimi',
     yetkiler: ['goruntuleme', 'ekleme', 'duzenleme', 'silme', 'kullanici_yonetimi'],
     sistemRolu: true,
   },
   {
     kod: 'SUPER_ADMIN',
     baslik: 'Super Admin',
-    aciklama: 'Tam panel erisimi',
+    aciklama: 'Tam panel erişimi',
     yetkiler: ['goruntuleme', 'ekleme', 'duzenleme', 'silme', 'kullanici_yonetimi'],
     sistemRolu: true,
   },
   {
     kod: 'EDITOR',
-    baslik: 'Editor',
-    aciklama: 'Duzenleme yetkisi',
+    baslik: 'Editör',
+    aciklama: 'Düzenleme yetkisi',
     yetkiler: ['goruntuleme', 'ekleme', 'duzenleme'],
     sistemRolu: true,
   },
@@ -284,7 +284,7 @@ function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, 
       return { mesaj: 'Zorunlu alanlar eksik' };
     }
     if (liste.some((k) => k.email.toLowerCase() === email)) {
-      return { mesaj: 'Bu e-posta zaten kayitli' };
+      return { mesaj: 'Bu E-Posta zaten kayıtlı' };
     }
     const kullanici: OfflinePanelKullanici = {
       id: String(Math.max(0, ...liste.map((k) => Number(k.id) || 0)) + 1),
@@ -308,7 +308,7 @@ function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, 
     if (girdi.email) {
       const email = girdi.email.trim().toLowerCase();
       if (liste.some((k) => k.id !== id && k.email.toLowerCase() === email)) {
-        return { mesaj: 'Bu e-posta zaten kayitli' };
+        return { mesaj: 'Bu E-Posta zaten kayıtlı' };
       }
     }
 

@@ -107,12 +107,12 @@ export function SekmeYonetimiSayfasi() {
       onizleGoster={false}
     >
       <div className="mt-6">
-        <AdminPanelKarti baslik="Sekme Ayarları" altBaslik="Değişiklikler Kaydet ile uygulanır">
+        <AdminPanelKarti baslik="Sekme Ayarları" altBaslik="Değişiklikler, Kaydet ile uygulanır">
           <div className="space-y-5">
             <div className="rounded-xl border border-[var(--ap-border)] bg-[var(--ap-hover)]/30 p-3">
-              <p className="ap-heading text-sm font-semibold">Hızlı Bilgi</p>
+              <p className="ap-heading text-sm font-semibold">Hızlı bilgi</p>
               <p className="ap-muted mt-1 text-xs leading-relaxed">
-                Sekmeleri ortadan sürükleyip bırakınca yan yana açılır; kenara bırakırsanız sırasi değişir.
+                Sekmeleri ortadan sürükleyip bırakınca yan yana açılır; kenara bırakırsanız sırası değişir.
               </p>
             </div>
 
@@ -125,9 +125,9 @@ export function SekmeYonetimiSayfasi() {
                   <div className="flex flex-wrap gap-2">
                     {(
                       [
-                        { id: 'ikon-isim', ad: 'İkon + İsim' },
-                        { id: 'isim', ad: 'Sadece İsim' },
-                        { id: 'ikon', ad: 'Sadece İkon' },
+                        { id: 'ikon-isim', ad: 'İkon + isim' },
+                        { id: 'isim', ad: 'Sadece isim' },
+                        { id: 'ikon', ad: 'Sadece ikon' },
                       ] as const
                     ).map((m) => (
                       <button
@@ -226,7 +226,7 @@ export function SekmeYonetimiSayfasi() {
                 {ayarlar.baslatMenuTasarim === 'modern' && (
                   <div className="space-y-3 rounded-lg border border-dashed border-[var(--ap-border)] bg-[var(--ap-hover)]/20 p-3">
                     <div className="flex items-center justify-between">
-                      <p className="ap-heading text-xs font-semibold">Modern Başlat Menüsü</p>
+                      <p className="ap-heading text-xs font-semibold">Modern başlat menüsü</p>
                       <span
                         className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide"
                         style={vurguRozetStili}
@@ -321,7 +321,7 @@ export function SekmeYonetimiSayfasi() {
                   onDegistir={() => {}}
                 />
                 <ToggleSatir
-                  etiket="Yan yana split (Chrome)"
+                  etiket="Yan yana bölme (Chrome)"
                   aciklama="Birleştirilen sekmeleri iki panelde açar"
                   acik={ayarlar.yanYanaAcilabilir}
                   onDegistir={(yanYanaAcilabilir) => setAyarlar((a) => ({ ...a, yanYanaAcilabilir }))}
@@ -350,7 +350,7 @@ export function SekmeYonetimiSayfasi() {
             </div>
 
             <section className="space-y-3 rounded-xl border border-[var(--ap-border)] bg-[var(--ap-surface-2)]/35 p-4">
-              <p className="ap-heading text-sm font-semibold">Başlat Menüsü</p>
+              <p className="ap-heading text-sm font-semibold">Başlat menüsü</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {(
                   [
