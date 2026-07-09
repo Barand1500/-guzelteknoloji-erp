@@ -1164,7 +1164,7 @@ export function DataGrid<TRow extends { id: string }>({
       >
         <div className="dg-sutun-menu-baslik">
           <div>
-            <h3>{tabloBaslik} sütunları</h3>
+            <h3>{tabloBaslik} Sütunları</h3>
             <p>{tabloAltBaslik ?? 'Görünür sütunlar ve sırası'}</p>
           </div>
           <button type="button" className="dg-sutun-menu-sifirla" onClick={dg.varsayilanaDon}>
@@ -1277,7 +1277,7 @@ export function DataGrid<TRow extends { id: string }>({
                   </option>
                 ))}
               </select>
-              <span>kayıt</span>
+              <span>Kayıt</span>
             </div>
             <span className="dg-arac-ayrac" />
             <div className="dg-cizgi-grup">
@@ -1486,7 +1486,7 @@ export function DataGrid<TRow extends { id: string }>({
 
       <div className="dg-alt">
         <span>
-          Toplam {sayfalama.toplam} kayıttan {sayfalama.baslangic}-{sayfalama.bitis} arası
+          Toplam {sayfalama.toplam} Kayıttan {sayfalama.baslangic}-{sayfalama.bitis} Arası
         </span>
         <div className="dg-sayfalama">
           <button

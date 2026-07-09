@@ -12,17 +12,17 @@ export interface FormulaOrnekGrubu {
 
 /** Sayı alanlarında (fiyat, miktar, KDV vb.) kullanılabilecek örnekler */
 export const SAYI_FORMUL_ORNEKLERI: FormulaOrnek[] = [
-  { girdi: '1000+%10', sonuc: '1100', aciklama: 'Tutara %10 ekle' },
-  { girdi: '1000-%10', sonuc: '900', aciklama: 'Tutardan %10 düş' },
-  { girdi: '1000+10%', sonuc: '1100', aciklama: '+%10 ile aynı' },
-  { girdi: '500*2', sonuc: '1000', aciklama: 'Çarpma' },
-  { girdi: '1000/4', sonuc: '250', aciklama: 'Bölme' },
-  { girdi: '10+10', sonuc: '20', aciklama: 'Toplama' },
-  { girdi: '100-25', sonuc: '75', aciklama: 'Çıkarma' },
-  { girdi: '(100+50)*2', sonuc: '300', aciklama: 'Parantez ile sıra' },
+  { girdi: '1000+%10', sonuc: '1100', aciklama: 'Tutara %10 Ekle' },
+  { girdi: '1000-%10', sonuc: '900', aciklama: 'Tutardan %10 Düş' },
+  { girdi: '1000+10%', sonuc: '1100', aciklama: '+%10 ile Aynı' },
+  { girdi: '500*2', sonuc: '1000', aciklama: 'Çarpma İşlemi' },
+  { girdi: '1000/4', sonuc: '250', aciklama: 'Bölme İşlemi' },
+  { girdi: '10+10', sonuc: '20', aciklama: 'Toplama İşlemi' },
+  { girdi: '100-25', sonuc: '75', aciklama: 'Çıkarma İşlemi' },
+  { girdi: '(100+50)*2', sonuc: '300', aciklama: 'Parantez ile Sıra' },
   { girdi: '(500+500)+%10', sonuc: '1100', aciklama: 'Parantez + yüzde' },
-  { girdi: '1000+%10+50', sonuc: '1150', aciklama: 'Birden fazla işlem' },
-  { girdi: '%20', sonuc: '20', aciklama: 'Yüzde oranı (KDV)' },
+  { girdi: '1000+%10+50', sonuc: '1150', aciklama: 'Birden Fazla İşlem' },
+  { girdi: '%20', sonuc: '20', aciklama: 'Yüzde Oranı (KDV)' },
 ];
 
 export const SAYI_FORMUL_GRUPLARI: FormulaOrnekGrubu[] = [
@@ -30,9 +30,9 @@ export const SAYI_FORMUL_GRUPLARI: FormulaOrnekGrubu[] = [
     id: 'yuzde',
     baslik: 'Yüzde',
     ornekler: [
-      { girdi: '1000+%10', sonuc: '1100', aciklama: 'Tutara %10 ekle' },
-      { girdi: '1000-%10', sonuc: '900', aciklama: 'Tutardan %10 düş' },
-      { girdi: '1000+10%', sonuc: '1100', aciklama: '+%10 ile aynı (yüzde sonda)' },
+      { girdi: '1000+%10', sonuc: '1100', aciklama: 'Tutara %10 Ekle' },
+      { girdi: '1000-%10', sonuc: '900', aciklama: 'Tutardan %10 Düş' },
+      { girdi: '1000+10%', sonuc: '1100', aciklama: '+%10 ile Aynı (Yüzde Sonda)' },
     ],
   },
   {
@@ -49,23 +49,23 @@ export const SAYI_FORMUL_GRUPLARI: FormulaOrnekGrubu[] = [
     id: 'parantez',
     baslik: 'Parantez',
     ornekler: [
-      { girdi: '(100+50)*2', sonuc: '300', aciklama: 'Önce topla, sonra çarp' },
-      { girdi: '(500+500)+%10', sonuc: '1100', aciklama: 'Parantez sonucuna %10 ekle' },
-      { girdi: '1000+%10+50', sonuc: '1150', aciklama: 'Sırayla işle' },
+      { girdi: '(100+50)*2', sonuc: '300', aciklama: 'Önce Topla, Sonra Çarp' },
+      { girdi: '(500+500)+%10', sonuc: '1100', aciklama: 'Parantez Sonucuna %10 Ekle' },
+      { girdi: '1000+%10+50', sonuc: '1150', aciklama: 'Sırayla İşle' },
     ],
   },
   {
     id: 'kdv',
     baslik: 'Oran',
-    ornekler: [{ girdi: '%20', sonuc: '20', aciklama: 'KDV oranı' }],
+    ornekler: [{ girdi: '%20', sonuc: '20', aciklama: 'KDV Oranı' }],
   },
 ];
 
 /** İskonto alanlarında kullanılabilecek örnekler */
 export const ISKONTO_FORMUL_ORNEKLERI: FormulaOrnek[] = [
-  { girdi: '20', sonuc: '%20', aciklama: 'Tek iskonto' },
-  { girdi: '20+20', sonuc: '%36', aciklama: 'Bileşik iskonto (20 ardından 20)' },
-  { girdi: '10+10+10', sonuc: '%27,1', aciklama: 'Üç kademeli iskonto' },
+  { girdi: '20', sonuc: '%20', aciklama: 'Tek İskonto' },
+  { girdi: '20+20', sonuc: '%36', aciklama: 'Bileşik İskonto (20 Ardından 20)' },
+  { girdi: '10+10+10', sonuc: '%27,1', aciklama: 'Üç Kademeli İskonto' },
 ];
 
 type Op = '+' | '-' | '*' | '/';
