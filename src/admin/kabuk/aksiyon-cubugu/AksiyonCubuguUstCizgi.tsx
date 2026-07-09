@@ -3,6 +3,8 @@ import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
 const CIZGI_KALINLIK = 5;
 const PANEL_YARICAP = 10;
 const STROKE_PAD = CIZGI_KALINLIK / 2;
+/** Panel üst kenarı SVG koordinatında — üst stroke tamamen bunun üstünde kalır */
+const PANEL_UST_Y = CIZGI_KALINLIK;
 
 function ustCizgiYoluOlustur(
   footerGenislik: number,
@@ -79,7 +81,8 @@ export function AksiyonCubuguUstCizgi({ footerRef, panelEl, panelAktif }: Aksiyo
       const pr = panelEl.getBoundingClientRect();
       const pLeft = pr.left - fr.left;
       const pRight = pr.right - fr.left;
-      const footerLineY = fr.top - pr.top + STROKE_PAD + STROKE_PAD;
+      const panelYukseklik = fr.top - pr.top;
+      const footerLineY = panelYukseklik + PANEL_UST_Y + STROKE_PAD;
       const yukseklik = Math.ceil(footerLineY + STROKE_PAD);
       const yol = ustCizgiYoluOlustur(fr.width, footerLineY, pLeft, pRight, STROKE_PAD);
 
@@ -87,7 +90,7 @@ export function AksiyonCubuguUstCizgi({ footerRef, panelEl, panelAktif }: Aksiyo
         yol,
         genislik: fr.width,
         yukseklik,
-        ustOfset: pr.top - fr.top - STROKE_PAD,
+        ustOfset: pr.top - fr.top - PANEL_UST_Y,
       });
     };
 

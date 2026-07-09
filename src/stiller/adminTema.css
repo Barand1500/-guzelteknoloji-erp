@@ -1345,8 +1345,8 @@ html:has(.admin-panel[data-tema='acik']) body {
   left: 0;
   width: 100%;
   pointer-events: none;
-  z-index: 6;
-  overflow: hidden;
+  z-index: 60;
+  overflow: visible;
 }
 
 .ap-gorev-cubugu-ust-cizgi-yol {
@@ -3798,6 +3798,49 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-sayfa-alt-menu-secim-aktif {
   border-color: var(--ap-accent);
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface-2));
+}
+
+.ap-ayar-secim-btn {
+  border-radius: 0.5rem;
+  border: 1px solid var(--ap-border);
+  background: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.ap-ayar-secim-btn:hover {
+  background: var(--ap-hover);
+}
+
+.ap-ayar-secim-btn--aktif {
+  border-color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 18%, transparent);
+  color: var(--ap-accent);
+}
+
+.ap-ayar-kart-secim {
+  border: 1px solid var(--ap-border);
+  background: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ap-ayar-kart-secim:hover {
+  background: var(--ap-hover);
+}
+
+.ap-ayar-kart-secim--aktif {
+  border-color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface-2));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+}
+
+.ap-ayar-rozet-accent {
+  border-color: color-mix(in srgb, var(--ap-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+  color: color-mix(in srgb, var(--ap-accent) 85%, var(--ap-text));
+}
+
+.ap-ayar-sifirla-btn {
+  color: var(--ap-accent);
 }
 
 .ap-sayfa-alt-menu-secim-baslik {
@@ -8950,7 +8993,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-tray-bildirim-sayi {
   position: absolute;
-  top: -0.25rem;
+  top: 0.125rem;
   right: -0.25rem;
   display: flex;
   height: 1rem;
@@ -9013,7 +9056,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-saat-btn {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
   line-height: 1.2;
