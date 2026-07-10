@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 
 export type SistemModalGenislik = 'sm' | 'md' | 'lg';
 
@@ -55,10 +56,11 @@ export function SistemModal({
 
   return (
     <div className="ap-sistem-modal-arka ap-sistem-modal-arka-sabit" role="dialog" aria-modal="true" aria-labelledby={baslikId}>
-      <div
-        className={`ap-sistem-modal ap-sistem-modal-v2 ${genislikSinifi}`.trim()}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <DonenAccentCerceve className="ap-accent-donen-cerceve--sistem">
+        <div
+          className={`ap-sistem-modal ap-sistem-modal-v2 ${genislikSinifi}`.trim()}
+          onClick={(e) => e.stopPropagation()}
+        >
         <div className="ap-sistem-modal-v2-ust-cizgi" aria-hidden />
         <div className="ap-sistem-modal-baslik ap-sistem-modal-baslik-v2">
           {ikon && <span className="ap-sistem-modal-ikon">{ikon}</span>}
@@ -80,7 +82,8 @@ export function SistemModal({
         </div>
         <div className="ap-sistem-modal-govde ap-sistem-modal-govde-v2">{children}</div>
         {footer && <div className="ap-sistem-modal-alt ap-sistem-modal-alt-v2">{footer}</div>}
-      </div>
+        </div>
+      </DonenAccentCerceve>
     </div>
   );
 }

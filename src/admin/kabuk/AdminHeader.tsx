@@ -80,7 +80,7 @@ export function AdminHeader({
               ? `ap-baslat-menu-btn ap-baslat-menu-btn--kare relative shrink-0 ${menuAcik ? 'ap-baslat-menu-btn--kare-aktif ap-baslat-menu-btn--kenarlik-aktif' : ''}`
               : `ap-baslat-menu-btn ap-baslat-menu-btn--dikdortgen relative flex w-14 shrink-0 items-center justify-center ${menuAcik ? 'ap-baslat-menu-btn--dikdortgen-aktif ap-baslat-menu-btn--kenarlik-aktif' : 'border-r border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'}`
           }
-          title="Başlat menüsü"
+          title="Başlat Menüsü"
           data-ap-kesif="baslat-menu"
           aria-expanded={menuAcik}
         >

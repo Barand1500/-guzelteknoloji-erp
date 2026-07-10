@@ -110,7 +110,7 @@ export function SekmeYonetimiSayfasi() {
         <AdminPanelKarti baslik="Sekme Ayarları" altBaslik="Değişiklikler, Kaydet ile uygulanır">
           <div className="space-y-5">
             <div className="rounded-xl border border-[var(--ap-border)] bg-[var(--ap-hover)]/30 p-3">
-              <p className="ap-heading text-sm font-semibold">Hızlı bilgi</p>
+              <p className="ap-heading text-sm font-semibold">Hızlı Bilgi</p>
               <p className="ap-muted mt-1 text-xs leading-relaxed">
                 Sekmeleri ortadan sürükleyip bırakınca yan yana açılır; kenara bırakırsanız sırası değişir.
               </p>
@@ -121,7 +121,7 @@ export function SekmeYonetimiSayfasi() {
                 <p className="ap-heading text-sm font-semibold">Görünüm</p>
 
                 <div>
-                  <p className="ap-muted mb-2 text-xs">Sekme görünümü</p>
+                  <p className="ap-muted mb-2 text-xs">Sekme Görünümü</p>
                   <div className="flex flex-wrap gap-2">
                     {(
                       [
@@ -148,7 +148,7 @@ export function SekmeYonetimiSayfasi() {
                 </div>
 
                 <div>
-                  <p className="ap-muted mb-2 text-xs">Sekme yerleşimi</p>
+                  <p className="ap-muted mb-2 text-xs">Sekme Yerleşimi</p>
                   <div className="flex flex-wrap gap-2">
                     {(
                       [
@@ -175,7 +175,7 @@ export function SekmeYonetimiSayfasi() {
                 </div>
 
                 <div>
-                  <p className="ap-muted mb-2 text-xs">Sekme boyutu</p>
+                  <p className="ap-muted mb-2 text-xs">Sekme Boyutu</p>
                   <div className="flex flex-wrap gap-2">
                     {(['kucuk', 'orta', 'buyuk'] as const).map((b) => (
                       <button
@@ -197,7 +197,7 @@ export function SekmeYonetimiSayfasi() {
 
                 {ayarlar.sekmeAramaAktif && (
                   <div className="rounded-lg border border-[var(--ap-border)] bg-[var(--ap-surface)]/55 p-3">
-                    <p className="ap-muted mb-2 text-xs">Arama görünümü</p>
+                    <p className="ap-muted mb-2 text-xs">Arama Görünümü</p>
                     <div className="flex flex-wrap gap-2">
                       {(
                         [
@@ -226,7 +226,7 @@ export function SekmeYonetimiSayfasi() {
                 {ayarlar.baslatMenuTasarim === 'modern' && (
                   <div className="space-y-3 rounded-lg border border-dashed border-[var(--ap-border)] bg-[var(--ap-hover)]/20 p-3">
                     <div className="flex items-center justify-between">
-                      <p className="ap-heading text-xs font-semibold">Modern başlat menüsü</p>
+                      <p className="ap-heading text-xs font-semibold">Modern Başlat Menüsü</p>
                       <span
                         className="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide"
                         style={vurguRozetStili}
@@ -236,7 +236,7 @@ export function SekmeYonetimiSayfasi() {
                     </div>
                     <div className="grid gap-3 md:grid-cols-2">
                       <div>
-                        <p className="ap-muted mb-2 text-xs">Kategori görünümü</p>
+                        <p className="ap-muted mb-2 text-xs">Kategori Görünümü</p>
                         <div className="flex flex-wrap gap-2">
                           {(
                             [
@@ -262,7 +262,7 @@ export function SekmeYonetimiSayfasi() {
                       </div>
 
                       <div>
-                        <p className="ap-muted mb-2 text-xs">Modül kutusu boyutu</p>
+                        <p className="ap-muted mb-2 text-xs">Modül Kutusu Boyutu</p>
                         <div className="flex flex-wrap gap-2">
                           {(
                             [
@@ -350,7 +350,7 @@ export function SekmeYonetimiSayfasi() {
             </div>
 
             <section className="space-y-3 rounded-xl border border-[var(--ap-border)] bg-[var(--ap-surface-2)]/35 p-4">
-              <p className="ap-heading text-sm font-semibold">Başlat menüsü</p>
+              <p className="ap-heading text-sm font-semibold">Başlat Menüsü</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {(
                   [
