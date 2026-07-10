@@ -14,7 +14,8 @@ function cizgiModuOku(
 
 function varsayilanAyar<TRow>(
   kolonlar: KolonTanimi<TRow>[],
-  gizliKolonlar: string[] = []
+  gizliKolonlar: string[] = [],
+  kolonGenislikSurumu?: number
 ): DataGridAyar {
   return {
     kolonSirasi: kolonlar.map((k) => k.id),
@@ -23,6 +24,7 @@ function varsayilanAyar<TRow>(
     kolonGenislikleri: Object.fromEntries(kolonlar.map((k) => [k.id, k.genislik ?? 120])),
     sayfaBoyutu: 10,
     cizgiModu: 'tam',
+    kolonGenislikSurumu,
   };
 }
 
@@ -68,8 +70,13 @@ function kolonSirasiniBirlestir(
   return sonuc;
 }
 
-function ayarOku(anahtar: string, kolonlar: KolonTanimi<unknown>[], gizliVarsayilan: string[]): DataGridAyar {
-  const varsayilan = varsayilanAyar(kolonlar, gizliVarsayilan);
+function ayarOku(
+  anahtar: string,
+  kolonlar: KolonTanimi<unknown>[],
+  gizliVarsayilan: string[],
+  kolonGenislikSurumu?: number
+): DataGridAyar {
+  const varsayilan = varsayilanAyar(kolonlar, gizliVarsayilan, kolonGenislikSurumu);
   try {
     const ham = localStorage.getItem(anahtar);
     if (!ham) return varsayilan;
@@ -81,11 +88,21 @@ function ayarOku(anahtar: string, kolonlar: KolonTanimi<unknown>[], gizliVarsayi
       varsayilan.kolonSirasi,
       gecerliIdler
     );
+    const kayitliSurum = kayit.kolonGenislikSurumu ?? 0;
+    const genislikGuncelle =
+      kolonGenislikSurumu !== undefined && kayitliSurum < kolonGenislikSurumu;
+    const kolonGenislikleri = genislikGuncelle
+      ? { ...varsayilan.kolonGenislikleri }
+      : { ...varsayilan.kolonGenislikleri, ...kayit.kolonGenislikleri };
+    const { kolonGenislikleri: _eskiGen, kolonGenislikSurumu: _eskiSurum, ...kayitDiger } = kayit;
     return {
       ...varsayilan,
-      ...kayit,
+      ...kayitDiger,
       kolonSirasi,
-      kolonGenislikleri: { ...varsayilan.kolonGenislikleri, ...kayit.kolonGenislikleri },
+      kolonGenislikleri,
+      kolonGenislikSurumu: genislikGuncelle
+        ? kolonGenislikSurumu
+        : (kolonGenislikSurumu ?? kayit.kolonGenislikSurumu),
       cizgiModu: cizgiModuOku(kayit, varsayilan.cizgiModu),
       gizliKolonlar: (kayit.gizliKolonlar ?? []).filter((id) => gecerliIdler.has(id)),
       sabitlenmisKolonlar: (kayit.sabitlenmisKolonlar ?? varsayilan.sabitlenmisKolonlar).filter((id) =>
@@ -104,11 +121,12 @@ function ayarKaydet(anahtar: string, ayar: DataGridAyar) {
 export function useDataGridState<TRow>(
   kolonlar: KolonTanimi<TRow>[],
   depolamaAnahtari: string,
-  varsayilanGizliKolonlar: string[] = []
+  varsayilanGizliKolonlar: string[] = [],
+  kolonGenislikSurumu?: number
 ) {
   const kolonRef = kolonlar as KolonTanimi<unknown>[];
   const [ayar, setAyar] = useState<DataGridAyar>(() =>
-    ayarOku(depolamaAnahtari, kolonRef, varsayilanGizliKolonlar)
+    ayarOku(depolamaAnahtari, kolonRef, varsayilanGizliKolonlar, kolonGenislikSurumu)
   );
   const [sayfa, setSayfa] = useState(0);
   const [siralama, setSiralama] = useState<{ kolonId: string; yon: SiralamaYonu } | null>(null);
@@ -128,10 +146,10 @@ export function useDataGridState<TRow>(
   }, [kolonlar, ayar.kolonSirasi, ayar.gizliKolonlar]);
 
   const varsayilanaDon = useCallback(() => {
-    setAyar(varsayilanAyar(kolonlar, varsayilanGizliKolonlar));
+    setAyar(varsayilanAyar(kolonlar, varsayilanGizliKolonlar, kolonGenislikSurumu));
     setSayfa(0);
     setSiralama(null);
-  }, [kolonlar, varsayilanGizliKolonlar]);
+  }, [kolonlar, varsayilanGizliKolonlar, kolonGenislikSurumu]);
 
   const kolonGizle = useCallback((kolonId: string, gizle: boolean) => {
     const kolon = kolonlar.find((k) => k.id === kolonId);

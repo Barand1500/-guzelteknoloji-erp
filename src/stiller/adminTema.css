@@ -1370,7 +1370,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-gorev-cubugu--panel-acik .ap-alt-panel--kenarlik-anim,
 .ap-gorev-cubugu--panel-acik .ap-hesap-makinesi-panel--kenarlik-anim,
 .ap-gorev-cubugu--panel-acik .ap-takvim-panel--kenarlik-anim,
-.ap-gorev-cubugu--panel-acik .ap-cubuk-arama-panel--kenarlik-anim {
+.ap-gorev-cubugu--panel-acik .ap-cubuk-arama-birim--kenarlik-anim {
   border-color: transparent !important;
   border-radius: 0.625rem 0.625rem 0 0;
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.1);
@@ -2891,38 +2891,39 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 /* Alt aksiyon cubugu — modul arama (sola acilir, oneri ustte) */
 .ap-aksiyon-cubugu-arama {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.ap-cubuk-arama-wrap {
-  position: relative;
   flex-shrink: 0;
   overflow: visible;
+  align-self: center;
 }
 
-.ap-cubuk-arama-panel {
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  z-index: 50;
-  display: flex;
+.ap-cubuk-arama {
+  position: relative;
+  display: inline-flex;
   flex-direction: column;
   align-items: stretch;
-  width: min(300px, calc(100vw - 1.5rem));
-  border-radius: 0.625rem 0.625rem 0 0;
-  border: 1px solid var(--ap-border);
-  border-bottom: none;
-  background: var(--ap-surface);
-  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
-  overflow: visible;
-  isolation: isolate;
+  flex-shrink: 0;
+  width: fit-content;
 }
 
-.ap-cubuk-arama-panel--kenarlik-anim {
+.ap-cubuk-arama-birim {
+  display: contents;
+}
+
+.ap-cubuk-arama-birim--oneri {
+  position: relative;
+  display: block;
+  isolation: isolate;
+  overflow: visible;
+}
+
+.ap-cubuk-arama-birim--kenarlik-anim {
   border-color: transparent !important;
   overflow: visible;
+}
+
+.ap-cubuk-arama-birim--kenarlik-anim .ap-cubuk-arama-oneri {
+  border-color: transparent !important;
+  box-shadow: none;
 }
 
 .ap-cubuk-arama-grup {
@@ -2931,18 +2932,25 @@ html:has(.admin-panel[data-tema='acik']) body {
   justify-content: flex-end;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.35rem 0.35rem 0.35rem 0.5rem;
 }
 
-.ap-cubuk-arama-panel .ap-cubuk-arama-input-sarm {
+.ap-cubuk-arama-input-sarm {
+  overflow: hidden;
+  width: 0;
+  max-width: 0;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: max-width 0.28s ease, width 0.28s ease, opacity 0.2s ease;
+}
+
+.ap-cubuk-arama--acik .ap-cubuk-arama-input-sarm {
   width: min(240px, 42vw);
   max-width: min(240px, 42vw);
   opacity: 1;
-  overflow: visible;
 }
 
 .ap-cubuk-arama-input {
-  width: 100%;
+  width: min(240px, 42vw);
   height: 2rem;
   padding: 0 0.75rem;
   border-radius: 0.375rem;
@@ -2952,10 +2960,6 @@ html:has(.admin-panel[data-tema='acik']) body {
   font-size: 0.8125rem;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.ap-cubuk-arama-panel .ap-cubuk-arama-input {
-  border-color: color-mix(in srgb, var(--ap-border) 80%, transparent);
 }
 
 .ap-cubuk-arama-input::placeholder {
@@ -2972,21 +2976,17 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-cubuk-arama-oneri {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  z-index: 60;
   width: 100%;
-  border-bottom: 1px solid var(--ap-border);
+  border-radius: 0.625rem 0.625rem 0 0;
+  border: 1px solid var(--ap-border);
+  border-bottom: none;
   background: var(--ap-surface);
-}
-
-.ap-cubuk-arama-oneri--kenarlik-anim,
-.ap-cubuk-arama-panel--kenarlik-anim .ap-cubuk-arama-oneri {
-  border-color: transparent !important;
-  box-shadow: none;
-  overflow: visible;
-}
-
-.admin-panel--kenarlik-neon .ap-cubuk-arama-oneri--kenarlik-anim .ap-kenarlik-anim-yol,
-.admin-panel--kenarlik-neon .ap-cubuk-arama-panel--kenarlik-anim .ap-kenarlik-anim-yol {
-  filter: var(--ap-accent-neon-filter);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
 }
 
 .ap-cubuk-arama-sonuc-listesi {

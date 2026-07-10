@@ -79,9 +79,20 @@ export function AksiyonCubuguUstCizgi({ footerRef, panelEl, panelAktif }: Aksiyo
       }
 
       const pr = panelEl.getBoundingClientRect();
-      const pLeft = pr.left - fr.left;
-      const pRight = pr.right - fr.left;
-      const panelYukseklik = fr.top - pr.top;
+      let panelTop = pr.top;
+      let panelLeft = pr.left;
+      let panelRight = pr.right;
+
+      panelEl.querySelectorAll('.ap-cubuk-arama-oneri').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        panelTop = Math.min(panelTop, r.top);
+        panelLeft = Math.min(panelLeft, r.left);
+        panelRight = Math.max(panelRight, r.right);
+      });
+
+      const pLeft = panelLeft - fr.left;
+      const pRight = panelRight - fr.left;
+      const panelYukseklik = fr.top - panelTop;
       const footerLineY = panelYukseklik + PANEL_UST_Y + STROKE_PAD;
       const yukseklik = Math.ceil(footerLineY + STROKE_PAD);
       const yol = ustCizgiYoluOlustur(fr.width, footerLineY, pLeft, pRight, STROKE_PAD);
@@ -90,7 +101,7 @@ export function AksiyonCubuguUstCizgi({ footerRef, panelEl, panelAktif }: Aksiyo
         yol,
         genislik: fr.width,
         yukseklik,
-        ustOfset: pr.top - fr.top - PANEL_UST_Y,
+        ustOfset: panelTop - fr.top - PANEL_UST_Y,
       });
     };
 
@@ -98,7 +109,10 @@ export function AksiyonCubuguUstCizgi({ footerRef, panelEl, panelAktif }: Aksiyo
     const raf = requestAnimationFrame(guncelle);
     const ro = new ResizeObserver(guncelle);
     if (footerRef.current) ro.observe(footerRef.current);
-    if (panelEl) ro.observe(panelEl);
+    if (panelEl) {
+      ro.observe(panelEl);
+      panelEl.querySelectorAll('.ap-cubuk-arama-oneri').forEach((el) => ro.observe(el));
+    }
     window.addEventListener('resize', guncelle);
     return () => {
       cancelAnimationFrame(raf);

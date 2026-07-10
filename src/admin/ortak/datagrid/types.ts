@@ -18,6 +18,8 @@ export type HucreTipi =
 export interface KolonTanimi<TRow> {
   id: string;
   baslik: string;
+  /** Başlık kısaltıldığında tam metin (tooltip) */
+  baslikIpucu?: string;
   tip: HucreTipi;
   genislik?: number;
   minGenislik?: number;
@@ -49,6 +51,8 @@ export interface DataGridAyar {
   kolonGenislikleri: Record<string, number>;
   sayfaBoyutu: number;
   cizgiModu: DataGridCizgiModu;
+  /** Kolon varsayılan genişlikleri güncellendiğinde artırılır; eski kayıtlı genişlikleri sıfırlar */
+  kolonGenislikSurumu?: number;
 }
 
 export interface HizliGirisKolonu {
@@ -124,4 +128,6 @@ export interface DataGridProps<TRow extends { id: string }> {
   hizliGirisModalAc?: (kolonId: string) => void;
   kolonBaslikEki?: (kolonId: string) => ReactNode | null;
   satirSinifAdi?: (satir: TRow) => string | undefined;
+  /** Artırıldığında kayıtlı kolon genişlikleri varsayılanlara döner */
+  kolonGenislikSurumu?: number;
 }

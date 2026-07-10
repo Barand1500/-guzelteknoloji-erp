@@ -37,6 +37,17 @@ import { DatagridSagTikMenu, type SatirEkleKonumu } from './DatagridSagTikMenu';
 
 const VARSAYILAN_GIZLI = ['etiketler', 'kayit', 'guncelleme'];
 
+/** Para tutarı kolonları — kompakt varsayılan genişlik */
+const PARA_KOLON_GENISLIK = 74;
+const PARA_KOLON_MIN = 56;
+
+/** İskonto kolonları — KDV ile aynı genişlik */
+const ISKONTO_KOLON_GENISLIK = 76;
+const ISKONTO_KOLON_MIN = 64;
+
+/** Kolon genişlik varsayılanları güncellendiğinde artır */
+const KOLON_GENISLIK_SURUMU = 7;
+
 function UrunKoduAdiHucre({ satir }: { satir: SiparisSatiri }) {
   const ad = satir.urun.ad?.trim() ?? '';
   const kod = satir.urun.sku?.trim() ?? '';
@@ -100,9 +111,9 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'metin',
 
-      genislik: 52,
+      genislik: 56,
 
-      minGenislik: 44,
+      minGenislik: 48,
 
       duzenlenebilir: true,
 
@@ -128,9 +139,9 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'badge',
 
-      genislik: 48,
+      genislik: 70,
 
-      minGenislik: 40,
+      minGenislik: 58,
 
       zorunlu: true,
 
@@ -158,8 +169,8 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'para',
 
-      genislik: 100,
-      minGenislik: 88,
+      genislik: PARA_KOLON_GENISLIK,
+      minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
 
       duzenlenebilir: true,
@@ -190,7 +201,8 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'para',
 
-      genislik: 88,
+      genislik: PARA_KOLON_GENISLIK,
+      minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
 
       siralama: true,
@@ -209,7 +221,8 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'iskonto',
 
-      genislik: 108,
+      genislik: ISKONTO_KOLON_GENISLIK,
+      minGenislik: ISKONTO_KOLON_MIN,
       paraSembolu: false,
 
       duzenlenebilir: true,
@@ -238,7 +251,8 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'para',
 
-      genislik: 96,
+      genislik: PARA_KOLON_GENISLIK,
+      minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
 
       siralama: true,
@@ -257,7 +271,8 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'iskonto',
 
-      genislik: 96,
+      genislik: ISKONTO_KOLON_GENISLIK,
+      minGenislik: ISKONTO_KOLON_MIN,
       paraSembolu: false,
 
       duzenlenebilir: true,
@@ -286,7 +301,8 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'para',
 
-      genislik: 100,
+      genislik: PARA_KOLON_GENISLIK,
+      minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
 
       siralama: true,
@@ -351,7 +367,8 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'para',
 
-      genislik: 90,
+      genislik: PARA_KOLON_GENISLIK,
+      minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
 
       siralama: true,
@@ -370,9 +387,9 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'badge',
 
-      genislik: 52,
+      genislik: 36,
 
-      minGenislik: 44,
+      minGenislik: 30,
 
       siralama: true,
 
@@ -386,7 +403,7 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
 
       siralamaDegeri: (s) => s.pb,
 
-      goster: (s) => <span className="dg-birim-etiket">{paraBirimiEtiketi(s.pb)}</span>,
+      goster: (s) => <span className="dg-pb-etiket">{paraBirimiEtiketi(s.pb)}</span>,
 
     },
 
@@ -689,7 +706,8 @@ export function DatagridDemoSayfasi() {
 
         satirlar={gorunurSatirlar}
 
-        depolamaAnahtari="gt_datagrid_demo_v14"
+        depolamaAnahtari="gt_datagrid_demo_v21"
+        kolonGenislikSurumu={KOLON_GENISLIK_SURUMU}
         hizliGirisKolonlari={[
           {
             kolonId: 'urunKoduAdi',

@@ -159,7 +159,7 @@ function HucreGoster<TRow>({
       return (
         <div className="dg-iskonto-hucre">
           <span className="dg-iskonto-yuzde">{yuzdeFormatla(i.yuzde)}</span>
-          <span>{paraFormatla(i.tutar, paraPb)}</span>
+          <span className="dg-iskonto-tutar">{paraFormatla(i.tutar, paraPb)}</span>
         </div>
       );
     }
@@ -206,8 +206,9 @@ export function DataGrid<TRow extends { id: string }>({
   hizliGirisOnizleme,
   kolonBaslikEki,
   satirSinifAdi,
+  kolonGenislikSurumu,
 }: DataGridProps<TRow>) {
-  const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar);
+  const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar, kolonGenislikSurumu);
   const [hoverSatirId, setHoverSatirId] = useState<string | null>(null);
   const [odak, setOdak] = useState<OdakHucre | null>(null);
   const [duzenleme, setDuzenleme] = useState<DuzenlemeHucre | null>(null);
@@ -330,6 +331,7 @@ export function DataGrid<TRow extends { id: string }>({
       return {
         width: genislik,
         minWidth: genislik,
+        maxWidth: genislik,
         ...(sabit && left !== undefined ? { left } : {}),
       };
     },
@@ -1092,6 +1094,7 @@ export function DataGrid<TRow extends { id: string }>({
         return [
           <td
             key={kolon.id}
+            data-kolon-id={kolon.id}
             className={`dg-hucre dg-hizli-giris-hucre${sabitHucreSinifi(kolon.id)}`}
             style={hucreStil}
           >
@@ -1386,6 +1389,12 @@ export function DataGrid<TRow extends { id: string }>({
         style={scrollYukseklik ? { height: scrollYukseklik, maxHeight: scrollYukseklik } : undefined}
       >
         <table className={`dg-tablo dg-tablo--cizgi-${dg.ayar.cizgiModu}`}>
+          <colgroup>
+            {dg.gorunurKolonlar.map((kolon) => {
+              const genislik = dg.ayar.kolonGenislikleri[kolon.id] ?? kolon.genislik ?? 120;
+              return <col key={kolon.id} style={{ width: genislik, minWidth: genislik }} />;
+            })}
+          </colgroup>
           <thead ref={theadRef}>
             <tr className="dg-baslik-satir">
               {dg.gorunurKolonlar.map((kolon) => {
@@ -1443,7 +1452,7 @@ export function DataGrid<TRow extends { id: string }>({
                           ⠿
                         </span>
                       )}
-                      <span>{kolon.baslik}</span>
+                      <span title={kolon.baslikIpucu ?? kolon.baslik}>{kolon.baslik}</span>
                       {kolonBaslikEki?.(kolon.id)}
                       {kolon.siralama !== false && kolon.id !== 'islemler' && (
                         <button
