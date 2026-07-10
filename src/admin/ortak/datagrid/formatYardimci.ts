@@ -1,3 +1,7 @@
+import { tooltipMetni } from '@/araclar/tooltipMetni';
+
+export { tooltipMetni as dgTooltipMetni };
+
 export function bosGosterim(deger: unknown): string {
   if (deger === null || deger === undefined || deger === '') return '—';
   return String(deger);

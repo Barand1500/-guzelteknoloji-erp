@@ -170,6 +170,8 @@ export function DonemSekme() {
           baslik={seciliId ? 'Dönem Düzenle' : 'Yeni Dönem'}
           altBaslik="Muhasebe dönem tanımları"
           duzenleme={!!seciliId}
+          olusturma={seciliKayit?.olusturma}
+          guncelleme={seciliKayit?.guncelleme}
         >
           <TanimGirdi
             etiket="Dönem Kodu"

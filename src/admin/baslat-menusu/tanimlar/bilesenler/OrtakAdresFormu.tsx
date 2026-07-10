@@ -54,7 +54,7 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
     <TanimFormBolum baslik="Adres">
       <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
         <label className="ap-tanimlar-secim-alan block">
-          <span className="ap-muted">İl</span>
+          <span className="ap-tanim-girdi-etiket">İl</span>
           <FormAramaSecim
             value={deger.il}
             onChange={(il) => {
@@ -77,7 +77,7 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
           />
         </label>
         <label className="ap-tanimlar-secim-alan block">
-          <span className="ap-muted">İlçe</span>
+          <span className="ap-tanim-girdi-etiket">İlçe</span>
           <FormAramaSecim
             value={deger.ilce}
             onChange={(ilce) =>
@@ -98,7 +98,7 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
           />
         </label>
         <label className="ap-tanimlar-secim-alan block">
-          <span className="ap-muted">Mahalle</span>
+          <span className="ap-tanim-girdi-etiket">Mahalle</span>
           <FormAramaSecim
             value={deger.mahalle}
             onChange={(mahalle) =>
@@ -134,7 +134,7 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
           onChange={(cadde) => onChange({ ...deger, cadde })}
         />
         <label className="ap-tanimlar-secim-alan block">
-          <span className="ap-muted">Sokak</span>
+          <span className="ap-tanim-girdi-etiket">Sokak</span>
           <FormAramaSecim
             value={deger.sokak}
             onChange={(sokak) => onChange({ ...deger, sokak })}

@@ -195,6 +195,8 @@ export function SubeSekme() {
           baslik={seciliId ? 'Şube Düzenle' : 'Yeni Şube'}
           duzenleme={!!seciliId}
           icKaydirma={false}
+          olusturma={seciliKayit?.olusturma}
+          guncelleme={seciliKayit?.guncelleme}
         >
           <TanimFormBolum baslik="Temel Bilgiler">
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
@@ -220,19 +222,19 @@ export function SubeSekme() {
           <TanimFormBolum baslik="E-Belge Serileri">
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--3">
               <TanimGirdi
-                etiket="e-Fatura Seri"
+                etiket="E-Fatura Seri"
                 deger={form.efaturaSeri}
                 kural="ebelgeSeri"
                 onChange={(efaturaSeri) => setForm({ ...form, efaturaSeri })}
               />
               <TanimGirdi
-                etiket="e-Arşiv Seri"
+                etiket="E-Arşiv Seri"
                 deger={form.earsivSeri}
                 kural="ebelgeSeri"
                 onChange={(earsivSeri) => setForm({ ...form, earsivSeri })}
               />
               <TanimGirdi
-                etiket="e-İrsaliye Seri"
+                etiket="E-İrsaliye Seri"
                 deger={form.eirsaliyeSeri}
                 kural="ebelgeSeri"
                 onChange={(eirsaliyeSeri) => setForm({ ...form, eirsaliyeSeri })}

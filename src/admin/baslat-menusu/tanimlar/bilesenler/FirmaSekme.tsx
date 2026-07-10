@@ -175,6 +175,8 @@ export function FirmaSekme() {
         <TanimFormPanel
           baslik={seciliId ? 'Firma Düzenle' : 'Yeni Firma'}
           duzenleme={!!seciliId}
+          olusturma={seciliKayit?.olusturma}
+          guncelleme={seciliKayit?.guncelleme}
         >
           <TanimFormBolum baslik="Temel Bilgiler">
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">

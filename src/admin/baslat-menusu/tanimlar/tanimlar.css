@@ -385,6 +385,33 @@
   color: var(--ap-muted);
 }
 
+.ap-tanimlar-form-kayit-tarihleri {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-top: 0.45rem;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--ap-muted);
+}
+
+.ap-tanimlar-form-kayit-tarihleri em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ap-heading);
+  margin-right: 0.2rem;
+}
+
+.ap-tanimlar-form-kayit-ayrac {
+  color: color-mix(in srgb, var(--ap-muted) 70%, transparent);
+  user-select: none;
+}
+
+.ap-tanimlar-form-baslik-metin {
+  min-width: 0;
+}
+
 .ap-tanimlar-form-rozet {
   flex-shrink: 0;
   padding: 0.18rem 0.5rem;

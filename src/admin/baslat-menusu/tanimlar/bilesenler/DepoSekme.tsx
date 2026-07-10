@@ -214,10 +214,12 @@ export function DepoSekme() {
           baslik={seciliId ? 'Depo Düzenle' : 'Yeni Depo'}
           duzenleme={!!seciliId}
           icKaydirma={false}
+          olusturma={seciliKayit?.olusturma}
+          guncelleme={seciliKayit?.guncelleme}
         >
           <TanimFormBolum baslik="Temel Bilgiler">
             <label className="ap-tanimlar-secim-alan block">
-              <span className="ap-muted">Şube *</span>
+              <span className="ap-tanim-girdi-etiket">Şube *</span>
               <FormAcilirSecim
                 value={form.subeId}
                 onChange={(subeId) => setForm({ ...form, subeId })}

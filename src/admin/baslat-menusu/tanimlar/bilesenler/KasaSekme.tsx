@@ -203,9 +203,11 @@ export function KasaSekme() {
           baslik={seciliId ? 'Kasa Düzenle' : 'Yeni Kasa'}
           altBaslik="Kasa kodu, adı ve para birimi"
           duzenleme={!!seciliId}
+          olusturma={seciliKayit?.olusturma}
+          guncelleme={seciliKayit?.guncelleme}
         >
           <label className="ap-tanimlar-secim-alan block">
-            <span className="ap-muted">Şube *</span>
+            <span className="ap-tanim-girdi-etiket">Şube *</span>
             <FormAcilirSecim
               value={form.subeId}
               onChange={(subeId) => setForm({ ...form, subeId })}
@@ -232,7 +234,7 @@ export function KasaSekme() {
             />
           </div>
           <label className="ap-tanimlar-secim-alan block">
-            <span className="ap-muted">Para Birimi *</span>
+            <span className="ap-tanim-girdi-etiket">Para Birimi *</span>
             <FormAcilirSecim
               value={form.paraBirimi}
               onChange={(paraBirimi) => setForm({ ...form, paraBirimi })}

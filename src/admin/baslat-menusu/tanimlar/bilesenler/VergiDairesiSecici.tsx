@@ -35,7 +35,7 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
   return (
     <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
       <label className="ap-tanimlar-secim-alan block">
-        <span className="ap-muted">İl (vergi dairesi filtresi)</span>
+        <span className="ap-tanim-girdi-etiket">İl (vergi dairesi filtresi)</span>
         <FormAramaSecim
           value={ilAd}
           onChange={(yeniIl) => {
@@ -51,7 +51,7 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
         />
       </label>
       <label className="ap-tanimlar-secim-alan block">
-        <span className="ap-muted">Vergi Dairesi</span>
+        <span className="ap-tanim-girdi-etiket">Vergi Dairesi</span>
         <FormAramaSecim
           value={deger}
           onChange={onChange}
