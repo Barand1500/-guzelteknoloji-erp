@@ -11,6 +11,7 @@ import rollerRouter from './routes/roller.js';
 import sistemAyarlariRouter from './routes/sistem-ayarlari.js';
 import yedekRouter from './routes/yedek.js';
 import legacyStubsRouter from './routes/legacy-stubs.js';
+import referansRouter from './routes/referans.js';
 
 export function appOlustur() {
   const app = express();
@@ -40,6 +41,7 @@ export function appOlustur() {
   admin.use('/yedek', yedekRouter);
   admin.use('/bildirimler', bildirimlerRouter);
   admin.use('/eklentiler', eklentilerRouter);
+  admin.use('/referans', referansRouter);
   admin.use('/', legacyStubsRouter);
 
   app.use('/api/admin', admin);

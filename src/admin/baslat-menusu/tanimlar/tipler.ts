@@ -16,6 +16,14 @@ export const SEKME_BASLIK: Record<TanimSekmeId, string> = {
   donem: 'Dönem Tanımları',
 };
 
+export const SEKME_ALT: Record<TanimSekmeId, string> = {
+  firma: 'Firma kodu, unvan ve vergi bilgileri',
+  sube: 'Şube adresi ve e-belge serileri',
+  depo: 'Depo kodu, adı ve adres bilgileri',
+  kasa: 'Kasa kodu, adı ve para birimi',
+  donem: 'Muhasebe dönem tanımları',
+};
+
 export interface AdresFormDegeri {
   il: string;
   ilce: string;

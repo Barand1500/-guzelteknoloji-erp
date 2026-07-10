@@ -5,9 +5,12 @@ import {
   donemSil,
   donemleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
-import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
+import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
+import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
+import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
 import {
   donemAdGecerliMi,
   kodGecerliMi,
@@ -20,6 +23,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
 function donemFormDogrula(form: DonemFormDegeri): string | null {
@@ -39,6 +43,7 @@ function donemdenForm(d: AdminDonem): DonemFormDegeri {
 export function DonemSekme() {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { firmaBagliPasifMi } = useTanimFirmaDurumu();
   const [kayitlar, setKayitlar] = useState<AdminDonem[]>([]);
   const [form, setForm] = useState<DonemFormDegeri>(bosDonemForm);
   const [seciliId, setSeciliId] = useState<string | null>(null);
@@ -143,50 +148,47 @@ export function DonemSekme() {
   );
 
   if (yukleniyor) {
-    return <p className="ap-muted text-sm">Yükleniyor...</p>;
+    return <TanimYukleniyor />;
   }
 
   return (
     <div className="ap-tanimlar-sekme-icerik">
-      <div className="ap-kullanicilar-sayfa-grid">
+      <TanimCalismaAlani>
         <TanimKayitListesi
           baslik="Dönemler"
           kayitlar={kayitlar}
           seciliId={seciliId}
           kodAlani={(k) => k.donemKodu}
           adAlani={(k) => k.donemAdi}
-          aktifAlani={(k) => k.aktif}
+          pasifAlani={(k) => firmaBagliPasifMi(k.aktif, k.firmaId)}
           onSec={(k) => {
             setSeciliId(k.id);
             setForm(donemdenForm(k));
           }}
         />
-        <div className="ap-editor-panel ap-kullanici-editor-panel">
-          <div className="ap-editor-baslik">
-            <h2 className="ap-heading text-base font-semibold">
-              {seciliId ? 'Dönem Düzenle' : 'Yeni Dönem'}
-            </h2>
-          </div>
-          <div className="ap-editor-icerik ap-kullanici-editor-icerik space-y-3">
-            <TanimGirdi
-              etiket="Dönem Kodu"
-              deger={form.donemKodu}
-              kural="kod"
-              zorunlu
-              onChange={(donemKodu) => setForm({ ...form, donemKodu })}
-            />
-            <TanimGirdi
-              etiket="Dönem Adı"
-              deger={form.donemAdi}
-              kural="serbestMetin"
-              maxLength={100}
-              zorunlu
-              onChange={(donemAdi) => setForm({ ...form, donemAdi })}
-            />
-            <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-          </div>
-        </div>
-      </div>
+        <TanimFormPanel
+          baslik={seciliId ? 'Dönem Düzenle' : 'Yeni Dönem'}
+          altBaslik="Muhasebe dönem tanımları"
+          duzenleme={!!seciliId}
+        >
+          <TanimGirdi
+            etiket="Dönem Kodu"
+            deger={form.donemKodu}
+            kural="kod"
+            zorunlu
+            onChange={(donemKodu) => setForm({ ...form, donemKodu })}
+          />
+          <TanimGirdi
+            etiket="Dönem Adı"
+            deger={form.donemAdi}
+            kural="serbestMetin"
+            maxLength={100}
+            zorunlu
+            onChange={(donemAdi) => setForm({ ...form, donemAdi })}
+          />
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimFormPanel>
+      </TanimCalismaAlani>
 
       <SilmeOnayModal
         acik={silModalAcik}

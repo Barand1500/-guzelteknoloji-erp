@@ -11,8 +11,12 @@ import {
   firmalariGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
+import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
+import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
+import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { VergiDairesiSecici } from '@/admin/baslat-menusu/tanimlar/bilesenler/VergiDairesiSecici';
 import {
   bosFirmaForm,
@@ -150,46 +154,49 @@ export function FirmaSekme() {
   );
 
   if (yukleniyor) {
-    return <p className="ap-muted text-sm">Yükleniyor...</p>;
+    return <TanimYukleniyor />;
   }
 
   return (
     <div className="ap-tanimlar-sekme-icerik">
-      <div className="ap-kullanicilar-sayfa-grid">
+      <TanimCalismaAlani>
         <TanimKayitListesi
           baslik="Firmalar"
           kayitlar={kayitlar}
           seciliId={seciliId}
           kodAlani={(k) => k.firmaKodu}
           adAlani={(k) => k.firmaAdi}
-          aktifAlani={(k) => k.aktif}
+          pasifAlani={(k) => !k.aktif}
           onSec={(k) => {
             setSeciliId(k.id);
             setForm(firmadanForm(k));
           }}
         />
-        <div className="ap-editor-panel ap-kullanici-editor-panel">
-          <div className="ap-editor-baslik">
-            <h2 className="ap-heading text-base font-semibold">
-              {seciliId ? 'Firma Düzenle' : 'Yeni Firma'}
-            </h2>
-          </div>
-          <div className="ap-editor-icerik ap-kullanici-editor-icerik space-y-3">
-            <TanimGirdi
-              etiket="Firma Kodu"
-              deger={form.firmaKodu}
-              kural="kod"
-              zorunlu
-              onChange={(firmaKodu) => setForm({ ...form, firmaKodu })}
-            />
-            <TanimGirdi
-              etiket="Firma Adı"
-              deger={form.firmaAdi}
-              kural="serbestMetin"
-              maxLength={255}
-              zorunlu
-              onChange={(firmaAdi) => setForm({ ...form, firmaAdi })}
-            />
+        <TanimFormPanel
+          baslik={seciliId ? 'Firma Düzenle' : 'Yeni Firma'}
+          duzenleme={!!seciliId}
+        >
+          <TanimFormBolum baslik="Temel Bilgiler">
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+              <TanimGirdi
+                etiket="Firma Kodu"
+                deger={form.firmaKodu}
+                kural="kod"
+                zorunlu
+                onChange={(firmaKodu) => setForm({ ...form, firmaKodu })}
+              />
+              <TanimGirdi
+                etiket="Firma Adı"
+                deger={form.firmaAdi}
+                kural="serbestMetin"
+                maxLength={255}
+                zorunlu
+                onChange={(firmaAdi) => setForm({ ...form, firmaAdi })}
+              />
+            </div>
+          </TanimFormBolum>
+
+          <TanimFormBolum baslik="Vergi Bilgileri">
             <VergiDairesiSecici
               deger={form.vergiDairesi}
               onChange={(vergiDairesi) => setForm({ ...form, vergiDairesi })}
@@ -200,10 +207,11 @@ export function FirmaSekme() {
               kural="vergiNo"
               onChange={(vergiNo) => setForm({ ...form, vergiNo })}
             />
-            <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-          </div>
-        </div>
-      </div>
+          </TanimFormBolum>
+
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimFormPanel>
+      </TanimCalismaAlani>
 
       <SilmeOnayModal
         acik={silModalAcik}

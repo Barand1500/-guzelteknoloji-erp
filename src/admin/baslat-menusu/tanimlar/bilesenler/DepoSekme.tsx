@@ -8,8 +8,12 @@ import {
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
+import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
+import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
+import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import {
   adGecerliMi,
   kodGecerliMi,
@@ -24,6 +28,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 
@@ -59,6 +64,7 @@ function formlarEsit(a: DepoFormDegeri, b: DepoFormDegeri): boolean {
 export function DepoSekme() {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { subeBagliPasifMi } = useTanimFirmaDurumu();
   const [kayitlar, setKayitlar] = useState<AdminDepo[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
@@ -170,50 +176,48 @@ export function DepoSekme() {
   );
 
   if (yukleniyor) {
-    return <p className="ap-muted text-sm">Yükleniyor...</p>;
+    return <TanimYukleniyor />;
   }
 
   return (
     <div className="ap-tanimlar-sekme-icerik">
-      <div className="mb-3 flex flex-wrap items-end gap-3">
-        <label className="block min-w-[200px]">
-          <span className="ap-muted mb-1 block text-xs">Şube Filtresi</span>
-          <FormAcilirSecim
-            value={subeFiltre}
-            onChange={setSubeFiltre}
-            secenekler={[
-              { value: '', label: 'Tüm şubeler' },
-              ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
-            ]}
-          />
-        </label>
-      </div>
-
-      <div className="ap-kullanicilar-sayfa-grid">
+      <TanimCalismaAlani>
         <TanimKayitListesi
           baslik="Depolar"
           kayitlar={filtrelenmisKayitlar}
           seciliId={seciliId}
           kodAlani={(k) => k.depoKodu}
           adAlani={(k) => k.depoAdi}
-          aktifAlani={(k) => k.aktif}
+          pasifAlani={(k) => subeBagliPasifMi(k.aktif, k.subeId)}
           altMetin={(k) =>
             k.subeKodu && k.subeAdi ? `${k.subeKodu} — ${k.subeAdi}` : undefined
+          }
+          listeFiltresi={
+            <label className="ap-tanimlar-liste-filtre-alan">
+              <span>Şube</span>
+              <FormAcilirSecim
+                value={subeFiltre}
+                onChange={setSubeFiltre}
+                secenekler={[
+                  { value: '', label: 'Tümü' },
+                  ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
+                ]}
+              />
+            </label>
           }
           onSec={(k) => {
             setSeciliId(k.id);
             setForm(depodanForm(k));
           }}
         />
-        <div className="ap-editor-panel ap-kullanici-editor-panel">
-          <div className="ap-editor-baslik">
-            <h2 className="ap-heading text-base font-semibold">
-              {seciliId ? 'Depo Düzenle' : 'Yeni Depo'}
-            </h2>
-          </div>
-          <div className="ap-editor-icerik ap-kullanici-editor-icerik space-y-4">
-            <label className="block">
-              <span className="ap-muted mb-1 block text-xs">Şube *</span>
+        <TanimFormPanel
+          baslik={seciliId ? 'Depo Düzenle' : 'Yeni Depo'}
+          duzenleme={!!seciliId}
+          icKaydirma={false}
+        >
+          <TanimFormBolum baslik="Temel Bilgiler">
+            <label className="ap-tanimlar-secim-alan block">
+              <span className="ap-muted">Şube *</span>
               <FormAcilirSecim
                 value={form.subeId}
                 onChange={(subeId) => setForm({ ...form, subeId })}
@@ -223,7 +227,7 @@ export function DepoSekme() {
                 }))}
               />
             </label>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
               <TanimGirdi
                 etiket="Depo Kodu"
                 deger={form.depoKodu}
@@ -239,16 +243,13 @@ export function DepoSekme() {
                 onChange={(depoAdi) => setForm({ ...form, depoAdi })}
               />
             </div>
+          </TanimFormBolum>
 
-            <OrtakAdresFormu
-              deger={form}
-              onChange={(adres) => setForm({ ...form, ...adres })}
-            />
+          <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />
 
-            <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-          </div>
-        </div>
-      </div>
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimFormPanel>
+      </TanimCalismaAlani>
 
       <SilmeOnayModal
         acik={silModalAcik}

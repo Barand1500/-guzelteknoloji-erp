@@ -12150,6 +12150,13 @@ html:has(.admin-panel[data-tema='acik']) body {
   width: 100%;
 }
 
+.ap-form-arama-secim-bos {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--ap-muted);
+  list-style: none;
+}
+
 .ap-form-acilir-secim-tus {
   display: flex;
   align-items: center;

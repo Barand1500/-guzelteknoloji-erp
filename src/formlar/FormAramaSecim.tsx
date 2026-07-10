@@ -13,6 +13,7 @@ import { formInputSinifi } from '@/formlar/FormAlani';
 
 const KENAR_BOSLUK = 8;
 const LISTE_LIMIT = 80;
+const ARAMA_GECIKME_MS = 120;
 
 function portalHedefiBul(): HTMLElement {
   return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
@@ -22,9 +23,9 @@ function normalizeMetin(metin: string): string {
   return metin.trim().toLocaleLowerCase('tr');
 }
 
-function secenekleriFiltrele(secenekler: string[], arama: string): string[] {
+function secenekleriFiltrele(secenekler: string[], arama: string, minAramaUzunlugu: number): string[] {
   const q = normalizeMetin(arama);
-  if (!q) return secenekler.slice(0, LISTE_LIMIT);
+  if (q.length < minAramaUzunlugu) return [];
   return secenekler
     .filter((s) => normalizeMetin(s).startsWith(q))
     .slice(0, LISTE_LIMIT);
@@ -49,7 +50,9 @@ function listeKonumuHesapla(anchor: HTMLElement) {
 interface FormAramaSecimProps {
   value: string;
   onChange: (value: string) => void;
-  secenekler: readonly string[];
+  secenekler?: readonly string[];
+  secenekAra?: (arama: string) => Promise<string[]>;
+  minAramaUzunlugu?: number;
   placeholder?: string;
   disabled?: boolean;
   'aria-label'?: string;
@@ -58,7 +61,9 @@ interface FormAramaSecimProps {
 export function FormAramaSecim({
   value,
   onChange,
-  secenekler,
+  secenekler = [],
+  secenekAra,
+  minAramaUzunlugu = 2,
   placeholder,
   disabled = false,
   'aria-label': ariaLabel,
@@ -69,16 +74,51 @@ export function FormAramaSecim({
   const listeRef = useRef<HTMLUListElement>(null);
   const [acik, setAcik] = useState(false);
   const [listeStil, setListeStil] = useState<CSSProperties>({});
+  const [asyncSecenekler, setAsyncSecenekler] = useState<string[]>([]);
+  const [aramaYukleniyor, setAramaYukleniyor] = useState(false);
 
   const benzersizSecenekler = useMemo(
     () => [...new Set(secenekler.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')),
     [secenekler]
   );
 
-  const filtrelenmis = useMemo(
-    () => secenekleriFiltrele(benzersizSecenekler, value),
-    [benzersizSecenekler, value]
-  );
+  useEffect(() => {
+    if (!secenekAra) return;
+
+    const q = value.trim();
+    if (q.length < minAramaUzunlugu) {
+      setAsyncSecenekler([]);
+      setAramaYukleniyor(false);
+      return;
+    }
+
+    let iptal = false;
+    setAramaYukleniyor(true);
+    const zamanlayici = window.setTimeout(() => {
+      secenekAra(q)
+        .then((liste) => {
+          if (!iptal) setAsyncSecenekler(liste);
+        })
+        .catch(() => {
+          if (!iptal) setAsyncSecenekler([]);
+        })
+        .finally(() => {
+          if (!iptal) setAramaYukleniyor(false);
+        });
+    }, ARAMA_GECIKME_MS);
+
+    return () => {
+      iptal = true;
+      window.clearTimeout(zamanlayici);
+    };
+  }, [value, secenekAra, minAramaUzunlugu]);
+
+  const filtrelenmis = useMemo(() => {
+    if (secenekAra) return asyncSecenekler;
+    return secenekleriFiltrele(benzersizSecenekler, value, minAramaUzunlugu);
+  }, [secenekAra, asyncSecenekler, benzersizSecenekler, value, minAramaUzunlugu]);
+
+  const oneriGoster = acik && value.trim().length >= minAramaUzunlugu && (aramaYukleniyor || filtrelenmis.length > 0);
 
   const konumGuncelle = useCallback(() => {
     if (!kapsayiciRef.current) return;
@@ -94,7 +134,7 @@ export function FormAramaSecim({
   }, []);
 
   useLayoutEffect(() => {
-    if (!acik) return;
+    if (!oneriGoster) return;
     konumGuncelle();
     window.addEventListener('resize', konumGuncelle);
     window.addEventListener('scroll', konumGuncelle, true);
@@ -102,7 +142,7 @@ export function FormAramaSecim({
       window.removeEventListener('resize', konumGuncelle);
       window.removeEventListener('scroll', konumGuncelle, true);
     };
-  }, [acik, konumGuncelle, filtrelenmis.length]);
+  }, [oneriGoster, konumGuncelle, filtrelenmis.length, aramaYukleniyor]);
 
   useEffect(() => {
     if (!acik) return;
@@ -131,6 +171,10 @@ export function FormAramaSecim({
     inputRef.current?.focus();
   };
 
+  const alanAc = () => {
+    if (value.trim().length >= minAramaUzunlugu) setAcik(true);
+  };
+
   return (
     <div className="ap-form-arama-secim" ref={kapsayiciRef}>
       <input
@@ -142,13 +186,14 @@ export function FormAramaSecim({
         placeholder={placeholder}
         aria-label={ariaLabel}
         aria-autocomplete="list"
-        aria-expanded={acik}
-        aria-controls={acik ? listeId : undefined}
+        aria-expanded={oneriGoster}
+        aria-controls={oneriGoster ? listeId : undefined}
         onChange={(e) => {
           onChange(e.target.value);
-          setAcik(true);
+          if (e.target.value.trim().length >= minAramaUzunlugu) setAcik(true);
+          else setAcik(false);
         }}
-        onFocus={() => setAcik(true)}
+        onFocus={alanAc}
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown' && filtrelenmis.length > 0) {
             e.preventDefault();
@@ -161,7 +206,7 @@ export function FormAramaSecim({
         }}
       />
 
-      {acik && filtrelenmis.length > 0
+      {oneriGoster
         ? createPortal(
             <ul
               ref={listeRef}
@@ -171,23 +216,27 @@ export function FormAramaSecim({
               aria-label={ariaLabel}
               style={listeStil}
             >
-              {filtrelenmis.map((secenek) => {
-                const seciliMi = secenek === value;
-                return (
-                  <li key={secenek}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={seciliMi}
-                      className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}`}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => sec(secenek)}
-                    >
-                      {secenek}
-                    </button>
-                  </li>
-                );
-              })}
+              {aramaYukleniyor ? (
+                <li className="ap-form-arama-secim-bos">Aranıyor…</li>
+              ) : (
+                filtrelenmis.map((secenek) => {
+                  const seciliMi = secenek === value;
+                  return (
+                    <li key={secenek}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={seciliMi}
+                        className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => sec(secenek)}
+                      >
+                        {secenek}
+                      </button>
+                    </li>
+                  );
+                })
+              )}
             </ul>,
             portalHedefiBul()
           )

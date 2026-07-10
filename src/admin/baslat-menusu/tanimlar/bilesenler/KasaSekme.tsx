@@ -7,8 +7,11 @@ import {
   subeleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
+import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
+import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { adGecerliMi, kodGecerliMi } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
 import {
   bosKasaForm,
@@ -20,6 +23,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 
@@ -48,6 +52,7 @@ function formlarEsit(a: KasaFormDegeri, b: KasaFormDegeri): boolean {
 export function KasaSekme() {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { subeBagliPasifMi } = useTanimFirmaDurumu();
   const [kayitlar, setKayitlar] = useState<AdminKasa[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
@@ -159,88 +164,84 @@ export function KasaSekme() {
   );
 
   if (yukleniyor) {
-    return <p className="ap-muted text-sm">Yükleniyor...</p>;
+    return <TanimYukleniyor />;
   }
 
   return (
     <div className="ap-tanimlar-sekme-icerik">
-      <div className="mb-3 flex flex-wrap items-end gap-3">
-        <label className="block min-w-[200px]">
-          <span className="ap-muted mb-1 block text-xs">Şube Filtresi</span>
-          <FormAcilirSecim
-            value={subeFiltre}
-            onChange={setSubeFiltre}
-            secenekler={[
-              { value: '', label: 'Tüm şubeler' },
-              ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
-            ]}
-          />
-        </label>
-      </div>
-
-      <div className="ap-kullanicilar-sayfa-grid">
+      <TanimCalismaAlani>
         <TanimKayitListesi
           baslik="Kasalar"
           kayitlar={filtrelenmisKayitlar}
           seciliId={seciliId}
           kodAlani={(k) => k.kasaKodu}
           adAlani={(k) => k.kasaAdi}
-          aktifAlani={(k) => k.aktif}
+          pasifAlani={(k) => subeBagliPasifMi(k.aktif, k.subeId)}
           altMetin={(k) => {
             const sube = k.subeKodu && k.subeAdi ? `${k.subeKodu} — ${k.subeAdi}` : '';
             return [sube, k.paraBirimi].filter(Boolean).join(' · ') || undefined;
           }}
+          listeFiltresi={
+            <label className="ap-tanimlar-liste-filtre-alan">
+              <span>Şube</span>
+              <FormAcilirSecim
+                value={subeFiltre}
+                onChange={setSubeFiltre}
+                secenekler={[
+                  { value: '', label: 'Tümü' },
+                  ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
+                ]}
+              />
+            </label>
+          }
           onSec={(k) => {
             setSeciliId(k.id);
             setForm(kasadanForm(k));
           }}
         />
-        <div className="ap-editor-panel ap-kullanici-editor-panel">
-          <div className="ap-editor-baslik">
-            <h2 className="ap-heading text-base font-semibold">
-              {seciliId ? 'Kasa Düzenle' : 'Yeni Kasa'}
-            </h2>
+        <TanimFormPanel
+          baslik={seciliId ? 'Kasa Düzenle' : 'Yeni Kasa'}
+          altBaslik="Kasa kodu, adı ve para birimi"
+          duzenleme={!!seciliId}
+        >
+          <label className="ap-tanimlar-secim-alan block">
+            <span className="ap-muted">Şube *</span>
+            <FormAcilirSecim
+              value={form.subeId}
+              onChange={(subeId) => setForm({ ...form, subeId })}
+              secenekler={aktifSubeler.map((s) => ({
+                value: s.id,
+                label: `${s.subeKodu} — ${s.subeAdi}`,
+              }))}
+            />
+          </label>
+          <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+            <TanimGirdi
+              etiket="Kasa Kodu"
+              deger={form.kasaKodu}
+              kural="kod"
+              zorunlu
+              onChange={(kasaKodu) => setForm({ ...form, kasaKodu })}
+            />
+            <TanimGirdi
+              etiket="Kasa Adı"
+              deger={form.kasaAdi}
+              kural="ad"
+              zorunlu
+              onChange={(kasaAdi) => setForm({ ...form, kasaAdi })}
+            />
           </div>
-          <div className="ap-editor-icerik ap-kullanici-editor-icerik space-y-3">
-            <label className="block">
-              <span className="ap-muted mb-1 block text-xs">Şube *</span>
-              <FormAcilirSecim
-                value={form.subeId}
-                onChange={(subeId) => setForm({ ...form, subeId })}
-                secenekler={aktifSubeler.map((s) => ({
-                  value: s.id,
-                  label: `${s.subeKodu} — ${s.subeAdi}`,
-                }))}
-              />
-            </label>
-            <div className="grid gap-3 md:grid-cols-2">
-              <TanimGirdi
-                etiket="Kasa Kodu"
-                deger={form.kasaKodu}
-                kural="kod"
-                zorunlu
-                onChange={(kasaKodu) => setForm({ ...form, kasaKodu })}
-              />
-              <TanimGirdi
-                etiket="Kasa Adı"
-                deger={form.kasaAdi}
-                kural="ad"
-                zorunlu
-                onChange={(kasaAdi) => setForm({ ...form, kasaAdi })}
-              />
-            </div>
-            <label className="block">
-              <span className="ap-muted mb-1 block text-xs">Para Birimi *</span>
-              <FormAcilirSecim
-                value={form.paraBirimi}
-                onChange={(paraBirimi) => setForm({ ...form, paraBirimi })}
-                secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
-              />
-            </label>
-            <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-          </div>
-        </div>
-      </div>
+          <label className="ap-tanimlar-secim-alan block">
+            <span className="ap-muted">Para Birimi *</span>
+            <FormAcilirSecim
+              value={form.paraBirimi}
+              onChange={(paraBirimi) => setForm({ ...form, paraBirimi })}
+              secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
+            />
+          </label>
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimFormPanel>
+      </TanimCalismaAlani>
 
       <SilmeOnayModal
         acik={silModalAcik}

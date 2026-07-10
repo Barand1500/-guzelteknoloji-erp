@@ -34,23 +34,28 @@ export function TanimGirdi({
   const limit = maxLength ?? kuralBilgi.max;
 
   return (
-    <label className={`block ${className ?? ''}`}>
-      <span className="ap-muted mb-1 block text-xs">
+    <label className={`ap-tanim-girdi block ${className ?? ''}`}>
+      <span className="ap-tanim-girdi-etiket">
         {etiket}
-        {zorunlu ? ' *' : ''}
+        {zorunlu ? <span> *</span> : null}
       </span>
       <input
         className={formInputSinifi}
         value={deger}
         onChange={(e) => {
-          let sonraki = kural === 'serbestMetin' ? e.target.value.slice(0, limit) : alanDegeriniFiltrele(kural, e.target.value);
+          let sonraki =
+            kural === 'serbestMetin'
+              ? e.target.value.slice(0, limit)
+              : alanDegeriniFiltrele(kural, e.target.value);
           if (buyukHarf) sonraki = sonraki.toUpperCase();
           onChange(sonraki);
         }}
         maxLength={limit}
         required={zorunlu}
         placeholder={placeholder}
-        inputMode={inputMode ?? (kural === 'vergiNo' || kural === 'mersis' || kural === 'postaKodu' ? 'numeric' : 'text')}
+        inputMode={
+          inputMode ?? (kural === 'vergiNo' || kural === 'mersis' || kural === 'postaKodu' ? 'numeric' : 'text')
+        }
       />
     </label>
   );

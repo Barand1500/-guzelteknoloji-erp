@@ -7,7 +7,11 @@ import {
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
+import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
+import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
+import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
 import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import {
   bosSubeForm,
   type AdminSube,
@@ -24,6 +28,7 @@ import {
   postaKoduGecerliMi,
 } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
+import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
 function subeFormDogrula(form: SubeFormDegeri): string | null {
@@ -65,6 +70,7 @@ function formlarEsit(a: SubeFormDegeri, b: SubeFormDegeri): boolean {
 export function SubeSekme() {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { firmaBagliPasifMi } = useTanimFirmaDurumu();
   const [kayitlar, setKayitlar] = useState<AdminSube[]>([]);
   const [form, setForm] = useState<SubeFormDegeri>(bosSubeForm);
   const [seciliId, setSeciliId] = useState<string | null>(null);
@@ -166,33 +172,32 @@ export function SubeSekme() {
   );
 
   if (yukleniyor) {
-    return <p className="ap-muted text-sm">Yükleniyor...</p>;
+    return <TanimYukleniyor />;
   }
 
   return (
     <div className="ap-tanimlar-sekme-icerik">
-      <div className="ap-kullanicilar-sayfa-grid">
+      <TanimCalismaAlani>
         <TanimKayitListesi
           baslik="Şubeler"
           kayitlar={kayitlar}
           seciliId={seciliId}
           kodAlani={(k) => k.subeKodu}
           adAlani={(k) => k.subeAdi}
-          aktifAlani={(k) => k.aktif}
+          pasifAlani={(k) => firmaBagliPasifMi(k.aktif, k.firmaId)}
           altMetin={(k) => [k.il, k.ilce].filter(Boolean).join(' / ') || undefined}
           onSec={(k) => {
             setSeciliId(k.id);
             setForm(subedenForm(k));
           }}
         />
-        <div className="ap-editor-panel ap-kullanici-editor-panel">
-          <div className="ap-editor-baslik">
-            <h2 className="ap-heading text-base font-semibold">
-              {seciliId ? 'Şube Düzenle' : 'Yeni Şube'}
-            </h2>
-          </div>
-          <div className="ap-editor-icerik ap-kullanici-editor-icerik space-y-4">
-            <div className="grid gap-3 md:grid-cols-2">
+        <TanimFormPanel
+          baslik={seciliId ? 'Şube Düzenle' : 'Yeni Şube'}
+          duzenleme={!!seciliId}
+          icKaydirma={false}
+        >
+          <TanimFormBolum baslik="Temel Bilgiler">
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
               <TanimGirdi
                 etiket="Şube Kodu"
                 deger={form.subeKodu}
@@ -208,58 +213,53 @@ export function SubeSekme() {
                 onChange={(subeAdi) => setForm({ ...form, subeAdi })}
               />
             </div>
+          </TanimFormBolum>
 
-            <OrtakAdresFormu
-              deger={form}
-              onChange={(adres) => setForm({ ...form, ...adres })}
-            />
+          <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />
 
-            <fieldset className="space-y-2">
-              <legend className="ap-heading mb-2 text-sm font-semibold">E-Belge Serileri</legend>
-              <div className="grid gap-3 md:grid-cols-3">
-                <TanimGirdi
-                  etiket="e-Fatura Seri"
-                  deger={form.efaturaSeri}
-                  kural="ebelgeSeri"
-                  onChange={(efaturaSeri) => setForm({ ...form, efaturaSeri })}
-                />
-                <TanimGirdi
-                  etiket="e-Arşiv Seri"
-                  deger={form.earsivSeri}
-                  kural="ebelgeSeri"
-                  onChange={(earsivSeri) => setForm({ ...form, earsivSeri })}
-                />
-                <TanimGirdi
-                  etiket="e-İrsaliye Seri"
-                  deger={form.eirsaliyeSeri}
-                  kural="ebelgeSeri"
-                  onChange={(eirsaliyeSeri) => setForm({ ...form, eirsaliyeSeri })}
-                />
-              </div>
-            </fieldset>
+          <TanimFormBolum baslik="E-Belge Serileri">
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--3">
+              <TanimGirdi
+                etiket="e-Fatura Seri"
+                deger={form.efaturaSeri}
+                kural="ebelgeSeri"
+                onChange={(efaturaSeri) => setForm({ ...form, efaturaSeri })}
+              />
+              <TanimGirdi
+                etiket="e-Arşiv Seri"
+                deger={form.earsivSeri}
+                kural="ebelgeSeri"
+                onChange={(earsivSeri) => setForm({ ...form, earsivSeri })}
+              />
+              <TanimGirdi
+                etiket="e-İrsaliye Seri"
+                deger={form.eirsaliyeSeri}
+                kural="ebelgeSeri"
+                onChange={(eirsaliyeSeri) => setForm({ ...form, eirsaliyeSeri })}
+              />
+            </div>
+          </TanimFormBolum>
 
-            <fieldset className="space-y-2">
-              <legend className="ap-heading mb-2 text-sm font-semibold">Ticari Bilgiler</legend>
-              <div className="grid gap-3 md:grid-cols-2">
-                <TanimGirdi
-                  etiket="MERSİS No"
-                  deger={form.mersis}
-                  kural="mersis"
-                  onChange={(mersis) => setForm({ ...form, mersis })}
-                />
-                <TanimGirdi
-                  etiket="Ticaret Sicil No"
-                  deger={form.ticaretSicil}
-                  kural="ticaretSicil"
-                  onChange={(ticaretSicil) => setForm({ ...form, ticaretSicil })}
-                />
-              </div>
-            </fieldset>
+          <TanimFormBolum baslik="Ticari Bilgiler">
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+              <TanimGirdi
+                etiket="MERSİS No"
+                deger={form.mersis}
+                kural="mersis"
+                onChange={(mersis) => setForm({ ...form, mersis })}
+              />
+              <TanimGirdi
+                etiket="Ticaret Sicil No"
+                deger={form.ticaretSicil}
+                kural="ticaretSicil"
+                onChange={(ticaretSicil) => setForm({ ...form, ticaretSicil })}
+              />
+            </div>
+          </TanimFormBolum>
 
-            <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-          </div>
-        </div>
-      </div>
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimFormPanel>
+      </TanimCalismaAlani>
 
       <SilmeOnayModal
         acik={silModalAcik}

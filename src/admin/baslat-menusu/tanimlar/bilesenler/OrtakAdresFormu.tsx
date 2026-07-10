@@ -1,71 +1,153 @@
+import { useCallback } from 'react';
 import type { AdresFormDegeri } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
-import {
-  ilcelerIlIle,
-  TURKIYE_IL_ADLARI,
-} from '@/admin/baslat-menusu/tanimlar/veri/vergiDaireleriVeri';
 import { FormAramaSecim } from '@/formlar/FormAramaSecim';
+import {
+  MIN_ADRES_ARAMA_UZUNLUGU,
+  turkiyeIlAra,
+  turkiyeIlceAra,
+  turkiyeMahalleAra,
+  turkiyeMahallePostaKoduBul,
+  turkiyeSokakAra,
+} from '@/veri/turkiyeIlIlce';
 
 interface OrtakAdresFormuProps {
   deger: AdresFormDegeri;
   onChange: (deger: AdresFormDegeri) => void;
 }
 
-export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
-  const ilceSecenekleri = ilcelerIlIle(deger.il);
+function adresSifirla(
+  deger: AdresFormDegeri,
+  alanlar: Partial<AdresFormDegeri>
+): AdresFormDegeri {
+  return { ...deger, ...alanlar };
+}
 
-  const alan = (k: keyof AdresFormDegeri, etiket: string, genis = false, kural?: Parameters<typeof TanimGirdi>[0]['kural']) => (
-    <TanimGirdi
-      className={genis ? 'md:col-span-2' : undefined}
-      etiket={etiket}
-      deger={deger[k]}
-      kural={kural ?? 'serbestMetin'}
-      maxLength={k === 'ilce' ? 50 : k === 'mahalle' || k === 'cadde' || k === 'sokak' ? 100 : k === 'bina' ? 50 : undefined}
-      onChange={(v) => onChange({ ...deger, [k]: v })}
-    />
+export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
+  const ilceAra = useCallback((arama: string) => turkiyeIlceAra(deger.il, arama), [deger.il]);
+  const mahalleAra = useCallback(
+    (arama: string) => turkiyeMahalleAra(deger.il, deger.ilce, arama),
+    [deger.il, deger.ilce]
+  );
+  const sokakAra = useCallback(
+    (arama: string) => turkiyeSokakAra(deger.il, deger.ilce, deger.mahalle, arama),
+    [deger.il, deger.ilce, deger.mahalle]
+  );
+
+  const mahalleSec = useCallback(
+    async (mahalle: string) => {
+      const postaKodu =
+        mahalle.trim() && deger.il && deger.ilce
+          ? await turkiyeMahallePostaKoduBul(deger.il, deger.ilce, mahalle)
+          : '';
+      onChange(
+        adresSifirla(deger, {
+          mahalle,
+          sokak: mahalle !== deger.mahalle ? '' : deger.sokak,
+          postaKodu: postaKodu || (mahalle !== deger.mahalle ? '' : deger.postaKodu),
+        })
+      );
+    },
+    [deger, onChange]
   );
 
   return (
-    <fieldset className="space-y-2">
-      <legend className="ap-heading mb-2 text-sm font-semibold">Adres</legend>
-      <div className="grid gap-3 md:grid-cols-2 md:items-end">
-        <label className="block">
-          <span className="ap-muted mb-1 block text-xs">İl</span>
+    <TanimFormBolum baslik="Adres">
+      <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+        <label className="ap-tanimlar-secim-alan block">
+          <span className="ap-muted">İl</span>
           <FormAramaSecim
             value={deger.il}
-            onChange={(il) => onChange({ ...deger, il, ilce: il !== deger.il ? '' : deger.ilce })}
-            secenekler={TURKIYE_IL_ADLARI}
-            placeholder="Yazın veya listeden seçin"
+            onChange={(il) =>
+              onChange(
+                adresSifirla(deger, {
+                  il,
+                  ilce: il !== deger.il ? '' : deger.ilce,
+                  mahalle: il !== deger.il ? '' : deger.mahalle,
+                  sokak: il !== deger.il ? '' : deger.sokak,
+                  postaKodu: il !== deger.il ? '' : deger.postaKodu,
+                })
+              )
+            }
+            secenekAra={turkiyeIlAra}
+            minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
+            placeholder="En az 2 harf yazın…"
             aria-label="İl"
           />
         </label>
-        <label className="block">
-          <span className="ap-muted mb-1 block text-xs">İlçe</span>
+        <label className="ap-tanimlar-secim-alan block">
+          <span className="ap-muted">İlçe</span>
           <FormAramaSecim
             value={deger.ilce}
-            onChange={(ilce) => onChange({ ...deger, ilce })}
-            secenekler={ilceSecenekleri}
-            placeholder={deger.il ? 'Yazın veya listeden seçin' : 'Önce il seçin'}
+            onChange={(ilce) =>
+              onChange(
+                adresSifirla(deger, {
+                  ilce,
+                  mahalle: ilce !== deger.ilce ? '' : deger.mahalle,
+                  sokak: ilce !== deger.ilce ? '' : deger.sokak,
+                  postaKodu: ilce !== deger.ilce ? '' : deger.postaKodu,
+                })
+              )
+            }
+            secenekAra={deger.il ? ilceAra : undefined}
+            minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
+            disabled={!deger.il}
+            placeholder={deger.il ? 'En az 2 harf yazın…' : 'Önce il seçin'}
             aria-label="İlçe"
           />
         </label>
-        {alan('mahalle', 'Mahalle', true)}
-        {alan('cadde', 'Cadde')}
-        {alan('sokak', 'Sokak')}
-        {alan('bina', 'Bina')}
-        <TanimGirdi
-          etiket="No"
-          deger={deger.no}
-          kural="binaNo"
-          onChange={(v) => onChange({ ...deger, no: v })}
-        />
+        <label className="ap-tanimlar-secim-alan block">
+          <span className="ap-muted">Mahalle</span>
+          <FormAramaSecim
+            value={deger.mahalle}
+            onChange={(mahalle) => void mahalleSec(mahalle)}
+            secenekAra={deger.il && deger.ilce ? mahalleAra : undefined}
+            minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
+            disabled={!deger.ilce}
+            placeholder={deger.ilce ? 'En az 2 harf yazın…' : 'Önce ilçe seçin'}
+            aria-label="Mahalle"
+          />
+        </label>
         <TanimGirdi
           etiket="Posta Kodu"
           deger={deger.postaKodu}
           kural="postaKodu"
-          onChange={(v) => onChange({ ...deger, postaKodu: v })}
+          onChange={(postaKodu) => onChange({ ...deger, postaKodu })}
+        />
+        <TanimGirdi
+          etiket="Cadde"
+          deger={deger.cadde}
+          kural="serbestMetin"
+          maxLength={100}
+          onChange={(cadde) => onChange({ ...deger, cadde })}
+        />
+        <label className="ap-tanimlar-secim-alan block">
+          <span className="ap-muted">Sokak</span>
+          <FormAramaSecim
+            value={deger.sokak}
+            onChange={(sokak) => onChange({ ...deger, sokak })}
+            secenekAra={deger.il && deger.ilce ? sokakAra : undefined}
+            minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
+            disabled={!deger.ilce}
+            placeholder={deger.ilce ? 'En az 2 harf yazın…' : 'Önce ilçe seçin'}
+            aria-label="Sokak"
+          />
+        </label>
+        <TanimGirdi
+          etiket="Bina"
+          deger={deger.bina}
+          kural="serbestMetin"
+          maxLength={50}
+          onChange={(bina) => onChange({ ...deger, bina })}
+        />
+        <TanimGirdi
+          etiket="No"
+          deger={deger.no}
+          kural="binaNo"
+          onChange={(no) => onChange({ ...deger, no })}
         />
       </div>
-    </fieldset>
+    </TanimFormBolum>
   );
 }
