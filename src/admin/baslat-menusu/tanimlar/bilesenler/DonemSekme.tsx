@@ -5,22 +5,25 @@ import {
   donemSil,
   donemleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
-import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
-import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
+import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
-import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import {
+  TanimDurumRozeti,
+  TanimKayitTablosu,
+} from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
+import { TanimListeEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimListeEkrani';
+import { TanimSihirbaz } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSihirbaz';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
-import {
-  donemAdGecerliMi,
-  kodGecerliMi,
-} from '@/admin/baslat-menusu/tanimlar/alanKurallari';
+import { donemAdGecerliMi, kodGecerliMi } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
 import {
   bosDonemForm,
   type AdminDonem,
   type DonemFormDegeri,
+  type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
+import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
@@ -33,23 +36,25 @@ function donemFormDogrula(form: DonemFormDegeri): string | null {
 }
 
 function donemdenForm(d: AdminDonem): DonemFormDegeri {
-  return {
-    donemKodu: d.donemKodu,
-    donemAdi: d.donemAdi,
-    aktif: d.aktif,
-  };
+  return { donemKodu: d.donemKodu, donemAdi: d.donemAdi, aktif: d.aktif };
 }
 
-export function DonemSekme() {
+export function DonemSekme({
+  gomuluDuzenle,
+}: {
+  gomuluDuzenle?: { id: string; onKapat: () => void };
+} = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { firmaBagliPasifMi } = useTanimFirmaDurumu();
   const [kayitlar, setKayitlar] = useState<AdminDonem[]>([]);
   const [form, setForm] = useState<DonemFormDegeri>(bosDonemForm);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
+  const [sihirbazAdim, setSihirbazAdim] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
+  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
 
   async function yukle() {
     setYukleniyor(true);
@@ -66,9 +71,22 @@ export function DonemSekme() {
     void yukle();
   }, []);
 
+  const listeyeDon = useCallback(() => {
+    if (gomuluDuzenle) {
+      gomuluDuzenle.onKapat();
+      return;
+    }
+    setGorunum('liste');
+    setSeciliId(null);
+    setForm(bosDonemForm);
+    setSihirbazAdim(0);
+  }, [gomuluDuzenle]);
+
   const yeniBaslat = useCallback(() => {
     setSeciliId(null);
     setForm(bosDonemForm);
+    setSihirbazAdim(0);
+    setGorunum('ekle');
   }, []);
 
   const seciliKayit = useMemo(
@@ -77,16 +95,13 @@ export function DonemSekme() {
   );
 
   const kirli = useMemo(() => {
-    if (seciliKayit) {
+    if (gorunum === 'duzenle' && seciliKayit) {
       const k = donemdenForm(seciliKayit);
-      return (
-        form.donemKodu !== k.donemKodu ||
-        form.donemAdi !== k.donemAdi ||
-        form.aktif !== k.aktif
-      );
+      return form.donemKodu !== k.donemKodu || form.donemAdi !== k.donemAdi || form.aktif !== k.aktif;
     }
-    return form.donemKodu.trim() !== '' || form.donemAdi.trim() !== '';
-  }, [seciliKayit, form]);
+    if (gorunum === 'ekle') return form.donemKodu.trim() !== '' || form.donemAdi.trim() !== '';
+    return false;
+  }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
     const dogrulama = donemFormDogrula(form);
@@ -97,7 +112,7 @@ export function DonemSekme() {
     const hedef = `«${form.donemAdi.trim()}» (${form.donemKodu.trim()}) dönemini`;
     setKaydediliyor(true);
     try {
-      if (seciliId) {
+      if (gorunum === 'duzenle' && seciliId) {
         await donemGuncelle(seciliId, form);
         logMesajiAyarla(logMesaj.guncelledi('Tanımlar — Dönem', hedef));
         basariBildir('Dönem güncellendi.');
@@ -106,18 +121,18 @@ export function DonemSekme() {
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Dönem', hedef));
         basariBildir('Dönem eklendi.');
       }
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, seciliId, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
   const sil = useCallback(() => {
-    if (seciliId) setSilModalAcik(true);
-  }, [seciliId]);
+    if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
+  }, [gorunum, seciliId]);
 
   const silOnayla = useCallback(async () => {
     if (!seciliId) return;
@@ -132,76 +147,138 @@ export function DonemSekme() {
         );
       }
       basariBildir('Dönem silindi.');
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [seciliId, seciliKayit, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+
+  useEffect(() => {
+    if (!gomuluDuzenle || !seciliKayit) return;
+    setForm(donemdenForm(seciliKayit));
+  }, [gomuluDuzenle, seciliKayit]);
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
-    { kaydet: !kaydediliyor, ekle: true, sil: !!seciliId && !kaydediliyor },
+    {
+      kaydet: gorunum === 'duzenle' && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle,
+      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+    },
     kirli
   );
 
-  if (yukleniyor) {
-    return <TanimYukleniyor />;
+  const bilgiAlanlar = (
+    <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+      <TanimGirdi
+        etiket="Dönem Kodu"
+        deger={form.donemKodu}
+        kural="kod"
+        zorunlu
+        onChange={(donemKodu) => setForm({ ...form, donemKodu })}
+      />
+      <TanimGirdi
+        etiket="Dönem Adı"
+        deger={form.donemAdi}
+        kural="serbestMetin"
+        maxLength={100}
+        zorunlu
+        onChange={(donemAdi) => setForm({ ...form, donemAdi })}
+      />
+    </div>
+  );
+
+  if (yukleniyor) return <TanimYukleniyor />;
+
+  if (gorunum === 'ekle' && !gomuluDuzenle) {
+    return (
+      <TanimSihirbaz
+        baslik="Yeni Dönem Kurulumu"
+        aktifAdim={sihirbazAdim}
+        onAdimDegistir={setSihirbazAdim}
+        onIptal={listeyeDon}
+        onTamamla={() => void kaydet()}
+        adimDogrula={(adim) => (adim === 0 ? donemFormDogrula(form) : null)}
+        onHata={hataBildir}
+        tamamlaniyor={kaydediliyor}
+        adimlar={[
+          { baslik: 'Dönem Bilgileri', aciklama: 'Kod ve adı girin', icerik: bilgiAlanlar },
+          {
+            baslik: 'Durum',
+            aciklama: 'Dönemin aktif/pasif durumunu belirleyin',
+            icerik: <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />,
+          },
+        ]}
+      />
+    );
+  }
+
+  if (gorunum === 'duzenle' || gomuluDuzenle) {
+    if (!seciliKayit) return <TanimYukleniyor />;
+    return (
+      <>
+        <TanimDuzenleEkrani
+          baslik={`${seciliKayit.donemAdi} (${seciliKayit.donemKodu})`}
+          olusturma={seciliKayit.olusturma}
+          guncelleme={seciliKayit.guncelleme}
+          onGeri={listeyeDon}
+        >
+          {bilgiAlanlar}
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimDuzenleEkrani>
+        <SilmeOnayModal
+          acik={silModalAcik}
+          onKapat={() => setSilModalAcik(false)}
+          onOnayla={() => void silOnayla()}
+          baslik="Bu dönemi silmek istiyor musunuz?"
+          hedefMetin={`${seciliKayit.donemAdi} (${seciliKayit.donemKodu})`}
+          ariaLabel="Dönem silme onayı"
+        />
+      </>
+    );
   }
 
   return (
-    <div className="ap-tanimlar-sekme-icerik">
-      <TanimCalismaAlani>
-        <TanimKayitListesi
+    <>
+      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Dönem">
+        <TanimKayitTablosu
           baslik="Dönemler"
           kayitlar={kayitlar}
-          seciliId={seciliId}
-          kodAlani={(k) => k.donemKodu}
-          adAlani={(k) => k.donemAdi}
-          pasifAlani={(k) => firmaBagliPasifMi(k.aktif, k.firmaId)}
-          onSec={(k) => {
+          aramaMetni={(k) => `${k.donemKodu} ${k.donemAdi}`}
+          pasifMi={(k) => firmaBagliPasifMi(k.aktif, k.firmaId)}
+          onSatirTikla={(k) => {
             setSeciliId(k.id);
             setForm(donemdenForm(k));
+            setGorunum('duzenle');
           }}
+          kolonlar={[
+            {
+              id: 'kod',
+              baslik: 'Kod',
+              hucre: (k) => <span className="ap-tanimlar-tablo-kod">{k.donemKodu}</span>,
+            },
+            { id: 'ad', baslik: 'Dönem Adı', hucre: (k) => k.donemAdi },
+            { id: 'durum', baslik: 'Durum', hucre: (k) => <TanimDurumRozeti aktif={k.aktif} /> },
+            {
+              id: 'guncelleme',
+              baslik: 'Güncelleme',
+              sinif: 'ap-tanimlar-tablo-tarih',
+              hucre: (k) => tarihSaatFormatla(k.guncelleme),
+            },
+          ]}
         />
-        <TanimFormPanel
-          baslik={seciliId ? 'Dönem Düzenle' : 'Yeni Dönem'}
-          altBaslik="Muhasebe dönem tanımları"
-          duzenleme={!!seciliId}
-          olusturma={seciliKayit?.olusturma}
-          guncelleme={seciliKayit?.guncelleme}
-        >
-          <TanimGirdi
-            etiket="Dönem Kodu"
-            deger={form.donemKodu}
-            kural="kod"
-            zorunlu
-            onChange={(donemKodu) => setForm({ ...form, donemKodu })}
-          />
-          <TanimGirdi
-            etiket="Dönem Adı"
-            deger={form.donemAdi}
-            kural="serbestMetin"
-            maxLength={100}
-            zorunlu
-            onChange={(donemAdi) => setForm({ ...form, donemAdi })}
-          />
-          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-        </TanimFormPanel>
-      </TanimCalismaAlani>
-
+      </TanimListeEkrani>
       <SilmeOnayModal
         acik={silModalAcik}
         onKapat={() => setSilModalAcik(false)}
         onOnayla={() => void silOnayla()}
         baslik="Bu dönemi silmek istiyor musunuz?"
-        hedefMetin={
-          seciliKayit ? `${seciliKayit.donemAdi} (${seciliKayit.donemKodu})` : 'Seçili dönem'
-        }
+        hedefMetin=""
         ariaLabel="Dönem silme onayı"
       />
-    </div>
+    </>
   );
 }

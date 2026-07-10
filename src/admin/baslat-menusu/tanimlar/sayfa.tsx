@@ -1,52 +1,90 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
-import { DonemSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/DonemSekme';
-import { DepoSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/DepoSekme';
-import { FirmaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/FirmaSekme';
-import { KasaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/KasaSekme';
-import { SubeSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/SubeSekme';
-import { TanimSekmeCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSekmeCubugu';
-import { SEKME_ALT, SEKME_BASLIK, type TanimSekmeId } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { firmalariGetir } from '@/admin/baslat-menusu/tanimlar/api';
+import { KurulumSihirbazi } from '@/admin/baslat-menusu/tanimlar/bilesenler/KurulumSihirbazi';
+import { TanimKayitlarOzeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitlarOzeti';
+import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import './tanimlar.css';
 
-function SekmeIcerik({ sekme }: { sekme: TanimSekmeId }) {
-  switch (sekme) {
-    case 'firma':
-      return <FirmaSekme />;
-    case 'sube':
-      return <SubeSekme />;
-    case 'depo':
-      return <DepoSekme />;
-    case 'kasa':
-      return <KasaSekme />;
-    case 'donem':
-      return <DonemSekme />;
-  }
-}
+type TanimSayfaModu = 'kurulum' | 'kayitlar';
 
 export function TanimlarSayfasi() {
-  const [sekme, setSekme] = useState<TanimSekmeId>('firma');
+  const [mod, setMod] = useState<TanimSayfaModu>('kayitlar');
+  const [ilkYukleniyor, setIlkYukleniyor] = useState(true);
+  const [ozetAnahtar, setOzetAnahtar] = useState(0);
   const { setRehberModulId } = useAdminAksiyon();
 
   useEffect(() => {
-    setRehberModulId(`tanimlar-${sekme}`);
+    setRehberModulId(`tanimlar-${mod}`);
     return () => setRehberModulId(null);
-  }, [sekme, setRehberModulId]);
+  }, [mod, setRehberModulId]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const firmalar = await firmalariGetir();
+        setMod(firmalar.length === 0 ? 'kurulum' : 'kayitlar');
+      } finally {
+        setIlkYukleniyor(false);
+      }
+    })();
+  }, []);
+
+  const kurulumTamamlandi = useCallback(() => {
+    setMod('kayitlar');
+    setOzetAnahtar((k) => k + 1);
+  }, []);
+
+  if (ilkYukleniyor) return <TanimYukleniyor />;
 
   return (
     <AdminModulKabuk baslik="Tanımlar">
       <div className="ap-tanimlar-sayfa">
         <header className="ap-tanimlar-ust">
-          <TanimSekmeCubugu aktif={sekme} onDegistir={setSekme} />
-          <div className="ap-tanimlar-ust-metin" key={sekme}>
-            <h2 className="ap-tanimlar-ust-baslik">{SEKME_BASLIK[sekme]}</h2>
-            <p className="ap-tanimlar-ust-aciklama">{SEKME_ALT[sekme]}</p>
+          <div className="ap-tanimlar-mod-cubugu" role="tablist" aria-label="Tanımlar görünümü">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mod === 'kurulum'}
+              className={`ap-tanimlar-mod-sekme ${mod === 'kurulum' ? 'ap-tanimlar-mod-sekme--aktif' : ''}`}
+              onClick={() => setMod('kurulum')}
+            >
+              <span aria-hidden>✨</span>
+              Kurulum Sihirbazı
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mod === 'kayitlar'}
+              className={`ap-tanimlar-mod-sekme ${mod === 'kayitlar' ? 'ap-tanimlar-mod-sekme--aktif' : ''}`}
+              onClick={() => setMod('kayitlar')}
+            >
+              <span aria-hidden>📋</span>
+              Kayıtlar
+            </button>
+          </div>
+          <div className="ap-tanimlar-ust-metin" key={mod}>
+            <h2 className="ap-tanimlar-ust-baslik">
+              {mod === 'kurulum' ? 'Kurulum Sihirbazı' : 'Tanım Kayıtları'}
+            </h2>
+            {mod === 'kurulum' && (
+              <p className="ap-tanimlar-ust-aciklama">
+                Firma, şube, depo, kasa ve dönemi tek akışta sırayla tanımlayın
+              </p>
+            )}
           </div>
         </header>
 
-        <div className="ap-tanimlar-icerik" key={sekme}>
-          <SekmeIcerik sekme={sekme} />
+        <div className="ap-tanimlar-icerik" key={mod === 'kurulum' ? 'kurulum' : `kayitlar-${ozetAnahtar}`}>
+          {mod === 'kurulum' ? (
+            <KurulumSihirbazi
+              onTamamlandi={kurulumTamamlandi}
+              onIptal={() => setMod('kayitlar')}
+            />
+          ) : (
+            <TanimKayitlarOzeti onKurulumBaslat={() => setMod('kurulum')} />
+          )}
         </div>
       </div>
     </AdminModulKabuk>

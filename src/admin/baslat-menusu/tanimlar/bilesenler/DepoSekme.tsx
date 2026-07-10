@@ -8,27 +8,33 @@ import {
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
-import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
+import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
-import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
-import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import {
+  TanimDurumRozeti,
+  TanimKayitTablosu,
+} from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
+import { TanimListeEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimListeEkrani';
+import { TanimSihirbaz } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSihirbaz';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import {
   adGecerliMi,
   kodGecerliMi,
   postaKoduGecerliMi,
 } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
+import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import {
   bosDepoForm,
   type AdminDepo,
   type AdminSube,
   type DepoFormDegeri,
+  type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
+import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
-import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 
@@ -37,6 +43,18 @@ function depoFormDogrula(form: DepoFormDegeri): string | null {
   if (!kodGecerliMi(form.depoKodu)) return 'Depo kodu zorunludur (en fazla 20 harf/rakam)';
   if (!adGecerliMi(form.depoAdi)) return 'Depo adı zorunludur';
   if (!postaKoduGecerliMi(form.postaKodu)) return 'Posta kodu 5 haneli olmalıdır';
+  return null;
+}
+
+function depoAdimDogrula(adim: number, form: DepoFormDegeri): string | null {
+  if (adim === 0) {
+    if (!form.subeId) return 'Şube seçimi zorunludur';
+    if (!kodGecerliMi(form.depoKodu)) return 'Depo kodu zorunludur';
+    if (!adGecerliMi(form.depoAdi)) return 'Depo adı zorunludur';
+  }
+  if (adim === 1 && !postaKoduGecerliMi(form.postaKodu)) {
+    return 'Posta kodu 5 haneli olmalıdır';
+  }
   return null;
 }
 
@@ -61,7 +79,11 @@ function formlarEsit(a: DepoFormDegeri, b: DepoFormDegeri): boolean {
   return (Object.keys(a) as (keyof DepoFormDegeri)[]).every((k) => a[k] === b[k]);
 }
 
-export function DepoSekme() {
+export function DepoSekme({
+  gomuluDuzenle,
+}: {
+  gomuluDuzenle?: { id: string; onKapat: () => void };
+} = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
@@ -69,10 +91,12 @@ export function DepoSekme() {
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
   const [form, setForm] = useState<DepoFormDegeri>(bosDepoForm);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
+  const [sihirbazAdim, setSihirbazAdim] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
+  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
 
   async function yukle() {
     setYukleniyor(true);
@@ -98,12 +122,25 @@ export function DepoSekme() {
 
   const aktifSubeler = useMemo(() => subeler.filter((s) => s.aktif), [subeler]);
 
+  const listeyeDon = useCallback(() => {
+    if (gomuluDuzenle) {
+      gomuluDuzenle.onKapat();
+      return;
+    }
+    setGorunum('liste');
+    setSeciliId(null);
+    setForm(bosDepoForm);
+    setSihirbazAdim(0);
+  }, [gomuluDuzenle]);
+
   const yeniBaslat = useCallback(() => {
     setSeciliId(null);
     setForm({
       ...bosDepoForm,
       subeId: subeFiltre || aktifSubeler[0]?.id || '',
     });
+    setSihirbazAdim(0);
+    setGorunum('ekle');
   }, [subeFiltre, aktifSubeler]);
 
   const seciliKayit = useMemo(
@@ -112,9 +149,14 @@ export function DepoSekme() {
   );
 
   const kirli = useMemo(() => {
-    if (seciliKayit) return !formlarEsit(form, depodanForm(seciliKayit));
-    return form.depoKodu.trim() !== '' || form.depoAdi.trim() !== '';
-  }, [seciliKayit, form]);
+    if (gorunum === 'duzenle' && seciliKayit) {
+      return !formlarEsit(form, depodanForm(seciliKayit));
+    }
+    if (gorunum === 'ekle') {
+      return form.depoKodu.trim() !== '' || form.depoAdi.trim() !== '';
+    }
+    return false;
+  }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
     const dogrulama = depoFormDogrula(form);
@@ -125,7 +167,7 @@ export function DepoSekme() {
     const hedef = `«${form.depoAdi.trim()}» (${form.depoKodu.trim()}) deposunu`;
     setKaydediliyor(true);
     try {
-      if (seciliId) {
+      if (gorunum === 'duzenle' && seciliId) {
         await depoGuncelle(seciliId, form);
         logMesajiAyarla(logMesaj.guncelledi('Tanımlar — Depo', hedef));
         basariBildir('Depo güncellendi.');
@@ -134,18 +176,18 @@ export function DepoSekme() {
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Depo', hedef));
         basariBildir('Depo eklendi.');
       }
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, seciliId, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
   const sil = useCallback(() => {
-    if (seciliId) setSilModalAcik(true);
-  }, [seciliId]);
+    if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
+  }, [gorunum, seciliId]);
 
   const silOnayla = useCallback(async () => {
     if (!seciliId) return;
@@ -160,109 +202,207 @@ export function DepoSekme() {
         );
       }
       basariBildir('Depo silindi.');
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [seciliId, seciliKayit, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+
+  useEffect(() => {
+    if (!gomuluDuzenle || !seciliKayit) return;
+    setForm(depodanForm(seciliKayit));
+  }, [gomuluDuzenle, seciliKayit]);
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
-    { kaydet: !kaydediliyor, ekle: true, sil: !!seciliId && !kaydediliyor },
+    {
+      kaydet: gorunum === 'duzenle' && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle,
+      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+    },
     kirli
   );
 
-  if (yukleniyor) {
-    return <TanimYukleniyor />;
+  const subeFiltreAlani = (
+    <label className="ap-tanimlar-liste-filtre-alan">
+      <span>Şube</span>
+      <FormAcilirSecim
+        value={subeFiltre}
+        onChange={setSubeFiltre}
+        secenekler={[
+          { value: '', label: 'Tümü' },
+          ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
+        ]}
+      />
+    </label>
+  );
+
+  const temelAlanlar = (
+    <>
+      <label className="ap-tanimlar-secim-alan block">
+        <span className="ap-tanim-girdi-etiket">Şube *</span>
+        <FormAcilirSecim
+          value={form.subeId}
+          onChange={(subeId) => setForm({ ...form, subeId })}
+          secenekler={aktifSubeler.map((s) => ({
+            value: s.id,
+            label: `${s.subeKodu} — ${s.subeAdi}`,
+          }))}
+        />
+      </label>
+      <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+        <TanimGirdi
+          etiket="Depo Kodu"
+          deger={form.depoKodu}
+          kural="kod"
+          zorunlu
+          onChange={(depoKodu) => setForm({ ...form, depoKodu })}
+        />
+        <TanimGirdi
+          etiket="Depo Adı"
+          deger={form.depoAdi}
+          kural="ad"
+          zorunlu
+          onChange={(depoAdi) => setForm({ ...form, depoAdi })}
+        />
+      </div>
+    </>
+  );
+
+  if (yukleniyor) return <TanimYukleniyor />;
+
+  if (gorunum === 'ekle' && !gomuluDuzenle) {
+    return (
+      <>
+        <TanimSihirbaz
+          baslik="Yeni Depo Kurulumu"
+          aktifAdim={sihirbazAdim}
+          onAdimDegistir={setSihirbazAdim}
+          onIptal={listeyeDon}
+          onTamamla={() => void kaydet()}
+          adimDogrula={(adim) => depoAdimDogrula(adim, form)}
+          onHata={hataBildir}
+          tamamlaniyor={kaydediliyor}
+          adimlar={[
+            {
+              baslik: 'Temel Bilgiler',
+              aciklama: 'Şube, depo kodu ve adını girin',
+              icerik: temelAlanlar,
+            },
+            {
+              baslik: 'Adres',
+              aciklama: 'Depo adres bilgilerini girin',
+              icerik: (
+                <OrtakAdresFormu
+                  bolumsuz
+                  deger={form}
+                  onChange={(adres) => setForm({ ...form, ...adres })}
+                />
+              ),
+            },
+            {
+              baslik: 'Durum',
+              aciklama: 'Deponun aktif/pasif durumunu belirleyin',
+              icerik: (
+                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+              ),
+            },
+          ]}
+        />
+        <SilmeOnayModal
+          acik={silModalAcik}
+          onKapat={() => setSilModalAcik(false)}
+          onOnayla={() => void silOnayla()}
+          baslik="Bu depoyu silmek istiyor musunuz?"
+          hedefMetin=""
+          ariaLabel="Depo silme onayı"
+        />
+      </>
+    );
+  }
+
+  if (gorunum === 'duzenle' || gomuluDuzenle) {
+    if (!seciliKayit) return <TanimYukleniyor />;
+    return (
+      <>
+        <TanimDuzenleEkrani
+          baslik={`${seciliKayit.depoAdi} (${seciliKayit.depoKodu})`}
+          altBaslik="Depo bilgilerini güncelleyin"
+          olusturma={seciliKayit.olusturma}
+          guncelleme={seciliKayit.guncelleme}
+          onGeri={listeyeDon}
+        >
+          <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
+          <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimDuzenleEkrani>
+        <SilmeOnayModal
+          acik={silModalAcik}
+          onKapat={() => setSilModalAcik(false)}
+          onOnayla={() => void silOnayla()}
+          baslik="Bu depoyu silmek istiyor musunuz?"
+          hedefMetin={`${seciliKayit.depoAdi} (${seciliKayit.depoKodu})`}
+          ariaLabel="Depo silme onayı"
+        />
+      </>
+    );
   }
 
   return (
-    <div className="ap-tanimlar-sekme-icerik">
-      <TanimCalismaAlani>
-        <TanimKayitListesi
+    <>
+      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Depo">
+        <TanimKayitTablosu
           baslik="Depolar"
           kayitlar={filtrelenmisKayitlar}
-          seciliId={seciliId}
-          kodAlani={(k) => k.depoKodu}
-          adAlani={(k) => k.depoAdi}
-          pasifAlani={(k) => subeBagliPasifMi(k.aktif, k.subeId)}
-          altMetin={(k) =>
-            k.subeKodu && k.subeAdi ? `${k.subeKodu} — ${k.subeAdi}` : undefined
+          filtre={subeFiltreAlani}
+          aramaMetni={(k) =>
+            `${k.depoKodu} ${k.depoAdi} ${k.subeKodu ?? ''} ${k.subeAdi ?? ''} ${k.il} ${k.ilce}`
           }
-          listeFiltresi={
-            <label className="ap-tanimlar-liste-filtre-alan">
-              <span>Şube</span>
-              <FormAcilirSecim
-                value={subeFiltre}
-                onChange={setSubeFiltre}
-                secenekler={[
-                  { value: '', label: 'Tümü' },
-                  ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
-                ]}
-              />
-            </label>
-          }
-          onSec={(k) => {
+          pasifMi={(k) => subeBagliPasifMi(k.aktif, k.subeId)}
+          onSatirTikla={(k) => {
             setSeciliId(k.id);
             setForm(depodanForm(k));
+            setGorunum('duzenle');
           }}
+          kolonlar={[
+            {
+              id: 'kod',
+              baslik: 'Kod',
+              sinif: 'ap-tanimlar-tablo-kod',
+              hucre: (k) => <span className="ap-tanimlar-tablo-kod">{k.depoKodu}</span>,
+            },
+            { id: 'ad', baslik: 'Depo Adı', hucre: (k) => k.depoAdi },
+            {
+              id: 'sube',
+              baslik: 'Şube',
+              hucre: (k) =>
+                k.subeKodu && k.subeAdi ? `${k.subeKodu} — ${k.subeAdi}` : '—',
+            },
+            {
+              id: 'durum',
+              baslik: 'Durum',
+              hucre: (k) => <TanimDurumRozeti aktif={k.aktif} />,
+            },
+            {
+              id: 'guncelleme',
+              baslik: 'Güncelleme',
+              sinif: 'ap-tanimlar-tablo-tarih',
+              hucre: (k) => tarihSaatFormatla(k.guncelleme),
+            },
+          ]}
         />
-        <TanimFormPanel
-          baslik={seciliId ? 'Depo Düzenle' : 'Yeni Depo'}
-          duzenleme={!!seciliId}
-          icKaydirma={false}
-          olusturma={seciliKayit?.olusturma}
-          guncelleme={seciliKayit?.guncelleme}
-        >
-          <TanimFormBolum baslik="Temel Bilgiler">
-            <label className="ap-tanimlar-secim-alan block">
-              <span className="ap-tanim-girdi-etiket">Şube *</span>
-              <FormAcilirSecim
-                value={form.subeId}
-                onChange={(subeId) => setForm({ ...form, subeId })}
-                secenekler={aktifSubeler.map((s) => ({
-                  value: s.id,
-                  label: `${s.subeKodu} — ${s.subeAdi}`,
-                }))}
-              />
-            </label>
-            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-              <TanimGirdi
-                etiket="Depo Kodu"
-                deger={form.depoKodu}
-                kural="kod"
-                zorunlu
-                onChange={(depoKodu) => setForm({ ...form, depoKodu })}
-              />
-              <TanimGirdi
-                etiket="Depo Adı"
-                deger={form.depoAdi}
-                kural="ad"
-                zorunlu
-                onChange={(depoAdi) => setForm({ ...form, depoAdi })}
-              />
-            </div>
-          </TanimFormBolum>
-
-          <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />
-
-          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-        </TanimFormPanel>
-      </TanimCalismaAlani>
-
+      </TanimListeEkrani>
       <SilmeOnayModal
         acik={silModalAcik}
         onKapat={() => setSilModalAcik(false)}
         onOnayla={() => void silOnayla()}
         baslik="Bu depoyu silmek istiyor musunuz?"
-        hedefMetin={
-          seciliKayit ? `${seciliKayit.depoAdi} (${seciliKayit.depoKodu})` : 'Seçili depo'
-        }
+        hedefMetin={seciliKayit ? `${seciliKayit.depoAdi} (${seciliKayit.depoKodu})` : ''}
         ariaLabel="Depo silme onayı"
       />
-    </div>
+    </>
   );
 }

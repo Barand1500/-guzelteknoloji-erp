@@ -1,5 +1,7 @@
 export type TanimSekmeId = 'firma' | 'sube' | 'depo' | 'kasa' | 'donem';
 
+export type TanimGorunumModu = 'liste' | 'ekle' | 'duzenle';
+
 export const TANIM_SEKMELER: { id: TanimSekmeId; ad: string; ikon: string }[] = [
   { id: 'firma', ad: 'Firma', ikon: '🏢' },
   { id: 'sube', ad: 'Şube', ikon: '🏪' },

@@ -6,8 +6,10 @@ import { FormAramaSecim } from '@/formlar/FormAramaSecim';
 import {
   MIN_ADRES_ARAMA_UZUNLUGU,
   turkiyeIlAra,
+  turkiyeIlAdiniDuzelt,
   turkiyeIlceAra,
   turkiyeIlceOnbellekYukle,
+  turkiyeIlKayitliMi,
   turkiyeMahalleAra,
   turkiyeMahallePostaKoduBul,
   turkiyeSokakAra,
@@ -16,6 +18,7 @@ import {
 interface OrtakAdresFormuProps {
   deger: AdresFormDegeri;
   onChange: (deger: AdresFormDegeri) => void;
+  bolumsuz?: boolean;
 }
 
 function adresSifirla(
@@ -25,19 +28,25 @@ function adresSifirla(
   return { ...deger, ...alanlar };
 }
 
-export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
+export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdresFormuProps) {
   const degerRef = useRef(deger);
   degerRef.current = deger;
 
-  const ilceAra = useCallback((arama: string) => turkiyeIlceAra(deger.il, arama), [deger.il]);
+  const ilceAra = useCallback(
+    (arama: string) => turkiyeIlceAra(degerRef.current.il, arama),
+    []
+  );
   const mahalleAra = useCallback(
-    (arama: string) => turkiyeMahalleAra(deger.il, deger.ilce, arama),
-    [deger.il, deger.ilce]
+    (arama: string) => turkiyeMahalleAra(degerRef.current.il, degerRef.current.ilce, arama),
+    []
   );
   const sokakAra = useCallback(
-    (arama: string) => turkiyeSokakAra(deger.il, deger.ilce, deger.mahalle, arama),
-    [deger.il, deger.ilce, deger.mahalle]
+    (arama: string) =>
+      turkiyeSokakAra(degerRef.current.il, degerRef.current.ilce, degerRef.current.mahalle, arama),
+    []
   );
+
+  const ilSecildi = turkiyeIlKayitliMi(deger.il);
 
   const mahallePostaKoduDoldur = useCallback(
     async (mahalle: string, il: string, ilce: string) => {
@@ -50,26 +59,40 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
     [onChange]
   );
 
-  return (
-    <TanimFormBolum baslik="Adres">
-      <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+  const icerik = (
+    <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
         <label className="ap-tanimlar-secim-alan block">
           <span className="ap-tanim-girdi-etiket">İl</span>
           <FormAramaSecim
             value={deger.il}
             onChange={(il) => {
-              if (il !== deger.il) void turkiyeIlceOnbellekYukle(il);
+              const kanonik = turkiyeIlKayitliMi(il) ? turkiyeIlAdiniDuzelt(il) : il;
+              if (kanonik !== deger.il) void turkiyeIlceOnbellekYukle(kanonik);
               onChange(
                 adresSifirla(deger, {
-                  il,
-                  ilce: il !== deger.il ? '' : deger.ilce,
-                  mahalle: il !== deger.il ? '' : deger.mahalle,
-                  sokak: il !== deger.il ? '' : deger.sokak,
-                  postaKodu: il !== deger.il ? '' : deger.postaKodu,
+                  il: kanonik,
+                  ilce: kanonik !== deger.il ? '' : deger.ilce,
+                  mahalle: kanonik !== deger.il ? '' : deger.mahalle,
+                  sokak: kanonik !== deger.il ? '' : deger.sokak,
+                  postaKodu: kanonik !== deger.il ? '' : deger.postaKodu,
                 })
               );
             }}
-            onSecildi={(il) => void turkiyeIlceOnbellekYukle(il)}
+            onSecildi={(il) => {
+              const duzeltilmis = turkiyeIlAdiniDuzelt(il);
+              void turkiyeIlceOnbellekYukle(duzeltilmis);
+              if (duzeltilmis !== il) {
+                onChange(
+                  adresSifirla(deger, {
+                    il: duzeltilmis,
+                    ilce: '',
+                    mahalle: '',
+                    sokak: '',
+                    postaKodu: '',
+                  })
+                );
+              }
+            }}
             secenekAra={turkiyeIlAra}
             minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
             placeholder="En az 2 harf yazın…"
@@ -90,10 +113,10 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
                 })
               )
             }
-            secenekAra={deger.il ? ilceAra : undefined}
+            secenekAra={ilSecildi ? ilceAra : undefined}
             minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
-            disabled={!deger.il}
-            placeholder={deger.il ? 'En az 2 harf yazın…' : 'Önce il seçin'}
+            disabled={!ilSecildi}
+            placeholder={ilSecildi ? 'En az 2 harf yazın…' : 'Önce il seçin'}
             aria-label="İlçe"
           />
         </label>
@@ -159,6 +182,8 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
           onChange={(no) => onChange({ ...deger, no })}
         />
       </div>
-    </TanimFormBolum>
   );
+
+  if (bolumsuz) return icerik;
+  return <TanimFormBolum baslik="Adres">{icerik}</TanimFormBolum>;
 }

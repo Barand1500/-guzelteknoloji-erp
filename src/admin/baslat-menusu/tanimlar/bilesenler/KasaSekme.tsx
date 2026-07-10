@@ -7,23 +7,30 @@ import {
   subeleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
-import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
-import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
+import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
+import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
-import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import {
+  TanimDurumRozeti,
+  TanimKayitTablosu,
+} from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
+import { TanimListeEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimListeEkrani';
+import { TanimSihirbaz } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSihirbaz';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { adGecerliMi, kodGecerliMi } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
+import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import {
   bosKasaForm,
   PARA_BIRIMLERI,
   type AdminKasa,
   type AdminSube,
   type KasaFormDegeri,
+  type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
+import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
-import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 
@@ -32,6 +39,16 @@ function kasaFormDogrula(form: KasaFormDegeri): string | null {
   if (!kodGecerliMi(form.kasaKodu)) return 'Kasa kodu zorunludur (en fazla 20 harf/rakam)';
   if (!adGecerliMi(form.kasaAdi)) return 'Kasa adı zorunludur';
   if (!form.paraBirimi.trim()) return 'Para birimi zorunludur';
+  return null;
+}
+
+function kasaAdimDogrula(adim: number, form: KasaFormDegeri): string | null {
+  if (adim === 0) {
+    if (!form.subeId) return 'Şube seçimi zorunludur';
+    if (!kodGecerliMi(form.kasaKodu)) return 'Kasa kodu zorunludur';
+    if (!adGecerliMi(form.kasaAdi)) return 'Kasa adı zorunludur';
+    if (!form.paraBirimi.trim()) return 'Para birimi zorunludur';
+  }
   return null;
 }
 
@@ -49,7 +66,11 @@ function formlarEsit(a: KasaFormDegeri, b: KasaFormDegeri): boolean {
   return (Object.keys(a) as (keyof KasaFormDegeri)[]).every((k) => a[k] === b[k]);
 }
 
-export function KasaSekme() {
+export function KasaSekme({
+  gomuluDuzenle,
+}: {
+  gomuluDuzenle?: { id: string; onKapat: () => void };
+} = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
@@ -57,10 +78,12 @@ export function KasaSekme() {
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
   const [form, setForm] = useState<KasaFormDegeri>(bosKasaForm);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
+  const [sihirbazAdim, setSihirbazAdim] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
+  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
 
   async function yukle() {
     setYukleniyor(true);
@@ -86,12 +109,25 @@ export function KasaSekme() {
 
   const aktifSubeler = useMemo(() => subeler.filter((s) => s.aktif), [subeler]);
 
+  const listeyeDon = useCallback(() => {
+    if (gomuluDuzenle) {
+      gomuluDuzenle.onKapat();
+      return;
+    }
+    setGorunum('liste');
+    setSeciliId(null);
+    setForm(bosKasaForm);
+    setSihirbazAdim(0);
+  }, [gomuluDuzenle]);
+
   const yeniBaslat = useCallback(() => {
     setSeciliId(null);
     setForm({
       ...bosKasaForm,
       subeId: subeFiltre || aktifSubeler[0]?.id || '',
     });
+    setSihirbazAdim(0);
+    setGorunum('ekle');
   }, [subeFiltre, aktifSubeler]);
 
   const seciliKayit = useMemo(
@@ -100,9 +136,14 @@ export function KasaSekme() {
   );
 
   const kirli = useMemo(() => {
-    if (seciliKayit) return !formlarEsit(form, kasadanForm(seciliKayit));
-    return form.kasaKodu.trim() !== '' || form.kasaAdi.trim() !== '';
-  }, [seciliKayit, form]);
+    if (gorunum === 'duzenle' && seciliKayit) {
+      return !formlarEsit(form, kasadanForm(seciliKayit));
+    }
+    if (gorunum === 'ekle') {
+      return form.kasaKodu.trim() !== '' || form.kasaAdi.trim() !== '';
+    }
+    return false;
+  }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
     const dogrulama = kasaFormDogrula(form);
@@ -113,7 +154,7 @@ export function KasaSekme() {
     const hedef = `«${form.kasaAdi.trim()}» (${form.kasaKodu.trim()}) kasasını`;
     setKaydediliyor(true);
     try {
-      if (seciliId) {
+      if (gorunum === 'duzenle' && seciliId) {
         await kasaGuncelle(seciliId, form);
         logMesajiAyarla(logMesaj.guncelledi('Tanımlar — Kasa', hedef));
         basariBildir('Kasa güncellendi.');
@@ -122,18 +163,18 @@ export function KasaSekme() {
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Kasa', hedef));
         basariBildir('Kasa eklendi.');
       }
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, seciliId, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
   const sil = useCallback(() => {
-    if (seciliId) setSilModalAcik(true);
-  }, [seciliId]);
+    if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
+  }, [gorunum, seciliId]);
 
   const silOnayla = useCallback(async () => {
     if (!seciliId) return;
@@ -148,113 +189,204 @@ export function KasaSekme() {
         );
       }
       basariBildir('Kasa silindi.');
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [seciliId, seciliKayit, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+
+  useEffect(() => {
+    if (!gomuluDuzenle || !seciliKayit) return;
+    setForm(kasadanForm(seciliKayit));
+  }, [gomuluDuzenle, seciliKayit]);
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
-    { kaydet: !kaydediliyor, ekle: true, sil: !!seciliId && !kaydediliyor },
+    {
+      kaydet: gorunum === 'duzenle' && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle,
+      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+    },
     kirli
   );
 
-  if (yukleniyor) {
-    return <TanimYukleniyor />;
+  const subeFiltreAlani = (
+    <label className="ap-tanimlar-liste-filtre-alan">
+      <span>Şube</span>
+      <FormAcilirSecim
+        value={subeFiltre}
+        onChange={setSubeFiltre}
+        secenekler={[
+          { value: '', label: 'Tümü' },
+          ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
+        ]}
+      />
+    </label>
+  );
+
+  const temelAlanlar = (
+    <>
+      <label className="ap-tanimlar-secim-alan block">
+        <span className="ap-tanim-girdi-etiket">Şube *</span>
+        <FormAcilirSecim
+          value={form.subeId}
+          onChange={(subeId) => setForm({ ...form, subeId })}
+          secenekler={aktifSubeler.map((s) => ({
+            value: s.id,
+            label: `${s.subeKodu} — ${s.subeAdi}`,
+          }))}
+        />
+      </label>
+      <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+        <TanimGirdi
+          etiket="Kasa Kodu"
+          deger={form.kasaKodu}
+          kural="kod"
+          zorunlu
+          onChange={(kasaKodu) => setForm({ ...form, kasaKodu })}
+        />
+        <TanimGirdi
+          etiket="Kasa Adı"
+          deger={form.kasaAdi}
+          kural="ad"
+          zorunlu
+          onChange={(kasaAdi) => setForm({ ...form, kasaAdi })}
+        />
+      </div>
+      <label className="ap-tanimlar-secim-alan block">
+        <span className="ap-tanim-girdi-etiket">Para Birimi *</span>
+        <FormAcilirSecim
+          value={form.paraBirimi}
+          onChange={(paraBirimi) => setForm({ ...form, paraBirimi })}
+          secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
+        />
+      </label>
+    </>
+  );
+
+  if (yukleniyor) return <TanimYukleniyor />;
+
+  if (gorunum === 'ekle' && !gomuluDuzenle) {
+    return (
+      <>
+        <TanimSihirbaz
+          baslik="Yeni Kasa Kurulumu"
+          aktifAdim={sihirbazAdim}
+          onAdimDegistir={setSihirbazAdim}
+          onIptal={listeyeDon}
+          onTamamla={() => void kaydet()}
+          adimDogrula={(adim) => kasaAdimDogrula(adim, form)}
+          onHata={hataBildir}
+          tamamlaniyor={kaydediliyor}
+          adimlar={[
+            {
+              baslik: 'Temel Bilgiler',
+              aciklama: 'Şube, kasa kodu, adı ve para birimini girin',
+              icerik: temelAlanlar,
+            },
+            {
+              baslik: 'Durum',
+              aciklama: 'Kasanın aktif/pasif durumunu belirleyin',
+              icerik: (
+                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+              ),
+            },
+          ]}
+        />
+        <SilmeOnayModal
+          acik={silModalAcik}
+          onKapat={() => setSilModalAcik(false)}
+          onOnayla={() => void silOnayla()}
+          baslik="Bu kasayı silmek istiyor musunuz?"
+          hedefMetin=""
+          ariaLabel="Kasa silme onayı"
+        />
+      </>
+    );
+  }
+
+  if (gorunum === 'duzenle' || gomuluDuzenle) {
+    if (!seciliKayit) return <TanimYukleniyor />;
+    return (
+      <>
+        <TanimDuzenleEkrani
+          baslik={`${seciliKayit.kasaAdi} (${seciliKayit.kasaKodu})`}
+          altBaslik="Kasa bilgilerini güncelleyin"
+          olusturma={seciliKayit.olusturma}
+          guncelleme={seciliKayit.guncelleme}
+          onGeri={listeyeDon}
+        >
+          <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimDuzenleEkrani>
+        <SilmeOnayModal
+          acik={silModalAcik}
+          onKapat={() => setSilModalAcik(false)}
+          onOnayla={() => void silOnayla()}
+          baslik="Bu kasayı silmek istiyor musunuz?"
+          hedefMetin={`${seciliKayit.kasaAdi} (${seciliKayit.kasaKodu})`}
+          ariaLabel="Kasa silme onayı"
+        />
+      </>
+    );
   }
 
   return (
-    <div className="ap-tanimlar-sekme-icerik">
-      <TanimCalismaAlani>
-        <TanimKayitListesi
+    <>
+      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Kasa">
+        <TanimKayitTablosu
           baslik="Kasalar"
           kayitlar={filtrelenmisKayitlar}
-          seciliId={seciliId}
-          kodAlani={(k) => k.kasaKodu}
-          adAlani={(k) => k.kasaAdi}
-          pasifAlani={(k) => subeBagliPasifMi(k.aktif, k.subeId)}
-          altMetin={(k) => {
-            const sube = k.subeKodu && k.subeAdi ? `${k.subeKodu} — ${k.subeAdi}` : '';
-            return [sube, k.paraBirimi].filter(Boolean).join(' · ') || undefined;
-          }}
-          listeFiltresi={
-            <label className="ap-tanimlar-liste-filtre-alan">
-              <span>Şube</span>
-              <FormAcilirSecim
-                value={subeFiltre}
-                onChange={setSubeFiltre}
-                secenekler={[
-                  { value: '', label: 'Tümü' },
-                  ...subeler.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` })),
-                ]}
-              />
-            </label>
+          filtre={subeFiltreAlani}
+          aramaMetni={(k) =>
+            `${k.kasaKodu} ${k.kasaAdi} ${k.subeKodu ?? ''} ${k.subeAdi ?? ''} ${k.paraBirimi}`
           }
-          onSec={(k) => {
+          pasifMi={(k) => subeBagliPasifMi(k.aktif, k.subeId)}
+          onSatirTikla={(k) => {
             setSeciliId(k.id);
             setForm(kasadanForm(k));
+            setGorunum('duzenle');
           }}
+          kolonlar={[
+            {
+              id: 'kod',
+              baslik: 'Kod',
+              sinif: 'ap-tanimlar-tablo-kod',
+              hucre: (k) => <span className="ap-tanimlar-tablo-kod">{k.kasaKodu}</span>,
+            },
+            { id: 'ad', baslik: 'Kasa Adı', hucre: (k) => k.kasaAdi },
+            {
+              id: 'sube',
+              baslik: 'Şube',
+              hucre: (k) =>
+                k.subeKodu && k.subeAdi ? `${k.subeKodu} — ${k.subeAdi}` : '—',
+            },
+            { id: 'para', baslik: 'Para Birimi', hucre: (k) => k.paraBirimi },
+            {
+              id: 'durum',
+              baslik: 'Durum',
+              hucre: (k) => <TanimDurumRozeti aktif={k.aktif} />,
+            },
+            {
+              id: 'guncelleme',
+              baslik: 'Güncelleme',
+              sinif: 'ap-tanimlar-tablo-tarih',
+              hucre: (k) => tarihSaatFormatla(k.guncelleme),
+            },
+          ]}
         />
-        <TanimFormPanel
-          baslik={seciliId ? 'Kasa Düzenle' : 'Yeni Kasa'}
-          altBaslik="Kasa kodu, adı ve para birimi"
-          duzenleme={!!seciliId}
-          olusturma={seciliKayit?.olusturma}
-          guncelleme={seciliKayit?.guncelleme}
-        >
-          <label className="ap-tanimlar-secim-alan block">
-            <span className="ap-tanim-girdi-etiket">Şube *</span>
-            <FormAcilirSecim
-              value={form.subeId}
-              onChange={(subeId) => setForm({ ...form, subeId })}
-              secenekler={aktifSubeler.map((s) => ({
-                value: s.id,
-                label: `${s.subeKodu} — ${s.subeAdi}`,
-              }))}
-            />
-          </label>
-          <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-            <TanimGirdi
-              etiket="Kasa Kodu"
-              deger={form.kasaKodu}
-              kural="kod"
-              zorunlu
-              onChange={(kasaKodu) => setForm({ ...form, kasaKodu })}
-            />
-            <TanimGirdi
-              etiket="Kasa Adı"
-              deger={form.kasaAdi}
-              kural="ad"
-              zorunlu
-              onChange={(kasaAdi) => setForm({ ...form, kasaAdi })}
-            />
-          </div>
-          <label className="ap-tanimlar-secim-alan block">
-            <span className="ap-tanim-girdi-etiket">Para Birimi *</span>
-            <FormAcilirSecim
-              value={form.paraBirimi}
-              onChange={(paraBirimi) => setForm({ ...form, paraBirimi })}
-              secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
-            />
-          </label>
-          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-        </TanimFormPanel>
-      </TanimCalismaAlani>
-
+      </TanimListeEkrani>
       <SilmeOnayModal
         acik={silModalAcik}
         onKapat={() => setSilModalAcik(false)}
         onOnayla={() => void silOnayla()}
         baslik="Bu kasayı silmek istiyor musunuz?"
-        hedefMetin={
-          seciliKayit ? `${seciliKayit.kasaAdi} (${seciliKayit.kasaKodu})` : 'Seçili kasa'
-        }
+        hedefMetin={seciliKayit ? `${seciliKayit.kasaAdi} (${seciliKayit.kasaKodu})` : ''}
         ariaLabel="Kasa silme onayı"
       />
-    </div>
+    </>
   );
 }

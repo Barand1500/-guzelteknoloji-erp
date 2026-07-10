@@ -18,6 +18,16 @@ import type {
 
 const TABAN = '/tanimlar';
 
+export type TanimSilModu = 'hepsi' | 'pasif';
+
+function tanimSilIstegi(idYolu: string, mod?: TanimSilModu) {
+  return adminJsonFetch(idYolu, {
+    method: 'DELETE',
+    headers: adminHeaders(),
+    body: mod ? JSON.stringify({ mod }) : undefined,
+  });
+}
+
 /** Yeni firma ile birlikte MERKEZ şube ve MERKEZ depo oluşturur (yoksa). */
 async function merkezKayitlariOlustur(firmaId: string): Promise<void> {
   const subeler = await subeleriGetir();
@@ -69,8 +79,8 @@ export async function firmaGuncelle(id: string, form: FirmaFormDegeri): Promise<
   return veri.firma;
 }
 
-export async function firmaSil(id: string): Promise<void> {
-  await adminJsonFetch(`${TABAN}/firmalar/${id}`, { method: 'DELETE', headers: adminHeaders() });
+export async function firmaSil(id: string, mod?: TanimSilModu): Promise<void> {
+  await tanimSilIstegi(`${TABAN}/firmalar/${id}`, mod);
 }
 
 // ——— Dönem ———
@@ -131,8 +141,8 @@ export async function subeGuncelle(id: string, form: SubeFormDegeri): Promise<Ad
   return veri.sube;
 }
 
-export async function subeSil(id: string): Promise<void> {
-  await adminJsonFetch(`${TABAN}/subeler/${id}`, { method: 'DELETE', headers: adminHeaders() });
+export async function subeSil(id: string, mod?: TanimSilModu): Promise<void> {
+  await tanimSilIstegi(`${TABAN}/subeler/${id}`, mod);
 }
 
 // ——— Depo ———

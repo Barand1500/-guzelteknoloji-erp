@@ -181,13 +181,20 @@ export function offlineTanimlarGetir(path: string): unknown {
 
 export function offlineTanimlarYaz(path: string, method: string, body?: BodyInit | null): unknown {
   const kaynak = kaynakBul(path);
-  if (!kaynak || typeof body !== 'string') return { mesaj: 'Kayit (offline mod)' };
+  if (!kaynak) return { mesaj: 'Kayit (offline mod)' };
+
+  const idParca = path.split('/').pop();
+  const id = idParca && /^\d+$/.test(idParca) ? idParca : null;
+
+  if (method === 'DELETE' && id) {
+    return offlineTanimSil(kaynak, id, body);
+  }
+
+  if (typeof body !== 'string') return { mesaj: 'Kayit (offline mod)' };
 
   const veri = tanimlarOku();
   const simdi = simdiIso();
   const tekil = tekilAnahtar(kaynak);
-  const idParca = path.split('/').pop();
-  const id = idParca && /^\d+$/.test(idParca) ? idParca : null;
 
   if (method === 'POST') {
     const girdi = JSON.parse(body) as unknown;
@@ -431,54 +438,126 @@ export function offlineTanimlarYaz(path: string, method: string, body?: BodyInit
     }
   }
 
-  if (method === 'DELETE' && id) {
-    if (kaynak === 'firmalar') {
-      const yeni = veri.firmalar.filter((k) => k.id !== id);
-      if (yeni.length === veri.firmalar.length) return { mesaj: `${tekil} bulunamadi` };
-      if (veri.donemler.length + veri.subeler.length > 0) {
-        return { mesaj: 'Bagli donem veya sube varken firma silinemez' };
-      }
-      veri.firmalar = yeni;
+  return { mesaj: 'Kayit (offline mod)' };
+}
+
+type OfflineTanimKaynak = 'firmalar' | 'donemler' | 'subeler' | 'depolar' | 'kasalar';
+type TanimSilModu = 'hepsi' | 'pasif';
+
+function silModuOku(body?: BodyInit | null): TanimSilModu | null {
+  if (typeof body !== 'string' || !body.trim()) return null;
+  try {
+    const parsed = JSON.parse(body) as { mod?: TanimSilModu };
+    return parsed.mod === 'pasif' || parsed.mod === 'hepsi' ? parsed.mod : null;
+  } catch {
+    return null;
+  }
+}
+
+function offlineTanimSil(kaynak: OfflineTanimKaynak, id: string, body?: BodyInit | null): unknown {
+  const veri = tanimlarOku();
+  const simdi = simdiIso();
+  const tekil = tekilAnahtar(kaynak);
+  const mod = silModuOku(body);
+
+  if (kaynak === 'firmalar') {
+    const firma = veri.firmalar.find((k) => k.id === id);
+    if (!firma) return { mesaj: `${tekil} bulunamadi` };
+
+    const subeIdleri = veri.subeler.filter((s) => s.firmaId === id).map((s) => s.id);
+    const bagliVar =
+      subeIdleri.length > 0 || veri.donemler.some((d) => d.firmaId === id);
+
+    if (mod === 'pasif') {
+      veri.firmalar = veri.firmalar.map((k) =>
+        k.id === id ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
+      veri.subeler = veri.subeler.map((k) =>
+        k.firmaId === id ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
+      veri.donemler = veri.donemler.map((k) =>
+        k.firmaId === id ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
+      const subeSet = new Set(subeIdleri);
+      veri.depolar = veri.depolar.map((k) =>
+        subeSet.has(k.subeId) ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
+      veri.kasalar = veri.kasalar.map((k) =>
+        subeSet.has(k.subeId) ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
       tanimlarKaydet(veri);
-      return { mesaj: 'Silindi' };
+      return { mesaj: 'Pasif yapildi' };
     }
 
-    if (kaynak === 'donemler') {
-      const yeni = veri.donemler.filter((k) => k.id !== id);
-      if (yeni.length === veri.donemler.length) return { mesaj: `${tekil} bulunamadi` };
-      veri.donemler = yeni;
-      tanimlarKaydet(veri);
-      return { mesaj: 'Silindi' };
+    if (bagliVar && mod !== 'hepsi') {
+      return { mesaj: 'Bagli donem veya sube varken firma silinemez' };
     }
 
-    if (kaynak === 'subeler') {
-      const bagliDepo = veri.depolar.some((d) => d.subeId === id);
-      const bagliKasa = veri.kasalar.some((k) => k.subeId === id);
-      if (bagliDepo || bagliKasa) {
-        return { mesaj: 'Bagli depo veya kasa varken sube silinemez' };
-      }
-      const yeni = veri.subeler.filter((k) => k.id !== id);
-      if (yeni.length === veri.subeler.length) return { mesaj: `${tekil} bulunamadi` };
-      veri.subeler = yeni;
+    const subeSet = new Set(subeIdleri);
+    veri.firmalar = veri.firmalar.filter((k) => k.id !== id);
+    veri.subeler = veri.subeler.filter((s) => s.firmaId !== id);
+    veri.donemler = veri.donemler.filter((d) => d.firmaId !== id);
+    veri.depolar = veri.depolar.filter((d) => !subeSet.has(d.subeId));
+    veri.kasalar = veri.kasalar.filter((k) => !subeSet.has(k.subeId));
+    tanimlarKaydet(veri);
+    return { mesaj: 'Silindi' };
+  }
+
+  if (kaynak === 'subeler') {
+    const sube = veri.subeler.find((k) => k.id === id);
+    if (!sube) return { mesaj: `${tekil} bulunamadi` };
+
+    const bagliDepo = veri.depolar.some((d) => d.subeId === id);
+    const bagliKasa = veri.kasalar.some((k) => k.subeId === id);
+    const bagliVar = bagliDepo || bagliKasa;
+
+    if (mod === 'pasif') {
+      veri.subeler = veri.subeler.map((k) =>
+        k.id === id ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
+      veri.depolar = veri.depolar.map((k) =>
+        k.subeId === id ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
+      veri.kasalar = veri.kasalar.map((k) =>
+        k.subeId === id ? { ...k, aktif: false, guncelleme: simdi } : k
+      );
       tanimlarKaydet(veri);
-      return { mesaj: 'Silindi' };
+      return { mesaj: 'Pasif yapildi' };
     }
 
-    if (kaynak === 'depolar') {
-      const yeni = veri.depolar.filter((k) => k.id !== id);
-      if (yeni.length === veri.depolar.length) return { mesaj: `${tekil} bulunamadi` };
-      veri.depolar = yeni;
-      tanimlarKaydet(veri);
-      return { mesaj: 'Silindi' };
+    if (bagliVar && mod !== 'hepsi') {
+      return { mesaj: 'Bagli depo veya kasa varken sube silinemez' };
     }
 
-    if (kaynak === 'kasalar') {
-      const yeni = veri.kasalar.filter((k) => k.id !== id);
-      if (yeni.length === veri.kasalar.length) return { mesaj: `${tekil} bulunamadi` };
-      veri.kasalar = yeni;
-      tanimlarKaydet(veri);
-      return { mesaj: 'Silindi' };
-    }
+    veri.subeler = veri.subeler.filter((k) => k.id !== id);
+    veri.depolar = veri.depolar.filter((d) => d.subeId !== id);
+    veri.kasalar = veri.kasalar.filter((k) => k.subeId !== id);
+    tanimlarKaydet(veri);
+    return { mesaj: 'Silindi' };
+  }
+
+  if (kaynak === 'donemler') {
+    const yeni = veri.donemler.filter((k) => k.id !== id);
+    if (yeni.length === veri.donemler.length) return { mesaj: `${tekil} bulunamadi` };
+    veri.donemler = yeni;
+    tanimlarKaydet(veri);
+    return { mesaj: 'Silindi' };
+  }
+
+  if (kaynak === 'depolar') {
+    const yeni = veri.depolar.filter((k) => k.id !== id);
+    if (yeni.length === veri.depolar.length) return { mesaj: `${tekil} bulunamadi` };
+    veri.depolar = yeni;
+    tanimlarKaydet(veri);
+    return { mesaj: 'Silindi' };
+  }
+
+  if (kaynak === 'kasalar') {
+    const yeni = veri.kasalar.filter((k) => k.id !== id);
+    if (yeni.length === veri.kasalar.length) return { mesaj: `${tekil} bulunamadi` };
+    veri.kasalar = yeni;
+    tanimlarKaydet(veri);
+    return { mesaj: 'Silindi' };
   }
 
   return { mesaj: 'Kayit (offline mod)' };

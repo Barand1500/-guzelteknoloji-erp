@@ -209,6 +209,16 @@ export async function turkiyeMahalleAra(il: string, ilce: string, arama: string)
   return sonuc;
 }
 
+/** İl kayıtlı mı (önbellekte tam eşleşme) */
+export function turkiyeIlKayitliMi(il: string): boolean {
+  return !!ilKaydiBul(il);
+}
+
+/** Önbellekteki kanonik il adını döndürür */
+export function turkiyeIlAdiniDuzelt(il: string): string {
+  return ilKaydiBul(il)?.name ?? il;
+}
+
 /** İl seçildiğinde ilçe listesini önceden yükler */
 export async function turkiyeIlceOnbellekYukle(il: string): Promise<void> {
   if (!il.trim()) return;

@@ -11,19 +11,25 @@ import {
   firmalariGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
-import { TanimCalismaAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimCalismaAlani';
+import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
-import { TanimFormPanel } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormPanel';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
-import { TanimKayitListesi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitListesi';
+import {
+  TanimDurumRozeti,
+  TanimKayitTablosu,
+} from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
+import { TanimListeEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimListeEkrani';
+import { TanimSihirbaz } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSihirbaz';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { VergiDairesiSecici } from '@/admin/baslat-menusu/tanimlar/bilesenler/VergiDairesiSecici';
 import {
   bosFirmaForm,
   type AdminFirma,
   type FirmaFormDegeri,
+  type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
+import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
@@ -45,15 +51,32 @@ function firmaFormDogrula(form: FirmaFormDegeri): string | null {
   return null;
 }
 
-export function FirmaSekme() {
+function firmaAdimDogrula(adim: number, form: FirmaFormDegeri): string | null {
+  if (adim === 0) {
+    if (!kodGecerliMi(form.firmaKodu)) return 'Firma kodu zorunludur';
+    if (!adGecerliMi(form.firmaAdi, 255)) return 'Firma adı zorunludur';
+  }
+  if (adim === 1 && !vergiNoGecerliMi(form.vergiNo)) {
+    return 'Vergi no 10 haneli olmalıdır';
+  }
+  return null;
+}
+
+export function FirmaSekme({
+  gomuluDuzenle,
+}: {
+  gomuluDuzenle?: { id: string; onKapat: () => void };
+} = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const [kayitlar, setKayitlar] = useState<AdminFirma[]>([]);
   const [form, setForm] = useState<FirmaFormDegeri>(bosFirmaForm);
-  const [seciliId, setSeciliId] = useState<string | null>(null);
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
+  const [sihirbazAdim, setSihirbazAdim] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
+  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
 
   async function yukle() {
     setYukleniyor(true);
@@ -70,9 +93,22 @@ export function FirmaSekme() {
     void yukle();
   }, []);
 
+  const listeyeDon = useCallback(() => {
+    if (gomuluDuzenle) {
+      gomuluDuzenle.onKapat();
+      return;
+    }
+    setGorunum('liste');
+    setSeciliId(null);
+    setForm(bosFirmaForm);
+    setSihirbazAdim(0);
+  }, [gomuluDuzenle]);
+
   const yeniBaslat = useCallback(() => {
     setSeciliId(null);
     setForm(bosFirmaForm);
+    setSihirbazAdim(0);
+    setGorunum('ekle');
   }, []);
 
   const seciliKayit = useMemo(
@@ -81,7 +117,7 @@ export function FirmaSekme() {
   );
 
   const kirli = useMemo(() => {
-    if (seciliKayit) {
+    if (gorunum === 'duzenle' && seciliKayit) {
       const k = firmadanForm(seciliKayit);
       return (
         form.firmaKodu !== k.firmaKodu ||
@@ -91,8 +127,11 @@ export function FirmaSekme() {
         form.aktif !== k.aktif
       );
     }
-    return form.firmaKodu.trim() !== '' || form.firmaAdi.trim() !== '';
-  }, [seciliKayit, form]);
+    if (gorunum === 'ekle') {
+      return form.firmaKodu.trim() !== '' || form.firmaAdi.trim() !== '';
+    }
+    return false;
+  }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
     const hata = firmaFormDogrula(form);
@@ -103,7 +142,7 @@ export function FirmaSekme() {
     const hedef = `«${form.firmaAdi.trim()}» (${form.firmaKodu.trim()}) firmasını`;
     setKaydediliyor(true);
     try {
-      if (seciliId) {
+      if (gorunum === 'duzenle' && seciliId) {
         await firmaGuncelle(seciliId, form);
         logMesajiAyarla(logMesaj.guncelledi('Tanımlar — Firma', hedef));
         basariBildir('Firma güncellendi.');
@@ -112,18 +151,18 @@ export function FirmaSekme() {
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Firma', hedef));
         basariBildir('Firma eklendi. MERKEZ şube ve depo oluşturuldu.');
       }
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, seciliId, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
   const sil = useCallback(() => {
-    if (seciliId) setSilModalAcik(true);
-  }, [seciliId]);
+    if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
+  }, [gorunum, seciliId]);
 
   const silOnayla = useCallback(async () => {
     if (!seciliId) return;
@@ -138,93 +177,182 @@ export function FirmaSekme() {
         );
       }
       basariBildir('Firma silindi.');
-      yeniBaslat();
-      await yukle();
+      listeyeDon();
+      if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
     } finally {
       setKaydediliyor(false);
     }
-  }, [seciliId, seciliKayit, yeniBaslat, logMesajiAyarla, basariBildir, hataBildir]);
+  }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+
+  useEffect(() => {
+    if (!gomuluDuzenle || !seciliKayit) return;
+    setForm(firmadanForm(seciliKayit));
+  }, [gomuluDuzenle, seciliKayit]);
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
-    { kaydet: !kaydediliyor, ekle: true, sil: !!seciliId && !kaydediliyor },
+    {
+      kaydet: gorunum === 'duzenle' && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle,
+      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+    },
     kirli
   );
 
-  if (yukleniyor) {
-    return <TanimYukleniyor />;
+  const temelAlanlar = (
+    <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+      <TanimGirdi
+        etiket="Firma Kodu"
+        deger={form.firmaKodu}
+        kural="kod"
+        zorunlu
+        onChange={(firmaKodu) => setForm({ ...form, firmaKodu })}
+      />
+      <TanimGirdi
+        etiket="Firma Adı"
+        deger={form.firmaAdi}
+        kural="serbestMetin"
+        maxLength={255}
+        zorunlu
+        onChange={(firmaAdi) => setForm({ ...form, firmaAdi })}
+      />
+    </div>
+  );
+
+  const vergiAlanlar = (
+    <>
+      <VergiDairesiSecici
+        deger={form.vergiDairesi}
+        onChange={(vergiDairesi) => setForm({ ...form, vergiDairesi })}
+      />
+      <TanimGirdi
+        etiket="Vergi No"
+        deger={form.vergiNo}
+        kural="vergiNo"
+        onChange={(vergiNo) => setForm({ ...form, vergiNo })}
+      />
+    </>
+  );
+
+  if (yukleniyor) return <TanimYukleniyor />;
+
+  if (gorunum === 'ekle' && !gomuluDuzenle) {
+    return (
+      <>
+        <TanimSihirbaz
+          baslik="Yeni Firma Kurulumu"
+          aktifAdim={sihirbazAdim}
+          onAdimDegistir={setSihirbazAdim}
+          onIptal={listeyeDon}
+          onTamamla={() => void kaydet()}
+          adimDogrula={(adim) => firmaAdimDogrula(adim, form)}
+          onHata={hataBildir}
+          tamamlaniyor={kaydediliyor}
+          adimlar={[
+            {
+              baslik: 'Temel Bilgiler',
+              aciklama: 'Firma kodu ve unvanını girin',
+              icerik: temelAlanlar,
+            },
+            {
+              baslik: 'Vergi Bilgileri',
+              aciklama: 'Vergi dairesi ve numarasını girin',
+              icerik: vergiAlanlar,
+            },
+            {
+              baslik: 'Durum',
+              aciklama: 'Firmanın aktif/pasif durumunu belirleyin',
+              icerik: (
+                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+              ),
+            },
+          ]}
+        />
+        <SilmeOnayModal
+          acik={silModalAcik}
+          onKapat={() => setSilModalAcik(false)}
+          onOnayla={() => void silOnayla()}
+          baslik="Bu firmayı silmek istiyor musunuz?"
+          hedefMetin=""
+          ariaLabel="Firma silme onayı"
+        />
+      </>
+    );
+  }
+
+  if (gorunum === 'duzenle' || gomuluDuzenle) {
+    if (!seciliKayit) return <TanimYukleniyor />;
+    return (
+      <>
+        <TanimDuzenleEkrani
+          baslik={`${seciliKayit.firmaAdi} (${seciliKayit.firmaKodu})`}
+          altBaslik="Firma bilgilerini güncelleyin"
+          olusturma={seciliKayit.olusturma}
+          guncelleme={seciliKayit.guncelleme}
+          onGeri={listeyeDon}
+        >
+          <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
+          <TanimFormBolum baslik="Vergi Bilgileri">{vergiAlanlar}</TanimFormBolum>
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+        </TanimDuzenleEkrani>
+        <SilmeOnayModal
+          acik={silModalAcik}
+          onKapat={() => setSilModalAcik(false)}
+          onOnayla={() => void silOnayla()}
+          baslik="Bu firmayı silmek istiyor musunuz?"
+          hedefMetin={`${seciliKayit.firmaAdi} (${seciliKayit.firmaKodu})`}
+          ariaLabel="Firma silme onayı"
+        />
+      </>
+    );
   }
 
   return (
-    <div className="ap-tanimlar-sekme-icerik">
-      <TanimCalismaAlani>
-        <TanimKayitListesi
+    <>
+      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Firma">
+        <TanimKayitTablosu
           baslik="Firmalar"
           kayitlar={kayitlar}
-          seciliId={seciliId}
-          kodAlani={(k) => k.firmaKodu}
-          adAlani={(k) => k.firmaAdi}
-          pasifAlani={(k) => !k.aktif}
-          onSec={(k) => {
+          aramaMetni={(k) => `${k.firmaKodu} ${k.firmaAdi} ${k.vergiNo}`}
+          pasifMi={(k) => !k.aktif}
+          onSatirTikla={(k) => {
             setSeciliId(k.id);
             setForm(firmadanForm(k));
+            setGorunum('duzenle');
           }}
+          kolonlar={[
+            {
+              id: 'kod',
+              baslik: 'Kod',
+              sinif: 'ap-tanimlar-tablo-kod',
+              hucre: (k) => <span className="ap-tanimlar-tablo-kod">{k.firmaKodu}</span>,
+            },
+            { id: 'ad', baslik: 'Firma Adı', hucre: (k) => k.firmaAdi },
+            { id: 'vergi', baslik: 'Vergi No', hucre: (k) => k.vergiNo || '—' },
+            {
+              id: 'durum',
+              baslik: 'Durum',
+              hucre: (k) => <TanimDurumRozeti aktif={k.aktif} />,
+            },
+            {
+              id: 'guncelleme',
+              baslik: 'Güncelleme',
+              sinif: 'ap-tanimlar-tablo-tarih',
+              hucre: (k) => tarihSaatFormatla(k.guncelleme),
+            },
+          ]}
         />
-        <TanimFormPanel
-          baslik={seciliId ? 'Firma Düzenle' : 'Yeni Firma'}
-          duzenleme={!!seciliId}
-          olusturma={seciliKayit?.olusturma}
-          guncelleme={seciliKayit?.guncelleme}
-        >
-          <TanimFormBolum baslik="Temel Bilgiler">
-            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-              <TanimGirdi
-                etiket="Firma Kodu"
-                deger={form.firmaKodu}
-                kural="kod"
-                zorunlu
-                onChange={(firmaKodu) => setForm({ ...form, firmaKodu })}
-              />
-              <TanimGirdi
-                etiket="Firma Adı"
-                deger={form.firmaAdi}
-                kural="serbestMetin"
-                maxLength={255}
-                zorunlu
-                onChange={(firmaAdi) => setForm({ ...form, firmaAdi })}
-              />
-            </div>
-          </TanimFormBolum>
-
-          <TanimFormBolum baslik="Vergi Bilgileri">
-            <VergiDairesiSecici
-              deger={form.vergiDairesi}
-              onChange={(vergiDairesi) => setForm({ ...form, vergiDairesi })}
-            />
-            <TanimGirdi
-              etiket="Vergi No"
-              deger={form.vergiNo}
-              kural="vergiNo"
-              onChange={(vergiNo) => setForm({ ...form, vergiNo })}
-            />
-          </TanimFormBolum>
-
-          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
-        </TanimFormPanel>
-      </TanimCalismaAlani>
-
+      </TanimListeEkrani>
       <SilmeOnayModal
         acik={silModalAcik}
         onKapat={() => setSilModalAcik(false)}
         onOnayla={() => void silOnayla()}
         baslik="Bu firmayı silmek istiyor musunuz?"
-        hedefMetin={
-          seciliKayit ? `${seciliKayit.firmaAdi} (${seciliKayit.firmaKodu})` : 'Seçili firma'
-        }
+        hedefMetin={seciliKayit ? `${seciliKayit.firmaAdi} (${seciliKayit.firmaKodu})` : ''}
         ariaLabel="Firma silme onayı"
       />
-    </div>
+    </>
   );
 }
