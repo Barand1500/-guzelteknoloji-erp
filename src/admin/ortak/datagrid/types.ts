@@ -140,4 +140,8 @@ export interface DataGridProps<TRow extends { id: string }> {
   hizliGirisIstegeBagli?: boolean;
   /** true ise tanımlı olmayan veri kolonları için varsayılan metin kutusu gösterilir */
   hizliGirisVarsayilanAlan?: boolean;
+  /** false ise üst araç çubuğundaki sayı formülleri (ƒx) gizlenir */
+  formulMenuGoster?: boolean;
+  /** 'cubuk' modunda satır düzenle paneli aksiyon çubuğunun üstünden açılır */
+  satirPanelModu?: 'sheet' | 'cubuk';
 }

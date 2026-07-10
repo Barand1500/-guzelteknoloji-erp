@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { RolKartlari, RolMatrisi, rolSilinebilirMi } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolBilesenleri';
 import { RolDuzenleModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolDuzenleModal';
 import { RolEkleModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolEkleModal';
-import { RolSilModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolSilModal';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useAuth } from '@/baglamlar/AuthContext';
 import { useKaydedilmemisBildirim } from '@/baglamlar/AdminUyariBildirimContext';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
@@ -135,6 +135,7 @@ export function RollerSayfasi() {
     if (!seciliRolKod) return;
     setTaslakRoller((onceki) => onceki.filter((r) => r.kod !== seciliRolKod));
     setSeciliRolKod(null);
+    setSilModalAcik(false);
   }, [seciliRolKod]);
 
   const kaydet = useCallback(async () => {
@@ -232,11 +233,15 @@ export function RollerSayfasi() {
         onKapat={() => setDuzenleRol(null)}
         onKaydet={rolDuzenle}
       />
-      <RolSilModal
+      <SilmeOnayModal
         acik={silModalAcik}
-        rol={seciliRol}
         onKapat={() => setSilModalAcik(false)}
         onOnayla={rolSilOnayla}
+        baslik="Bu rolü silmek istiyor musunuz?"
+        hedefMetin={
+          seciliRol ? `${seciliRol.baslik} (${seciliRol.kod})` : 'Seçili rol'
+        }
+        ariaLabel="Rol silme onayı"
       />
     </div>
   );

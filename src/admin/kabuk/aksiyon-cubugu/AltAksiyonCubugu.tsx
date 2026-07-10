@@ -15,7 +15,6 @@ import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlar
 import { sekmeAyarlariOku, type SekmePanelAyarlari } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 import { tooltipMetni } from '@/araclar/tooltipMetni';
 import {
-  AksiyonCubuguPanelProvider,
   AksiyonCubuguUstCizgiSlot,
   useAksiyonCubuguPanelAcik,
 } from './AksiyonCubuguPanelContext';
@@ -187,10 +186,5 @@ function AltAksiyonCubuguGovde({
 
 export function AltAksiyonCubugu(props: AltAksiyonCubuguProps) {
   const footerRef = useRef<HTMLElement>(null);
-
-  return (
-    <AksiyonCubuguPanelProvider>
-      <AltAksiyonCubuguGovde footerRef={footerRef} {...props} />
-    </AksiyonCubuguPanelProvider>
-  );
+  return <AltAksiyonCubuguGovde footerRef={footerRef} {...props} />;
 }

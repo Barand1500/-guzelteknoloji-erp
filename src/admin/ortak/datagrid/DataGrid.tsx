@@ -21,7 +21,39 @@ import { FormulaRehberiIcerik } from './FormulaRehberi';
 import { bosGosterim, csvIndir, dgTooltipMetni, paraFormatla, tarihFormatla, yuzdeFormatla } from './formatYardimci';
 import { DgIkon } from './DgIkonlar';
 import { EtiketHucre } from './EtiketHucre';
+import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import './datagrid.css';
+
+function SatirPanelCubukKapak({ children, onKapat }: { children: ReactNode; onKapat: () => void }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  useAksiyonCubuguPanelSync(true, panelRef);
+  const footerKok = useMemo(() => document.querySelector('.ap-footer'), []);
+
+  useEffect(() => {
+    const esc = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') onKapat();
+    };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onKapat]);
+
+  if (!footerKok) return null;
+
+  return createPortal(
+    <div className="dg-satir-panel-cubuk-wrap">
+      <div
+        ref={panelRef}
+        className="dg-satir-panel-cubuk dg-satir-panel-cubuk--kenarlik-anim"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Satır düzenle"
+      >
+        <div className="dg-satir-panel-icerik dg-satir-panel-icerik--cubuk">{children}</div>
+      </div>
+    </div>,
+    footerKok
+  );
+}
 
 const HIZLI_GIRIS_SISTEM_KOLONLARI = new Set(['secim', 'islemler', 'olusturma', 'guncelleme', 'bagli']);
 
@@ -214,6 +246,8 @@ export function DataGrid<TRow extends { id: string }>({
   onSatirSil,
   hizliGirisIstegeBagli = false,
   hizliGirisVarsayilanAlan = false,
+  formulMenuGoster = true,
+  satirPanelModu = 'sheet',
 }: DataGridProps<TRow>) {
   const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar, kolonGenislikSurumu);
   const [hoverSatirId, setHoverSatirId] = useState<string | null>(null);
@@ -1151,15 +1185,17 @@ export function DataGrid<TRow extends { id: string }>({
             className="dg-hucre dg-hizli-giris-hucre dg-hucre--sag-sabit"
             style={{ width: genislik }}
           >
-            <button
-              type="button"
-              className="dg-hizli-giris-ekle"
-              onClick={hizliGirisGonder}
-              title={dgTooltipMetni('Satır ekle (Enter)')}
-              aria-label="Satır ekle"
-            >
-              +
-            </button>
+            <div className="dg-hizli-giris-ekle-kabuk">
+              <button
+                type="button"
+                className="dg-hizli-giris-ekle"
+                onClick={hizliGirisGonder}
+                title={dgTooltipMetni('Satır ekle (Enter)')}
+                aria-label="Satır ekle"
+              >
+                +
+              </button>
+            </div>
           </td>,
         ];
       }
@@ -1419,6 +1455,7 @@ export function DataGrid<TRow extends { id: string }>({
     );
 
   const formulMenuPanel =
+    formulMenuGoster &&
     formulMenuAcik &&
     createPortal(
       <div
@@ -1511,6 +1548,7 @@ export function DataGrid<TRow extends { id: string }>({
             </div>
           )}
           <div className="dg-ikon-grup">
+            {formulMenuGoster && (
             <div className="dg-menu-wrap">
               <button
                 ref={formulTusRef}
@@ -1532,6 +1570,7 @@ export function DataGrid<TRow extends { id: string }>({
                 </span>
               </button>
             </div>
+            )}
             <div className="dg-menu-wrap">
               <button
                 ref={sutunTusRef}
@@ -1737,24 +1776,37 @@ export function DataGrid<TRow extends { id: string }>({
         </div>
       </div>
 
-      {satirPanel &&
-        satirDuzenlePaneli &&
-        createPortal(
-          <div className="dg-satir-panel" role="dialog" aria-modal="true" aria-label="Satır düzenle">
-            <div className="dg-satir-panel-backdrop" aria-hidden="true" />
-            <div className="dg-satir-panel-icerik">
-              {satirDuzenlePaneli(
-                satirPanel,
-                (g) => {
-                  satirGuncelle(g);
-                  setSatirPanel(null);
-                },
-                () => setSatirPanel(null)
-              )}
-            </div>
-          </div>,
-          portalKok
-        )}
+      {satirPanel && satirDuzenlePaneli && (
+        satirPanelModu === 'cubuk' ? (
+          <SatirPanelCubukKapak onKapat={() => setSatirPanel(null)}>
+            {satirDuzenlePaneli(
+              satirPanel,
+              (g) => {
+                satirGuncelle(g);
+                setSatirPanel(null);
+              },
+              () => setSatirPanel(null)
+            )}
+          </SatirPanelCubukKapak>
+        ) : (
+          createPortal(
+            <div className="dg-satir-panel" role="dialog" aria-modal="true" aria-label="Satır düzenle">
+              <div className="dg-satir-panel-backdrop" aria-hidden="true" />
+              <div className="dg-satir-panel-icerik">
+                {satirDuzenlePaneli(
+                  satirPanel,
+                  (g) => {
+                    satirGuncelle(g);
+                    setSatirPanel(null);
+                  },
+                  () => setSatirPanel(null)
+                )}
+              </div>
+            </div>,
+            portalKok
+          )
+        )
+      )}
 
       {silmeOnay && (
         <SilmeOnayModal

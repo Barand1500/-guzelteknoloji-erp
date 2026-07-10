@@ -178,10 +178,23 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         renk: 'turuncu',
       },
       {
+        ikon: '✏️',
+        baslik: 'Satırı Düzenle',
+        aciklama:
+          'Alt çubuktaki Düzenle veya satıra sağ tıklayarak kayıt formunu açın. Panel aksiyon çubuğunun tam üstünden açılır; turuncu kenarlık animasyonu çizgi boyunca ilerler.',
+        renk: 'mor',
+      },
+      {
+        ikon: '⚡',
+        baslik: 'Hızlı Giriş',
+        aciklama: 'Yeni kayıt için alt çubuktaki Yeni düğmesine basın; tablo altındaki hızlı giriş satırından kod ve ad girip Enter ile ekleyin.',
+        renk: 'yesil',
+      },
+      {
         ikon: '✅',
         baslik: 'Aktif Durum',
         aciklama: 'Pasif firmalar seçim listelerinde görünmez.',
-        renk: 'yesil',
+        renk: 'camgobegi',
       },
     ],
     ipucu: 'Yeni firma kaydında otomatik MERKEZ şube ve depo oluşturulur.',
@@ -216,8 +229,15 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         aciklama: 'MERSİS ve ticaret sicil numaralarını şube kaydında tutun.',
         renk: 'mor',
       },
+      {
+        ikon: '✏️',
+        baslik: 'Satırı Düzenle',
+        aciklama:
+          'Düzenle aksiyonu veya sağ tık menüsüyle formu açın. Panel alt çubuğun üst kenarından yükselir; kenarlık animasyonu tam o çizgide ilerler.',
+        renk: 'camgobegi',
+      },
     ],
-    ipucu: 'Kaydet, Yeni ve Sil aksiyonları alt çubuktadır.',
+    ipucu: 'Kaydet, Yeni ve Sil aksiyonları alt çubuktadır. Firma satırına tıklayarak şube listesine girin.',
   },
 
   'tanimlar-depo': {
@@ -242,6 +262,12 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         baslik: 'Adres',
         aciklama: 'Depo adresi şube adresinden farklı olabilir; isteğe bağlı doldurun.',
         renk: 'yesil',
+      },
+      {
+        ikon: '✏️',
+        baslik: 'Satırı Düzenle',
+        aciklama: 'Kayıt formu aksiyon çubuğunun hemen üstünde açılır; takvim ve hesap makinesi panelleriyle aynı kenarlık animasyonunu kullanır.',
+        renk: 'mor',
       },
     ],
     ipucu: 'Firma oluşturulduğunda MERKEZ şube için varsayılan depo otomatik eklenir.',
@@ -270,6 +296,12 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         aciklama: 'TL, USD veya EUR seçin. Kasa hareketleri bu birime göre izlenir.',
         renk: 'yesil',
       },
+      {
+        ikon: '✏️',
+        baslik: 'Satırı Düzenle',
+        aciklama: 'Alt çubuktan Düzenle ile formu açın; panel çubuğun üst çizgisinden yukarı doğru açılır.',
+        renk: 'mor',
+      },
     ],
     ipucu: 'Pasif kasalar yeni işlemlerde listelenmez.',
   },
@@ -292,13 +324,99 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         renk: 'turuncu',
       },
       {
+        ikon: '✏️',
+        baslik: 'Satırı Düzenle',
+        aciklama: 'Düzenle paneli aksiyon çubuğunun üstünde açılır; kenarlık animasyonu çubuğun üst çizgisi boyunca ilerler.',
+        renk: 'mor',
+      },
+      {
         ikon: '✅',
         baslik: 'Aktif Dönem',
         aciklama: 'Aynı anda birden fazla dönem aktif olabilir; pasif dönemler seçilmez.',
         renk: 'yesil',
       },
     ],
-    ipucu: 'Dönemler firma bazında yönetilir.',
+    ipucu: 'Dönemler firma bazında yönetilir; firma satırından Dönemler sekmesine geçin.',
+  },
+
+  'tanimlar-kayitlar': {
+    baslik: 'Tanım Kayıtları Rehberi',
+    altBaslik: 'Hiyerarşik kayıt yönetimi',
+    bolumBaslik: 'Kayıtlar',
+    kartlar: [
+      {
+        ikon: '🗂️',
+        baslik: 'Hiyerarşi',
+        aciklama:
+          'Firmalar listesinden bir firmaya girerek şube ve dönem kayıtlarına; şube satırından depo ve kasa kayıtlarına ulaşın.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '⚡',
+        baslik: 'Hızlı Giriş',
+        aciklama: 'Alt çubuktaki Yeni ile tablo altındaki hızlı giriş satırını açın; zorunlu alanları doldurup Enter ile kaydedin.',
+        renk: 'yesil',
+      },
+      {
+        ikon: '✏️',
+        baslik: 'Satırı Düzenle',
+        aciklama:
+          'Düzenle aksiyonu veya sağ tık menüsüyle kayıt formunu açın. Panel takvim ve hesap makinesi gibi aksiyon çubuğunun tam üstünden açılır.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '📋',
+        baslik: 'Sütun Yönetimi',
+        aciklama: 'Sütun görünürlüğünü ayarlayın, genişlikleri sürükleyerek değiştirin. Tercihler tarayıcıda saklanır.',
+        renk: 'mor',
+      },
+      {
+        ikon: '🗑️',
+        baslik: 'Silme',
+        aciklama: 'Sil aksiyonu bağlı kayıtları kontrol eder; gerekirse pasif yapma seçeneği sunar.',
+        renk: 'camgobegi',
+      },
+    ],
+    ipucu: 'Görüntülediğiniz kayıt türüne göre rehber otomatik güncellenir (firma, şube, depo, kasa, dönem).',
+  },
+
+  'tanimlar-kurulum': {
+    baslik: 'Kurulum Sihirbazı Rehberi',
+    altBaslik: 'İlk kurulum adımları',
+    bolumBaslik: 'Kurulum',
+    kartlar: [
+      {
+        ikon: '✨',
+        baslik: 'Sihirbaz Akışı',
+        aciklama: 'Firma → Şube → Depo → Kasa → Dönem sırasıyla temel kayıtları oluşturun. Her adımda İleri ve Geri ile ilerleyin.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '🏢',
+        baslik: 'Firma ve Vergi',
+        aciklama: 'İlk adımda firma kodu, unvan ve vergi bilgilerini girin. Vergi dairesi il filtresiyle aranır.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '🏪',
+        baslik: 'Şube ve Adres',
+        aciklama: 'MERKEZ şube varsayılan olarak gelir; adres ve e-belge serilerini bu adımda tamamlayın.',
+        renk: 'yesil',
+      },
+      {
+        ikon: '📦',
+        baslik: 'Depo ve Kasa',
+        aciklama: 'Depo ve kasa kayıtları şube bağlantılıdır; para birimi ve kod alanlarını kontrol edin.',
+        renk: 'mor',
+      },
+      {
+        ikon: '📅',
+        baslik: 'Dönem',
+        aciklama: 'Son adımda muhasebe dönemini tanımlayın. Kurulum tamamlanınca Kayıtlar görünümüne geçilir.',
+        renk: 'camgobegi',
+      },
+    ],
+    ipucu: 'Kurulumu atlayıp doğrudan Kayıtlar sekmesinden de tanım yapabilirsiniz.',
   },
 
   tanimlar: {
@@ -307,13 +425,26 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Tanımlar',
     kartlar: [
       {
-        ikon: '🗃️',
-        baslik: 'Sekmeler',
-        aciklama: 'Sol menüden Firma, Şube, Depo, Kasa ve Dönem sekmeleri arasında geçiş yapın.',
+        ikon: '📋',
+        baslik: 'Kayıtlar ve Kurulum',
+        aciklama:
+          'Üstteki Kayıtlar sekmesinde hiyerarşik tablolarla tanımları yönetin; Kurulum Sihirbazı ile sıfırdan hızlı başlangıç yapın.',
         renk: 'mavi',
       },
+      {
+        ikon: '✏️',
+        baslik: 'Düzenleme Paneli',
+        aciklama: 'Satır düzenleme formu alt aksiyon çubuğunun üstünden açılır; turuncu kenarlık animasyonu çizgi boyunca ilerler.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '❓',
+        baslik: 'Bağlamsal Rehber',
+        aciklama: 'Kayıt türüne göre rehber içeriği otomatik değişir. Alt çubuktaki ? düğmesi veya F1 ile açın.',
+        renk: 'yesil',
+      },
     ],
-    ipucu: 'Her sekmenin kendi rehberi vardır; F1 veya ? ile açabilirsiniz.',
+    ipucu: 'Firma, şube, depo, kasa ve dönem için ayrıntılı rehber kartları Kayıtlar görünümünde otomatik yüklenir.',
   },
 
   'datagrid-demo': {

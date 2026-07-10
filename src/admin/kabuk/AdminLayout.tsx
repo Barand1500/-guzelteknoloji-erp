@@ -9,6 +9,7 @@ import { AdminTemaProvider, useAdminTema } from '@/baglamlar/AdminTemaContext';
 import { ModulKatalogProvider } from '@/baglamlar/ModulKatalogContext';
 import { AdminHeader } from './AdminHeader';
 import { AltAksiyonCubugu } from './aksiyon-cubugu/AltAksiyonCubugu';
+import { AksiyonCubuguPanelProvider } from './aksiyon-cubugu/AksiyonCubuguPanelContext';
 import { modulBul, modulYolundanBul } from '@/admin/veri/adminMenuYapisi';
 import { AdminModulIcerik } from './AdminModulIcerik';
 import { varsayilanLogMesaji } from '@/admin/ortak/logMesajiYardimci';
@@ -563,6 +564,7 @@ function AdminPanelGovde() {
         onBaslatMenuAcikDegistir={setBaslatMenuAcik}
       />
 
+      <AksiyonCubuguPanelProvider>
       <div className="ap-govde-alan flex min-h-0 flex-1 overflow-hidden">
         <main className="ap-scroll flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-[var(--ap-bg)]">
           {splitSekmeler ? (
@@ -670,6 +672,7 @@ function AdminPanelGovde() {
           }
         }}
       />
+      </AksiyonCubuguPanelProvider>
     </div>
     </SistemKesifProvider>
   );

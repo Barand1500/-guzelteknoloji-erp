@@ -1927,6 +1927,57 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* Satır düzenle — aksiyon çubuğu üstü (takvim/hesap makinesi gibi) */
+.dg-satir-panel-cubuk-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.dg-satir-panel-cubuk {
+  width: min(640px, 100%);
+  max-height: min(72vh, 680px);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  isolation: isolate;
+  border-radius: 0.625rem 0.625rem 0 0;
+  border: 1px solid var(--ap-border);
+  border-bottom: none;
+  background: var(--ap-surface);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
+  animation: dg-cubuk-panel-giris 0.18s ease-out;
+}
+
+.dg-satir-panel-cubuk--kenarlik-anim {
+  border-color: transparent !important;
+  overflow: visible;
+}
+
+.dg-satir-panel-icerik--cubuk {
+  width: 100%;
+  max-height: none;
+  animation: none;
+}
+
+.dg-satir-panel-icerik--cubuk .dg-duzenle {
+  max-height: min(72vh, 680px);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@keyframes dg-cubuk-panel-giris {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Satır düzenle paneli */
 .dg-duzenle {
   display: flex;
@@ -2668,10 +2719,16 @@
 }
 
 .dg-hizli-giris-satir td.dg-hucre--sag-sabit {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.35rem 0.4rem;
+}
+
+.dg-hizli-giris-ekle-kabuk {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.4rem;
+  width: 100%;
 }
 
 .dg-hizli-giris-ekle {
@@ -2689,13 +2746,19 @@
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+  outline: none;
+  box-shadow: none;
   transition: background 0.12s, transform 0.12s;
 }
 
 .dg-hizli-giris-ekle:hover {
   transform: translateY(-1px);
   background: color-mix(in srgb, var(--ap-accent) 88%, #000);
+}
+
+.dg-hizli-giris-ekle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ap-accent) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .dg-hizli-giris-onizle {

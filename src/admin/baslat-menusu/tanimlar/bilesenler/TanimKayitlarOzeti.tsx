@@ -46,6 +46,7 @@ import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 
 const VARSAYILAN_GIZLI: string[] = [];
 
@@ -160,6 +161,7 @@ export function TanimKayitlarOzeti() {
   const { firmaBagliPasifMi, subeBagliPasifMi } = useTanimFirmaDurumu();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const sayfaRef = useRef<HTMLDivElement>(null);
+  const { setRehberModulId } = useAdminAksiyon();
   const gridApiRef = useRef<DataGridApi | null>(null);
   const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -231,6 +233,11 @@ export function TanimKayitlarOzeti() {
     if (konum.seviye === 'firma') return konum.sekme === 'donemler' ? 'donem' : 'sube';
     return konum.sekme === 'kasalar' ? 'kasa' : 'depo';
   }, [konum]);
+
+  useEffect(() => {
+    setRehberModulId(`tanimlar-${aktifKayitTipi}`);
+    return () => setRehberModulId(null);
+  }, [aktifKayitTipi, setRehberModulId]);
 
   const ekleEtiketi = useMemo(() => tanimEkleEtiketi(aktifKayitTipi), [aktifKayitTipi]);
 
@@ -717,6 +724,8 @@ export function TanimKayitlarOzeti() {
       varsayilanGizliKolonlar: VARSAYILAN_GIZLI,
       gridApiRef,
       satirDuzenlePaneli,
+      satirPanelModu: 'cubuk' as const,
+      formulMenuGoster: false,
       hizliGirisIstegeBagli: true,
       hizliGirisVarsayilanAlan: true,
       hizliGirisKolonlari: tanimHizliGirisKolonlari(aktifKayitTipi),

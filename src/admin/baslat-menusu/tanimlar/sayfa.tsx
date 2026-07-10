@@ -16,7 +16,9 @@ export function TanimlarSayfasi() {
   const { setRehberModulId } = useAdminAksiyon();
 
   useEffect(() => {
-    setRehberModulId(`tanimlar-${mod}`);
+    if (mod === 'kurulum') {
+      setRehberModulId('tanimlar-kurulum');
+    }
     return () => setRehberModulId(null);
   }, [mod, setRehberModulId]);
 
