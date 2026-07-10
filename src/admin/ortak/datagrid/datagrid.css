@@ -1051,6 +1051,56 @@
   white-space: nowrap;
 }
 
+.dg-hucre[data-kolon-id='miktar'],
+.dg-baslik-hucre[data-kolon-id='miktar'] {
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  text-align: center;
+}
+
+.dg-baslik-hucre[data-kolon-id='miktar'] .dg-baslik-icerik {
+  justify-content: center;
+}
+
+.dg-hucre[data-kolon-id='miktar'] .dg-hucre-girdi {
+  width: 2rem;
+  max-width: 100%;
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+  padding: 0.12rem 0.2rem;
+}
+
+.dg-hucre[data-kolon-id='birim'],
+.dg-baslik-hucre[data-kolon-id='birim'] {
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+  text-align: center;
+}
+
+.dg-baslik-hucre[data-kolon-id='birim'] .dg-baslik-icerik {
+  justify-content: center;
+}
+
+.dg-hucre[data-kolon-id='birim'] .dg-birim-etiket {
+  padding: 0.06rem 0.22rem;
+  font-size: 0.6rem;
+}
+
+.dg-hucre[data-kolon-id='birim'] .dg-hucre-girdi {
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  display: block;
+  padding: 0.08rem 0.2rem;
+  font-size: 0.625rem;
+}
+
+.dg-hucre[data-kolon-id='birim'] .dg-hucre-girdi.dg-hucre-secim {
+  padding-right: 1rem;
+  background-position: right 0.15rem center;
+}
+
 .dg-miktar-birim {
   font-size: 0.625rem;
   color: var(--ap-muted);

@@ -9,7 +9,13 @@ import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 
 import { sayiFormatla, tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 
-import { DEMO_SIPARIS_SATIRLARI, satirHesapla, yeniSiparisSatiriOlustur, type SiparisSatiri } from './demoVeri';
+import {
+  DEMO_SIPARIS_SATIRLARI,
+  satirHesapla,
+  satirlariKdvModunaCevir,
+  yeniSiparisSatiriOlustur,
+  type SiparisSatiri,
+} from './demoVeri';
 
 import { SatirDuzenlePanel } from './SatirDuzenlePanel';
 import { birimEtiketi, birimSecenekleri, gecerliBirim } from './birimVeri';
@@ -49,7 +55,9 @@ function UrunKoduAdiHucre({ satir }: { satir: SiparisSatiri }) {
   return <span className="dg-urun-adi-ust">{ad || kod}</span>;
 }
 
-function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
+function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
+  const hesapla = (satir: SiparisSatiri, yama: Partial<SiparisSatiri>) =>
+    satirHesapla({ ...satir, ...yama }, kdvDahil);
 
   return [
 
@@ -73,11 +81,11 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       duzenlenebilir: true,
       degerAl: (s) => ({ ust: s.urun.ad, alt: s.urun.sku }),
       degerYaz: (s, d) =>
-        satirHesapla({ ...s, urun: { ...s.urun, ad: String(d).trim() || s.urun.ad } }),
+        hesapla(s, { urun: { ...s.urun, ad: String(d).trim() || s.urun.ad } }),
       birlesikDuzenle: {
         altDegerAl: (s) => s.urun.sku,
         altDegerYaz: (s, d) =>
-          satirHesapla({ ...s, urun: { ...s.urun, sku: String(d).trim() || s.urun.sku } }),
+          hesapla(s, { urun: { ...s.urun, sku: String(d).trim() || s.urun.sku } }),
       },
       siralamaDegeri: (s) => `${s.urun.ad} ${s.urun.sku}`,
       goster: (s) => <UrunKoduAdiHucre satir={s} />,
@@ -90,7 +98,9 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'metin',
 
-      genislik: 76,
+      genislik: 52,
+
+      minGenislik: 44,
 
       duzenlenebilir: true,
 
@@ -100,7 +110,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       degerAl: (s) => s.miktar,
 
-      degerYaz: (s, d) => satirHesapla({ ...s, miktar: Number(d) || 0 }),
+      degerYaz: (s, d) => hesapla(s, { miktar: Number(d) || 0 }),
 
       siralamaDegeri: (s) => s.miktar,
 
@@ -116,9 +126,9 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       tip: 'badge',
 
-      genislik: 80,
+      genislik: 48,
 
-      minGenislik: 68,
+      minGenislik: 40,
 
       zorunlu: true,
 
@@ -130,7 +140,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       degerAl: (s) => s.birim,
 
-      degerYaz: (s, d) => satirHesapla({ ...s, birim: gecerliBirim(String(d), s.birim) }),
+      degerYaz: (s, d) => hesapla(s, { birim: gecerliBirim(String(d), s.birim) }),
 
       siralamaDegeri: (s) => s.birim,
 
@@ -162,7 +172,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
         const fiyat = typeof d === 'number' ? d : ifadeHesapla(String(d), 'sayi') ?? s.fiyat;
 
-        return satirHesapla({ ...s, fiyat });
+        return hesapla(s, { fiyat });
 
       },
 
@@ -211,7 +221,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerYaz: (s, d) => {
         const yuzde =
           typeof d === 'number' ? d : ifadeHesapla(String(d), 'iskonto') ?? parseFloat(String(d).replace(',', '.')) ?? 0;
-        return satirHesapla({ ...s, satirIskontoYuzde: yuzde });
+        return hesapla(s, { satirIskontoYuzde: yuzde });
       },
 
       siralamaDegeri: (s) => s.satirIskontoYuzde,
@@ -259,7 +269,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerYaz: (s, d) => {
         const yuzde =
           typeof d === 'number' ? d : ifadeHesapla(String(d), 'iskonto') ?? parseFloat(String(d).replace(',', '.')) ?? 0;
-        return satirHesapla({ ...s, altIskontoYuzde: yuzde });
+        return hesapla(s, { altIskontoYuzde: yuzde });
       },
 
       siralamaDegeri: (s) => s.altIskontoYuzde,
@@ -306,7 +316,9 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
       degerYaz: (s, d) => {
         const yuzde =
           typeof d === 'number' ? d : ifadeHesapla(String(d), 'sayi') ?? parseFloat(String(d).replace(',', '.')) ?? s.toplamKdvYuzde;
-        return satirHesapla({ ...s, toplamKdvYuzde: Number.isFinite(yuzde) ? yuzde : s.toplamKdvYuzde });
+        return hesapla(s, {
+          toplamKdvYuzde: Number.isFinite(yuzde) ? yuzde : s.toplamKdvYuzde,
+        });
       },
 
       goster: (s) => (
@@ -368,7 +380,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       degerAl: (s) => s.pb,
 
-      degerYaz: (s, d) => satirHesapla({ ...s, pb: gecerliParaBirimi(String(d), s.pb) }),
+      degerYaz: (s, d) => hesapla(s, { pb: gecerliParaBirimi(String(d), s.pb) }),
 
       siralamaDegeri: (s) => s.pb,
 
@@ -446,7 +458,7 @@ function siparisKolonlari(): KolonTanimi<SiparisSatiri>[] {
 
       degerAl: (s) => s.durum,
 
-      degerYaz: (s, d) => satirHesapla({ ...s, durum: Boolean(d) }),
+      degerYaz: (s, d) => hesapla(s, { durum: Boolean(d) }),
 
       siralamaDegeri: (s) => (s.durum ? 1 : 0),
 
@@ -497,7 +509,16 @@ export function DatagridDemoSayfasi() {
   const sayfaRef = useRef<HTMLDivElement>(null);
   const logMesajiAyarla = useAdminLogMesaji();
 
-  const kolonlar = useMemo(() => siparisKolonlari(), []);
+  const kolonlar = useMemo(() => siparisKolonlari(kdvDahil), [kdvDahil]);
+
+  const kdvModuDegistir = useCallback(
+    (yeni: boolean) => {
+      if (yeni === kdvDahil) return;
+      setSatirlar((onceki) => satirlariKdvModunaCevir(onceki, kdvDahil, yeni));
+      setKdvDahil(yeni);
+    },
+    [kdvDahil]
+  );
 
   const gorunurSatirlar = useMemo(
     () => satirlar.map((s) => satirHesapla(s, kdvDahil)),
@@ -719,7 +740,7 @@ export function DatagridDemoSayfasi() {
 
         kdvDahilGoster
 
-        onKdvDahilDegistir={setKdvDahil}
+        onKdvDahilDegistir={kdvModuDegistir}
 
         onSatirlarDegistir={setSatirlar}
 

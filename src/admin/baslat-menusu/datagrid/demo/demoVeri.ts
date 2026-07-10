@@ -85,6 +85,30 @@ export function yeniSiparisSatiriOlustur(
   );
 }
 
+/** Birim fiyatı KDV dahil ↔ hariç modları arasında dönüştürür (toplam tutarı korur). */
+export function fiyatKdvModunaCevir(
+  fiyat: number,
+  kdvYuzde: number,
+  eskiDahil: boolean,
+  yeniDahil: boolean
+): number {
+  if (eskiDahil === yeniDahil || !Number.isFinite(fiyat) || fiyat === 0) return fiyat;
+  const carpan = 1 + kdvYuzde / 100;
+  const yeni = eskiDahil ? fiyat / carpan : fiyat * carpan;
+  return Math.round(yeni * 100) / 100;
+}
+
+export function satirlariKdvModunaCevir(
+  satirlar: SiparisSatiri[],
+  eskiDahil: boolean,
+  yeniDahil: boolean
+): SiparisSatiri[] {
+  return satirlar.map((s) => {
+    const fiyat = fiyatKdvModunaCevir(s.fiyat, s.toplamKdvYuzde, eskiDahil, yeniDahil);
+    return satirHesapla({ ...s, fiyat }, yeniDahil);
+  });
+}
+
 export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri {
   const tutar = Math.round(s.miktar * s.fiyat * 100) / 100;
   const satirIskontoTutar = Math.round(tutar * (s.satirIskontoYuzde / 100) * 100) / 100;

@@ -1405,6 +1405,7 @@ export function DataGrid<TRow extends { id: string }>({
                   return (
                     <th
                       key={kolon.id}
+                      data-kolon-id={kolon.id}
                       className={`dg-baslik-hucre dg-baslik-hucre--secim${sabitBaslikSinifi(kolon.id)}`}
                       style={sabitHucreStili(kolon.id, genislik)}
                     >
@@ -1428,6 +1429,7 @@ export function DataGrid<TRow extends { id: string }>({
                 return (
                   <th
                     key={kolon.id}
+                    data-kolon-id={kolon.id}
                     className={`dg-baslik-hucre${kolon.tip === 'toggle' ? ' dg-baslik-hucre--toggle' : ''}${kolon.sabitSag ? ' dg-baslik-hucre--sag-sabit' : ''}${sabitBaslikSinifi(kolon.id)}${dg.suruklenenKolon === kolon.id ? ' dg-baslik-hucre--surukleniyor' : ''}`}
                     style={sabitHucreStili(kolon.id, genislik)}
                     draggable={!kolon.sabitSag}
