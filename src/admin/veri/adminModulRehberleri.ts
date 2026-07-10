@@ -160,6 +160,39 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     ipucu: 'Çakışan kısayollar uyarı verir; kaydetmeden önce kontrol edin.',
   },
 
+  tanimlar: {
+    baslik: 'Tanımlar Rehberi',
+    altBaslik: 'Firma, şube, depo, kasa ve dönem',
+    bolumBaslik: 'Tanımlar',
+    kartlar: [
+      {
+        ikon: '🏢',
+        baslik: 'Firma',
+        aciklama: 'Firma kodu, unvan ve vergi bilgilerini tanımlayın. Oturum firmanız buradan yönetilir.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '🏪',
+        baslik: 'Şube',
+        aciklama: 'Şube adresi, e-fatura/e-arşiv/e-irsaliye serileri ve MERSİS bilgilerini girin.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '📦',
+        baslik: 'Depo ve Kasa',
+        aciklama: 'Her şube için depo ve kasa tanımları oluşturun. Kasada para birimi seçilir.',
+        renk: 'yesil',
+      },
+      {
+        ikon: '📅',
+        baslik: 'Dönem',
+        aciklama: 'Muhasebe dönemlerini (ör. 2026) firma bazında tanımlayın.',
+        renk: 'mor',
+      },
+    ],
+    ipucu: 'Sol menüden sekme değiştirin; Kaydet, Yeni ve Sil aksiyonları alt çubuktadır.',
+  },
+
   'datagrid-demo': {
     baslik: 'Sipariş Tablosu Rehberi',
     altBaslik: 'Datagrid demo modülü',

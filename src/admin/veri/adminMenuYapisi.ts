@@ -43,6 +43,13 @@ export const adminModulleri: AdminModul[] = [
     kategori: 'Datagrid',
     yol: '/gt-admin/datagrid-demo',
   },
+  {
+    id: 'tanimlar',
+    baslik: 'Tanımlar',
+    ikon: '🗃️',
+    kategori: 'Tanımlar',
+    yol: '/gt-admin/tanimlar',
+  },
 ];
 
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
@@ -65,7 +72,7 @@ export const adminGizliModuller: AdminModul[] = [
   },
 ];
 
-export const adminKategoriler = ['Müşteri / Ajans', 'Sistem', 'Datagrid'] as const;
+export const adminKategoriler = ['Müşteri / Ajans', 'Sistem', 'Tanımlar', 'Datagrid'] as const;
 
 export function modulBul(id: string): AdminModul | undefined {
   return adminModulleri.find((m) => m.id === id) ?? adminGizliModuller.find((m) => m.id === id);

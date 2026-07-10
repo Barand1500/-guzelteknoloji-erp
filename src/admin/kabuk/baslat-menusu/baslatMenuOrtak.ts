@@ -9,6 +9,7 @@ import {
 export const KATEGORI_IKON: Record<string, string> = {
   'Müşteri / Ajans': '👥',
   Sistem: '⚙️',
+  Tanımlar: '🗃️',
   Datagrid: '📊',
 };
 

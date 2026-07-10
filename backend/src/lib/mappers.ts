@@ -1,4 +1,4 @@
-import type { Kullanici, Rol } from '@prisma/client';
+import type { Depo, Donem, Firma, Kasa, Kullanici, Rol, Sube } from '@prisma/client';
 import { tumAyarlarOku } from './ayarlar.js';
 import { prisma } from './prisma.js';
 
@@ -184,4 +184,91 @@ export function yetkiListesiYanit() {
     kod,
     etiket: YETKI_ETIKETLERI[kod] ?? kod,
   }));
+}
+
+export function adminFirmaYanit(f: Firma) {
+  return {
+    id: f.id,
+    firmaKodu: f.firmaKodu,
+    firmaAdi: f.firmaAdi,
+    vergiDairesi: f.vergiDairesi ?? '',
+    vergiNo: f.vergiNo ?? '',
+    aktif: f.durum,
+    olusturma: tarihIso(f.kayitTarihi),
+    guncelleme: tarihIso(f.guncellemeTarihi),
+  };
+}
+
+export function adminDonemYanit(d: Donem) {
+  return {
+    id: d.id,
+    firmaId: d.firmaId,
+    donemKodu: d.donemKodu,
+    donemAdi: d.donemAdi,
+    aktif: d.durum,
+    olusturma: tarihIso(d.kayitTarihi),
+    guncelleme: tarihIso(d.guncellemeTarihi),
+  };
+}
+
+export function adminSubeYanit(s: Sube) {
+  return {
+    id: s.id,
+    firmaId: s.firmaId,
+    subeKodu: s.subeKodu,
+    subeAdi: s.subeAdi,
+    il: s.il ?? '',
+    ilce: s.ilce ?? '',
+    mahalle: s.mahalle ?? '',
+    cadde: s.cadde ?? '',
+    sokak: s.sokak ?? '',
+    bina: s.bina ?? '',
+    no: s.no ?? '',
+    postaKodu: s.postaKodu ?? '',
+    efaturaSeri: s.efaturaSeri ?? '',
+    earsivSeri: s.earsivSeri ?? '',
+    eirsaliyeSeri: s.eirsaliyeSeri ?? '',
+    mersis: s.mersis ?? '',
+    ticaretSicil: s.ticaretSicil ?? '',
+    aktif: s.durum,
+    olusturma: tarihIso(s.kayitTarihi),
+    guncelleme: tarihIso(s.guncellemeTarihi),
+  };
+}
+
+export function adminDepoYanit(d: Depo & { sube?: { subeKodu: string; subeAdi: string } | null }) {
+  return {
+    id: d.id,
+    subeId: d.subeId,
+    subeKodu: d.sube?.subeKodu ?? '',
+    subeAdi: d.sube?.subeAdi ?? '',
+    depoKodu: d.depoKodu,
+    depoAdi: d.depoAdi,
+    il: d.il ?? '',
+    ilce: d.ilce ?? '',
+    mahalle: d.mahalle ?? '',
+    cadde: d.cadde ?? '',
+    sokak: d.sokak ?? '',
+    bina: d.bina ?? '',
+    no: d.no ?? '',
+    postaKodu: d.postaKodu ?? '',
+    aktif: d.durum,
+    olusturma: tarihIso(d.kayitTarihi),
+    guncelleme: tarihIso(d.guncellemeTarihi),
+  };
+}
+
+export function adminKasaYanit(k: Kasa & { sube?: { subeKodu: string; subeAdi: string } | null }) {
+  return {
+    id: k.id,
+    subeId: k.subeId,
+    subeKodu: k.sube?.subeKodu ?? '',
+    subeAdi: k.sube?.subeAdi ?? '',
+    kasaKodu: k.kasaKodu,
+    kasaAdi: k.kasaAdi,
+    paraBirimi: k.paraBirimi,
+    aktif: k.durum,
+    olusturma: tarihIso(k.kayitTarihi),
+    guncelleme: tarihIso(k.guncellemeTarihi),
+  };
 }

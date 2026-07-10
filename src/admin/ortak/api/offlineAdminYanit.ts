@@ -1,5 +1,6 @@
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { offlineKullanici } from '@/admin/ortak/api/authApi';
+import { offlineTanimlarGetir, offlineTanimlarYaz } from '@/admin/ortak/api/offlineTanimlar';
 
 const OFFLINE_SISTEM_ANAHTAR = 'erp-offline-sistem-ayarlari';
 const OFFLINE_MODUL_ANAHTAR = 'erp-offline-moduller';
@@ -45,6 +46,7 @@ const VARSAYILAN_OFFLINE_MODULLER: OfflineModul[] = [
   { id: 5, ad: 'Kisayol Ayarlari', prefix: 'kisayol_ayarlari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 6, ad: 'Loglar', prefix: 'loglar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 7, ad: 'Veri Yedekleme', prefix: 'veri_yedekleme', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 8, ad: 'Tanimlar', prefix: 'tanimlar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
 ];
 
 const OFFLINE_YETKILER = [
@@ -101,6 +103,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
     }
     if (p.includes('/moduller')) return offlineModulYaz(body, m, p);
     if (p.includes('/loglar')) return offlineLogYaz(body, m, p);
+    if (p.includes('/tanimlar')) return offlineTanimlarYaz(p, m, body);
     return { mesaj: 'Kayit (offline mod)' };
   }
 
@@ -116,6 +119,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
   if (p.includes('/sistem-ayarlari')) return offlineSistemAyarlari();
   if (p.includes('/bildirim')) return { bildirimler: [], okunmamisSayi: 0 };
   if (p.includes('/eklentiler')) return { eklentiler: [] };
+  if (p.includes('/tanimlar')) return offlineTanimlarGetir(p);
 
   return {};
 }

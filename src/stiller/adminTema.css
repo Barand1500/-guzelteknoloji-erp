@@ -3689,6 +3689,10 @@ html:has(.admin-panel[data-tema='acik']) body {
   }
 }
 
+.ap-tanimlar-sekme-icerik {
+  min-height: 0;
+}
+
 .ap-editor-ust {
   padding: 1.5rem 1.5rem 0;
   border-bottom: 1px solid var(--ap-border);
@@ -12137,6 +12141,11 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 /* AÅŸaÄŸÄ± aÃ§Ä±lan form seÃ§ici (native select yukarÄ± aÃ§Ä±lma sorunu) */
 .ap-form-acilir-secim {
+  position: relative;
+  width: 100%;
+}
+
+.ap-form-arama-secim {
   position: relative;
   width: 100%;
 }
