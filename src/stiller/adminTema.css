@@ -2894,6 +2894,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   flex-shrink: 0;
   overflow: visible;
   align-self: center;
+  margin-top: 2px;
 }
 
 .ap-cubuk-arama {
