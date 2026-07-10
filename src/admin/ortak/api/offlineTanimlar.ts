@@ -221,14 +221,15 @@ export function offlineTanimlarYaz(path: string, method: string, body?: BodyInit
     }
 
     if (kaynak === 'donemler') {
-      const form = girdi as DonemFormDegeri;
+      const form = girdi as DonemFormDegeri & { firmaId?: string };
       if (!form.donemKodu?.trim() || !form.donemAdi?.trim()) {
         return { mesaj: 'Donem kodu ve adi zorunlu' };
       }
+      const firmaId = form.firmaId ?? veri.firmalar[0]?.id ?? '1';
       const yeniId = sonrakiId(veri.donemler);
       const donem: AdminDonem = {
         id: yeniId,
-        firmaId: '1',
+        firmaId,
         donemKodu: form.donemKodu.trim().toUpperCase(),
         donemAdi: form.donemAdi.trim(),
         aktif: form.aktif !== false,

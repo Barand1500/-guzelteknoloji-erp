@@ -29,6 +29,7 @@ import {
   type AdminDepo,
   type AdminSube,
   type DepoFormDegeri,
+  type GomuluDuzenleSecenek,
   type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -82,7 +83,7 @@ function formlarEsit(a: DepoFormDegeri, b: DepoFormDegeri): boolean {
 export function DepoSekme({
   gomuluDuzenle,
 }: {
-  gomuluDuzenle?: { id: string; onKapat: () => void };
+  gomuluDuzenle?: GomuluDuzenleSecenek;
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -329,11 +330,16 @@ export function DepoSekme({
     return (
       <>
         <TanimDuzenleEkrani
-          baslik={`${seciliKayit.depoAdi} (${seciliKayit.depoKodu})`}
+          panel={gomuluDuzenle?.panel}
+          ustEtiket="Depo düzenle"
+          kod={seciliKayit.depoKodu}
+          baslik={seciliKayit.depoAdi}
           altBaslik="Depo bilgilerini güncelleyin"
           olusturma={seciliKayit.olusturma}
           guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
+          onKaydet={() => void kaydet()}
+          kaydediliyor={kaydediliyor}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
           <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />

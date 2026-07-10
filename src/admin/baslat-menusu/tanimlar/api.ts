@@ -92,11 +92,11 @@ export async function donemleriGetir(): Promise<AdminDonem[]> {
   return veri.donemler ?? [];
 }
 
-export async function donemOlustur(form: DonemFormDegeri): Promise<AdminDonem> {
+export async function donemOlustur(form: DonemFormDegeri, firmaId?: string): Promise<AdminDonem> {
   const veri = await adminJsonFetch<{ donem: AdminDonem }>(`${TABAN}/donemler`, {
     method: 'POST',
     headers: adminHeaders(),
-    body: JSON.stringify(form),
+    body: JSON.stringify(firmaId ? { ...form, firmaId } : form),
   });
   return veri.donem;
 }

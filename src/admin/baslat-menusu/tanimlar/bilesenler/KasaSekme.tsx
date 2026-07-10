@@ -24,6 +24,7 @@ import {
   PARA_BIRIMLERI,
   type AdminKasa,
   type AdminSube,
+  type GomuluDuzenleSecenek,
   type KasaFormDegeri,
   type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
@@ -69,7 +70,7 @@ function formlarEsit(a: KasaFormDegeri, b: KasaFormDegeri): boolean {
 export function KasaSekme({
   gomuluDuzenle,
 }: {
-  gomuluDuzenle?: { id: string; onKapat: () => void };
+  gomuluDuzenle?: GomuluDuzenleSecenek;
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -313,11 +314,16 @@ export function KasaSekme({
     return (
       <>
         <TanimDuzenleEkrani
-          baslik={`${seciliKayit.kasaAdi} (${seciliKayit.kasaKodu})`}
+          panel={gomuluDuzenle?.panel}
+          ustEtiket="Kasa düzenle"
+          kod={seciliKayit.kasaKodu}
+          baslik={seciliKayit.kasaAdi}
           altBaslik="Kasa bilgilerini güncelleyin"
           olusturma={seciliKayit.olusturma}
           guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
+          onKaydet={() => void kaydet()}
+          kaydediliyor={kaydediliyor}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
           <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />

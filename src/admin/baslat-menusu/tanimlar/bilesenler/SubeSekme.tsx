@@ -31,6 +31,7 @@ import {
   bosSubeForm,
   type AdminFirma,
   type AdminSube,
+  type GomuluDuzenleSecenek,
   type SubeFormDegeri,
   type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
@@ -99,7 +100,7 @@ function formlarEsit(a: SubeFormDegeri, b: SubeFormDegeri): boolean {
 export function SubeSekme({
   gomuluDuzenle,
 }: {
-  gomuluDuzenle?: { id: string; onKapat: () => void };
+  gomuluDuzenle?: GomuluDuzenleSecenek;
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -386,11 +387,16 @@ export function SubeSekme({
     return (
       <>
         <TanimDuzenleEkrani
-          baslik={`${seciliKayit.subeAdi} (${seciliKayit.subeKodu})`}
+          panel={gomuluDuzenle?.panel}
+          ustEtiket="Şube düzenle"
+          kod={seciliKayit.subeKodu}
+          baslik={seciliKayit.subeAdi}
           altBaslik="Şube bilgilerini güncelleyin"
           olusturma={seciliKayit.olusturma}
           guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
+          onKaydet={() => void kaydet()}
+          kaydediliyor={kaydediliyor}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
           <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />

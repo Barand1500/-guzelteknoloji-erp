@@ -12,11 +12,16 @@ function cizgiModuOku(
   return varsayilan;
 }
 
+function kolonImzasiOlustur(kolonlar: KolonTanimi<unknown>[]): string {
+  return kolonlar.map((k) => k.id).join('|');
+}
+
 function varsayilanAyar<TRow>(
   kolonlar: KolonTanimi<TRow>[],
   gizliKolonlar: string[] = [],
   kolonGenislikSurumu?: number
 ): DataGridAyar {
+  const kolonRef = kolonlar as KolonTanimi<unknown>[];
   return {
     kolonSirasi: kolonlar.map((k) => k.id),
     gizliKolonlar: gizliKolonlar.filter((id) => kolonlar.some((k) => k.id === id)),
@@ -25,7 +30,23 @@ function varsayilanAyar<TRow>(
     sayfaBoyutu: 10,
     cizgiModu: 'tam',
     kolonGenislikSurumu,
+    kolonImzasi: kolonImzasiOlustur(kolonRef),
   };
+}
+
+function ayarGecerliMi(
+  ayar: DataGridAyar,
+  kolonlar: KolonTanimi<unknown>[],
+  zorunluIdler: Set<string>
+): boolean {
+  const gecerliIdler = new Set(kolonlar.map((k) => k.id));
+  const beklenenImza = kolonImzasiOlustur(kolonlar);
+  if (ayar.kolonImzasi && ayar.kolonImzasi !== beklenenImza) return false;
+  if (!ayar.kolonSirasi.every((id) => gecerliIdler.has(id))) return false;
+  for (const id of zorunluIdler) {
+    if (!ayar.kolonSirasi.includes(id) || ayar.gizliKolonlar.includes(id)) return false;
+  }
+  return true;
 }
 
 function legacyKolonSirasiDuzenle(sirali: string[]): string[] {
@@ -77,38 +98,55 @@ function ayarOku(
   kolonGenislikSurumu?: number
 ): DataGridAyar {
   const varsayilan = varsayilanAyar(kolonlar, gizliVarsayilan, kolonGenislikSurumu);
+  const zorunluIdler = new Set(kolonlar.filter((k) => k.zorunlu).map((k) => k.id));
+  const legacyKolonIdleri = new Set(['unvan', 'konum', 'bagli']);
+
   try {
     const ham = localStorage.getItem(anahtar);
     if (!ham) return varsayilan;
     const kayit = JSON.parse(ham) as Partial<DataGridAyar>;
     const gecerliIdler = new Set(kolonlar.map((k) => k.id));
     const hamSira = legacyKolonSirasiDuzenle(kayit.kolonSirasi ?? varsayilan.kolonSirasi);
-    const kolonSirasi = kolonSirasiniBirlestir(
-      hamSira,
-      varsayilan.kolonSirasi,
-      gecerliIdler
-    );
+
+    if (hamSira.some((id) => legacyKolonIdleri.has(id))) {
+      return {
+        ...varsayilan,
+        sayfaBoyutu: kayit.sayfaBoyutu ?? varsayilan.sayfaBoyutu,
+        cizgiModu: cizgiModuOku(kayit, varsayilan.cizgiModu),
+      };
+    }
+
+    const kolonSirasi = kolonSirasiniBirlestir(hamSira, varsayilan.kolonSirasi, gecerliIdler);
     const kayitliSurum = kayit.kolonGenislikSurumu ?? 0;
     const genislikGuncelle =
       kolonGenislikSurumu !== undefined && kayitliSurum < kolonGenislikSurumu;
     const kolonGenislikleri = genislikGuncelle
       ? { ...varsayilan.kolonGenislikleri }
       : { ...varsayilan.kolonGenislikleri, ...kayit.kolonGenislikleri };
-    const { kolonGenislikleri: _eskiGen, kolonGenislikSurumu: _eskiSurum, ...kayitDiger } = kayit;
-    return {
-      ...varsayilan,
-      ...kayitDiger,
+    const birlesik: DataGridAyar = {
       kolonSirasi,
       kolonGenislikleri,
       kolonGenislikSurumu: genislikGuncelle
         ? kolonGenislikSurumu
         : (kolonGenislikSurumu ?? kayit.kolonGenislikSurumu),
       cizgiModu: cizgiModuOku(kayit, varsayilan.cizgiModu),
-      gizliKolonlar: (kayit.gizliKolonlar ?? []).filter((id) => gecerliIdler.has(id)),
+      sayfaBoyutu: kayit.sayfaBoyutu ?? varsayilan.sayfaBoyutu,
+      gizliKolonlar: (kayit.gizliKolonlar ?? []).filter(
+        (id) => gecerliIdler.has(id) && !zorunluIdler.has(id)
+      ),
       sabitlenmisKolonlar: (kayit.sabitlenmisKolonlar ?? varsayilan.sabitlenmisKolonlar).filter((id) =>
         gecerliIdler.has(id)
       ),
+      kolonImzasi: varsayilan.kolonImzasi,
     };
+    if (!ayarGecerliMi(birlesik, kolonlar, zorunluIdler)) {
+      return {
+        ...varsayilan,
+        sayfaBoyutu: birlesik.sayfaBoyutu,
+        cizgiModu: birlesik.cizgiModu,
+      };
+    }
+    return birlesik;
   } catch {
     return varsayilan;
   }
@@ -125,6 +163,7 @@ export function useDataGridState<TRow>(
   kolonGenislikSurumu?: number
 ) {
   const kolonRef = kolonlar as KolonTanimi<unknown>[];
+  const kolonImzasi = useMemo(() => kolonImzasiOlustur(kolonRef), [kolonlar]);
   const [ayar, setAyar] = useState<DataGridAyar>(() =>
     ayarOku(depolamaAnahtari, kolonRef, varsayilanGizliKolonlar, kolonGenislikSurumu)
   );
@@ -133,6 +172,13 @@ export function useDataGridState<TRow>(
   const [seciliIdler, setSeciliIdler] = useState<Set<string>>(new Set());
   const [sutunMenuAcik, setSutunMenuAcik] = useState(false);
   const [suruklenenKolon, setSuruklenenKolon] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAyar(ayarOku(depolamaAnahtari, kolonRef, varsayilanGizliKolonlar, kolonGenislikSurumu));
+    setSayfa(0);
+    setSiralama(null);
+    setSeciliIdler(new Set());
+  }, [depolamaAnahtari, kolonImzasi, varsayilanGizliKolonlar.join('|'), kolonGenislikSurumu]);
 
   useEffect(() => {
     ayarKaydet(depolamaAnahtari, ayar);

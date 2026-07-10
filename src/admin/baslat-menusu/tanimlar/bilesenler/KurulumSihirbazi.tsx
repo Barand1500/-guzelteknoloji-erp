@@ -10,14 +10,12 @@ import {
 } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
 import {
   depoGuncelle,
-  depoOlustur,
   depolariGetir,
   donemOlustur,
   firmaOlustur,
   firmalariGetir,
   kasaOlustur,
   subeGuncelle,
-  subeOlustur,
   subeleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
@@ -26,7 +24,6 @@ import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi
 import {
   TanimSihirbaz,
   type TanimSihirbazAdim,
-  type TanimSihirbazFaz,
 } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSihirbaz';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { VergiDairesiSecici } from '@/admin/baslat-menusu/tanimlar/bilesenler/VergiDairesiSecici';
@@ -38,7 +35,6 @@ import {
   bosSubeForm,
   PARA_BIRIMLERI,
   type AdminFirma,
-  type AdminSube,
   type DepoFormDegeri,
   type DonemFormDegeri,
   type FirmaFormDegeri,
@@ -53,44 +49,14 @@ import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
 type KurulumFazId = 'firma' | 'sube' | 'depo' | 'kasa' | 'donem';
 
-const FAZLAR: TanimSihirbazFaz[] = [
-  { id: 'toplu', ad: 'Toplu Kurulum', ikon: '✨' },
-  { id: 'firma', ad: 'Firma', ikon: '🏢' },
-  { id: 'sube', ad: 'Şube', ikon: '🏪' },
-  { id: 'depo', ad: 'Depo', ikon: '📦' },
-  { id: 'kasa', ad: 'Kasa', ikon: '💰' },
-  { id: 'donem', ad: 'Dönem', ikon: '📅' },
-];
+const KURULUM_FAZ_SIRASI: KurulumFazId[] = ['firma', 'sube', 'depo', 'kasa', 'donem'];
 
 /** Toplu akışta kayıt yapılan global adımlar (0 tabanlı) */
-const TOPLU_KAYDET_ADIMLARI = new Set([1, 5, 7, 8]);
+const TOPLU_KAYDET_ADIMLARI = new Set([0, 1, 2, 3]);
 
 function globalAdimdenFaz(adim: number): KurulumFazId {
-  if (adim <= 1) return 'firma';
-  if (adim <= 5) return 'sube';
-  if (adim <= 7) return 'depo';
-  if (adim === 8) return 'kasa';
-  return 'donem';
+  return KURULUM_FAZ_SIRASI[adim] ?? 'donem';
 }
-
-function globalAdimdenFazIci(adim: number): number {
-  if (adim <= 1) return adim;
-  if (adim <= 5) return adim - 2;
-  if (adim <= 7) return adim - 6;
-  if (adim === 8) return 0;
-  return 0;
-}
-
-function topluFormlariSifirla() {
-  return {
-    firma: bosFirmaForm,
-    sube: bosSubeForm,
-    depo: bosDepoForm,
-    kasa: { ...bosKasaForm, kasaKodu: 'KASA01', kasaAdi: 'Merkez Kasa' },
-    donem: bosDonemForm,
-  };
-}
-
 
 interface KurulumSihirbaziProps {
   onTamamlandi: () => void;
@@ -103,14 +69,9 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
-  const [aktifFazId, setAktifFazId] = useState<KurulumFazId>('firma');
-  const [fazIciAdim, setFazIciAdim] = useState(0);
   const [globalAdim, setGlobalAdim] = useState(0);
-  /** Sekme seçilmediyse toplu kurulum; bir faz sekmesine tıklanınca false */
-  const [tamAkis, setTamAkis] = useState(true);
 
   const [firmalar, setFirmalar] = useState<AdminFirma[]>([]);
-  const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [seciliFirmaId, setSeciliFirmaId] = useState('');
 
   const [firmaForm, setFirmaForm] = useState<FirmaFormDegeri>(bosFirmaForm);
@@ -131,7 +92,6 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
       try {
         const [firmaListesi, subeListesi] = await Promise.all([firmalariGetir(), subeleriGetir()]);
         setFirmalar(firmaListesi);
-        setSubeler(subeListesi);
         const ilkFirma = firmaListesi[0]?.id ?? '';
         const ilkSube = subeListesi[0]?.id ?? '';
         setSeciliFirmaId(ilkFirma);
@@ -192,61 +152,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
     });
 
     setKasaForm((k) => ({ ...k, subeId: merkez.id }));
-    setSubeler(subeListesi);
   }, []);
-
-  const topluModaDon = useCallback(() => {
-    const sifir = topluFormlariSifirla();
-    setTamAkis(true);
-    setGlobalAdim(0);
-    setAktifFazId('firma');
-    setFazIciAdim(0);
-    setSubeId(null);
-    setDepoId(null);
-    setFirmaForm(sifir.firma);
-    setSubeForm(sifir.sube);
-    setDepoForm({ ...sifir.depo, subeId: subeler[0]?.id ?? '' });
-    setKasaForm({ ...sifir.kasa, subeId: subeler[0]?.id ?? '' });
-    setDonemForm(sifir.donem);
-  }, [subeler]);
-
-  const fazSecildi = useCallback(
-    (faz: TanimSihirbazFaz) => {
-      if (faz.id === 'toplu') {
-        topluModaDon();
-        return;
-      }
-
-      const id = faz.id as KurulumFazId;
-      setAktifFazId(id);
-      setFazIciAdim(0);
-      setTamAkis(false);
-
-      if (id === 'firma') {
-        setFirmaForm(bosFirmaForm);
-      }
-      if (id === 'sube') {
-        setSubeId(null);
-        setSubeForm(bosSubeForm);
-      }
-      if (id === 'depo') {
-        setDepoId(null);
-        setDepoForm({ ...bosDepoForm, subeId: subeler[0]?.id ?? '' });
-      }
-      if (id === 'kasa') {
-        setKasaForm({
-          ...bosKasaForm,
-          kasaKodu: 'KASA01',
-          kasaAdi: '',
-          subeId: subeler[0]?.id ?? '',
-        });
-      }
-      if (id === 'donem') {
-        setDonemForm(bosDonemForm);
-      }
-    },
-    [subeler, topluModaDon]
-  );
 
   const firmaSecici = (saltOkunur = false) => (
     <TanimFirmaSecici
@@ -257,50 +163,30 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
     />
   );
 
-  const subeSecici = (deger: string, onChange: (id: string) => void) => (
-    <label className="ap-tanimlar-secim-alan block">
-      <span className="ap-tanim-girdi-etiket">Şube *</span>
-      <FormAcilirSecim
-        value={deger}
-        onChange={onChange}
-        secenekler={subeler.map((s) => ({
-          value: s.id,
-          label: `${s.subeKodu} — ${s.subeAdi}`,
-        }))}
-      />
-    </label>
-  );
-
   const firmaAdimlari = useMemo(
     (): TanimSihirbazAdim[] => [
       {
-        baslik: 'Firma — Temel Bilgiler',
-        aciklama: 'Firma kodu ve unvanını girin',
-        icerik: (
-          <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-            <TanimGirdi
-              etiket="Firma Kodu"
-              deger={firmaForm.firmaKodu}
-              kural="kod"
-              zorunlu
-              onChange={(firmaKodu) => setFirmaForm((f) => ({ ...f, firmaKodu }))}
-            />
-            <TanimGirdi
-              etiket="Firma Adı"
-              deger={firmaForm.firmaAdi}
-              kural="serbestMetin"
-              maxLength={255}
-              zorunlu
-              onChange={(firmaAdi) => setFirmaForm((f) => ({ ...f, firmaAdi }))}
-            />
-          </div>
-        ),
-      },
-      {
-        baslik: 'Firma — Vergi Bilgileri',
-        aciklama: 'Vergi dairesi, numarası ve durum',
+        baslik: 'Firma',
+        aciklama: 'Firma kodu, unvan, vergi bilgileri ve durum',
         icerik: (
           <>
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+              <TanimGirdi
+                etiket="Firma Kodu"
+                deger={firmaForm.firmaKodu}
+                kural="kod"
+                zorunlu
+                onChange={(firmaKodu) => setFirmaForm((f) => ({ ...f, firmaKodu }))}
+              />
+              <TanimGirdi
+                etiket="Firma Adı"
+                deger={firmaForm.firmaAdi}
+                kural="serbestMetin"
+                maxLength={255}
+                zorunlu
+                onChange={(firmaAdi) => setFirmaForm((f) => ({ ...f, firmaAdi }))}
+              />
+            </div>
             <VergiDairesiSecici
               deger={firmaForm.vergiDairesi}
               onChange={(vergiDairesi) => setFirmaForm((f) => ({ ...f, vergiDairesi }))}
@@ -323,13 +209,13 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
   );
 
   const subeAdimlari = useMemo((): TanimSihirbazAdim[] => {
-    const merkezGuncelle = tamAkis && !!subeId;
+    const merkezGuncelle = !!subeId;
     return [
       {
-        baslik: 'Şube — Temel Bilgiler',
+        baslik: 'Şube',
         aciklama: merkezGuncelle
-          ? 'Bağlı firma ve merkez şube bilgileri'
-          : 'Hangi firmaya ekleneceğini seçin, şube kodu ve adını girin',
+          ? 'Merkez şube adres, e-belge ve ticari bilgileri'
+          : 'Şube temel bilgileri, adres, e-belge serileri ve ticari kayıtlar',
         icerik: (
           <>
             {firmaSecici(merkezGuncelle)}
@@ -349,6 +235,45 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
                 onChange={(subeAdi) => setSubeForm((s) => ({ ...s, subeAdi }))}
               />
             </div>
+            <OrtakAdresFormu
+              bolumsuz
+              deger={subeForm}
+              onChange={(adres) => setSubeForm((s) => ({ ...s, ...adres }))}
+            />
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--3">
+              <TanimGirdi
+                etiket="E-Fatura Seri"
+                deger={subeForm.efaturaSeri}
+                kural="ebelgeSeri"
+                onChange={(efaturaSeri) => setSubeForm((s) => ({ ...s, efaturaSeri }))}
+              />
+              <TanimGirdi
+                etiket="E-Arşiv Seri"
+                deger={subeForm.earsivSeri}
+                kural="ebelgeSeri"
+                onChange={(earsivSeri) => setSubeForm((s) => ({ ...s, earsivSeri }))}
+              />
+              <TanimGirdi
+                etiket="E-İrsaliye Seri"
+                deger={subeForm.eirsaliyeSeri}
+                kural="ebelgeSeri"
+                onChange={(eirsaliyeSeri) => setSubeForm((s) => ({ ...s, eirsaliyeSeri }))}
+              />
+            </div>
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+              <TanimGirdi
+                etiket="MERSİS No"
+                deger={subeForm.mersis}
+                kural="mersis"
+                onChange={(mersis) => setSubeForm((s) => ({ ...s, mersis }))}
+              />
+              <TanimGirdi
+                etiket="Ticaret Sicil No"
+                deger={subeForm.ticaretSicil}
+                kural="ticaretSicil"
+                onChange={(ticaretSicil) => setSubeForm((s) => ({ ...s, ticaretSicil }))}
+              />
+            </div>
             <OrtakDurumAlani
               aktif={subeForm.aktif}
               onChange={(aktif) => setSubeForm((s) => ({ ...s, aktif }))}
@@ -356,77 +281,19 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
           </>
         ),
       },
-      {
-        baslik: 'Şube — Adres',
-        aciklama: 'Şube adres bilgilerini girin',
-        icerik: (
-          <OrtakAdresFormu
-            bolumsuz
-            deger={subeForm}
-            onChange={(adres) => setSubeForm((s) => ({ ...s, ...adres }))}
-          />
-        ),
-      },
-      {
-        baslik: 'Şube — E-Belge Serileri',
-        aciklama: 'E-Fatura, E-Arşiv ve E-İrsaliye seri kodları',
-        icerik: (
-          <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--3">
-            <TanimGirdi
-              etiket="E-Fatura Seri"
-              deger={subeForm.efaturaSeri}
-              kural="ebelgeSeri"
-              onChange={(efaturaSeri) => setSubeForm((s) => ({ ...s, efaturaSeri }))}
-            />
-            <TanimGirdi
-              etiket="E-Arşiv Seri"
-              deger={subeForm.earsivSeri}
-              kural="ebelgeSeri"
-              onChange={(earsivSeri) => setSubeForm((s) => ({ ...s, earsivSeri }))}
-            />
-            <TanimGirdi
-              etiket="E-İrsaliye Seri"
-              deger={subeForm.eirsaliyeSeri}
-              kural="ebelgeSeri"
-              onChange={(eirsaliyeSeri) => setSubeForm((s) => ({ ...s, eirsaliyeSeri }))}
-            />
-          </div>
-        ),
-      },
-      {
-        baslik: 'Şube — Ticari Bilgiler',
-        aciklama: 'MERSİS ve ticaret sicil numaraları',
-        icerik: (
-          <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-            <TanimGirdi
-              etiket="MERSİS No"
-              deger={subeForm.mersis}
-              kural="mersis"
-              onChange={(mersis) => setSubeForm((s) => ({ ...s, mersis }))}
-            />
-            <TanimGirdi
-              etiket="Ticaret Sicil No"
-              deger={subeForm.ticaretSicil}
-              kural="ticaretSicil"
-              onChange={(ticaretSicil) => setSubeForm((s) => ({ ...s, ticaretSicil }))}
-            />
-          </div>
-        ),
-      },
     ];
-  }, [tamAkis, subeId, subeForm, firmalar, seciliFirmaId]);
+  }, [subeId, subeForm, firmalar, seciliFirmaId]);
 
   const depoAdimlari = useMemo((): TanimSihirbazAdim[] => {
-    const bagimsiz = !tamAkis || !depoId;
+    const merkezGuncelle = !!depoId;
     return [
       {
-        baslik: 'Depo — Temel Bilgiler',
-        aciklama: bagimsiz ? 'Şubeyi seçin, depo kodu ve adını girin' : 'Merkez depo kodu, adı ve durum',
+        baslik: 'Depo',
+        aciklama: merkezGuncelle
+          ? 'Merkez depo bilgileri ve adresi'
+          : 'Depo kodu, adı, durum ve adres bilgileri',
         icerik: (
           <>
-            {bagimsiz
-              ? subeSecici(depoForm.subeId, (subeId) => setDepoForm((d) => ({ ...d, subeId })))
-              : null}
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
               <TanimGirdi
                 etiket="Depo Kodu"
@@ -443,6 +310,11 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
                 onChange={(depoAdi) => setDepoForm((d) => ({ ...d, depoAdi }))}
               />
             </div>
+            <OrtakAdresFormu
+              bolumsuz
+              deger={depoForm}
+              onChange={(adres) => setDepoForm((d) => ({ ...d, ...adres }))}
+            />
             <OrtakDurumAlani
               aktif={depoForm.aktif}
               onChange={(aktif) => setDepoForm((d) => ({ ...d, aktif }))}
@@ -450,33 +322,16 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
           </>
         ),
       },
-      {
-        baslik: 'Depo — Adres',
-        aciklama: 'Depo adres bilgilerini girin',
-        icerik: (
-          <OrtakAdresFormu
-            bolumsuz
-            deger={depoForm}
-            onChange={(adres) => setDepoForm((d) => ({ ...d, ...adres }))}
-          />
-        ),
-      },
     ];
-  }, [tamAkis, depoId, depoForm, subeler]);
+  }, [depoId, depoForm]);
 
   const kasaAdimlari = useMemo(
     (): TanimSihirbazAdim[] => [
       {
-        baslik: 'Kasa — Bilgiler',
-        aciklama:
-          tamAkis && kasaForm.subeId
-            ? 'Kasa bilgilerini ve durumu girin'
-            : 'Şubeyi seçin, kasa bilgilerini ve durumu girin',
+        baslik: 'Kasa',
+        aciklama: 'Kasa kodu, adı, para birimi ve durum',
         icerik: (
           <>
-            {!(tamAkis && kasaForm.subeId)
-              ? subeSecici(kasaForm.subeId, (subeId) => setKasaForm((k) => ({ ...k, subeId })))
-              : null}
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
               <TanimGirdi
                 etiket="Kasa Kodu"
@@ -509,13 +364,13 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
         ),
       },
     ],
-    [kasaForm, subeler, tamAkis]
+    [kasaForm]
   );
 
   const donemAdimlari = useMemo(
     (): TanimSihirbazAdim[] => [
       {
-        baslik: 'Dönem — Bilgiler',
+        baslik: 'Dönem',
         aciklama: 'Muhasebe dönem kodu, adı ve durum',
         icerik: (
           <>
@@ -547,7 +402,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
     [donemForm]
   );
 
-  const topluAdimlar = useMemo(
+  const kurulumAdimlari = useMemo(
     () => [
       ...firmaAdimlari,
       ...subeAdimlari,
@@ -558,71 +413,32 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
     [firmaAdimlari, subeAdimlari, depoAdimlari, kasaAdimlari, donemAdimlari]
   );
 
-  const tekliAdimlar = useMemo(() => {
-    switch (aktifFazId) {
-      case 'firma':
-        return firmaAdimlari;
-      case 'sube':
-        return subeAdimlari;
-      case 'depo':
-        return depoAdimlari;
-      case 'kasa':
-        return kasaAdimlari;
-      case 'donem':
-        return donemAdimlari;
-      default:
-        return firmaAdimlari;
-    }
-  }, [aktifFazId, firmaAdimlari, subeAdimlari, depoAdimlari, kasaAdimlari, donemAdimlari]);
-
-  const gorunurAdimlar = tamAkis ? topluAdimlar : tekliAdimlar;
-  const aktifAdim = tamAkis ? globalAdim : fazIciAdim;
-  const gorunurFazId = tamAkis ? 'toplu' : aktifFazId;
-
   const fazAdimDogrula = useCallback(
-    (faz: KurulumFazId, adim: number): string | null => {
+    (faz: KurulumFazId): string | null => {
       if (faz === 'firma') {
-        if (adim === 0) {
-          if (!kodGecerliMi(firmaForm.firmaKodu)) return 'Firma kodu zorunludur';
-          if (!adGecerliMi(firmaForm.firmaAdi, 255)) return 'Firma adı zorunludur';
-        }
-        if (adim === 1 && !vergiNoGecerliMi(firmaForm.vergiNo)) {
-          return 'Vergi no 10 haneli olmalıdır';
-        }
+        if (!kodGecerliMi(firmaForm.firmaKodu)) return 'Firma kodu zorunludur';
+        if (!adGecerliMi(firmaForm.firmaAdi, 255)) return 'Firma adı zorunludur';
+        if (!vergiNoGecerliMi(firmaForm.vergiNo)) return 'Vergi no 10 haneli olmalıdır';
         return null;
       }
 
       if (faz === 'sube') {
-        const merkezGuncelle = tamAkis && !!subeId;
-        if (adim === 0) {
-          if (!merkezGuncelle && !seciliFirmaId) return 'Firma seçimi zorunludur';
-          if (!kodGecerliMi(subeForm.subeKodu)) return 'Şube kodu zorunludur';
-          if (!adGecerliMi(subeForm.subeAdi)) return 'Şube adı zorunludur';
-        }
-        if (adim === 1 && !postaKoduGecerliMi(subeForm.postaKodu)) {
-          return 'Posta kodu 5 haneli olmalıdır';
-        }
-        if (adim === 2) {
-          if (!ebelgeSeriGecerliMi(subeForm.efaturaSeri)) return 'E-Fatura seri 3 karakter olmalıdır';
-          if (!ebelgeSeriGecerliMi(subeForm.earsivSeri)) return 'E-Arşiv seri 3 karakter olmalıdır';
-          if (!ebelgeSeriGecerliMi(subeForm.eirsaliyeSeri)) return 'E-İrsaliye seri 3 karakter olmalıdır';
-        }
-        if (adim === 3 && !mersisGecerliMi(subeForm.mersis)) {
-          return 'MERSİS numarası 16 haneli olmalıdır';
-        }
+        const merkezGuncelle = !!subeId;
+        if (!merkezGuncelle && !seciliFirmaId) return 'Firma seçimi zorunludur';
+        if (!kodGecerliMi(subeForm.subeKodu)) return 'Şube kodu zorunludur';
+        if (!adGecerliMi(subeForm.subeAdi)) return 'Şube adı zorunludur';
+        if (!postaKoduGecerliMi(subeForm.postaKodu)) return 'Posta kodu 5 haneli olmalıdır';
+        if (!ebelgeSeriGecerliMi(subeForm.efaturaSeri)) return 'E-Fatura seri 3 karakter olmalıdır';
+        if (!ebelgeSeriGecerliMi(subeForm.earsivSeri)) return 'E-Arşiv seri 3 karakter olmalıdır';
+        if (!ebelgeSeriGecerliMi(subeForm.eirsaliyeSeri)) return 'E-İrsaliye seri 3 karakter olmalıdır';
+        if (!mersisGecerliMi(subeForm.mersis)) return 'MERSİS numarası 16 haneli olmalıdır';
         return null;
       }
 
       if (faz === 'depo') {
-        const bagimsiz = !tamAkis || !depoId;
-        if (adim === 0) {
-          if (bagimsiz && !depoForm.subeId) return 'Şube seçimi zorunludur';
-          if (!kodGecerliMi(depoForm.depoKodu)) return 'Depo kodu zorunludur';
-          if (!adGecerliMi(depoForm.depoAdi)) return 'Depo adı zorunludur';
-        }
-        if (adim === 1 && !postaKoduGecerliMi(depoForm.postaKodu)) {
-          return 'Posta kodu 5 haneli olmalıdır';
-        }
+        if (!kodGecerliMi(depoForm.depoKodu)) return 'Depo kodu zorunludur';
+        if (!adGecerliMi(depoForm.depoAdi)) return 'Depo adı zorunludur';
+        if (!postaKoduGecerliMi(depoForm.postaKodu)) return 'Posta kodu 5 haneli olmalıdır';
         return null;
       }
 
@@ -642,33 +458,17 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
 
       return null;
     },
-    [
-      tamAkis,
-      subeId,
-      depoId,
-      seciliFirmaId,
-      firmaForm,
-      subeForm,
-      depoForm,
-      kasaForm,
-      donemForm,
-    ]
+    [subeId, seciliFirmaId, firmaForm, subeForm, depoForm, kasaForm, donemForm]
   );
 
   const adimDogrula = useCallback(
-    (adim: number): string | null => {
-      if (tamAkis) {
-        const faz = globalAdimdenFaz(adim);
-        return fazAdimDogrula(faz, globalAdimdenFazIci(adim));
-      }
-      return fazAdimDogrula(aktifFazId, adim);
-    },
-    [tamAkis, aktifFazId, fazAdimDogrula]
+    (adim: number): string | null => fazAdimDogrula(globalAdimdenFaz(adim)),
+    [fazAdimDogrula]
   );
 
   const fazKaydet = useCallback(
-    async (hedefFaz?: KurulumFazId): Promise<string | null> => {
-      const faz = hedefFaz ?? aktifFazId;
+    async (hedefFaz: KurulumFazId): Promise<string | null> => {
+      const faz = hedefFaz;
       try {
         if (faz === 'firma') {
           const firma = await firmaOlustur(firmaForm);
@@ -683,18 +483,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
         }
 
         if (faz === 'sube') {
-          const bagimsiz = !tamAkis || !subeId;
-          if (bagimsiz) {
-            if (!seciliFirmaId) return 'Firma seçimi zorunludur';
-            await subeOlustur(subeForm, seciliFirmaId);
-            logMesajiAyarla(
-              logMesaj.ekledi(
-                'Tanımlar — Kurulum',
-                `«${subeForm.subeAdi}» (${subeForm.subeKodu}) şubesini`
-              )
-            );
-            basariBildir('Şube eklendi.');
-          } else if (subeId) {
+          if (subeId) {
             await subeGuncelle(subeId, subeForm);
             logMesajiAyarla(
               logMesaj.guncelledi(
@@ -704,22 +493,11 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
             );
             basariBildir('Şube kaydedildi.');
           }
-          setSubeler(await subeleriGetir());
           return null;
         }
 
         if (faz === 'depo') {
-          const bagimsiz = !tamAkis || !depoId;
-          if (bagimsiz) {
-            await depoOlustur(depoForm);
-            logMesajiAyarla(
-              logMesaj.ekledi(
-                'Tanımlar — Kurulum',
-                `«${depoForm.depoAdi}» (${depoForm.depoKodu}) deposunu`
-              )
-            );
-            basariBildir('Depo eklendi.');
-          } else if (depoId) {
+          if (depoId) {
             await depoGuncelle(depoId, depoForm);
             logMesajiAyarla(
               logMesaj.guncelledi(
@@ -762,11 +540,8 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
       }
     },
     [
-      aktifFazId,
-      tamAkis,
       subeId,
       depoId,
-      seciliFirmaId,
       firmaForm,
       subeForm,
       depoForm,
@@ -780,52 +555,46 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
 
   const adimIleri = useCallback(
     async (adim: number): Promise<string | null> => {
-      if (tamAkis && TOPLU_KAYDET_ADIMLARI.has(adim)) {
+      if (TOPLU_KAYDET_ADIMLARI.has(adim)) {
         return fazKaydet(globalAdimdenFaz(adim));
       }
       return null;
     },
-    [tamAkis, fazKaydet]
+    [fazKaydet]
   );
 
   const tamamla = useCallback(async () => {
-    const hata = adimDogrula(aktifAdim);
+    const hata = adimDogrula(globalAdim);
     if (hata) {
       hataBildir(hata);
       return;
     }
     setKaydediliyor(true);
     try {
-      const hedefFaz = tamAkis ? globalAdimdenFaz(aktifAdim) : aktifFazId;
-      const kayitHata = await fazKaydet(hedefFaz);
+      const kayitHata = await fazKaydet(globalAdimdenFaz(globalAdim));
       if (kayitHata) {
         hataBildir(kayitHata);
         return;
       }
-      if (tamAkis) {
-        basariBildir('Kurulum tamamlandı! Tüm tanımlar kaydedildi.');
-      }
+      basariBildir('Kurulum tamamlandı! Tüm tanımlar kaydedildi.');
       onTamamlandi();
     } finally {
       setKaydediliyor(false);
     }
-  }, [aktifAdim, adimDogrula, fazKaydet, tamAkis, basariBildir, hataBildir, onTamamlandi]);
+  }, [globalAdim, adimDogrula, fazKaydet, basariBildir, hataBildir, onTamamlandi]);
 
-  const adimDegistir = useCallback(
-    (adim: number) => {
-      if (tamAkis) setGlobalAdim(adim);
-      else setFazIciAdim(adim);
-    },
-    [tamAkis]
-  );
+  const adimDegistir = useCallback((adim: number) => {
+    setGlobalAdim(adim);
+  }, []);
 
   if (yukleniyor) return <TanimYukleniyor />;
 
   return (
     <TanimSihirbaz
       baslik="Kurulum Sihirbazı"
-      adimlar={gorunurAdimlar}
-      aktifAdim={aktifAdim}
+      ustGizle
+      adimlar={kurulumAdimlari}
+      aktifAdim={globalAdim}
       onAdimDegistir={adimDegistir}
       onIptal={onIptal}
       onTamamla={() => void tamamla()}
@@ -833,11 +602,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
       onAdimIleri={adimIleri}
       onHata={hataBildir}
       tamamlaniyor={kaydediliyor}
-      fazlar={FAZLAR}
-      aktifFazId={gorunurFazId}
-      onFazSecildi={fazSecildi}
-      iptalMetin="← Kayıtlara dön"
-      tamamlaMetin={tamAkis ? 'Kaydet ve Bitir' : 'Kaydet'}
+      tamamlaMetin="Kaydet ve Bitir"
     />
   );
 }

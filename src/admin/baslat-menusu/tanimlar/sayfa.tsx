@@ -68,9 +68,13 @@ export function TanimlarSayfasi() {
             <h2 className="ap-tanimlar-ust-baslik">
               {mod === 'kurulum' ? 'Kurulum Sihirbazı' : 'Tanım Kayıtları'}
             </h2>
-            {mod === 'kurulum' && (
+            {mod === 'kurulum' ? (
               <p className="ap-tanimlar-ust-aciklama">
                 Firma, şube, depo, kasa ve dönemi tek akışta sırayla tanımlayın
+              </p>
+            ) : (
+              <p className="ap-tanimlar-ust-aciklama">
+                Firmaya tıklayarak şube ve dönemlere, şubeye tıklayarak depo ve kasalara inin
               </p>
             )}
           </div>
@@ -83,7 +87,7 @@ export function TanimlarSayfasi() {
               onIptal={() => setMod('kayitlar')}
             />
           ) : (
-            <TanimKayitlarOzeti onKurulumBaslat={() => setMod('kurulum')} />
+            <TanimKayitlarOzeti />
           )}
         </div>
       </div>

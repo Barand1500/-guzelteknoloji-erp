@@ -2,6 +2,12 @@ export type TanimSekmeId = 'firma' | 'sube' | 'depo' | 'kasa' | 'donem';
 
 export type TanimGorunumModu = 'liste' | 'ekle' | 'duzenle';
 
+export interface GomuluDuzenleSecenek {
+  id: string;
+  onKapat: () => void;
+  panel?: boolean;
+}
+
 export const TANIM_SEKMELER: { id: TanimSekmeId; ad: string; ikon: string }[] = [
   { id: 'firma', ad: 'Firma', ikon: '🏢' },
   { id: 'sube', ad: 'Şube', ikon: '🏪' },

@@ -28,6 +28,8 @@ interface TanimSihirbazProps {
   onFazSecildi?: (faz: TanimSihirbazFaz) => void;
   iptalMetin?: string;
   tamamlaMetin?: string;
+  /** true ise üstteki iptal butonu ve başlık satırı gösterilmez */
+  ustGizle?: boolean;
   /** Tam kurulumda ara faz bitince sonraki faza geçmek için son adımda İleri gösterir */
   sonAdimdaIleri?: boolean;
   onSonrakiFaza?: () => Promise<string | null>;
@@ -49,14 +51,13 @@ export function TanimSihirbaz({
   onFazSecildi,
   iptalMetin = '← Listeye dön',
   tamamlaMetin = 'Kaydet ve Bitir',
+  ustGizle = false,
   sonAdimdaIleri = false,
   onSonrakiFaza,
 }: TanimSihirbazProps) {
   const sonAdim = adimlar.length - 1;
   const adim = adimlar[aktifAdim];
   const [ileriYukleniyor, setIleriYukleniyor] = useState(false);
-
-  const aktifFaz = fazlar?.find((f) => f.id === aktifFazId);
 
   const ileri = async () => {
     const hata = adimDogrula?.(aktifAdim);
@@ -115,25 +116,16 @@ export function TanimSihirbaz({
 
   return (
     <div className="ap-tanimlar-sihirbaz">
-      <div className="ap-tanimlar-sihirbaz-ust">
-        <button type="button" className="ap-tanimlar-sihirbaz-iptal" onClick={onIptal}>
-          {iptalMetin}
-        </button>
-        <div className="ap-tanimlar-sihirbaz-baslik-alan">
-          <h3 className="ap-tanimlar-sihirbaz-baslik">{baslik}</h3>
-          <p className="ap-tanimlar-sihirbaz-alt">
-            {aktifFaz ? (
-              <>
-                <span className="ap-tanimlar-sihirbaz-faz-etiket">
-                  {aktifFaz.ikon} {aktifFaz.ad}
-                </span>
-                {' · '}
-              </>
-            ) : null}
-            Adım {aktifAdim + 1} / {adimlar.length}
-          </p>
+      {!ustGizle ? (
+        <div className="ap-tanimlar-sihirbaz-ust">
+          <button type="button" className="ap-tanimlar-sihirbaz-iptal" onClick={onIptal}>
+            {iptalMetin}
+          </button>
+          <div className="ap-tanimlar-sihirbaz-baslik-alan">
+            <h3 className="ap-tanimlar-sihirbaz-baslik">{baslik}</h3>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {fazlar && fazlar.length > 0 ? (
         <ol className="ap-tanimlar-sihirbaz-fazlar" aria-label="Kurulum fazları">
@@ -183,7 +175,7 @@ export function TanimSihirbaz({
         <div className="ap-tanimlar-sihirbaz-adim-icerik">{adim.icerik}</div>
       </div>
 
-      <div className="ap-tanimlar-sihirbaz-alt">
+      <div className="ap-tanimlar-sihirbaz-tuslar">
         <button
           type="button"
           className="ap-tanimlar-sihirbaz-dugme ap-tanimlar-sihirbaz-dugme--ikincil"
@@ -192,6 +184,9 @@ export function TanimSihirbaz({
         >
           Geri
         </button>
+        <span className="ap-tanimlar-sihirbaz-adim-sayac" aria-live="polite">
+          Adım {aktifAdim + 1} / {adimlar.length}
+        </span>
         {sonAdimGosterIleri ? (
           <button
             type="button"

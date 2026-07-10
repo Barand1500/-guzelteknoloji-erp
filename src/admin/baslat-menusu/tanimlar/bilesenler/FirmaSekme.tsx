@@ -26,6 +26,7 @@ import {
   bosFirmaForm,
   type AdminFirma,
   type FirmaFormDegeri,
+  type GomuluDuzenleSecenek,
   type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -65,7 +66,7 @@ function firmaAdimDogrula(adim: number, form: FirmaFormDegeri): string | null {
 export function FirmaSekme({
   gomuluDuzenle,
 }: {
-  gomuluDuzenle?: { id: string; onKapat: () => void };
+  gomuluDuzenle?: GomuluDuzenleSecenek;
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -287,11 +288,16 @@ export function FirmaSekme({
     return (
       <>
         <TanimDuzenleEkrani
-          baslik={`${seciliKayit.firmaAdi} (${seciliKayit.firmaKodu})`}
+          panel={gomuluDuzenle?.panel}
+          ustEtiket="Firma düzenle"
+          kod={seciliKayit.firmaKodu}
+          baslik={seciliKayit.firmaAdi}
           altBaslik="Firma bilgilerini güncelleyin"
           olusturma={seciliKayit.olusturma}
           guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
+          onKaydet={() => void kaydet()}
+          kaydediliyor={kaydediliyor}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
           <TanimFormBolum baslik="Vergi Bilgileri">{vergiAlanlar}</TanimFormBolum>

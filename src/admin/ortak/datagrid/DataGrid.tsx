@@ -23,6 +23,8 @@ import { DgIkon } from './DgIkonlar';
 import { EtiketHucre } from './EtiketHucre';
 import './datagrid.css';
 
+const HIZLI_GIRIS_SISTEM_KOLONLARI = new Set(['secim', 'islemler', 'olusturma', 'guncelleme', 'bagli']);
+
 function kolonFormulaTipi<TRow>(kolon: KolonTanimi<TRow>): 'sayi' | 'iskonto' | null {
   if (kolon.formulaTip) return kolon.formulaTip;
   if (kolon.tip === 'iskonto') return 'iskonto';
@@ -207,6 +209,11 @@ export function DataGrid<TRow extends { id: string }>({
   kolonBaslikEki,
   satirSinifAdi,
   kolonGenislikSurumu,
+  onSatirTikla,
+  onSatirDuzenle,
+  onSatirSil,
+  hizliGirisIstegeBagli = false,
+  hizliGirisVarsayilanAlan = false,
 }: DataGridProps<TRow>) {
   const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar, kolonGenislikSurumu);
   const [hoverSatirId, setHoverSatirId] = useState<string | null>(null);
@@ -223,6 +230,7 @@ export function DataGrid<TRow extends { id: string }>({
     return baslangic;
   });
   const [hizliGirisGenisletildi, setHizliGirisGenisletildi] = useState(true);
+  const [hizliGirisAcik, setHizliGirisAcik] = useState(!hizliGirisIstegeBagli);
   const [sutunMenuKonum, setSutunMenuKonum] = useState({ top: 0, left: 0 });
   const [formulMenuAcik, setFormulMenuAcik] = useState(false);
   const [formulMenuKonum, setFormulMenuKonum] = useState({ top: 0, left: 0 });
@@ -231,8 +239,12 @@ export function DataGrid<TRow extends { id: string }>({
     []
   );
   const scrollRef = useRef<HTMLDivElement>(null);
+  const yatayScrollRef = useRef<HTMLDivElement>(null);
+  const scrollSenkronRef = useRef(false);
   const kabukRef = useRef<HTMLDivElement>(null);
   const [scrollYukseklik, setScrollYukseklik] = useState<number | null>(null);
+  const [yatayScrollGerekli, setYatayScrollGerekli] = useState(false);
+  const [tabloGenisligi, setTabloGenisligi] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const formulMenuRef = useRef<HTMLDivElement>(null);
   const sutunTusRef = useRef<HTMLButtonElement>(null);
@@ -365,11 +377,13 @@ export function DataGrid<TRow extends { id: string }>({
       const ustBar = kabuk.querySelector('.dg-ust-bar') as HTMLElement | null;
       const topluBar = kabuk.querySelector('.dg-toplu-bar') as HTMLElement | null;
       const hataEl = kabuk.querySelector('.dg-hata') as HTMLElement | null;
+      const yatayScroll = kabuk.querySelector('.dg-yatay-scroll') as HTMLElement | null;
       const alt = kabuk.querySelector('.dg-alt') as HTMLElement | null;
       const disHaric =
         (ustBar?.offsetHeight ?? 0) +
         (topluBar?.offsetHeight ?? 0) +
         (hataEl?.offsetHeight ?? 0) +
+        (yatayScroll?.offsetHeight ?? 0) +
         (alt?.offsetHeight ?? 0);
       setScrollYukseklik(Math.max(160, kabuk.clientHeight - disHaric));
     };
@@ -382,7 +396,66 @@ export function DataGrid<TRow extends { id: string }>({
       ro.disconnect();
       window.removeEventListener('resize', guncelle);
     };
-  }, [dg.seciliIdler.size, hata, hizliGirisGenisletildi, hizliGirisKartModu]);
+  }, [dg.seciliIdler.size, hata, hizliGirisGenisletildi, hizliGirisKartModu, yatayScrollGerekli]);
+
+  const yatayScrollOlc = useCallback(() => {
+    const scroll = scrollRef.current;
+    const tablo = scroll?.querySelector('table');
+    if (!scroll || !tablo) {
+      setYatayScrollGerekli(false);
+      setTabloGenisligi(0);
+      return;
+    }
+    const genislik = tablo.scrollWidth;
+    const gerekli = genislik > scroll.clientWidth + 1;
+    setTabloGenisligi(genislik);
+    setYatayScrollGerekli(gerekli);
+    if (gerekli && yatayScrollRef.current) {
+      yatayScrollRef.current.scrollLeft = scroll.scrollLeft;
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    yatayScrollOlc();
+    const scroll = scrollRef.current;
+    const tablo = scroll?.querySelector('table');
+    if (!scroll || !tablo) return;
+    const ro = new ResizeObserver(() => yatayScrollOlc());
+    ro.observe(scroll);
+    ro.observe(tablo);
+    return () => ro.disconnect();
+  }, [
+    yatayScrollOlc,
+    dg.gorunurKolonlar,
+    dg.ayar.kolonGenislikleri,
+    dg.ayar.kolonSirasi,
+    satirlar.length,
+    hizliGirisAcik,
+  ]);
+
+  const anaYatayScroll = useCallback(() => {
+    if (scrollSenkronRef.current) return;
+    const scroll = scrollRef.current;
+    const yatay = yatayScrollRef.current;
+    if (!scroll || !yatay) return;
+    scrollSenkronRef.current = true;
+    yatay.scrollLeft = scroll.scrollLeft;
+    requestAnimationFrame(() => {
+      scrollSenkronRef.current = false;
+    });
+  }, []);
+
+  const yatayCubukScroll = useCallback(() => {
+    if (scrollSenkronRef.current) return;
+    const scroll = scrollRef.current;
+    const yatay = yatayScrollRef.current;
+    if (!scroll || !yatay) return;
+    scrollSenkronRef.current = true;
+    scroll.scrollLeft = yatay.scrollLeft;
+    requestAnimationFrame(() => {
+      scrollSenkronRef.current = false;
+    });
+  }, []);
 
   useLayoutEffect(() => {
     if (!theadRef.current) return;
@@ -438,10 +511,26 @@ export function DataGrid<TRow extends { id: string }>({
         baslangic[k.anaAlan] = '';
       }
     }
+    if (hizliGirisVarsayilanAlan) baslangic.durum = baslangic.durum ?? 'true';
     setHizliGiris(baslangic);
-  }, [hizliGirisKolonlari]);
+  }, [hizliGirisKolonlari, hizliGirisVarsayilanAlan]);
 
-  const hizliGirisGonder = useCallback(() => {
+  const hizliGirisDoluMu = useCallback(() => {
+    if (hizliGirisVarsayilanAlan) {
+      return Object.entries(hizliGiris).some(([id, deger]) => id !== 'durum' && deger.trim());
+    }
+    if (!hizliGirisKolonlari) return false;
+    return hizliGirisKolonlari.some((k) => {
+      const alanlar = [
+        k.kolonId,
+        ...(k.birlesik?.map((b) => b.kolonId) ?? []),
+        ...(k.anaAlan && k.anaAlan !== k.kolonId ? [k.anaAlan] : []),
+      ];
+      return alanlar.some((id) => (hizliGiris[id] ?? '').trim());
+    });
+  }, [hizliGirisKolonlari, hizliGiris, hizliGirisVarsayilanAlan]);
+
+  const hizliGirisGonder = useCallback(async () => {
     if (!onHizliGiris || !hizliGirisKolonlari) return;
 
     let engellendi = false;
@@ -459,20 +548,32 @@ export function DataGrid<TRow extends { id: string }>({
     }
     if (engellendi) return;
 
-    const dolu = hizliGirisKolonlari.some((k) => {
-      const alanlar = [
-        k.kolonId,
-        ...(k.birlesik?.map((b) => b.kolonId) ?? []),
-        ...(k.anaAlan && k.anaAlan !== k.kolonId ? [k.anaAlan] : []),
-      ];
-      return alanlar.some((id) => (hizliGiris[id] ?? '').trim());
-    });
-    if (!dolu) return;
-    onHizliGiris(hizliGiris);
+    if (!hizliGirisDoluMu()) {
+      if (hizliGirisIstegeBagli) setHizliGirisAcik(false);
+      return;
+    }
+
+    const sonuc = onHizliGiris(hizliGiris);
+    const beklenen = sonuc instanceof Promise ? await sonuc : sonuc;
+    if (beklenen === false) return;
+
     hizliGirisSifirla();
     dg.setSayfa(0);
-    requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
-  }, [onHizliGiris, onHizliGirisEnter, hizliGirisKolonlari, hizliGiris, dg, hizliGirisSifirla]);
+    if (hizliGirisIstegeBagli) {
+      setHizliGirisAcik(false);
+    } else {
+      requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
+    }
+  }, [
+    onHizliGiris,
+    onHizliGirisEnter,
+    hizliGirisKolonlari,
+    hizliGiris,
+    dg,
+    hizliGirisSifirla,
+    hizliGirisDoluMu,
+    hizliGirisIstegeBagli,
+  ]);
 
   useEffect(() => {
     onSecimDegistir?.([...dg.seciliIdler]);
@@ -630,14 +731,22 @@ export function DataGrid<TRow extends { id: string }>({
       },
       csvIndir: (sadeceSecili) => csvAktar(sadeceSecili),
       hizliGirisOdakla: () => {
-        requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
+        if (hizliGirisIstegeBagli) setHizliGirisAcik(true);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
+        });
+      },
+      hizliGirisKapat: () => {
+        if (!hizliGirisIstegeBagli) return;
+        setHizliGirisAcik(false);
+        hizliGirisSifirla();
       },
       seciliIdler: () => [...dg.seciliIdler],
     };
     return () => {
       gridApiRef.current = null;
     };
-  }, [gridApiRef, satirlar, dg.seciliIdler, satirDuzenlePaneli]);
+  }, [gridApiRef, satirlar, dg.seciliIdler, satirDuzenlePaneli, hizliGirisIstegeBagli, hizliGirisSifirla]);
 
   const topluDurum = (aktif: boolean) => {
     if (!onSatirlarDegistir) return;
@@ -706,14 +815,21 @@ export function DataGrid<TRow extends { id: string }>({
       const secili = dg.seciliIdler.has(satir.id);
       const hover = hoverSatirId === satir.id;
       const ekSatirSinif = satirSinifAdi?.(satir) ?? '';
+      const tiklanabilir = Boolean(onSatirTikla);
 
       satirlarEl.push(
         <tr
           key={satir.id}
           data-satir-id={satir.id}
-          className={`dg-satir${secili ? ' dg-satir--secili' : ''}${hover ? ' dg-satir--hover' : ''}${duzenleme?.satirId === satir.id ? ' dg-satir--duzenleniyor' : ''}${ekSatirSinif ? ` ${ekSatirSinif}` : ''}`}
+          className={`dg-satir${secili ? ' dg-satir--secili' : ''}${hover ? ' dg-satir--hover' : ''}${duzenleme?.satirId === satir.id ? ' dg-satir--duzenleniyor' : ''}${tiklanabilir ? ' dg-satir--tiklanabilir' : ''}${ekSatirSinif ? ` ${ekSatirSinif}` : ''}`}
           onMouseEnter={() => setHoverSatirId(satir.id)}
           onMouseLeave={() => setHoverSatirId(null)}
+          onClick={(e) => {
+            if (!onSatirTikla) return;
+            const hedef = e.target as HTMLElement;
+            if (hedef.closest('button, input, a, .dg-islem-grup, .dg-secim-kabuk')) return;
+            onSatirTikla(satir);
+          }}
           onDoubleClick={() => {
             const ilk = dg.gorunurKolonlar.find((k) => k.duzenlenebilir);
             if (ilk) duzenlemeyiBaslat(satir, ilk);
@@ -759,22 +875,28 @@ export function DataGrid<TRow extends { id: string }>({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="dg-islem-grup">
-                    <button
-                      type="button"
-                      className="dg-islem-tus"
-                      title={dgTooltipMetni('Satırı düzenle')}
-                      aria-label="Satırı düzenle"
-                      onClick={() => setSatirPanel(satir)}
-                    >
-                      ✎
-                    </button>
-                    {onSatirlarDegistir && (
+                    {(satirDuzenlePaneli || onSatirDuzenle) && (
+                      <button
+                        type="button"
+                        className="dg-islem-tus"
+                        title={dgTooltipMetni('Satırı düzenle')}
+                        aria-label="Satırı düzenle"
+                        onClick={() =>
+                          onSatirDuzenle ? onSatirDuzenle(satir) : setSatirPanel(satir)
+                        }
+                      >
+                        ✎
+                      </button>
+                    )}
+                    {(onSatirlarDegistir || onSatirSil) && (
                       <button
                         type="button"
                         className="dg-islem-tus dg-islem-tus--tehlike"
                         title={dgTooltipMetni('Satırı sil')}
                         aria-label="Satırı sil"
-                        onClick={() => satirSil(satir.id)}
+                        onClick={() =>
+                          onSatirSil ? onSatirSil(satir) : satirSil(satir.id)
+                        }
                       >
                         <DgIkon ad="sil" />
                       </button>
@@ -913,6 +1035,7 @@ export function DataGrid<TRow extends { id: string }>({
 
   const renderHizliGirisSatiri = () => {
     if (!hizliGirisAktif || hizliGirisKartModu) return null;
+    if (hizliGirisIstegeBagli && !hizliGirisAcik) return null;
 
     const colspanAtlanan = new Set<string>();
     for (const k of hizliGirisKolonlari ?? []) {
@@ -1042,6 +1165,65 @@ export function DataGrid<TRow extends { id: string }>({
       }
 
       if (!hizliGirisSet.has(kolon.id) && !girisAyar?.birlesik && !girisAyar?.colspan) {
+        if (hizliGirisVarsayilanAlan && !HIZLI_GIRIS_SISTEM_KOLONLARI.has(kolon.id)) {
+          const refAta = ilkGirdi;
+          if (ilkGirdi) ilkGirdi = false;
+
+          if (kolon.id === 'durum') {
+            const acik = (hizliGiris[kolon.id] ?? 'true') === 'true';
+            return [
+              <td
+                key={kolon.id}
+                className={`dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--toggle dg-hucre--toggle${sabitHucreSinifi(kolon.id)}`}
+                style={{ ...hucreStil, minWidth: genislik }}
+              >
+                <span className="dg-toggle-ortala">
+                  <button
+                    type="button"
+                    className={`dg-switch${acik ? ' dg-switch--acik' : ''}`}
+                    aria-pressed={acik}
+                    title={dgTooltipMetni(acik ? 'Aktif' : 'Pasif')}
+                    onClick={() => girdiDegistir(kolon.id, acik ? 'false' : 'true')}
+                  >
+                    <span className="dg-switch-thumb" />
+                  </button>
+                </span>
+              </td>,
+            ];
+          }
+
+          if (kolon.id === 'paraBirimi') {
+            const paraSecenekleri =
+              hizliGirisKolonlari?.find((k) => k.kolonId === 'paraBirimi')?.secenekler ?? [];
+            if (paraSecenekleri.length) {
+              return [
+                <td
+                  key={kolon.id}
+                  className={`dg-hucre dg-hizli-giris-hucre${sabitHucreSinifi(kolon.id)}`}
+                  style={hucreStil}
+                >
+                  {secimGirdi(kolon.id, {
+                    kolonId: 'paraBirimi',
+                    tip: 'secim',
+                    varsayilan: 'TL',
+                    secenekler: paraSecenekleri,
+                  })}
+                </td>,
+              ];
+            }
+          }
+
+          return [
+            <td
+              key={kolon.id}
+              className={`dg-hucre dg-hizli-giris-hucre${sabitHucreSinifi(kolon.id)}${kolon.tip === 'para' || kolon.tip === 'iskonto' || kolon.tip === 'sayi' ? ' dg-hucre--sayi' : ''}`}
+              style={hucreStil}
+            >
+              {metinGirdi(kolon.id, kolon.baslik, kolon.baslik, refAta, true)}
+            </td>,
+          ];
+        }
+
         const onizleme = hizliGirisOnizle[kolon.id];
         return [
           <td
@@ -1059,10 +1241,10 @@ export function DataGrid<TRow extends { id: string }>({
 
       const kolonSabit = sabitKolonMu(kolon.id);
       const birlesikAlanlar = girisAyar?.birlesik;
-      const birlesikAktif =
-        Boolean(birlesikAlanlar?.length) && !kolonSabit && (girisAyar?.colspan ?? 1) > 1;
+      const birlesikAktif = Boolean(birlesikAlanlar?.length) && !kolonSabit;
 
       if (birlesikAktif && birlesikAlanlar && girisAyar) {
+        const yatayYigin = birlesikAlanlar.length <= 2;
         return [
           <td
             key={kolon.id}
@@ -1070,7 +1252,9 @@ export function DataGrid<TRow extends { id: string }>({
             className={`dg-hucre dg-hizli-giris-hucre dg-hizli-giris-hucre--birlesik${sabitHucreSinifi(kolon.id)}`}
             style={hucreStil}
           >
-            <div className="dg-hizli-giris-yigin">
+            <div
+              className={`dg-hizli-giris-yigin${yatayYigin ? ' dg-hizli-giris-yigin--yatay' : ''}`}
+            >
               {birlesikAlanlar.map((b) =>
                 metinGirdi(
                   b.kolonId,
@@ -1082,9 +1266,7 @@ export function DataGrid<TRow extends { id: string }>({
               )}
               {girisAyar.tip === 'secim' && girisAyar.secenekler?.length ? (
                 secimGirdi(anaAlanId, girisAyar)
-              ) : (
-                metinGirdi(anaAlanId, placeholder, ipucu, refAta && !birlesikAlanlar.length)
-              )}
+              ) : null}
             </div>
           </td>,
         ];
@@ -1141,6 +1323,18 @@ export function DataGrid<TRow extends { id: string }>({
       <tr
         className="dg-hizli-giris-satir"
         style={{ ['--dg-header-h' as string]: `${baslikYukseklik}px` }}
+        onBlurCapture={(e) => {
+          const satir = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (!satir.contains(document.activeElement)) {
+              if (hizliGirisDoluMu()) {
+                void hizliGirisGonder();
+              } else if (hizliGirisIstegeBagli) {
+                setHizliGirisAcik(false);
+              }
+            }
+          });
+        }}
       >
         {hucreler}
       </tr>
@@ -1383,12 +1577,14 @@ export function DataGrid<TRow extends { id: string }>({
       {hizliGirisKartModu &&
         (hizliGirisKarti ? hizliGirisKarti(hizliGirisApi) : null)}
 
-      <div
-        className="dg-scroll"
-        ref={scrollRef}
-        style={scrollYukseklik ? { height: scrollYukseklik, maxHeight: scrollYukseklik } : undefined}
-      >
-        <table className={`dg-tablo dg-tablo--cizgi-${dg.ayar.cizgiModu}`}>
+      <div className="dg-scroll-wrap">
+        <div
+          className="dg-scroll"
+          ref={scrollRef}
+          onScroll={yatayScrollGerekli ? anaYatayScroll : undefined}
+          style={scrollYukseklik ? { height: scrollYukseklik, maxHeight: scrollYukseklik } : undefined}
+        >
+          <table className={`dg-tablo dg-tablo--cizgi-${dg.ayar.cizgiModu}`}>
           <colgroup>
             {dg.gorunurKolonlar.map((kolon) => {
               const genislik = dg.ayar.kolonGenislikleri[kolon.id] ?? kolon.genislik ?? 120;
@@ -1489,6 +1685,19 @@ export function DataGrid<TRow extends { id: string }>({
             {renderSatirlar()}
           </tbody>
         </table>
+        </div>
+        {yatayScrollGerekli ? (
+          <div
+            className="dg-yatay-scroll"
+            ref={yatayScrollRef}
+            onScroll={yatayCubukScroll}
+            aria-label="Tablo yatay kaydırma"
+            role="scrollbar"
+            aria-orientation="horizontal"
+          >
+            <div className="dg-yatay-scroll-icerik" style={{ width: tabloGenisligi }} />
+          </div>
+        ) : null}
       </div>
 
       {sutunMenuPanel}

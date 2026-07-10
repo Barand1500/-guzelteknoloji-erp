@@ -20,6 +20,7 @@ import {
   bosDonemForm,
   type AdminDonem,
   type DonemFormDegeri,
+  type GomuluDuzenleSecenek,
   type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -42,7 +43,7 @@ function donemdenForm(d: AdminDonem): DonemFormDegeri {
 export function DonemSekme({
   gomuluDuzenle,
 }: {
-  gomuluDuzenle?: { id: string; onKapat: () => void };
+  gomuluDuzenle?: GomuluDuzenleSecenek;
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -221,10 +222,15 @@ export function DonemSekme({
     return (
       <>
         <TanimDuzenleEkrani
-          baslik={`${seciliKayit.donemAdi} (${seciliKayit.donemKodu})`}
+          panel={gomuluDuzenle?.panel}
+          ustEtiket="Dönem düzenle"
+          kod={seciliKayit.donemKodu}
+          baslik={seciliKayit.donemAdi}
           olusturma={seciliKayit.olusturma}
           guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
+          onKaydet={() => void kaydet()}
+          kaydediliyor={kaydediliyor}
         >
           {bilgiAlanlar}
           <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />

@@ -53,6 +53,8 @@ export interface DataGridAyar {
   cizgiModu: DataGridCizgiModu;
   /** Kolon varsayılan genişlikleri güncellendiğinde artırılır; eski kayıtlı genişlikleri sıfırlar */
   kolonGenislikSurumu?: number;
+  /** Kolon şeması değişince eski localStorage ayarını geçersiz kılar */
+  kolonImzasi?: string;
 }
 
 export interface HizliGirisKolonu {
@@ -94,6 +96,7 @@ export interface DataGridApi {
   satirDuzenleAc: (satirId: string) => void;
   csvIndir: (sadeceSecili?: boolean) => void;
   hizliGirisOdakla: () => void;
+  hizliGirisKapat: () => void;
   seciliIdler: () => string[];
 }
 
@@ -117,7 +120,7 @@ export interface DataGridProps<TRow extends { id: string }> {
   hizliGirisKolonlari?: HizliGirisKolonu[];
   hizliGirisModu?: 'satir' | 'kart';
   hizliGirisKarti?: (api: HizliGirisApi) => ReactNode;
-  onHizliGiris?: (degerler: Record<string, string>) => void;
+  onHizliGiris?: (degerler: Record<string, string>) => void | boolean | Promise<void | boolean>;
   onHizliGirisEnter?: (baglam: HizliGirisEnterBaglami) => void;
   hizliGirisInputSinif?: (alanId: string, deger: string) => string | undefined;
   hizliGirisInputPlaceholder?: (alanId: string, deger: string, varsayilan: string) => string;
@@ -130,4 +133,11 @@ export interface DataGridProps<TRow extends { id: string }> {
   satirSinifAdi?: (satir: TRow) => string | undefined;
   /** Artırıldığında kayıtlı kolon genişlikleri varsayılanlara döner */
   kolonGenislikSurumu?: number;
+  onSatirTikla?: (satir: TRow) => void;
+  onSatirDuzenle?: (satir: TRow) => void;
+  onSatirSil?: (satir: TRow) => void;
+  /** true ise hızlı giriş satırı yalnızca hizliGirisOdakla ile açılır */
+  hizliGirisIstegeBagli?: boolean;
+  /** true ise tanımlı olmayan veri kolonları için varsayılan metin kutusu gösterilir */
+  hizliGirisVarsayilanAlan?: boolean;
 }
