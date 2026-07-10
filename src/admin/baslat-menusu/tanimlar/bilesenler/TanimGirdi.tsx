@@ -16,7 +16,6 @@ interface TanimGirdiProps {
   inputMode?: 'text' | 'numeric' | 'decimal';
   className?: string;
   buyukHarf?: boolean;
-  aciklamaGoster?: boolean;
 }
 
 export function TanimGirdi({
@@ -30,7 +29,6 @@ export function TanimGirdi({
   inputMode,
   className,
   buyukHarf,
-  aciklamaGoster = true,
 }: TanimGirdiProps) {
   const kuralBilgi = ALAN_KURALLARI[kural];
   const limit = maxLength ?? kuralBilgi.max;
@@ -41,11 +39,6 @@ export function TanimGirdi({
         {etiket}
         {zorunlu ? ' *' : ''}
       </span>
-      {aciklamaGoster && kuralBilgi.aciklama && (
-        <span className="ap-muted mb-1 block text-[10px] leading-snug opacity-80">
-          {kuralBilgi.aciklama}
-        </span>
-      )}
       <input
         className={formInputSinifi}
         value={deger}

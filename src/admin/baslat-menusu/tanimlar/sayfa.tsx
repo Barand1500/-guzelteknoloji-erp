@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { DonemSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/DonemSekme';
 import { DepoSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/DepoSekme';
 import { FirmaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/FirmaSekme';
 import { KasaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/KasaSekme';
 import { SubeSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/SubeSekme';
 import { TanimSekmeCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSekmeCubugu';
-import { SEKME_ALT, SEKME_BASLIK, type TanimSekmeId } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { SEKME_BASLIK, type TanimSekmeId } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { AdminModulKabuk, AdminPanelKarti } from '@/admin/ortak/AdminBilesenleri';
 
 export function TanimlarSayfasi() {
   const [sekme, setSekme] = useState<TanimSekmeId>('firma');
+  const { setRehberModulId } = useAdminAksiyon();
+
+  useEffect(() => {
+    setRehberModulId(`tanimlar-${sekme}`);
+    return () => setRehberModulId(null);
+  }, [sekme, setRehberModulId]);
 
   return (
     <AdminModulKabuk
@@ -23,7 +30,7 @@ export function TanimlarSayfasi() {
           </aside>
 
           <div className="ap-sistem-icerik">
-            <AdminPanelKarti baslik={SEKME_BASLIK[sekme]} altBaslik={SEKME_ALT[sekme]}>
+            <AdminPanelKarti baslik={SEKME_BASLIK[sekme]}>
               {sekme === 'firma' && <FirmaSekme />}
               {sekme === 'sube' && <SubeSekme />}
               {sekme === 'depo' && <DepoSekme />}

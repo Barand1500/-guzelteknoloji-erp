@@ -49,7 +49,7 @@ export function SilmeOnayModal({
 
   return createPortal(
     <div className="ap-sil-onay-modal" role="dialog" aria-modal="true" aria-label={ariaLabel}>
-      <button type="button" className="ap-sil-onay-arka" aria-label="Kapat" onClick={kapat} />
+      <div className="ap-sil-onay-arka" aria-hidden="true" />
       <DonenAccentCerceve className="ap-accent-donen-cerceve--sil">
         <div className="ap-sil-onay-kart">
           <div className="ap-sil-onay-ikon" aria-hidden>

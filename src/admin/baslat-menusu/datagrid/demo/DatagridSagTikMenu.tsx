@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import type { DataGridApi } from '@/admin/ortak/datagrid/types';
 import type { SiparisSatiri } from './demoVeri';
 import { satirHesapla } from './demoVeri';
@@ -61,6 +62,16 @@ const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', string> = {
   seciliSil: '🗑️',
 };
 
+type SilmeOnayDurumu =
+  | { tip: 'tek'; satirId: string; metin: string }
+  | { tip: 'coklu'; adet: number };
+
+function satirSilMetni(satir: SiparisSatiri): string {
+  const ad = satir.urun.ad?.trim() ?? '';
+  const kod = satir.urun.sku?.trim() ?? '';
+  return ad || kod || `Satır #${satir.id}`;
+}
+
 export function DatagridSagTikMenu({
   konteynerRef,
   kolonlar,
@@ -74,6 +85,7 @@ export function DatagridSagTikMenu({
 }: DatagridSagTikMenuProps) {
   const [menu, setMenu] = useState<DatagridSagTikMenuDurum | null>(null);
   const [flyout, setFlyout] = useState<'satirEkle' | null>(null);
+  const [silmeOnay, setSilmeOnay] = useState<SilmeOnayDurumu | null>(null);
   const kokRef = useRef<HTMLDivElement>(null);
   const portalKok = useMemo(
     () => document.querySelector('.admin-panel') ?? document.body,
@@ -176,16 +188,17 @@ export function DatagridSagTikMenu({
         api?.csvIndir(false);
         break;
       case 'satirSil':
-        if (menu.satirId && confirm('Bu satır silinsin mi?')) {
-          onSatirlarDegistir((onceki) => onceki.filter((s) => s.id !== menu.satirId));
-          onBilgi?.('Satır silindi');
+        if (menu.satirId && satir) {
+          setSilmeOnay({
+            tip: 'tek',
+            satirId: menu.satirId,
+            metin: satirSilMetni(satir),
+          });
         }
         break;
       case 'seciliSil':
-        if (seciliSatirSayisi > 0 && confirm(`${seciliSatirSayisi} kayıt silinsin mi?`)) {
-          const ids = new Set(api?.seciliIdler() ?? []);
-          onSatirlarDegistir((onceki) => onceki.filter((s) => !ids.has(s.id)));
-          onBilgi?.('Seçili satırlar silindi');
+        if (seciliSatirSayisi > 0) {
+          setSilmeOnay({ tip: 'coklu', adet: seciliSatirSayisi });
         }
         break;
       default:
@@ -194,111 +207,172 @@ export function DatagridSagTikMenu({
     kapat();
   }
 
-  if (!menu) return null;
+  const silmeOnayla = useCallback(() => {
+    if (!silmeOnay) return;
+    if (silmeOnay.tip === 'tek') {
+      onSatirlarDegistir((onceki) => onceki.filter((s) => s.id !== silmeOnay.satirId));
+      onBilgi?.('Satır silindi');
+    } else {
+      const ids = new Set(gridApiRef.current?.seciliIdler() ?? []);
+      onSatirlarDegistir((onceki) => onceki.filter((s) => !ids.has(s.id)));
+      onBilgi?.('Seçili satırlar silindi');
+    }
+    setSilmeOnay(null);
+  }, [silmeOnay, onSatirlarDegistir, onBilgi, gridApiRef]);
 
-  const kopyaEtiket = menu.kopyaMetni
-    ? menu.kopyaMetni.length > 28
-      ? `${menu.kopyaMetni.slice(0, 28)}…`
-      : menu.kopyaMetni
-    : '';
+  return (
+    <>
+      {menu &&
+        createPortal(
+          (() => {
+            const kopyaEtiket = menu.kopyaMetni
+              ? menu.kopyaMetni.length > 28
+                ? `${menu.kopyaMetni.slice(0, 28)}…`
+                : menu.kopyaMetni
+              : '';
 
-  const ogeler: MenuOgesi[] = [
-    {
-      id: 'satirEkle',
-      etiket: 'Satır ekle',
-      ikon: MENU_IKONLARI.satirEkle,
-      devreDisi: !menu.satirId,
-      flyout: true,
-    },
-    { id: 'satirDuzenle', etiket: 'Satırı düzenle', ikon: MENU_IKONLARI.satirDuzenle, devreDisi: !menu.satirId },
-    { id: 'satirCogalt', etiket: 'Satırı kopyala', ikon: MENU_IKONLARI.satirCogalt, devreDisi: !menu.satirId },
-    {
-      id: 'panoyaKopyala',
-      etiket: kopyaEtiket ? `Panoya kopyala — ${kopyaEtiket}` : 'Panoya kopyala',
-      ikon: MENU_IKONLARI.panoyaKopyala,
-      devreDisi: !menu.kopyaMetni,
-      ayiriciOnce: true,
-    },
-    { id: 'csvDisa', etiket: 'Dışa aktar (CSV)', ikon: MENU_IKONLARI.csvDisa, ayiriciOnce: true },
-    {
-      id: 'satirSil',
-      etiket: 'Satır sil',
-      ikon: MENU_IKONLARI.satirSil,
-      devreDisi: !menu.satirId,
-      tehlike: true,
-      ayiriciOnce: true,
-    },
-    {
-      id: 'seciliSil',
-      etiket: seciliSatirSayisi > 0 ? `Seçili satırları sil (${seciliSatirSayisi})` : 'Seçili satırları sil',
-      ikon: MENU_IKONLARI.seciliSil,
-      devreDisi: seciliSatirSayisi === 0,
-      tehlike: true,
-    },
-  ];
+            const ogeler: MenuOgesi[] = [
+              {
+                id: 'satirEkle',
+                etiket: 'Satır ekle',
+                ikon: MENU_IKONLARI.satirEkle,
+                devreDisi: !menu.satirId,
+                flyout: true,
+              },
+              {
+                id: 'satirDuzenle',
+                etiket: 'Satırı düzenle',
+                ikon: MENU_IKONLARI.satirDuzenle,
+                devreDisi: !menu.satirId,
+              },
+              {
+                id: 'satirCogalt',
+                etiket: 'Satırı kopyala',
+                ikon: MENU_IKONLARI.satirCogalt,
+                devreDisi: !menu.satirId,
+              },
+              {
+                id: 'panoyaKopyala',
+                etiket: kopyaEtiket ? `Panoya kopyala — ${kopyaEtiket}` : 'Panoya kopyala',
+                ikon: MENU_IKONLARI.panoyaKopyala,
+                devreDisi: !menu.kopyaMetni,
+                ayiriciOnce: true,
+              },
+              {
+                id: 'csvDisa',
+                etiket: 'Dışa aktar (CSV)',
+                ikon: MENU_IKONLARI.csvDisa,
+                ayiriciOnce: true,
+              },
+              {
+                id: 'satirSil',
+                etiket: 'Satır sil',
+                ikon: MENU_IKONLARI.satirSil,
+                devreDisi: !menu.satirId,
+                tehlike: true,
+                ayiriciOnce: true,
+              },
+              {
+                id: 'seciliSil',
+                etiket:
+                  seciliSatirSayisi > 0
+                    ? `Seçili satırları sil (${seciliSatirSayisi})`
+                    : 'Seçili satırları sil',
+                ikon: MENU_IKONLARI.seciliSil,
+                devreDisi: seciliSatirSayisi === 0,
+                tehlike: true,
+              },
+            ];
 
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const menuSol = Math.min(menu.x, vw - 240);
-  const menuUst = Math.min(menu.y, vh - 320);
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const menuSol = Math.min(menu.x, vw - 240);
+            const menuUst = Math.min(menu.y, vh - 320);
 
-  return createPortal(
-    <div
-      ref={kokRef}
-      className="ap-sag-tik-menu dg-sag-tik-menu"
-      style={{ top: menuUst, left: menuSol }}
-      role="menu"
-      aria-label="Sipariş tablosu menüsü"
-    >
-      {ogeler.map((oge) => (
-        <div key={oge.id}>
-          {oge.ayiriciOnce && <div className="ap-sag-tik-ayirici" role="separator" />}
-          {oge.flyout ? (
-            <div className="ap-sag-tik-flyout-wrap">
-              <button
-                type="button"
-                className={`ap-sag-tik-oge${flyout === 'satirEkle' ? ' ap-sag-tik-oge-aktif' : ''}`}
-                disabled={oge.devreDisi}
-                onMouseEnter={() => !oge.devreDisi && setFlyout('satirEkle')}
-                onClick={() => !oge.devreDisi && setFlyout((f) => (f === 'satirEkle' ? null : 'satirEkle'))}
+            return (
+              <div
+                ref={kokRef}
+                className="ap-sag-tik-menu dg-sag-tik-menu"
+                style={{ top: menuUst, left: menuSol }}
+                role="menu"
+                aria-label="Sipariş tablosu menüsü"
               >
-                <span>{oge.ikon}</span>
-                <span>{oge.etiket}</span>
-                <span className="ap-sag-tik-ok">›</span>
-              </button>
-              {flyout === 'satirEkle' && !oge.devreDisi && menu.satirId && (
-                <div className="ap-sag-tik-flyout dg-sag-tik-flyout" role="menu" aria-label="Satır ekleme seçenekleri">
-                  {SATIR_EKLE_ALT_OGELER.map((alt) => (
-                    <button
-                      key={alt.konum}
-                      type="button"
-                      className="ap-sag-tik-oge"
-                      onClick={() => {
-                        onSatirEkleBaslat?.(alt.konum, menu.satirId!);
-                        kapat();
-                      }}
-                    >
-                      <span>{alt.ikon}</span>
-                      <span>{alt.etiket}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              type="button"
-              className={`ap-sag-tik-oge${oge.tehlike ? ' dg-sag-tik-oge--tehlike' : ''}`}
-              disabled={oge.devreDisi}
-              onClick={() => void islemCalistir(oge.id as DatagridSagTikIslem)}
-            >
-              <span>{oge.ikon}</span>
-              <span>{oge.etiket}</span>
-            </button>
-          )}
-        </div>
-      ))}
-    </div>,
-    portalKok
+                {ogeler.map((oge) => (
+                  <div key={oge.id}>
+                    {oge.ayiriciOnce && <div className="ap-sag-tik-ayirici" role="separator" />}
+                    {oge.flyout ? (
+                      <div className="ap-sag-tik-flyout-wrap">
+                        <button
+                          type="button"
+                          className={`ap-sag-tik-oge${flyout === 'satirEkle' ? ' ap-sag-tik-oge-aktif' : ''}`}
+                          disabled={oge.devreDisi}
+                          onMouseEnter={() => !oge.devreDisi && setFlyout('satirEkle')}
+                          onClick={() =>
+                            !oge.devreDisi && setFlyout((f) => (f === 'satirEkle' ? null : 'satirEkle'))
+                          }
+                        >
+                          <span>{oge.ikon}</span>
+                          <span>{oge.etiket}</span>
+                          <span className="ap-sag-tik-ok">›</span>
+                        </button>
+                        {flyout === 'satirEkle' && !oge.devreDisi && menu.satirId && (
+                          <div
+                            className="ap-sag-tik-flyout dg-sag-tik-flyout"
+                            role="menu"
+                            aria-label="Satır ekleme seçenekleri"
+                          >
+                            {SATIR_EKLE_ALT_OGELER.map((alt) => (
+                              <button
+                                key={alt.konum}
+                                type="button"
+                                className="ap-sag-tik-oge"
+                                onClick={() => {
+                                  onSatirEkleBaslat?.(alt.konum, menu.satirId!);
+                                  kapat();
+                                }}
+                              >
+                                <span>{alt.ikon}</span>
+                                <span>{alt.etiket}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className={`ap-sag-tik-oge${oge.tehlike ? ' dg-sag-tik-oge--tehlike' : ''}`}
+                        disabled={oge.devreDisi}
+                        onClick={() => void islemCalistir(oge.id as DatagridSagTikIslem)}
+                      >
+                        <span>{oge.ikon}</span>
+                        <span>{oge.etiket}</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          })(),
+          portalKok
+        )}
+
+      <SilmeOnayModal
+        acik={silmeOnay !== null}
+        onKapat={() => setSilmeOnay(null)}
+        onOnayla={silmeOnayla}
+        baslik={
+          silmeOnay?.tip === 'coklu'
+            ? 'Seçili kayıtları silmek istiyor musunuz?'
+            : 'Bu satırı silmek istiyor musunuz?'
+        }
+        hedefMetin={
+          silmeOnay?.tip === 'coklu'
+            ? `${silmeOnay.adet} kayıt`
+            : (silmeOnay?.metin ?? '')
+        }
+        ariaLabel="Satır silme onayı"
+      />
+    </>
   );
 }

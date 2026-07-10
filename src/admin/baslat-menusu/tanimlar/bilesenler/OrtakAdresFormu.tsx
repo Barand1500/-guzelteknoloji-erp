@@ -20,7 +20,6 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
       etiket={etiket}
       deger={deger[k]}
       kural={kural ?? 'serbestMetin'}
-      aciklamaGoster={false}
       maxLength={k === 'ilce' ? 50 : k === 'mahalle' || k === 'cadde' || k === 'sokak' ? 100 : k === 'bina' ? 50 : undefined}
       onChange={(v) => onChange({ ...deger, [k]: v })}
     />
@@ -58,14 +57,12 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
           etiket="No"
           deger={deger.no}
           kural="binaNo"
-          aciklamaGoster={false}
           onChange={(v) => onChange({ ...deger, no: v })}
         />
         <TanimGirdi
           etiket="Posta Kodu"
           deger={deger.postaKodu}
           kural="postaKodu"
-          aciklamaGoster={false}
           onChange={(v) => onChange({ ...deger, postaKodu: v })}
         />
       </div>

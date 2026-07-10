@@ -13,18 +13,17 @@ export type AlanKuralTipi =
 
 export interface AlanKurali {
   max: number;
-  aciklama?: string;
 }
 
 export const ALAN_KURALLARI: Record<AlanKuralTipi, AlanKurali> = {
-  kod: { max: 20, aciklama: 'En fazla 20 karakter; harf ve rakam' },
-  ad: { max: 150, aciklama: 'En fazla 150 karakter' },
-  vergiNo: { max: 10, aciklama: '10 haneli vergi kimlik numarası (yalnızca rakam)' },
-  postaKodu: { max: 5, aciklama: '5 haneli posta kodu (yalnızca rakam)' },
-  ebelgeSeri: { max: 3, aciklama: '3 karakter; büyük harf veya rakam (e-belge birim kodu)' },
-  mersis: { max: 16, aciklama: '16 haneli MERSİS numarası (yalnızca rakam)' },
-  ticaretSicil: { max: 30, aciklama: 'En fazla 30 karakter; harf ve rakam' },
-  binaNo: { max: 20, aciklama: 'En fazla 20 karakter' },
+  kod: { max: 20 },
+  ad: { max: 150 },
+  vergiNo: { max: 10 },
+  postaKodu: { max: 5 },
+  ebelgeSeri: { max: 3 },
+  mersis: { max: 16 },
+  ticaretSicil: { max: 30 },
+  binaNo: { max: 20 },
   serbestMetin: { max: 255 },
 };
 

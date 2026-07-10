@@ -9,7 +9,6 @@ export function OrtakDurumAlani({ aktif, onChange }: OrtakDurumAlaniProps) {
   return (
     <DurumAnahtari
       etiket="Aktif"
-      aciklama="Pasif kayıtlar seçim listelerinde görünmez."
       acik={aktif}
       onChange={onChange}
       renk="yesil"

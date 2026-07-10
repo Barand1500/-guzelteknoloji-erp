@@ -30,6 +30,7 @@ import {
   URUN_ARAMA_ALANLARI,
 } from './urunAramaYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { DatagridSagTikMenu, type SatirEkleKonumu } from './DatagridSagTikMenu';
 
 
@@ -500,6 +501,7 @@ export function DatagridDemoSayfasi() {
   const [aramaSonuclari, setAramaSonuclari] = useState<UrunKaydi[]>([]);
   const [seciliIndeks, setSeciliIndeks] = useState(0);
   const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
+  const [topluSilmeAcik, setTopluSilmeAcik] = useState(false);
   const [satirEkleBaglam, setSatirEkleBaglam] = useState<{ satirId: string; konum: SatirEkleKonumu } | null>(
     null
   );
@@ -615,12 +617,16 @@ export function DatagridDemoSayfasi() {
   );
 
   const seciliSatirlariSil = useCallback(() => {
+    if (!seciliSatirIdleriRef.current.length) return;
+    setTopluSilmeAcik(true);
+  }, []);
+
+  const topluSilmeOnayla = useCallback(() => {
     const ids = seciliSatirIdleriRef.current;
-    if (!ids.length) return;
-    if (!confirm(`${ids.length} kayıt silinsin mi?`)) return;
     setSatirlar((onceki) => onceki.filter((s) => !ids.includes(s.id)));
     seciliSatirIdleriRef.current = [];
     setSeciliSatirSayisi(0);
+    setTopluSilmeAcik(false);
   }, []);
 
   useModulAksiyonlari({ sil: seciliSatirlariSil }, { sil: seciliSatirSayisi > 0 });
@@ -771,6 +777,14 @@ export function DatagridDemoSayfasi() {
 
       </UrunAramaSlayt>
 
+      <SilmeOnayModal
+        acik={topluSilmeAcik}
+        onKapat={() => setTopluSilmeAcik(false)}
+        onOnayla={topluSilmeOnayla}
+        baslik="Seçili kayıtları silmek istiyor musunuz?"
+        hedefMetin={`${seciliSatirSayisi} kayıt`}
+        ariaLabel="Toplu satır silme onayı"
+      />
     </div>
 
   );

@@ -160,37 +160,160 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     ipucu: 'Çakışan kısayollar uyarı verir; kaydetmeden önce kontrol edin.',
   },
 
+  'tanimlar-firma': {
+    baslik: 'Firma Rehberi',
+    altBaslik: 'Firma tanımları',
+    bolumBaslik: 'Firma',
+    kartlar: [
+      {
+        ikon: '🏢',
+        baslik: 'Firma Kodu ve Unvan',
+        aciklama: 'Her firma için benzersiz kod ve ticari unvan girin. Kod harf ve rakamdan oluşur.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '🧾',
+        baslik: 'Vergi Bilgileri',
+        aciklama: 'İl filtresiyle vergi dairesini arayıp seçin. Vergi no 10 haneli olmalıdır.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '✅',
+        baslik: 'Aktif Durum',
+        aciklama: 'Pasif firmalar seçim listelerinde görünmez.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Yeni firma kaydında otomatik MERKEZ şube ve depo oluşturulur.',
+  },
+
+  'tanimlar-sube': {
+    baslik: 'Şube Rehberi',
+    altBaslik: 'Şube tanımları',
+    bolumBaslik: 'Şube',
+    kartlar: [
+      {
+        ikon: '🏪',
+        baslik: 'Şube Kodu ve Adı',
+        aciklama: 'Firma altında şubeleri kod ve ad ile tanımlayın.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '📍',
+        baslik: 'Adres',
+        aciklama: 'İl ve ilçe alanlarında yazarak arama yapabilirsiniz.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '📄',
+        baslik: 'E-Belge Serileri',
+        aciklama: 'e-Fatura, e-Arşiv ve e-İrsaliye seri kodlarını şube bazında girin.',
+        renk: 'yesil',
+      },
+      {
+        ikon: '🏛️',
+        baslik: 'Ticari Bilgiler',
+        aciklama: 'MERSİS ve ticaret sicil numaralarını şube kaydında tutun.',
+        renk: 'mor',
+      },
+    ],
+    ipucu: 'Kaydet, Yeni ve Sil aksiyonları alt çubuktadır.',
+  },
+
+  'tanimlar-depo': {
+    baslik: 'Depo Rehberi',
+    altBaslik: 'Depo tanımları',
+    bolumBaslik: 'Depo',
+    kartlar: [
+      {
+        ikon: '📦',
+        baslik: 'Şube Bağlantısı',
+        aciklama: 'Her depo bir şubeye bağlıdır. Önce şube tanımlayın.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '🔖',
+        baslik: 'Depo Kodu ve Adı',
+        aciklama: 'Depo kodu benzersiz olmalı; ad alanı listede görünür.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '📍',
+        baslik: 'Adres',
+        aciklama: 'Depo adresi şube adresinden farklı olabilir; isteğe bağlı doldurun.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Firma oluşturulduğunda MERKEZ şube için varsayılan depo otomatik eklenir.',
+  },
+
+  'tanimlar-kasa': {
+    baslik: 'Kasa Rehberi',
+    altBaslik: 'Kasa tanımları',
+    bolumBaslik: 'Kasa',
+    kartlar: [
+      {
+        ikon: '💰',
+        baslik: 'Şube Bağlantısı',
+        aciklama: 'Kasalar şube bazında tanımlanır.',
+        renk: 'mavi',
+      },
+      {
+        ikon: '🔖',
+        baslik: 'Kasa Kodu ve Adı',
+        aciklama: 'Kasa kodu ve adı ile kayıtları ayırt edin.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '💱',
+        baslik: 'Para Birimi',
+        aciklama: 'TL, USD veya EUR seçin. Kasa hareketleri bu birime göre izlenir.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Pasif kasalar yeni işlemlerde listelenmez.',
+  },
+
+  'tanimlar-donem': {
+    baslik: 'Dönem Rehberi',
+    altBaslik: 'Muhasebe dönemleri',
+    bolumBaslik: 'Dönem',
+    kartlar: [
+      {
+        ikon: '📅',
+        baslik: 'Dönem Kodu',
+        aciklama: 'Genelde yıl formatında kullanılır (ör. 2026).',
+        renk: 'mavi',
+      },
+      {
+        ikon: '📝',
+        baslik: 'Dönem Adı',
+        aciklama: 'Rapor ve listelerde görünecek açıklayıcı adı girin.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: '✅',
+        baslik: 'Aktif Dönem',
+        aciklama: 'Aynı anda birden fazla dönem aktif olabilir; pasif dönemler seçilmez.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Dönemler firma bazında yönetilir.',
+  },
+
   tanimlar: {
     baslik: 'Tanımlar Rehberi',
     altBaslik: 'Firma, şube, depo, kasa ve dönem',
     bolumBaslik: 'Tanımlar',
     kartlar: [
       {
-        ikon: '🏢',
-        baslik: 'Firma',
-        aciklama: 'Firma kodu, unvan ve vergi bilgilerini tanımlayın. Oturum firmanız buradan yönetilir.',
+        ikon: '🗃️',
+        baslik: 'Sekmeler',
+        aciklama: 'Sol menüden Firma, Şube, Depo, Kasa ve Dönem sekmeleri arasında geçiş yapın.',
         renk: 'mavi',
       },
-      {
-        ikon: '🏪',
-        baslik: 'Şube',
-        aciklama: 'Şube adresi, e-fatura/e-arşiv/e-irsaliye serileri ve MERSİS bilgilerini girin.',
-        renk: 'turuncu',
-      },
-      {
-        ikon: '📦',
-        baslik: 'Depo ve Kasa',
-        aciklama: 'Her şube için depo ve kasa tanımları oluşturun. Kasada para birimi seçilir.',
-        renk: 'yesil',
-      },
-      {
-        ikon: '📅',
-        baslik: 'Dönem',
-        aciklama: 'Muhasebe dönemlerini (ör. 2026) firma bazında tanımlayın.',
-        renk: 'mor',
-      },
     ],
-    ipucu: 'Sol menüden sekme değiştirin; Kaydet, Yeni ve Sil aksiyonları alt çubuktadır.',
+    ipucu: 'Her sekmenin kendi rehberi vardır; F1 veya ? ile açabilirsiniz.',
   },
 
   'datagrid-demo': {
