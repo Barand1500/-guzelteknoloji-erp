@@ -88,6 +88,28 @@ export const SISTEM_SEKMELER: { id: SistemSekmeId; ad: string; ikon: string }[] 
   { id: 'sagTik', ad: 'Sağ Tık Paneli', ikon: '🖱️' },
 ];
 
+export const SEKME_BASLIK: Record<SistemSekmeId, string> = {
+  genel: 'Genel Ayarlar',
+  bakim: 'Bakım Modu',
+  sayfa404: '404 Sayfası',
+  dil: 'Panel Dili & Çeviriler',
+  guvenlik: 'Güvenlik',
+  script: 'Script Ayarları',
+  eklentiler: 'Eklentiler',
+  sagTik: 'Sağ Tık Paneli',
+};
+
+export const SEKME_ALT: Record<SistemSekmeId, string> = {
+  genel: 'Yayın durumu ve domain',
+  bakim: 'Bakım ekranı ve görsel',
+  sayfa404: 'Menü ve içerik yapılandırması',
+  dil: 'JSON çeviri editörü',
+  guvenlik: 'HTTP güvenlik başlıkları ve arama motoru ayarları',
+  script: 'Google Analytics ve özel script kodları',
+  eklentiler: 'Site eklentilerini kur, etkinleştir veya kaldır',
+  sagTik: 'Admin panel sağ tık menüsü öğeleri ve modül listesi',
+};
+
 export const PANEL_DILLERI: { kod: string; ad: string }[] = [
   { kod: 'tr', ad: 'Türkçe' },
   { kod: 'en', ad: 'English' },

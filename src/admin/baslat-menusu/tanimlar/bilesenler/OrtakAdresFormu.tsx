@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type { AdresFormDegeri } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
@@ -7,6 +7,7 @@ import {
   MIN_ADRES_ARAMA_UZUNLUGU,
   turkiyeIlAra,
   turkiyeIlceAra,
+  turkiyeIlceOnbellekYukle,
   turkiyeMahalleAra,
   turkiyeMahallePostaKoduBul,
   turkiyeSokakAra,
@@ -25,6 +26,9 @@ function adresSifirla(
 }
 
 export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
+  const degerRef = useRef(deger);
+  degerRef.current = deger;
+
   const ilceAra = useCallback((arama: string) => turkiyeIlceAra(deger.il, arama), [deger.il]);
   const mahalleAra = useCallback(
     (arama: string) => turkiyeMahalleAra(deger.il, deger.ilce, arama),
@@ -35,21 +39,15 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
     [deger.il, deger.ilce, deger.mahalle]
   );
 
-  const mahalleSec = useCallback(
-    async (mahalle: string) => {
-      const postaKodu =
-        mahalle.trim() && deger.il && deger.ilce
-          ? await turkiyeMahallePostaKoduBul(deger.il, deger.ilce, mahalle)
-          : '';
-      onChange(
-        adresSifirla(deger, {
-          mahalle,
-          sokak: mahalle !== deger.mahalle ? '' : deger.sokak,
-          postaKodu: postaKodu || (mahalle !== deger.mahalle ? '' : deger.postaKodu),
-        })
-      );
+  const mahallePostaKoduDoldur = useCallback(
+    async (mahalle: string, il: string, ilce: string) => {
+      if (!mahalle.trim() || !il || !ilce) return;
+      const postaKodu = await turkiyeMahallePostaKoduBul(il, ilce, mahalle);
+      if (postaKodu) {
+        onChange({ ...degerRef.current, mahalle, postaKodu });
+      }
     },
-    [deger, onChange]
+    [onChange]
   );
 
   return (
@@ -59,7 +57,8 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
           <span className="ap-muted">İl</span>
           <FormAramaSecim
             value={deger.il}
-            onChange={(il) =>
+            onChange={(il) => {
+              if (il !== deger.il) void turkiyeIlceOnbellekYukle(il);
               onChange(
                 adresSifirla(deger, {
                   il,
@@ -68,8 +67,9 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
                   sokak: il !== deger.il ? '' : deger.sokak,
                   postaKodu: il !== deger.il ? '' : deger.postaKodu,
                 })
-              )
-            }
+              );
+            }}
+            onSecildi={(il) => void turkiyeIlceOnbellekYukle(il)}
             secenekAra={turkiyeIlAra}
             minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
             placeholder="En az 2 harf yazın…"
@@ -101,7 +101,18 @@ export function OrtakAdresFormu({ deger, onChange }: OrtakAdresFormuProps) {
           <span className="ap-muted">Mahalle</span>
           <FormAramaSecim
             value={deger.mahalle}
-            onChange={(mahalle) => void mahalleSec(mahalle)}
+            onChange={(mahalle) =>
+              onChange(
+                adresSifirla(deger, {
+                  mahalle,
+                  sokak: mahalle !== deger.mahalle ? '' : deger.sokak,
+                  postaKodu: mahalle !== deger.mahalle ? '' : deger.postaKodu,
+                })
+              )
+            }
+            onSecildi={(mahalle) =>
+              void mahallePostaKoduDoldur(mahalle, deger.il, deger.ilce)
+            }
             secenekAra={deger.il && deger.ilce ? mahalleAra : undefined}
             minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
             disabled={!deger.ilce}

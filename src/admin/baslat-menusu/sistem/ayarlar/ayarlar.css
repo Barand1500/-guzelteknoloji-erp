@@ -1,0 +1,211 @@
+/* Sistem Ayarları — Tanımlar ile aynı üst pill sekmeler + içerik paneli */
+
+.ap-ayarlar-sayfa {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.ap-ayarlar-ust {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ap-ayarlar-tur-sarmal {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ap-ayarlar-tur-sarmal::-webkit-scrollbar {
+  display: none;
+}
+
+.ap-ayarlar-tur-cubugu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.3rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
+  min-width: min(100%, max-content);
+}
+
+.ap-ayarlar-tur-gosterge {
+  position: absolute;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  left: 0;
+  border-radius: 0.6rem;
+  background: var(--ap-accent);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ap-accent) 35%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--ap-accent) 25%, transparent);
+  transition:
+    transform 0.32s cubic-bezier(0.34, 1.2, 0.64, 1),
+    width 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ap-ayarlar-tur-sekme {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.6rem;
+  border: none;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  white-space: nowrap;
+  transition: color 0.22s ease;
+  cursor: pointer;
+}
+
+.ap-ayarlar-tur-sekme:hover {
+  color: var(--ap-heading);
+}
+
+.ap-ayarlar-tur-sekme--aktif {
+  color: #fff;
+}
+
+.ap-ayarlar-tur-ikon {
+  font-size: 0.9rem;
+  line-height: 1;
+  opacity: 0.85;
+  transition: transform 0.25s ease;
+}
+
+.ap-ayarlar-tur-sekme--aktif .ap-ayarlar-tur-ikon {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.ap-ayarlar-ust-metin {
+  animation: ap-ayarlar-metin-gir 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ap-ayarlar-ust-baslik {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+  letter-spacing: -0.015em;
+}
+
+.ap-ayarlar-ust-aciklama {
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ap-muted);
+  line-height: 1.45;
+}
+
+.ap-ayarlar-icerik {
+  animation: ap-ayarlar-icerik-gir 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ap-ayarlar-metin-gir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ap-ayarlar-icerik-gir {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* İçerik paneli */
+.ap-ayarlar-panel {
+  border-radius: 0.85rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 4%, transparent);
+}
+
+.ap-ayarlar-panel-govde {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+/* İç kartlar — Tanımlar bölüm stiline yakın */
+.ap-ayarlar-govde .ap-panel-kart {
+  border-radius: 0.75rem;
+  border: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
+  border-left: 3px solid color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  box-shadow: none;
+}
+
+.ap-ayarlar-govde .ap-panel-kart-baslik {
+  padding: 0.75rem 0.9rem 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.ap-ayarlar-govde .ap-panel-kart-baslik h2 {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ap-accent);
+}
+
+.ap-ayarlar-govde .ap-panel-kart-icerik {
+  padding: 0.7rem 0.9rem 0.85rem;
+}
+
+.ap-ayarlar-kart-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+@media (min-width: 900px) {
+  .ap-ayarlar-kart-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.ap-ayarlar-govde > .space-y-4,
+.ap-ayarlar-govde > .space-y-5,
+.ap-ayarlar-govde > .space-y-6,
+.ap-ayarlar-govde > .space-y-8 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-ayarlar-ust-metin,
+  .ap-ayarlar-icerik,
+  .ap-ayarlar-tur-gosterge,
+  .ap-ayarlar-tur-sekme,
+  .ap-ayarlar-tur-ikon {
+    animation: none !important;
+    transition: none !important;
+  }
+}

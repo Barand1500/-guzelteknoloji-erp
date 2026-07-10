@@ -83,7 +83,7 @@ export function PanelDilSekme({ form, onChange }: PanelDilEditorProps) {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="ap-ayarlar-kart-grid ap-ayarlar-kart-grid--2">
         <AdminPanelKarti baslik="Panel Dili" altBaslik="Admin arayüzünün görüntüleme dili">
           <div className="ap-sistem-dil-satir">
             <FormAlani etiket="Aktif Dil" aciklama="Panel menüleri ve butonlar bu dilde gösterilir">

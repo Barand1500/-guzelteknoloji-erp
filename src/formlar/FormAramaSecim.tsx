@@ -13,7 +13,7 @@ import { formInputSinifi } from '@/formlar/FormAlani';
 
 const KENAR_BOSLUK = 8;
 const LISTE_LIMIT = 80;
-const ARAMA_GECIKME_MS = 120;
+const ARAMA_GECIKME_MS = 80;
 
 function portalHedefiBul(): HTMLElement {
   return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
@@ -50,6 +50,7 @@ function listeKonumuHesapla(anchor: HTMLElement) {
 interface FormAramaSecimProps {
   value: string;
   onChange: (value: string) => void;
+  onSecildi?: (value: string) => void;
   secenekler?: readonly string[];
   secenekAra?: (arama: string) => Promise<string[]>;
   minAramaUzunlugu?: number;
@@ -61,6 +62,7 @@ interface FormAramaSecimProps {
 export function FormAramaSecim({
   value,
   onChange,
+  onSecildi,
   secenekler = [],
   secenekAra,
   minAramaUzunlugu = 2,
@@ -76,6 +78,7 @@ export function FormAramaSecim({
   const [listeStil, setListeStil] = useState<CSSProperties>({});
   const [asyncSecenekler, setAsyncSecenekler] = useState<string[]>([]);
   const [aramaYukleniyor, setAramaYukleniyor] = useState(false);
+  const aramaSurumuRef = useRef(0);
 
   const benzersizSecenekler = useMemo(
     () => [...new Set(secenekler.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')),
@@ -93,17 +96,18 @@ export function FormAramaSecim({
     }
 
     let iptal = false;
+    const surum = ++aramaSurumuRef.current;
     setAramaYukleniyor(true);
     const zamanlayici = window.setTimeout(() => {
       secenekAra(q)
         .then((liste) => {
-          if (!iptal) setAsyncSecenekler(liste);
+          if (!iptal && surum === aramaSurumuRef.current) setAsyncSecenekler(liste);
         })
         .catch(() => {
-          if (!iptal) setAsyncSecenekler([]);
+          if (!iptal && surum === aramaSurumuRef.current) setAsyncSecenekler([]);
         })
         .finally(() => {
-          if (!iptal) setAramaYukleniyor(false);
+          if (!iptal && surum === aramaSurumuRef.current) setAramaYukleniyor(false);
         });
     }, ARAMA_GECIKME_MS);
 
@@ -167,6 +171,7 @@ export function FormAramaSecim({
 
   const sec = (yeni: string) => {
     onChange(yeni);
+    onSecildi?.(yeni);
     setAcik(false);
     inputRef.current?.focus();
   };

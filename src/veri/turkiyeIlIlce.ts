@@ -11,6 +11,10 @@ type MahalleKaydi = { id: number; name: string; postalCode?: string };
 const ilKayitlari = new Map<string, IlKaydi>();
 const ilceKayitlari = new Map<string, IlceKaydi[]>();
 const mahalleKayitlari = new Map<string, MahalleKaydi>();
+const ilceAdlariOnbellegi = new Map<string, string[]>();
+const mahalleAramaOnbellegi = new Map<string, string[]>();
+
+let tumIllerYukleniyor: Promise<string[]> | null = null;
 
 function ilAnahtar(il: string) {
   return il.trim().toLocaleLowerCase('tr');
@@ -25,6 +29,50 @@ function mahalleKayitlariniYaz(il: string, ilce: string, kayitlar: MahalleKaydi[
     mahalleKayitlari.set(mahalleAnahtar(il, ilce, kayit.name), kayit);
   }
 }
+
+function yerelAra(liste: string[], arama: string): string[] {
+  const q = arama.trim().toLocaleLowerCase('tr');
+  return liste.filter((ad) => ad.toLocaleLowerCase('tr').includes(q)).slice(0, ARAMA_LIMIT);
+}
+
+async function tumIlleriYukle(): Promise<string[]> {
+  if (tumIllerYukleniyor) return tumIllerYukleniyor;
+
+  tumIllerYukleniyor = apiGet<{ data: { id: number; name: string }[] }>(
+    `/provinces?fields=id,name&limit=100&sort=name`
+  ).then((yanit) => {
+    illeriOnbellegeYaz(yanit.data);
+    return trSirala(yanit.data.map((p) => p.name));
+  });
+
+  try {
+    return await tumIllerYukleniyor;
+  } catch {
+    tumIllerYukleniyor = null;
+    return [];
+  }
+}
+
+async function ilceAdlariniYukle(il: string): Promise<string[]> {
+  const anahtar = ilAnahtar(il);
+  const onbellek = ilceAdlariOnbellegi.get(anahtar);
+  if (onbellek) return onbellek;
+
+  const ilKaydi = await ilKaydiniCoz(il);
+  if (!ilKaydi) return [];
+
+  const yanit = await apiGet<{ data: { id: number; name: string }[] }>(
+    `/provinces/${ilKaydi.id}/districts?fields=id,name&limit=1000&sort=name`
+  );
+  ilceleriOnbellegeYaz(ilKaydi.name, yanit.data);
+  const liste = trSirala(yanit.data.map((d) => d.name));
+  ilceAdlariOnbellegi.set(anahtar, liste);
+  return liste;
+}
+
+void tumIlleriYukle().catch(() => {
+  /* ilk yükleme isteğe bağlı; arama sırasında tekrar denenir */
+});
 
 function trSirala(liste: string[]) {
   return [...liste].sort((a, b) => a.localeCompare(b, 'tr'));
@@ -74,20 +122,29 @@ function ilceleriOnbellegeYaz(il: string, kayitlar: { id: number; name: string }
 async function ilKaydiniCoz(il: string): Promise<IlKaydi | undefined> {
   const mevcut = ilKaydiBul(il);
   if (mevcut) return mevcut;
-  if (il.trim().length < MIN_ARAMA) return undefined;
-  await turkiyeIlAra(il.trim());
-  return ilKaydiBul(il);
+
+  await tumIlleriYukle();
+  const tam = ilKaydiBul(il);
+  if (tam) return tam;
+
+  const benzer = [...ilKayitlari.values()].filter((k) => metinBenzer(k.name, il));
+  return benzer.length === 1 ? benzer[0] : undefined;
 }
 
 async function ilceKaydiniCoz(il: string, ilce: string): Promise<IlceKaydi | undefined> {
   const ilKaydi = await ilKaydiniCoz(il);
   if (!ilKaydi) return undefined;
 
+  await ilceAdlariniYukle(ilKaydi.name);
   const mevcut = ilceKaydiBul(ilKaydi.name, ilce);
   if (mevcut) return mevcut;
 
   const q = ilce.trim();
   if (q.length < MIN_ARAMA) return undefined;
+
+  const liste = ilceKayitlari.get(ilAnahtar(ilKaydi.name)) ?? [];
+  const benzer = liste.filter((d) => metinBenzer(d.name, q));
+  if (benzer.length === 1) return benzer[0];
 
   const yanit = await apiGet<{ data: { id: number; name: string }[] }>(
     `/districts?provinceId=${ilKaydi.id}&search=${encodeURIComponent(q)}&fields=id,name&limit=10`
@@ -97,43 +154,36 @@ async function ilceKaydiniCoz(il: string, ilce: string): Promise<IlceKaydi | und
   const kesin = ilceKaydiBul(ilKaydi.name, ilce);
   if (kesin) return kesin;
 
-  const benzer = yanit.data.filter((d) => metinBenzer(d.name, q));
-  if (benzer.length === 1) return { id: benzer[0].id, name: benzer[0].name };
+  const apiBenzer = yanit.data.filter((d) => metinBenzer(d.name, q));
+  if (apiBenzer.length === 1) return { id: apiBenzer[0].id, name: apiBenzer[0].name };
   if (yanit.data.length === 1) return { id: yanit.data[0].id, name: yanit.data[0].name };
   return undefined;
 }
 
-/** İl araması — en az 2 harf */
+/** İl araması — önbellekten yerel filtre */
 export async function turkiyeIlAra(arama: string): Promise<string[]> {
   const q = arama.trim();
   if (q.length < MIN_ARAMA) return [];
-
-  const yanit = await apiGet<{ data: { id: number; name: string }[] }>(
-    `/provinces?search=${encodeURIComponent(q)}&fields=id,name&limit=${ARAMA_LIMIT}`
-  );
-  illeriOnbellegeYaz(yanit.data);
-  return trSirala(yanit.data.map((p) => p.name));
+  const liste = await tumIlleriYukle();
+  return yerelAra(liste, q);
 }
 
-/** İlçe araması — en az 2 harf, il seçili olmalı */
+/** İlçe araması — il seçili; önbellekten yerel filtre */
 export async function turkiyeIlceAra(il: string, arama: string): Promise<string[]> {
   const q = arama.trim();
   if (!il.trim() || q.length < MIN_ARAMA) return [];
-
-  const ilKaydi = await ilKaydiniCoz(il);
-  if (!ilKaydi) return [];
-
-  const yanit = await apiGet<{ data: { id: number; name: string }[] }>(
-    `/districts?provinceId=${ilKaydi.id}&search=${encodeURIComponent(q)}&fields=id,name&limit=${ARAMA_LIMIT}`
-  );
-  ilceleriOnbellegeYaz(ilKaydi.name, yanit.data);
-  return trSirala(yanit.data.map((d) => d.name));
+  const liste = await ilceAdlariniYukle(il);
+  return yerelAra(liste, q);
 }
 
 /** Mahalle araması — en az 2 harf; ilçe tam seçilmese de benzer eşleşir */
 export async function turkiyeMahalleAra(il: string, ilce: string, arama: string): Promise<string[]> {
   const q = arama.trim();
   if (!il.trim() || !ilce.trim() || q.length < MIN_ARAMA) return [];
+
+  const onbellekAnahtar = `${ilAnahtar(il)}|${ilce.trim().toLocaleLowerCase('tr')}|${q.toLocaleLowerCase('tr')}`;
+  const onbellek = mahalleAramaOnbellegi.get(onbellekAnahtar);
+  if (onbellek) return onbellek;
 
   const ilKaydi = await ilKaydiniCoz(il);
   if (!ilKaydi) return [];
@@ -154,7 +204,15 @@ export async function turkiyeMahalleAra(il: string, ilce: string, arama: string)
 
   const yanit = await apiGet<{ data: MahalleKaydi[] }>(`/neighborhoods?${params.toString()}`);
   mahalleKayitlariniYaz(ilKaydi.name, ilceKaydi?.name ?? ilce, yanit.data);
-  return trSirala(yanit.data.map((m) => m.name));
+  const sonuc = trSirala(yanit.data.map((m) => m.name));
+  mahalleAramaOnbellegi.set(onbellekAnahtar, sonuc);
+  return sonuc;
+}
+
+/** İl seçildiğinde ilçe listesini önceden yükler */
+export async function turkiyeIlceOnbellekYukle(il: string): Promise<void> {
+  if (!il.trim()) return;
+  await ilceAdlariniYukle(il);
 }
 
 /** Seçilen mahallenin posta kodunu TurkiyeAPI'den döndürür */

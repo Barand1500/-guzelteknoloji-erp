@@ -16,18 +16,66 @@ import {
 } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/Sistem404VeGuvenlik';
 import { SistemScriptSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemScriptSekme';
 import { SistemEklentiSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemEklentiSekme';
-import {
-  AdminModulKabuk,
-  AdminPanelKarti,
-  YukleniyorDurumu,
-} from '@/admin/ortak/AdminBilesenleri';
+import { AdminModulKabuk, YukleniyorDurumu } from '@/admin/ortak/AdminBilesenleri';
 import { adminSayfalariGetir, type AdminSayfa } from '@/admin/ortak/api/sayfaApi';
 import { sistemAyarlariGetir, sistemAyarlariGuncelle } from '@/admin/baslat-menusu/sistem/ayarlar/api';
-import { bosSistemForm, sistemdenForm, type SistemAyarlariForm, type SistemSekmeId } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
+import {
+  bosSistemForm,
+  sistemdenForm,
+  SEKME_ALT,
+  SEKME_BASLIK,
+  type SistemAyarlariForm,
+  type SistemSekmeId,
+} from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { kenarlikAyariNormalize, kenarlikRenkYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/kenarlikRenkYardimci';
 import { SagTikPaneliYonetimSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SagTikPaneliYonetimSekme';
 import { sagTikAyarlariYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/yardimci-sag-tik';
 import { siteVerisiGuncellendiYayinla } from '@/araclar/siteVerisiOlaylari';
+import './ayarlar.css';
+
+function SekmeIcerik({
+  sekme,
+  form,
+  onChange,
+  sayfalar,
+  siteAdi,
+  onSiteAktifDegis,
+  siteAktifIslemde,
+}: {
+  sekme: SistemSekmeId;
+  form: SistemAyarlariForm;
+  onChange: (form: SistemAyarlariForm) => void;
+  sayfalar: AdminSayfa[];
+  siteAdi: string;
+  onSiteAktifDegis: (aktif: boolean) => void;
+  siteAktifIslemde: boolean;
+}) {
+  switch (sekme) {
+    case 'genel':
+      return (
+        <SistemGenelSekme
+          form={form}
+          onChange={onChange}
+          onSiteAktifDegis={onSiteAktifDegis}
+          siteAktifIslemde={siteAktifIslemde}
+        />
+      );
+    case 'bakim':
+      return <SistemBakimSekme form={form} onChange={onChange} siteAdi={siteAdi} />;
+    case 'sayfa404':
+      return <Sistem404Sekme form={form} sayfalar={sayfalar} onChange={onChange} />;
+    case 'dil':
+      return <PanelDilSekme form={form} onChange={onChange} />;
+    case 'guvenlik':
+      return <SistemGuvenlikSekme form={form} onChange={onChange} />;
+    case 'script':
+      return <SistemScriptSekme form={form} onChange={onChange} />;
+    case 'eklentiler':
+      return <SistemEklentiSekme />;
+    case 'sagTik':
+      return <SagTikPaneliYonetimSekme form={form} onChange={onChange} />;
+  }
+}
 
 export function SistemAyarlariSayfasi() {
   const logMesajiAyarla = useAdminLogMesaji();
@@ -128,60 +176,32 @@ export function SistemAyarlariSayfasi() {
   if (yukleniyor) return <YukleniyorDurumu mesaj="Sistem ayarları yükleniyor..." />;
 
   return (
-    <AdminModulKabuk baslik="Sistem Ayarları" aciklama={`${siteAdi} — site durumu, bakım, 404 ve panel tercihleri`}>
+    <AdminModulKabuk baslik="Sistem Ayarları">
+      <div className="ap-ayarlar-sayfa">
+        <header className="ap-ayarlar-ust">
+          <SistemSekmeCubugu aktif={sekme} onDegistir={setSekme} />
+          <div className="ap-ayarlar-ust-metin" key={sekme}>
+            <h2 className="ap-ayarlar-ust-baslik">{SEKME_BASLIK[sekme]}</h2>
+            <p className="ap-ayarlar-ust-aciklama">{SEKME_ALT[sekme]}</p>
+          </div>
+        </header>
 
-      <div className="ap-sistem-yonetimi">
-        <div className="ap-sistem-layout">
-          <aside className="ap-sistem-sol">
-            <SistemSekmeCubugu aktif={sekme} onDegistir={setSekme} />
-          </aside>
-
-          <div className="ap-sistem-icerik">
-            <AdminPanelKarti
-              baslik={SEKME_BASLIK[sekme]}
-              altBaslik={SEKME_ALT[sekme]}
-            >
-              {sekme === 'genel' && (
-                <SistemGenelSekme
-                  form={form}
-                  onChange={setForm}
-                  onSiteAktifDegis={siteAktifToggle}
-                  siteAktifIslemde={kaydediliyor}
-                />
-              )}
-              {sekme === 'bakim' && <SistemBakimSekme form={form} onChange={setForm} siteAdi={siteAdi} />}
-              {sekme === 'sayfa404' && <Sistem404Sekme form={form} sayfalar={sayfalar} onChange={setForm} />}
-              {sekme === 'dil' && <PanelDilSekme form={form} onChange={setForm} />}
-              {sekme === 'guvenlik' && <SistemGuvenlikSekme form={form} onChange={setForm} />}
-              {sekme === 'script' && <SistemScriptSekme form={form} onChange={setForm} />}
-              {sekme === 'eklentiler' && <SistemEklentiSekme />}
-              {sekme === 'sagTik' && <SagTikPaneliYonetimSekme form={form} onChange={setForm} />}
-            </AdminPanelKarti>
+        <div className="ap-ayarlar-icerik" key={sekme}>
+          <div className="ap-ayarlar-panel">
+            <div className="ap-ayarlar-panel-govde ap-ayarlar-govde">
+              <SekmeIcerik
+                sekme={sekme}
+                form={form}
+                onChange={setForm}
+                sayfalar={sayfalar}
+                siteAdi={siteAdi}
+                onSiteAktifDegis={siteAktifToggle}
+                siteAktifIslemde={kaydediliyor}
+              />
+            </div>
           </div>
         </div>
       </div>
     </AdminModulKabuk>
   );
 }
-
-const SEKME_BASLIK: Record<SistemSekmeId, string> = {
-  genel: 'Genel Ayarlar',
-  bakim: 'Bakım Modu',
-  sayfa404: '404 Sayfası',
-  dil: 'Panel Dili & Çeviriler',
-  guvenlik: 'Güvenlik',
-  script: 'Script Ayarları',
-  eklentiler: 'Eklentiler',
-  sagTik: 'Sağ Tık Paneli',
-};
-
-const SEKME_ALT: Record<SistemSekmeId, string> = {
-  genel: 'Yayın durumu ve domain',
-  bakim: 'Bakım ekranı ve görsel',
-  sayfa404: 'Menü ve içerik yapılandırması',
-  dil: 'JSON çeviri editörü',
-  guvenlik: 'HTTP güvenlik başlıkları ve arama motoru ayarları',
-  script: 'Google Analytics ve özel script kodları',
-  eklentiler: 'Site eklentilerini kur, etkinleştir veya kaldır',
-  sagTik: 'Admin panel sağ tık menüsü öğeleri ve modül listesi',
-};
