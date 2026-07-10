@@ -12,6 +12,7 @@ import { sekmeOnizlemeGuncelle } from './sekmeOnizlemeYakala';
 import { SekmeSagTikMenu, type SekmeSagTikMenuDurum } from './SekmeSagTikMenu';
 import { AnimasyonluKenarlik } from './AnimasyonluKenarlik';
 import type { SekmeSagTikIslem } from './sekmeSagTikYardimci';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 interface UstSekmeCubuguProps {
   sekmeler: AdminSekme[];
@@ -211,7 +212,7 @@ function SekmeButonu({
         {sekme.kaydedilmedi && (
           <span
             className={`shrink-0 rounded-full bg-amber-400 ${yerlesim === 'kare' ? 'absolute right-1 top-1 h-1.5 w-1.5' : 'h-1.5 w-1.5'}`}
-            title="Kaydedilmemiş değişiklik"
+            title={tooltipMetni('Kaydedilmemiş değişiklik')}
           />
         )}
         {ikonGoster && (

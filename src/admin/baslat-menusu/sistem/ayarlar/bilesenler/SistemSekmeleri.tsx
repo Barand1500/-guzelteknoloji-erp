@@ -8,6 +8,7 @@ import { KenarlikRenkSecici } from './KenarlikRenkSecici';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { PANEL_DILLERI } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { panelJsonIceAktar, PANEL_VARSAYILAN_DILLER } from '@/dil/panelSozluk';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 interface PanelDilEditorProps {
   form: SistemAyarlariForm;
@@ -99,7 +100,7 @@ export function PanelDilSekme({ form, onChange }: PanelDilEditorProps) {
                     </option>
                   ))}
                 </select>
-                <button type="button" onClick={modalAc} className="ap-sistem-cark-btn" title="Çeviri ayarları">
+                <button type="button" onClick={modalAc} className="ap-sistem-cark-btn" title={tooltipMetni('Çeviri ayarları')}>
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75">
                     <circle cx="12" cy="12" r="3" />
                     <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />

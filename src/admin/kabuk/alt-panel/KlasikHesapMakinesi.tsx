@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { sayiGoster } from './hesapMakinesiYardimci';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 type Islem = '+' | '-' | '*' | '/';
 
@@ -54,7 +55,7 @@ function KopyalaBtn({ deger, etiket }: { deger: string; etiket: string }) {
       type="button"
       className={`ap-hesap-kopyala${basarili ? ' ap-hesap-kopyala--ok' : ''}`}
       onClick={() => void kopyala()}
-      title={`${etiket} kopyala`}
+      title={tooltipMetni(`${etiket} kopyala`)}
       aria-label={`${etiket} kopyala`}
     >
       {basarili ? (

@@ -4,6 +4,7 @@ import { useModulKatalog } from '@/baglamlar/ModulKatalogContext';
 import { usePanelDil } from '@/baglamlar/PanelDilContext';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 interface CubukModulAramaProps {
   onModulSec: (modul: AdminModul) => void;
@@ -99,7 +100,7 @@ export function CubukModulArama({ onModulSec }: CubukModulAramaProps) {
               type="button"
               className="ap-tray-ikon ap-cubuk-arama-btn ap-tray-ikon-aktif"
               onClick={acKapat}
-              title="Modül ara"
+              title={tooltipMetni('Modül ara')}
               aria-label="Modül ara"
               aria-expanded={acik}
             >
@@ -117,7 +118,7 @@ export function CubukModulArama({ onModulSec }: CubukModulAramaProps) {
           type="button"
           className="ap-tray-ikon ap-cubuk-arama-btn"
           onClick={acKapat}
-          title="Modül ara"
+          title={tooltipMetni('Modül ara')}
           aria-label="Modül ara"
           aria-expanded={false}
         >

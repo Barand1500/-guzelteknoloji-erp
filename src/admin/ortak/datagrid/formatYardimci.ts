@@ -42,6 +42,10 @@ export function yuzdeFormatla(deger: number): string {
   return `%${deger.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+import { tooltipMetni } from '@/araclar/tooltipMetni';
+
+export { tooltipMetni as dgTooltipMetni };
+
 export function csvIndir(dosyaAdi: string, basliklar: string[], satirlar: string[][]) {
   const bom = '\uFEFF';
   const icerik =
