@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import type { TanimSilModu } from '@/admin/baslat-menusu/tanimlar/api';
 
 interface TanimBagliSilOnayModalProps {
@@ -34,6 +35,13 @@ export function TanimBagliSilOnayModal({
       if (e.key === 'Escape') {
         e.preventDefault();
         kapat();
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const hedef = e.target as HTMLElement | null;
+        if (hedef?.closest('.ap-tanimlar-sil-secenekler')) return;
+        e.preventDefault();
+        onOnayla(mod);
       }
     }
 
@@ -43,7 +51,7 @@ export function TanimBagliSilOnayModal({
       document.removeEventListener('keydown', tusHandler);
       document.body.style.overflow = '';
     };
-  }, [acik, kapat]);
+  }, [acik, kapat, onOnayla, mod]);
 
   if (!acik) return null;
 
@@ -106,10 +114,13 @@ export function TanimBagliSilOnayModal({
 
           <div className="ap-sil-onay-aksiyonlar">
             <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--iptal" onClick={kapat}>
-              Vazgeç
+              <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
             </button>
             <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--onay" onClick={() => onOnayla(mod)}>
-              {mod === 'hepsi' ? 'Evet, Hepsini Sil' : 'Pasif Yap'}
+              <ModalTusIcerik
+                metin={mod === 'hepsi' ? 'Evet, Hepsini Sil' : 'Pasif Yap'}
+                kisayol="Enter"
+              />
             </button>
           </div>
         </div>

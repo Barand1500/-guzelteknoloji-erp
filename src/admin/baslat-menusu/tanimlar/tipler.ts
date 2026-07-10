@@ -36,22 +36,16 @@ export interface AdresFormDegeri {
   il: string;
   ilce: string;
   mahalle: string;
-  cadde: string;
-  sokak: string;
-  bina: string;
-  no: string;
   postaKodu: string;
+  adres: string;
 }
 
 export const bosAdres: AdresFormDegeri = {
   il: '',
   ilce: '',
   mahalle: '',
-  cadde: '',
-  sokak: '',
-  bina: '',
-  no: '',
   postaKodu: '',
+  adres: '',
 };
 
 export interface AdminFirma {
@@ -111,11 +105,8 @@ export interface AdminSube {
   il: string;
   ilce: string;
   mahalle: string;
-  cadde: string;
-  sokak: string;
-  bina: string;
-  no: string;
   postaKodu: string;
+  adres: string;
   efaturaSeri: string;
   earsivSeri: string;
   eirsaliyeSeri: string;
@@ -159,11 +150,8 @@ export interface AdminDepo {
   il: string;
   ilce: string;
   mahalle: string;
-  cadde: string;
-  sokak: string;
-  bina: string;
-  no: string;
   postaKodu: string;
+  adres: string;
   aktif: boolean;
   olusturma: string;
   guncelleme: string;

@@ -289,12 +289,8 @@ export function FirmaSekme({
       <>
         <TanimDuzenleEkrani
           panel={gomuluDuzenle?.panel}
-          ustEtiket="Firma düzenle"
-          kod={seciliKayit.firmaKodu}
+          ustEtiket="Firma Düzenle"
           baslik={seciliKayit.firmaAdi}
-          altBaslik="Firma bilgilerini güncelleyin"
-          olusturma={seciliKayit.olusturma}
-          guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
           onKaydet={() => void kaydet()}
           kaydediliyor={kaydediliyor}

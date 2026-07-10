@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 
 interface SilmeOnayModalProps {
   acik: boolean;
@@ -32,6 +33,11 @@ export function SilmeOnayModal({
       if (e.key === 'Escape') {
         e.preventDefault();
         kapat();
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        onOnayla();
       }
     }
 
@@ -41,7 +47,7 @@ export function SilmeOnayModal({
       document.removeEventListener('keydown', tusHandler);
       document.body.style.overflow = '';
     };
-  }, [acik, kapat]);
+  }, [acik, kapat, onOnayla]);
 
   if (!acik) return null;
 
@@ -61,10 +67,10 @@ export function SilmeOnayModal({
           </p>
           <div className="ap-sil-onay-aksiyonlar">
             <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--iptal" onClick={kapat}>
-              {iptalMetin}
+              <ModalTusIcerik metin={iptalMetin} kisayol="Esc" />
             </button>
             <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--onay" onClick={onOnayla}>
-              {onayMetin}
+              <ModalTusIcerik metin={onayMetin} kisayol="Enter" />
             </button>
           </div>
         </div>

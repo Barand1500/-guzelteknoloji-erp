@@ -211,6 +211,15 @@ export function adminDonemYanit(d: Donem) {
   };
 }
 
+function adresMetni(s: {
+  cadde?: string | null;
+  sokak?: string | null;
+  bina?: string | null;
+  no?: string | null;
+}) {
+  return [s.cadde, s.sokak, s.bina, s.no].filter((p) => p && String(p).trim()).join(' ').trim();
+}
+
 export function adminSubeYanit(s: Sube) {
   return {
     id: s.id,
@@ -220,11 +229,8 @@ export function adminSubeYanit(s: Sube) {
     il: s.il ?? '',
     ilce: s.ilce ?? '',
     mahalle: s.mahalle ?? '',
-    cadde: s.cadde ?? '',
-    sokak: s.sokak ?? '',
-    bina: s.bina ?? '',
-    no: s.no ?? '',
     postaKodu: s.postaKodu ?? '',
+    adres: adresMetni(s),
     efaturaSeri: s.efaturaSeri ?? '',
     earsivSeri: s.earsivSeri ?? '',
     eirsaliyeSeri: s.eirsaliyeSeri ?? '',
@@ -247,11 +253,8 @@ export function adminDepoYanit(d: Depo & { sube?: { subeKodu: string; subeAdi: s
     il: d.il ?? '',
     ilce: d.ilce ?? '',
     mahalle: d.mahalle ?? '',
-    cadde: d.cadde ?? '',
-    sokak: d.sokak ?? '',
-    bina: d.bina ?? '',
-    no: d.no ?? '',
     postaKodu: d.postaKodu ?? '',
+    adres: adresMetni(d),
     aktif: d.durum,
     olusturma: tarihIso(d.kayitTarihi),
     guncelleme: tarihIso(d.guncellemeTarihi),

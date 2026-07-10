@@ -10,6 +10,7 @@ import type {
   KasaFormDegeri,
   SubeFormDegeri,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { adresMetniniOku } from '@/admin/baslat-menusu/tanimlar/araclar/adresYardimci';
 
 const OFFLINE_TANIMLAR_ANAHTAR = 'erp-offline-tanimlar';
 
@@ -59,11 +60,8 @@ function varsayilanTanimlar(): OfflineTanimlarVeri {
       il: 'ANTALYA',
       ilce: 'KEPEZ',
       mahalle: 'YENI EMEK MAH.',
-      cadde: 'YILDIRIM BEYAZIT CAD.',
-      sokak: '',
-      bina: '',
-      no: '130A',
       postaKodu: '7060',
+      adres: 'YILDIRIM BEYAZIT CAD. 130A',
       efaturaSeri: 'GEF',
       earsivSeri: 'GEA',
       eirsaliyeSeri: 'GEI',
@@ -85,11 +83,8 @@ function varsayilanTanimlar(): OfflineTanimlarVeri {
       il: 'ANTALYA',
       ilce: 'KEPEZ',
       mahalle: 'YENI EMEK MAH.',
-      cadde: 'YILDIRIM BEYAZIT CAD.',
-      sokak: '',
-      bina: '',
-      no: '130A',
       postaKodu: '7060',
+      adres: 'YILDIRIM BEYAZIT CAD. 130A',
       aktif: true,
       olusturma: simdi,
       guncelleme: simdi,
@@ -115,7 +110,20 @@ function varsayilanTanimlar(): OfflineTanimlarVeri {
 function tanimlarOku(): OfflineTanimlarVeri {
   try {
     const ham = localStorage.getItem(OFFLINE_TANIMLAR_ANAHTAR);
-    if (ham) return JSON.parse(ham) as OfflineTanimlarVeri;
+    if (ham) {
+      const veri = JSON.parse(ham) as OfflineTanimlarVeri;
+      return {
+        ...veri,
+        subeler: veri.subeler.map((s) => ({
+          ...s,
+          adres: adresMetniniOku(s as AdminSube & { cadde?: string; sokak?: string; bina?: string; no?: string }),
+        })),
+        depolar: veri.depolar.map((d) => ({
+          ...d,
+          adres: adresMetniniOku(d as AdminDepo & { cadde?: string; sokak?: string; bina?: string; no?: string }),
+        })),
+      };
+    }
   } catch {
     /* bozuk kayit */
   }
@@ -259,11 +267,8 @@ export function offlineTanimlarYaz(path: string, method: string, body?: BodyInit
         il: form.il ?? '',
         ilce: form.ilce ?? '',
         mahalle: form.mahalle ?? '',
-        cadde: form.cadde ?? '',
-        sokak: form.sokak ?? '',
-        bina: form.bina ?? '',
-        no: form.no ?? '',
         postaKodu: form.postaKodu ?? '',
+        adres: form.adres ?? '',
         efaturaSeri: form.efaturaSeri ?? '',
         earsivSeri: form.earsivSeri ?? '',
         eirsaliyeSeri: form.eirsaliyeSeri ?? '',
@@ -292,11 +297,8 @@ export function offlineTanimlarYaz(path: string, method: string, body?: BodyInit
         il: form.il ?? '',
         ilce: form.ilce ?? '',
         mahalle: form.mahalle ?? '',
-        cadde: form.cadde ?? '',
-        sokak: form.sokak ?? '',
-        bina: form.bina ?? '',
-        no: form.no ?? '',
         postaKodu: form.postaKodu ?? '',
+        adres: form.adres ?? '',
         aktif: form.aktif !== false,
         olusturma: simdi,
         guncelleme: simdi,
@@ -377,11 +379,8 @@ export function offlineTanimlarYaz(path: string, method: string, body?: BodyInit
         il: form.il ?? '',
         ilce: form.ilce ?? '',
         mahalle: form.mahalle ?? '',
-        cadde: form.cadde ?? '',
-        sokak: form.sokak ?? '',
-        bina: form.bina ?? '',
-        no: form.no ?? '',
         postaKodu: form.postaKodu ?? '',
+        adres: form.adres ?? '',
         efaturaSeri: form.efaturaSeri ?? '',
         earsivSeri: form.earsivSeri ?? '',
         eirsaliyeSeri: form.eirsaliyeSeri ?? '',
@@ -407,11 +406,8 @@ export function offlineTanimlarYaz(path: string, method: string, body?: BodyInit
         il: form.il ?? '',
         ilce: form.ilce ?? '',
         mahalle: form.mahalle ?? '',
-        cadde: form.cadde ?? '',
-        sokak: form.sokak ?? '',
-        bina: form.bina ?? '',
-        no: form.no ?? '',
         postaKodu: form.postaKodu ?? '',
+        adres: form.adres ?? '',
         aktif: form.aktif !== false,
         guncelleme: simdiPut,
       };

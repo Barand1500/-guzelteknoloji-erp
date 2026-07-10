@@ -18,8 +18,8 @@ import {
   subeGuncelle,
   subeleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
+import { adresMetniniOku } from '@/admin/baslat-menusu/tanimlar/araclar/adresYardimci';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
-import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import {
   TanimSihirbaz,
@@ -118,11 +118,8 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
       il: merkez.il,
       ilce: merkez.ilce,
       mahalle: merkez.mahalle,
-      cadde: merkez.cadde,
-      sokak: merkez.sokak,
-      bina: merkez.bina,
-      no: merkez.no,
       postaKodu: merkez.postaKodu,
+      adres: adresMetniniOku(merkez),
       efaturaSeri: merkez.efaturaSeri,
       earsivSeri: merkez.earsivSeri,
       eirsaliyeSeri: merkez.eirsaliyeSeri,
@@ -143,11 +140,8 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
       il: merkezDepo.il,
       ilce: merkezDepo.ilce,
       mahalle: merkezDepo.mahalle,
-      cadde: merkezDepo.cadde,
-      sokak: merkezDepo.sokak,
-      bina: merkezDepo.bina,
-      no: merkezDepo.no,
       postaKodu: merkezDepo.postaKodu,
+      adres: adresMetniniOku(merkezDepo),
       aktif: merkezDepo.aktif,
     });
 
@@ -167,7 +161,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
     (): TanimSihirbazAdim[] => [
       {
         baslik: 'Firma',
-        aciklama: 'Firma kodu, unvan, vergi bilgileri ve durum',
+        aciklama: 'Firma kodu, unvan ve vergi bilgileri',
         icerik: (
           <>
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
@@ -196,10 +190,6 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
               deger={firmaForm.vergiNo}
               kural="vergiNo"
               onChange={(vergiNo) => setFirmaForm((f) => ({ ...f, vergiNo }))}
-            />
-            <OrtakDurumAlani
-              aktif={firmaForm.aktif}
-              onChange={(aktif) => setFirmaForm((f) => ({ ...f, aktif }))}
             />
           </>
         ),
@@ -274,10 +264,6 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
                 onChange={(ticaretSicil) => setSubeForm((s) => ({ ...s, ticaretSicil }))}
               />
             </div>
-            <OrtakDurumAlani
-              aktif={subeForm.aktif}
-              onChange={(aktif) => setSubeForm((s) => ({ ...s, aktif }))}
-            />
           </>
         ),
       },
@@ -291,7 +277,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
         baslik: 'Depo',
         aciklama: merkezGuncelle
           ? 'Merkez depo bilgileri ve adresi'
-          : 'Depo kodu, adı, durum ve adres bilgileri',
+          : 'Depo kodu, adı ve adres bilgileri',
         icerik: (
           <>
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
@@ -315,10 +301,6 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
               deger={depoForm}
               onChange={(adres) => setDepoForm((d) => ({ ...d, ...adres }))}
             />
-            <OrtakDurumAlani
-              aktif={depoForm.aktif}
-              onChange={(aktif) => setDepoForm((d) => ({ ...d, aktif }))}
-            />
           </>
         ),
       },
@@ -329,7 +311,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
     (): TanimSihirbazAdim[] => [
       {
         baslik: 'Kasa',
-        aciklama: 'Kasa kodu, adı, para birimi ve durum',
+        aciklama: 'Kasa kodu, adı ve para birimi',
         icerik: (
           <>
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
@@ -356,10 +338,6 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
                 secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
               />
             </label>
-            <OrtakDurumAlani
-              aktif={kasaForm.aktif}
-              onChange={(aktif) => setKasaForm((k) => ({ ...k, aktif }))}
-            />
           </>
         ),
       },
@@ -371,7 +349,7 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
     (): TanimSihirbazAdim[] => [
       {
         baslik: 'Dönem',
-        aciklama: 'Muhasebe dönem kodu, adı ve durum',
+        aciklama: 'Muhasebe dönem kodu ve adı',
         icerik: (
           <>
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
@@ -391,10 +369,6 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
                 onChange={(donemAdi) => setDonemForm((d) => ({ ...d, donemAdi }))}
               />
             </div>
-            <OrtakDurumAlani
-              aktif={donemForm.aktif}
-              onChange={(aktif) => setDonemForm((d) => ({ ...d, aktif }))}
-            />
           </>
         ),
       },

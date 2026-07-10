@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 import { paraFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { gecerliBirim, birimSecenekleri } from './birimVeri';
 import { satirHesapla, type SiparisSatiri } from './demoVeri';
 
@@ -69,6 +70,26 @@ export function SatirDuzenlePanel({
   const hesap = useMemo(() => formdanSatirOlustur(satir, degerler, kdvDahil), [satir, degerler, kdvDahil]);
 
   const kaydet = useCallback(() => onKaydet(hesap), [hesap, onKaydet]);
+
+  useEffect(() => {
+    function tusHandler(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onKapat();
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const hedef = e.target as HTMLElement | null;
+        const tag = hedef?.tagName;
+        if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+        e.preventDefault();
+        kaydet();
+      }
+    }
+
+    document.addEventListener('keydown', tusHandler);
+    return () => document.removeEventListener('keydown', tusHandler);
+  }, [onKapat, kaydet]);
 
   const tutamacBasla = (e: React.PointerEvent) => {
     baslangicY.current = e.clientY;
@@ -173,10 +194,10 @@ export function SatirDuzenlePanel({
 
       <footer className="dg-duzenle-alt">
         <button type="button" className="dg-duzenle-btn dg-duzenle-btn--iptal" onClick={onKapat}>
-          İptal
+          <ModalTusIcerik metin="İptal" kisayol="Esc" />
         </button>
         <button type="button" className="dg-duzenle-btn dg-duzenle-btn--kaydet" onClick={kaydet}>
-          Kaydet
+          <ModalTusIcerik metin="Kaydet" kisayol="Enter" />
         </button>
       </footer>
     </div>

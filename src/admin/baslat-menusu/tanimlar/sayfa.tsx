@@ -39,47 +39,35 @@ export function TanimlarSayfasi() {
   if (ilkYukleniyor) return <TanimYukleniyor />;
 
   return (
-    <AdminModulKabuk baslik="Tanımlar">
+    <AdminModulKabuk
+      baslik="Tanımlar"
+      aciklama="Firma, şube, dönem, depo ve kasa kayıtlarını buradan oluşturur, düzenler ve hiyerarşik olarak yönetirsiniz."
+      ustAksiyon={
+        <div className="ap-tanimlar-mod-cubugu" role="tablist" aria-label="Tanımlar görünümü">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mod === 'kurulum'}
+            className={`ap-tanimlar-mod-sekme ${mod === 'kurulum' ? 'ap-tanimlar-mod-sekme--aktif' : ''}`}
+            onClick={() => setMod('kurulum')}
+          >
+            <span aria-hidden>✨</span>
+            Kurulum Sihirbazı
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mod === 'kayitlar'}
+            className={`ap-tanimlar-mod-sekme ${mod === 'kayitlar' ? 'ap-tanimlar-mod-sekme--aktif' : ''}`}
+            onClick={() => setMod('kayitlar')}
+          >
+            <span aria-hidden>📋</span>
+            Kayıtlar
+          </button>
+        </div>
+      }
+    >
       <div className="ap-tanimlar-sayfa">
-        <header className="ap-tanimlar-ust">
-          <div className="ap-tanimlar-mod-cubugu" role="tablist" aria-label="Tanımlar görünümü">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mod === 'kurulum'}
-              className={`ap-tanimlar-mod-sekme ${mod === 'kurulum' ? 'ap-tanimlar-mod-sekme--aktif' : ''}`}
-              onClick={() => setMod('kurulum')}
-            >
-              <span aria-hidden>✨</span>
-              Kurulum Sihirbazı
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mod === 'kayitlar'}
-              className={`ap-tanimlar-mod-sekme ${mod === 'kayitlar' ? 'ap-tanimlar-mod-sekme--aktif' : ''}`}
-              onClick={() => setMod('kayitlar')}
-            >
-              <span aria-hidden>📋</span>
-              Kayıtlar
-            </button>
-          </div>
-          <div className="ap-tanimlar-ust-metin" key={mod}>
-            <h2 className="ap-tanimlar-ust-baslik">
-              {mod === 'kurulum' ? 'Kurulum Sihirbazı' : 'Tanım Kayıtları'}
-            </h2>
-            {mod === 'kurulum' ? (
-              <p className="ap-tanimlar-ust-aciklama">
-                Firma, şube, depo, kasa ve dönemi tek akışta sırayla tanımlayın
-              </p>
-            ) : (
-              <p className="ap-tanimlar-ust-aciklama">
-                Firmaya tıklayarak şube ve dönemlere, şubeye tıklayarak depo ve kasalara inin
-              </p>
-            )}
-          </div>
-        </header>
-
         <div className="ap-tanimlar-icerik" key={mod === 'kurulum' ? 'kurulum' : `kayitlar-${ozetAnahtar}`}>
           {mod === 'kurulum' ? (
             <KurulumSihirbazi

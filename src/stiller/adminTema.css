@@ -5233,9 +5233,31 @@ html:has(.admin-panel[data-tema='acik']) body {
   color: var(--ap-text);
   font-size: 1rem;
   font-weight: 700;
-  padding: 1rem 1.2rem;
+  padding: 0.85rem 1.2rem 0.95rem;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  line-height: 1.2;
+}
+
+.ap-modal-tus-metin {
+  display: block;
+}
+
+.ap-modal-tus-kisayol {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.58;
+}
+
+.ap-sil-onay-tus--onay .ap-modal-tus-kisayol {
+  opacity: 0.82;
 }
 
 .ap-sil-onay-tus + .ap-sil-onay-tus {

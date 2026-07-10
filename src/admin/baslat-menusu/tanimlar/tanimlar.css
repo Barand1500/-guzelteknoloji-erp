@@ -3,7 +3,7 @@
 .ap-tanimlar-sayfa {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.75rem;
   min-width: 0;
 }
 
@@ -25,6 +25,58 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.ap-tanimlar-ust--mod {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+}
+
+.ap-modul-kabuk:has(.ap-tanimlar-sayfa) .ap-modul-baslik {
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.ap-modul-kabuk:has(.ap-tanimlar-sayfa) > .mt-6 {
+  margin-top: 0.75rem;
+}
+
+/* Sekme geçişinde üst başlık kaymasın — panel düzeni her iki modda aynı */
+.ap-modul-panel:has(.ap-tanimlar-sayfa),
+.ap-modul-panel:has(.ap-tanimlar-sayfa):has(.dg-demo-sayfa) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  padding: 1.5rem !important;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-sayfa) .ap-modul-kabuk {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-sayfa) .ap-modul-kabuk > .mt-6 {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-sayfa) .ap-tanimlar-sayfa {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-sayfa) .ap-tanimlar-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .ap-tanimlar-tur-sarmal {
@@ -1562,6 +1614,82 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-panel-govde .ap-tanimlar-bolum {
   margin: 0;
+}
+
+.ap-tanimlar-adres-tam {
+  grid-column: 1 / -1;
+}
+
+.ap-tanimlar-adres-metin {
+  min-height: 5.5rem;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+/* Düzenle paneli — sade başlık + tam genişlik alt butonlar */
+.ap-tanimlar-duzenle-panel-baslik {
+  padding: 1rem 1.25rem;
+}
+
+.ap-tanimlar-duzenle-panel-baslik .dg-duzenle-urun-ad {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis {
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  background: var(--ap-surface);
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis .dg-duzenle-btn {
+  min-width: 0;
+  width: 100%;
+  border-radius: 0;
+  padding: 0.85rem 1.2rem 0.95rem;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  line-height: 1.2;
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis .dg-duzenle-btn--kaydet .ap-modal-tus-kisayol {
+  opacity: 0.82;
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis .dg-duzenle-btn--iptal {
+  border: none;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis .dg-duzenle-btn--iptal:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-hover) 62%, transparent);
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis .dg-duzenle-btn--kaydet {
+  border: none;
+  background: var(--ap-accent);
+  color: #fff;
+  box-shadow: -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis .dg-duzenle-btn--kaydet:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.dg-duzenle--tanim .dg-duzenle-alt--genis .dg-duzenle-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {

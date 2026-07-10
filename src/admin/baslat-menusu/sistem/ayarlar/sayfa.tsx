@@ -22,7 +22,6 @@ import { sistemAyarlariGetir, sistemAyarlariGuncelle } from '@/admin/baslat-menu
 import {
   bosSistemForm,
   sistemdenForm,
-  SEKME_ALT,
   SEKME_BASLIK,
   type SistemAyarlariForm,
   type SistemSekmeId,
@@ -176,16 +175,12 @@ export function SistemAyarlariSayfasi() {
   if (yukleniyor) return <YukleniyorDurumu mesaj="Sistem ayarları yükleniyor..." />;
 
   return (
-    <AdminModulKabuk baslik="Sistem Ayarları">
+    <AdminModulKabuk
+      baslik="Sistem Ayarları"
+      aciklama="Site, güvenlik, dil ve panel davranış ayarlarını buradan yönetirsiniz."
+      ustAksiyon={<SistemSekmeCubugu aktif={sekme} onDegistir={setSekme} />}
+    >
       <div className="ap-ayarlar-sayfa">
-        <header className="ap-ayarlar-ust">
-          <SistemSekmeCubugu aktif={sekme} onDegistir={setSekme} />
-          <div className="ap-ayarlar-ust-metin" key={sekme}>
-            <h2 className="ap-ayarlar-ust-baslik">{SEKME_BASLIK[sekme]}</h2>
-            <p className="ap-ayarlar-ust-aciklama">{SEKME_ALT[sekme]}</p>
-          </div>
-        </header>
-
         <div className="ap-ayarlar-icerik" key={sekme}>
           <div className="ap-ayarlar-panel">
             <div className="ap-ayarlar-panel-govde ap-ayarlar-govde">

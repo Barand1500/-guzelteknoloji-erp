@@ -6,6 +6,7 @@ import {
   subeSil,
   subeleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
+import { adresMetniniOku } from '@/admin/baslat-menusu/tanimlar/araclar/adresYardimci';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
@@ -79,11 +80,8 @@ function subedenForm(s: AdminSube): SubeFormDegeri {
     il: s.il,
     ilce: s.ilce,
     mahalle: s.mahalle,
-    cadde: s.cadde,
-    sokak: s.sokak,
-    bina: s.bina,
-    no: s.no,
     postaKodu: s.postaKodu,
+    adres: adresMetniniOku(s),
     efaturaSeri: s.efaturaSeri,
     earsivSeri: s.earsivSeri,
     eirsaliyeSeri: s.eirsaliyeSeri,
@@ -388,12 +386,8 @@ export function SubeSekme({
       <>
         <TanimDuzenleEkrani
           panel={gomuluDuzenle?.panel}
-          ustEtiket="Şube düzenle"
-          kod={seciliKayit.subeKodu}
+          ustEtiket="Şube Düzenle"
           baslik={seciliKayit.subeAdi}
-          altBaslik="Şube bilgilerini güncelleyin"
-          olusturma={seciliKayit.olusturma}
-          guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
           onKaydet={() => void kaydet()}
           kaydediliyor={kaydediliyor}

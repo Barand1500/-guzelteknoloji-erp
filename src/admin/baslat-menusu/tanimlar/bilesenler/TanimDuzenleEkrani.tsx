@@ -1,5 +1,8 @@
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
+
+const KAYDET_ESIGI = 72;
 
 interface TanimDuzenleEkraniProps {
   baslik: string;
@@ -18,7 +21,6 @@ interface TanimDuzenleEkraniProps {
 export function TanimDuzenleEkrani({
   baslik,
   altBaslik,
-  kod,
   ustEtiket = 'Kayıt düzenle',
   olusturma,
   guncelleme,
@@ -30,47 +32,14 @@ export function TanimDuzenleEkrani({
 }: TanimDuzenleEkraniProps) {
   if (panel) {
     return (
-      <div className="dg-duzenle">
-        <button type="button" className="dg-duzenle-tutamac-alan" onClick={onGeri} aria-label="Paneli kapat">
-          <div className="dg-duzenle-tutamac" />
-        </button>
-        <header className="dg-duzenle-baslik">
-          <p className="dg-duzenle-ust-etiket">{ustEtiket}</p>
-          {kod ? (
-            <p className="dg-duzenle-urun-meta dg-duzenle-urun-meta--ust">
-              <span className="dg-duzenle-sku">{kod}</span>
-            </p>
-          ) : null}
-          <h3 className="dg-duzenle-urun-ad">{baslik}</h3>
-          {altBaslik ? <p className="ap-tanimlar-panel-alt">{altBaslik}</p> : null}
-          {olusturma || guncelleme ? (
-            <p className="ap-tanimlar-panel-tarih">
-              {olusturma ? <>Kayıt {tarihSaatFormatla(olusturma)}</> : null}
-              {olusturma && guncelleme ? ' · ' : null}
-              {guncelleme ? <>Güncelleme {tarihSaatFormatla(guncelleme)}</> : null}
-            </p>
-          ) : null}
-        </header>
-        <div className="dg-duzenle-govde ap-scroll ap-tanimlar-panel-govde">{children}</div>
-        <footer className="dg-duzenle-alt">
-          <button
-            type="button"
-            className="dg-duzenle-btn dg-duzenle-btn--iptal"
-            onClick={onGeri}
-            disabled={kaydediliyor}
-          >
-            İptal
-          </button>
-          <button
-            type="button"
-            className="dg-duzenle-btn dg-duzenle-btn--kaydet"
-            onClick={onKaydet}
-            disabled={kaydediliyor || !onKaydet}
-          >
-            {kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}
-          </button>
-        </footer>
-      </div>
+      <TanimDuzenlePanel
+        ustEtiket={ustEtiket}
+        onGeri={onGeri}
+        onKaydet={onKaydet}
+        kaydediliyor={kaydediliyor}
+      >
+        {children}
+      </TanimDuzenlePanel>
     );
   }
 
@@ -102,6 +71,123 @@ export function TanimDuzenleEkrani({
         <span className="ap-tanimlar-duzenle-rozet">Düzenle</span>
       </header>
       <div className="ap-tanimlar-duzenle-govde">{children}</div>
+    </div>
+  );
+}
+
+function TanimDuzenlePanel({
+  ustEtiket,
+  onGeri,
+  onKaydet,
+  kaydediliyor,
+  children,
+}: {
+  ustEtiket: string;
+  onGeri: () => void;
+  onKaydet?: () => void;
+  kaydediliyor?: boolean;
+  children: ReactNode;
+}) {
+  const [surukleY, setSurukleY] = useState(0);
+  const [surukleniyor, setSurukleniyor] = useState(false);
+  const baslangicY = useRef(0);
+  const tutamacRef = useRef<HTMLDivElement>(null);
+
+  const kaydet = useCallback(() => {
+    if (kaydediliyor || !onKaydet) return;
+    onKaydet();
+  }, [kaydediliyor, onKaydet]);
+
+  const tutamacBasla = (e: React.PointerEvent) => {
+    if (kaydediliyor) return;
+    baslangicY.current = e.clientY;
+    setSurukleniyor(true);
+    tutamacRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const tutamacSurukle = (e: React.PointerEvent) => {
+    if (!surukleniyor || kaydediliyor) return;
+    setSurukleY(Math.max(0, e.clientY - baslangicY.current));
+  };
+
+  const tutamacBitir = () => {
+    if (surukleY >= KAYDET_ESIGI) {
+      kaydet();
+      setSurukleY(0);
+      setSurukleniyor(false);
+      return;
+    }
+    setSurukleY(0);
+    setSurukleniyor(false);
+  };
+
+  useEffect(() => {
+    function tusHandler(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onGeri();
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const hedef = e.target as HTMLElement | null;
+        const tag = hedef?.tagName;
+        if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+        e.preventDefault();
+        kaydet();
+      }
+    }
+
+    document.addEventListener('keydown', tusHandler);
+    return () => document.removeEventListener('keydown', tusHandler);
+  }, [onGeri, kaydet]);
+
+  return (
+    <div
+      className={`dg-duzenle dg-duzenle--tanim${surukleniyor ? ' dg-duzenle--surukleniyor' : ''}`}
+      style={{ transform: surukleY ? `translateY(${surukleY}px)` : undefined }}
+    >
+      <div
+        ref={tutamacRef}
+        className="dg-duzenle-tutamac-alan"
+        onPointerDown={tutamacBasla}
+        onPointerMove={tutamacSurukle}
+        onPointerUp={tutamacBitir}
+        onPointerCancel={tutamacBitir}
+        role="button"
+        tabIndex={0}
+        aria-label="Aşağı kaydırarak kaydet"
+      >
+        <div className="dg-duzenle-tutamac" />
+        <span className="dg-duzenle-tutamac-metin">Aşağı çekerek kaydet</span>
+      </div>
+
+      <header className="dg-duzenle-baslik ap-tanimlar-duzenle-panel-baslik">
+        <h3 className="dg-duzenle-urun-ad">{ustEtiket}</h3>
+      </header>
+
+      <div className="dg-duzenle-govde ap-scroll ap-tanimlar-panel-govde">{children}</div>
+
+      <footer className="dg-duzenle-alt dg-duzenle-alt--genis">
+        <button
+          type="button"
+          className="dg-duzenle-btn dg-duzenle-btn--iptal"
+          onClick={onGeri}
+          disabled={kaydediliyor}
+        >
+          <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
+        </button>
+        <button
+          type="button"
+          className="dg-duzenle-btn dg-duzenle-btn--kaydet"
+          onClick={kaydet}
+          disabled={kaydediliyor || !onKaydet}
+        >
+          <ModalTusIcerik
+            metin={kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}
+            kisayol="Enter"
+          />
+        </button>
+      </footer>
     </div>
   );
 }

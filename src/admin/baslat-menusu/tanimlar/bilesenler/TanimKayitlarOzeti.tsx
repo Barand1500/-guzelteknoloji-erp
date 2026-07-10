@@ -174,12 +174,6 @@ export function TanimKayitlarOzeti() {
     [firmalar, subeler, depolar, kasalar, donemler]
   );
 
-  useEffect(() => {
-    const panel = document.querySelector('.ap-modul-panel');
-    panel?.classList.add('ap-modul-panel--datagrid');
-    return () => panel?.classList.remove('ap-modul-panel--datagrid');
-  }, []);
-
   const yukle = useCallback(async () => {
     setYukleniyor(true);
     try {
@@ -462,11 +456,8 @@ export function TanimKayitlarOzeti() {
         siralamaDegeri: (s) => `${s.il} ${s.ilce}`,
       },
       metin('mahalle', 'Mahalle', 110, (s) => s.mahalle),
-      metin('cadde', 'Cadde', 110, (s) => s.cadde),
-      metin('sokak', 'Sokak', 100, (s) => s.sokak),
-      metin('bina', 'Bina', 72, (s) => s.bina),
-      metin('no', 'No', 56, (s) => s.no),
       metin('postaKodu', 'Posta Kodu', 88, (s) => s.postaKodu),
+      metin('adres', 'Adres', 220, (s) => s.adres),
       metin('efaturaSeri', 'E-Fatura Seri', 96, (s) => s.efaturaSeri),
       metin('earsivSeri', 'E-Arşiv Seri', 96, (s) => s.earsivSeri),
       metin('eirsaliyeSeri', 'E-İrsaliye Seri', 104, (s) => s.eirsaliyeSeri),
@@ -549,11 +540,8 @@ export function TanimKayitlarOzeti() {
       metin('il', 'İl', 100, (d) => d.il),
       metin('ilce', 'İlçe', 100, (d) => d.ilce),
       metin('mahalle', 'Mahalle', 110, (d) => d.mahalle),
-      metin('cadde', 'Cadde', 110, (d) => d.cadde),
-      metin('sokak', 'Sokak', 100, (d) => d.sokak),
-      metin('bina', 'Bina', 72, (d) => d.bina),
-      metin('no', 'No', 56, (d) => d.no),
       metin('postaKodu', 'Posta Kodu', 88, (d) => d.postaKodu),
+      metin('adres', 'Adres', 220, (d) => d.adres),
       olusturmaKolonu<AdminDepo>(),
       guncellemeKolonu<AdminDepo>(),
       durumKolonu<AdminDepo>(),
@@ -676,12 +664,12 @@ export function TanimKayitlarOzeti() {
           />
           {sekme === 'subeler' ? (
             <DataGrid
-              key="tanimlar_kayitlar_subeler_v5"
+              key="tanimlar_kayitlar_subeler_v6"
               {...gridOrtak}
               tabloBaslik="Şubeler"
               kolonlar={subeKolonlari}
               satirlar={firmaSubeler}
-              depolamaAnahtari="tanimlar_kayitlar_subeler_v5"
+              depolamaAnahtari="tanimlar_kayitlar_subeler_v6"
               bosMesaj="Bu firmaya bağlı şube yok"
               satirSinifAdi={(s) =>
                 firmaBagliPasifMi(s.aktif, s.firmaId) ? 'dg-satir--pasif' : undefined
@@ -740,12 +728,12 @@ export function TanimKayitlarOzeti() {
           />
           {sekme === 'depolar' ? (
             <DataGrid
-              key="tanimlar_kayitlar_depolar_v5"
+              key="tanimlar_kayitlar_depolar_v6"
               {...gridOrtak}
               tabloBaslik="Depolar"
               kolonlar={depoKolonlari}
               satirlar={subeDepolar}
-              depolamaAnahtari="tanimlar_kayitlar_depolar_v5"
+              depolamaAnahtari="tanimlar_kayitlar_depolar_v6"
               bosMesaj="Bu şubeye bağlı depo yok"
               satirSinifAdi={(d) =>
                 subeBagliPasifMi(d.aktif, d.subeId) ? 'dg-satir--pasif' : undefined

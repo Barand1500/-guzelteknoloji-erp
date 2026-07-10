@@ -6,6 +6,7 @@ import {
   depolariGetir,
   subeleriGetir,
 } from '@/admin/baslat-menusu/tanimlar/api';
+import { adresMetniniOku } from '@/admin/baslat-menusu/tanimlar/araclar/adresYardimci';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
 import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
@@ -67,11 +68,8 @@ function depodanForm(d: AdminDepo): DepoFormDegeri {
     il: d.il,
     ilce: d.ilce,
     mahalle: d.mahalle,
-    cadde: d.cadde,
-    sokak: d.sokak,
-    bina: d.bina,
-    no: d.no,
     postaKodu: d.postaKodu,
+    adres: adresMetniniOku(d),
     aktif: d.aktif,
   };
 }
@@ -331,12 +329,8 @@ export function DepoSekme({
       <>
         <TanimDuzenleEkrani
           panel={gomuluDuzenle?.panel}
-          ustEtiket="Depo düzenle"
-          kod={seciliKayit.depoKodu}
+          ustEtiket="Depo Düzenle"
           baslik={seciliKayit.depoAdi}
-          altBaslik="Depo bilgilerini güncelleyin"
-          olusturma={seciliKayit.olusturma}
-          guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
           onKaydet={() => void kaydet()}
           kaydediliyor={kaydediliyor}

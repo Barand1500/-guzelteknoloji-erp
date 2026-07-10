@@ -98,10 +98,7 @@ function metinOku(degerler: Record<string, string>, anahtar: string): string {
 function adresDegerleriniOku(
   degerler: Record<string, string>,
   opts?: { ilIlceBirlesik?: boolean }
-): Pick<
-  typeof bosSubeForm,
-  'il' | 'ilce' | 'mahalle' | 'cadde' | 'sokak' | 'bina' | 'no' | 'postaKodu'
-> {
+): Pick<typeof bosSubeForm, 'il' | 'ilce' | 'mahalle' | 'postaKodu' | 'adres'> {
   if (opts?.ilIlceBirlesik) {
     const birlesik = metinOku(degerler, 'ilIlce');
     const [il = '', ilce = ''] = birlesik.split('/').map((s) => s.trim());
@@ -109,11 +106,8 @@ function adresDegerleriniOku(
       il: il || metinOku(degerler, 'il'),
       ilce: ilce || metinOku(degerler, 'ilce'),
       mahalle: metinOku(degerler, 'mahalle'),
-      cadde: metinOku(degerler, 'cadde'),
-      sokak: metinOku(degerler, 'sokak'),
-      bina: metinOku(degerler, 'bina'),
-      no: metinOku(degerler, 'no'),
       postaKodu: metinOku(degerler, 'postaKodu'),
+      adres: metinOku(degerler, 'adres'),
     };
   }
 
@@ -121,11 +115,8 @@ function adresDegerleriniOku(
     il: metinOku(degerler, 'il'),
     ilce: metinOku(degerler, 'ilce'),
     mahalle: metinOku(degerler, 'mahalle'),
-    cadde: metinOku(degerler, 'cadde'),
-    sokak: metinOku(degerler, 'sokak'),
-    bina: metinOku(degerler, 'bina'),
-    no: metinOku(degerler, 'no'),
     postaKodu: metinOku(degerler, 'postaKodu'),
+    adres: metinOku(degerler, 'adres'),
   };
 }
 

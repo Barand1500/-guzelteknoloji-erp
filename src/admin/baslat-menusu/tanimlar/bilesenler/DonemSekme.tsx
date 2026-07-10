@@ -223,11 +223,8 @@ export function DonemSekme({
       <>
         <TanimDuzenleEkrani
           panel={gomuluDuzenle?.panel}
-          ustEtiket="Dönem düzenle"
-          kod={seciliKayit.donemKodu}
+          ustEtiket="Dönem Düzenle"
           baslik={seciliKayit.donemAdi}
-          olusturma={seciliKayit.olusturma}
-          guncelleme={seciliKayit.guncelleme}
           onGeri={listeyeDon}
           onKaydet={() => void kaydet()}
           kaydediliyor={kaydediliyor}
