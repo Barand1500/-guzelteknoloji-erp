@@ -16,19 +16,22 @@ function kolonImzasiOlustur(kolonlar: KolonTanimi<unknown>[]): string {
   return kolonlar.map((k) => k.id).join('|');
 }
 
+import { siteVarsayilanAyarlarOku } from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
+
 function varsayilanAyar<TRow>(
   kolonlar: KolonTanimi<TRow>[],
   gizliKolonlar: string[] = [],
   kolonGenislikSurumu?: number
 ): DataGridAyar {
+  const site = siteVarsayilanAyarlarOku();
   const kolonRef = kolonlar as KolonTanimi<unknown>[];
   return {
     kolonSirasi: kolonlar.map((k) => k.id),
     gizliKolonlar: gizliKolonlar.filter((id) => kolonlar.some((k) => k.id === id)),
     sabitlenmisKolonlar: [],
     kolonGenislikleri: Object.fromEntries(kolonlar.map((k) => [k.id, k.genislik ?? 120])),
-    sayfaBoyutu: 10,
-    cizgiModu: 'tam',
+    sayfaBoyutu: site.dataGridSayfaBoyutu,
+    cizgiModu: site.dataGridCizgiModu,
     kolonGenislikSurumu,
     kolonImzasi: kolonImzasiOlustur(kolonRef),
   };

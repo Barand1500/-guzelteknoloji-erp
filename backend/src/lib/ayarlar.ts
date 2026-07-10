@@ -17,6 +17,7 @@ export const AYAR_ANAHTARLARI = {
   guvenlik: 'guvenlik',
   script: 'script',
   sagTikPaneli: 'sag_tik_paneli',
+  varsayilanAyarlar: 'varsayilan_ayarlar',
 } as const;
 
 type AyarAnahtar = (typeof AYAR_ANAHTARLARI)[keyof typeof AYAR_ANAHTARLARI];
@@ -59,6 +60,7 @@ export async function tumAyarlarOku(firmaId = PANEL_FIRMA_ID) {
     guvenlik,
     script,
     sagTikPaneli,
+    varsayilanAyarlar,
   ] = await Promise.all([
     ayarOku(firmaId, AYAR_ANAHTARLARI.siteAktif, true),
     ayarOku(firmaId, AYAR_ANAHTARLARI.domain, ''),
@@ -99,6 +101,7 @@ export async function tumAyarlarOku(firmaId = PANEL_FIRMA_ID) {
       footerScript: '',
     }),
     ayarOku(firmaId, AYAR_ANAHTARLARI.sagTikPaneli, { aktif: true, ogeler: [], modulIdler: [] }),
+    ayarOku(firmaId, AYAR_ANAHTARLARI.varsayilanAyarlar, null),
   ]);
 
   return {
@@ -115,6 +118,7 @@ export async function tumAyarlarOku(firmaId = PANEL_FIRMA_ID) {
     guvenlik,
     script,
     sagTikPaneli,
+    varsayilanAyarlar,
   };
 }
 
@@ -147,6 +151,7 @@ export async function ayarlariFormdanKaydet(form: Record<string, unknown>, firma
     }),
     ayarKaydet(firmaId, AYAR_ANAHTARLARI.script, form.scriptAyarlari ?? {}),
     ayarKaydet(firmaId, AYAR_ANAHTARLARI.sagTikPaneli, form.sagTikPaneli ?? {}),
+    ayarKaydet(firmaId, AYAR_ANAHTARLARI.varsayilanAyarlar, form.varsayilanAyarlar ?? {}),
   ]);
 }
 

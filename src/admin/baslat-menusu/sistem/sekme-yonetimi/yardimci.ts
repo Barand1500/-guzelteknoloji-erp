@@ -41,6 +41,7 @@ export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
 };
 
 const STORAGE_KEY = 'ap-sekme-panel-ayarlari';
+const SITE_VARSAYILAN_ANAHTAR = 'erp-site-varsayilan-ayarlar';
 
 /** Birleştirilmiş sekmeler için Chrome tarzı yan yana split (en fazla 2 panel). */
 export function splitSekmeleriHesapla<T extends { id: string; grupId?: string }>(
@@ -64,7 +65,15 @@ export function splitSekmeleriHesapla<T extends { id: string; grupId?: string }>
 export function sekmeAyarlariOku(): SekmePanelAyarlari {
   try {
     const ham = localStorage.getItem(STORAGE_KEY);
-    if (!ham) return { ...VARSAYILAN_SEKME_AYARLARI };
+    if (!ham) {
+      try {
+        const siteHam = localStorage.getItem(SITE_VARSAYILAN_ANAHTAR);
+        const site = siteHam ? (JSON.parse(siteHam) as { sekme?: Partial<SekmePanelAyarlari> }) : null;
+        return { ...VARSAYILAN_SEKME_AYARLARI, ...(site?.sekme ?? {}) };
+      } catch {
+        return { ...VARSAYILAN_SEKME_AYARLARI };
+      }
+    }
     const parsed = JSON.parse(ham) as Partial<SekmePanelAyarlari> & { grupDavranisi?: string };
     const { grupDavranisi: _eski, ...gerisi } = parsed;
     return { ...VARSAYILAN_SEKME_AYARLARI, ...gerisi };

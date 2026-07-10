@@ -29,6 +29,7 @@ import {
 import { kenarlikAyariNormalize, kenarlikRenkYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/kenarlikRenkYardimci';
 import { SagTikPaneliYonetimSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SagTikPaneliYonetimSekme';
 import { sagTikAyarlariYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/yardimci-sag-tik';
+import { varsayilanAyarlarYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
 import { siteVerisiGuncellendiYayinla } from '@/araclar/siteVerisiOlaylari';
 import './ayarlar.css';
 
@@ -110,6 +111,7 @@ export function SistemAyarlariSayfasi() {
       cevirileriAyarla(yeniForm.panelCeviriler);
       siteVerisiGuncellendiYayinla();
       sagTikAyarlariYayinla();
+      varsayilanAyarlarYayinla(yeniForm.varsayilanAyarlar);
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
@@ -135,6 +137,7 @@ export function SistemAyarlariSayfasi() {
         cevirileriAyarla(yeniForm.panelCeviriler);
         siteVerisiGuncellendiYayinla();
         sagTikAyarlariYayinla();
+        varsayilanAyarlarYayinla(yeniForm.varsayilanAyarlar);
       } catch (err) {
         setForm(onceki);
         hataBildir(err instanceof Error ? err.message : 'Site durumu güncellenemedi');
@@ -162,6 +165,7 @@ export function SistemAyarlariSayfasi() {
         );
         dilAyarla(yuklenen.panelDili);
         cevirileriAyarla(yuklenen.panelCeviriler);
+        varsayilanAyarlarYayinla(yuklenen.varsayilanAyarlar);
       } catch (err) {
         hataBildir(err instanceof Error ? err.message : 'Ayarlar alınamadı');
       } finally {

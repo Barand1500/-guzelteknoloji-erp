@@ -259,3 +259,304 @@
     transition: none !important;
   }
 }
+
+/* Varsayılan ayarlar — akordiyon */
+.ap-var-ayar-blok {
+  margin-top: 0.25rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-surface-2) 28%, var(--ap-surface));
+  overflow: hidden;
+}
+
+.ap-var-ayar-blok-baslik {
+  padding: 0.8rem 0.95rem 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.ap-var-ayar-blok-baslik-metin {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+  letter-spacing: -0.01em;
+}
+
+.ap-var-ayar-blok-aciklama {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ap-muted);
+}
+
+.ap-var-ayar-akordiyon-liste {
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-var-ayar-akordiyon {
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 65%, transparent);
+}
+
+.ap-var-ayar-akordiyon:first-child {
+  border-top: none;
+}
+
+.ap-var-ayar-akordiyon-tus {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.72rem 0.95rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.ap-var-ayar-akordiyon-tus:hover {
+  background: color-mix(in srgb, var(--ap-hover) 55%, transparent);
+}
+
+.ap-var-ayar-akordiyon--acik .ap-var-ayar-akordiyon-tus {
+  background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
+}
+
+.ap-var-ayar-akordiyon-sol {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.ap-var-ayar-akordiyon-ikon {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  font-size: 0.9rem;
+}
+
+.ap-var-ayar-akordiyon-metin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ap-var-ayar-akordiyon-baslik {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.ap-var-ayar-akordiyon-ozet {
+  font-size: 0.6875rem;
+  color: var(--ap-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-var-ayar-akordiyon-ok {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--ap-muted);
+  transition: transform 0.2s ease;
+}
+
+.ap-var-ayar-akordiyon-ok--acik {
+  transform: rotate(90deg);
+  color: var(--ap-accent);
+}
+
+.ap-var-ayar-akordiyon-icerik {
+  padding: 0.15rem 0.95rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  animation: ap-var-ayar-ac 0.22s ease both;
+}
+
+@keyframes ap-var-ayar-ac {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ap-var-ayar-satir {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.ap-var-ayar-etiket {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.ap-var-ayar-aciklama {
+  margin: 0.12rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--ap-muted);
+}
+
+.ap-var-ayar-secimler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ap-var-ayar-secim {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
+  padding: 0.42rem 0.65rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.ap-var-ayar-secim:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  color: var(--ap-heading);
+}
+
+.ap-var-ayar-secim--aktif {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  color: color-mix(in srgb, var(--ap-accent) 78%, var(--ap-heading));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 22%, transparent) inset;
+}
+
+.ap-var-ayar-secim-alt {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--ap-muted);
+}
+
+.ap-var-ayar-kayit-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+}
+
+.ap-var-ayar-kayit-select {
+  min-width: 3.25rem;
+  padding: 0.38rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-input-bg, var(--ap-surface));
+  color: var(--ap-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ap-var-ayar-kayit-etiket {
+  font-size: 0.75rem;
+  color: var(--ap-muted);
+}
+
+.ap-var-ayar-cizgi-grup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  align-self: flex-start;
+}
+
+.ap-var-ayar-cizgi-tus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--ap-muted);
+  cursor: pointer;
+}
+
+.ap-var-ayar-cizgi-tus:hover {
+  background: var(--ap-hover);
+  color: var(--ap-heading);
+}
+
+.ap-var-ayar-cizgi-tus--aktif {
+  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
+  color: var(--ap-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 28%, transparent) inset;
+}
+
+.ap-var-ayar-toggle-grup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ap-var-ayar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 88%, transparent);
+  cursor: pointer;
+}
+
+@media (min-width: 720px) {
+  .ap-var-ayar-satir {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ap-var-ayar-satir-baslik {
+    flex: 1 1 42%;
+    max-width: 16rem;
+  }
+
+  .ap-var-ayar-secimler,
+  .ap-var-ayar-kayit-sec,
+  .ap-var-ayar-cizgi-grup {
+    flex: 0 0 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-var-ayar-akordiyon-icerik {
+    animation: none;
+  }
+}

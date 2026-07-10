@@ -3,6 +3,13 @@ import { VARSAYILAN_SAG_TIK_PANEL } from '@/admin/ortak/tipler/sagTikPaneli';
 import { sagTikPanelNormalize } from '@/admin/baslat-menusu/sistem/ayarlar/yardimci-sag-tik';
 import { kenarlikAyariNormalize, type KenarlikRenkAyari } from '@/admin/baslat-menusu/sistem/ayarlar/kenarlikRenkYardimci';
 import { VARSAYILAN_YEDEKLEME_FORMATI, yedeklemeFormatiNormalize, type YedeklemeFormati } from '@/types/yedekleme';
+import {
+  VARSAYILAN_AYARLAR,
+  varsayilanAyarlarNormalize,
+  type VarsayilanAyarlar,
+} from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
+
+export type { VarsayilanAyarlar };
 
 export type Sayfa404MenuTipi = 'ust' | 'footer' | 'her-ikisi' | 'yok';
 
@@ -73,6 +80,7 @@ export interface SistemAyarlariForm {
   robotsEngelle: boolean;
   sagTikPaneli: SagTikPanelAyarlari;
   scriptAyarlari: ScriptAyarlari;
+  varsayilanAyarlar: VarsayilanAyarlar;
 }
 
 export type SistemSekmeId = 'genel' | 'bakim' | 'sayfa404' | 'dil' | 'guvenlik' | 'script' | 'sagTik' | 'eklentiler';
@@ -156,6 +164,7 @@ export const bosSistemForm: SistemAyarlariForm = {
   robotsEngelle: false,
   sagTikPaneli: { ...VARSAYILAN_SAG_TIK_PANEL, ogeler: [...VARSAYILAN_SAG_TIK_PANEL.ogeler] },
   scriptAyarlari: { ...varsayilanScriptAyarlari },
+  varsayilanAyarlar: { ...VARSAYILAN_AYARLAR, sekme: { ...VARSAYILAN_AYARLAR.sekme } },
 };
 
 export function sistemdenForm(
@@ -184,5 +193,6 @@ export function sistemdenForm(
     robotsEngelle: sistem.robotsEngelle ?? false,
     sagTikPaneli: sagTikPanelNormalize(sistem.sagTikPaneli),
     scriptAyarlari: { ...varsayilanScriptAyarlari, ...sistem.scriptAyarlari },
+    varsayilanAyarlar: varsayilanAyarlarNormalize(sistem.varsayilanAyarlar),
   };
 }

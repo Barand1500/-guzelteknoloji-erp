@@ -40,6 +40,7 @@ import type {
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import '@/admin/ortak/datagrid/datagrid.css';
+import { DatagridSagTikMenu, type SatirEkleKonumu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -158,7 +159,9 @@ function GezginSekmeler({
 export function TanimKayitlarOzeti() {
   const { firmaBagliPasifMi, subeBagliPasifMi } = useTanimFirmaDurumu();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const sayfaRef = useRef<HTMLDivElement>(null);
   const gridApiRef = useRef<DataGridApi | null>(null);
+  const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [firmalar, setFirmalar] = useState<AdminFirma[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
@@ -264,6 +267,7 @@ export function TanimKayitlarOzeti() {
 
   useEffect(() => {
     gridApiRef.current?.hizliGirisKapat();
+    setSeciliSatirSayisi(0);
   }, [konum, aktifKayitTipi]);
 
   const silmeAc = useCallback((hedef: SilmeHedef) => {
@@ -349,6 +353,71 @@ export function TanimKayitlarOzeti() {
 
   const satirDuzenleAc = useCallback((id: string) => {
     gridApiRef.current?.satirDuzenleAc(id);
+  }, []);
+
+  const sagTikSatirSil = useCallback(
+    (satir: { id: string }) => {
+      switch (aktifKayitTipi) {
+        case 'firma': {
+          const kayit = firmalar.find((f) => f.id === satir.id);
+          if (kayit) silmeAc({ tip: 'firma', kayit });
+          break;
+        }
+        case 'sube': {
+          const kayit = subeler.find((s) => s.id === satir.id);
+          if (kayit) silmeAc({ tip: 'sube', kayit });
+          break;
+        }
+        case 'depo': {
+          const kayit = depolar.find((d) => d.id === satir.id);
+          if (kayit) silmeAc({ tip: 'depo', kayit });
+          break;
+        }
+        case 'kasa': {
+          const kayit = kasalar.find((k) => k.id === satir.id);
+          if (kayit) silmeAc({ tip: 'kasa', kayit });
+          break;
+        }
+        case 'donem': {
+          const kayit = donemler.find((d) => d.id === satir.id);
+          if (kayit) silmeAc({ tip: 'donem', kayit });
+          break;
+        }
+      }
+    },
+    [aktifKayitTipi, firmalar, subeler, depolar, kasalar, donemler, silmeAc]
+  );
+
+  const sagTikSatirSilMetni = useCallback(
+    (satir: { id: string }) => {
+      switch (aktifKayitTipi) {
+        case 'firma': {
+          const kayit = firmalar.find((f) => f.id === satir.id);
+          return kayit ? tanimHedefMetni('firma', kayit) : `Kayıt #${satir.id}`;
+        }
+        case 'sube': {
+          const kayit = subeler.find((s) => s.id === satir.id);
+          return kayit ? tanimHedefMetni('sube', kayit) : `Kayıt #${satir.id}`;
+        }
+        case 'depo': {
+          const kayit = depolar.find((d) => d.id === satir.id);
+          return kayit ? tanimHedefMetni('depo', kayit) : `Kayıt #${satir.id}`;
+        }
+        case 'kasa': {
+          const kayit = kasalar.find((k) => k.id === satir.id);
+          return kayit ? tanimHedefMetni('kasa', kayit) : `Kayıt #${satir.id}`;
+        }
+        case 'donem': {
+          const kayit = donemler.find((d) => d.id === satir.id);
+          return kayit ? tanimHedefMetni('donem', kayit) : `Kayıt #${satir.id}`;
+        }
+      }
+    },
+    [aktifKayitTipi, firmalar, subeler, depolar, kasalar, donemler]
+  );
+
+  const sagTikSatirEkle = useCallback((_konum: SatirEkleKonumu, _satirId: string) => {
+    gridApiRef.current?.hizliGirisOdakla();
   }, []);
 
   const firmaKolonlari = useMemo((): KolonTanimi<AdminFirma>[] => {
@@ -608,6 +677,39 @@ export function TanimKayitlarOzeti() {
     return ogeler;
   }, [seciliFirma, seciliSube, konum.seviye]);
 
+  const aktifGrid = useMemo(() => {
+    if (konum.seviye === 'firmalar') {
+      return { kolonlar: firmaKolonlari, satirlar: firmalar };
+    }
+    if (konum.seviye === 'firma' && seciliFirma) {
+      if (konum.sekme === 'subeler') {
+        return { kolonlar: subeKolonlari, satirlar: subeler.filter((s) => s.firmaId === seciliFirma.id) };
+      }
+      return { kolonlar: donemKolonlari, satirlar: donemler.filter((d) => d.firmaId === seciliFirma.id) };
+    }
+    if (konum.seviye === 'sube' && seciliSube) {
+      if (konum.sekme === 'depolar') {
+        return { kolonlar: depoKolonlari, satirlar: depolar.filter((d) => d.subeId === seciliSube.id) };
+      }
+      return { kolonlar: kasaKolonlari, satirlar: kasalar.filter((k) => k.subeId === seciliSube.id) };
+    }
+    return { kolonlar: firmaKolonlari, satirlar: firmalar };
+  }, [
+    konum,
+    seciliFirma,
+    seciliSube,
+    firmaKolonlari,
+    subeKolonlari,
+    donemKolonlari,
+    depoKolonlari,
+    kasaKolonlari,
+    firmalar,
+    subeler,
+    depolar,
+    kasalar,
+    donemler,
+  ]);
+
   const gridOrtak = useMemo(
     () => ({
       tabloAltBaslik: 'Görünür sütunlar ve sırası',
@@ -619,6 +721,7 @@ export function TanimKayitlarOzeti() {
       hizliGirisVarsayilanAlan: true,
       hizliGirisKolonlari: tanimHizliGirisKolonlari(aktifKayitTipi),
       onHizliGiris: hizliGirisKaydet,
+      onSecimDegistir: (ids: string[]) => setSeciliSatirSayisi(ids.length),
     }),
     [yukleniyor, satirDuzenlePaneli, aktifKayitTipi, hizliGirisKaydet]
   );
@@ -792,7 +895,23 @@ export function TanimKayitlarOzeti() {
     !!aktifBaglanti?.bagliVar;
 
   return (
-    <div className="dg-demo-sayfa">
+    <div ref={sayfaRef} className="dg-demo-sayfa dg-demo-sag-tik-alan">
+      <DatagridSagTikMenu
+        konteynerRef={sayfaRef}
+        kolonlar={aktifGrid.kolonlar as unknown as KolonTanimi<{ id: string }>[]}
+        satirlar={aktifGrid.satirlar}
+        seciliSatirSayisi={seciliSatirSayisi}
+        gridApiRef={gridApiRef}
+        menuEtiketi="Tanım kayıtları menüsü"
+        satirCogaltGoster={false}
+        seciliSilGoster={false}
+        dahiliSilmeOnay={false}
+        onSatirEkleBaslat={sagTikSatirEkle}
+        onSatirSil={sagTikSatirSil}
+        satirSilMetniAl={sagTikSatirSilMetni}
+        onBilgi={basariBildir}
+      />
+
       <div className="dg-tanimlar-kayit-ust">
         <nav className="ap-tanimlar-gezgin-yol" aria-label="Kayıt konumu">
           <ol className="ap-tanimlar-gezgin-yol-liste">

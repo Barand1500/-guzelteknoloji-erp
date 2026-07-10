@@ -31,7 +31,8 @@ import {
 } from './urunAramaYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
-import { DatagridSagTikMenu, type SatirEkleKonumu } from './DatagridSagTikMenu';
+import { DatagridSagTikMenu, type SatirEkleKonumu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
+import { hucrePanoyaMetni } from './sagTikYardimci';
 
 
 
@@ -678,11 +679,45 @@ export function DatagridDemoSayfasi() {
         konteynerRef={sayfaRef}
         kolonlar={kolonlar}
         satirlar={gorunurSatirlar}
-        kdvDahil={kdvDahil}
         seciliSatirSayisi={seciliSatirSayisi}
         gridApiRef={gridApiRef}
-        onSatirlarDegistir={setSatirlar}
+        menuEtiketi="Sipariş tablosu menüsü"
+        hucrePanoyaMetniAl={hucrePanoyaMetni}
+        satirSilMetniAl={(satir) => {
+          const ad = satir.urun.ad?.trim() ?? '';
+          const kod = satir.urun.sku?.trim() ?? '';
+          return ad || kod || `Satır #${satir.id}`;
+        }}
         onSatirEkleBaslat={sagTikSatirEkleBaslat}
+        onSatirCogalt={(satir) => {
+          const simdi = new Date().toISOString();
+          const kopya = satirHesapla(
+            {
+              ...satir,
+              id: `y-${Date.now()}`,
+              kayitTarihi: simdi,
+              guncellemeTarihi: simdi,
+            },
+            kdvDahil
+          );
+          setSatirlar((onceki) => {
+            const idx = onceki.findIndex((s) => s.id === satir.id);
+            if (idx < 0) return [kopya, ...onceki];
+            const yeni = [...onceki];
+            yeni.splice(idx + 1, 0, kopya);
+            return yeni;
+          });
+          logMesajiAyarla('Satır kopyalandı');
+        }}
+        onSatirSil={(satir) => {
+          setSatirlar((onceki) => onceki.filter((s) => s.id !== satir.id));
+        }}
+        onSeciliSil={(ids) => {
+          const idSet = new Set(ids);
+          setSatirlar((onceki) => onceki.filter((s) => !idSet.has(s.id)));
+          seciliSatirIdleriRef.current = [];
+          setSeciliSatirSayisi(0);
+        }}
         onBilgi={logMesajiAyarla}
       />
 

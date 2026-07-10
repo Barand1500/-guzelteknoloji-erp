@@ -108,6 +108,7 @@ export async function sistemAyarlariYanitOlustur(surum: string) {
   const guvenlik = ayarlar.guvenlik as { basliklari?: boolean; robotsEngelle?: boolean };
   const scriptAyarlari = ayarlar.script as Record<string, string>;
   const sagTikPaneli = ayarlar.sagTikPaneli as Record<string, unknown>;
+  const varsayilanAyarlar = ayarlar.varsayilanAyarlar as Record<string, unknown> | null;
 
   return {
     site: {
@@ -143,6 +144,7 @@ export async function sistemAyarlariYanitOlustur(surum: string) {
       guvenlikBasliklari: guvenlik.basliklari !== false,
       robotsEngelle: Boolean(guvenlik.robotsEngelle),
       sagTikPaneli,
+      varsayilanAyarlar: varsayilanAyarlar ?? undefined,
       scriptAyarlari: {
         googleAnalytics: scriptAyarlari.googleAnalytics ?? '',
         headerScript: scriptAyarlari.headerScript ?? '',
