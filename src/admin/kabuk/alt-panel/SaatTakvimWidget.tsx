@@ -9,6 +9,7 @@ import {
   zamanEtiketi,
   type TakvimNotu,
 } from './takvimNotlari';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 const GUNLER = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
 const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
@@ -139,7 +140,7 @@ export function SaatTakvimWidget() {
         type="button"
         onClick={panelAcKapat}
         className={`ap-saat-btn${acik ? ' ap-saat-btn--aktif' : ''}`}
-        title="Tarih ve saat"
+        title={tooltipMetni('Tarih ve saat')}
         aria-expanded={acik}
       >
         <span className="ap-saat-saat">{saat}</span>
@@ -188,7 +189,11 @@ export function SaatTakvimWidget() {
                     .filter(Boolean)
                     .join(' ')}
                   onClick={() => gunTikla(gun)}
-                  title={notlu ? 'Not var — okumak için tıkla, düzenlemek için çift tıkla' : 'Not eklemek için çift tıkla'}
+                  title={tooltipMetni(
+                    notlu
+                      ? 'Not var — okumak için tıkla, düzenlemek için çift tıkla'
+                      : 'Not eklemek için çift tıkla'
+                  )}
                 >
                   {gun}
                 </button>

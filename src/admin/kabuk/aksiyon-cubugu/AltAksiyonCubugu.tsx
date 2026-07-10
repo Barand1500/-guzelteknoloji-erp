@@ -13,6 +13,7 @@ import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { useAdminTema } from '@/baglamlar/AdminTemaContext';
 import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
 import { sekmeAyarlariOku, type SekmePanelAyarlari } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 import {
   AksiyonCubuguPanelProvider,
   AksiyonCubuguUstCizgiSlot,
@@ -101,8 +102,8 @@ function AltAksiyonCubuguGovde({
           type="button"
           onClick={temaDegistir}
           className="ap-tray-ikon ap-tema-degistir-btn"
-          title={koyuMu ? 'Gündüz moduna geç' : 'Gece moduna geç'}
-          aria-label={koyuMu ? 'Gündüz moduna geç' : 'Gece moduna geç'}
+          title={tooltipMetni(koyuMu ? 'Gündüz moduna geç' : 'Gece moduna geç')}
+          aria-label={tooltipMetni(koyuMu ? 'Gündüz moduna geç' : 'Gece moduna geç')}
         >
           {koyuMu ? (
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
@@ -135,7 +136,7 @@ function AltAksiyonCubuguGovde({
           type="button"
           onClick={onRehberAc}
           className="ap-tray-ikon ap-rehber-cubuk-btn"
-          title={`${rehber.baslik} — Rehber (${rehberKisayolu})`}
+          title={tooltipMetni(`${rehber.baslik} — Rehber (${rehberKisayolu})`)}
           aria-label="Sayfa rehberini aç"
         >
           <span className="ap-rehber-cubuk-soru" aria-hidden>?</span>

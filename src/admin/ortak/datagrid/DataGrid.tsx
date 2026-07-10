@@ -18,7 +18,7 @@ import {
   ifadeHesapla,
 } from './formulaYardimci';
 import { FormulaRehberiIcerik } from './FormulaRehberi';
-import { bosGosterim, csvIndir, paraFormatla, tarihFormatla, yuzdeFormatla } from './formatYardimci';
+import { bosGosterim, csvIndir, dgTooltipMetni, paraFormatla, tarihFormatla, yuzdeFormatla } from './formatYardimci';
 import { DgIkon } from './DgIkonlar';
 import { EtiketHucre } from './EtiketHucre';
 import './datagrid.css';
@@ -760,7 +760,7 @@ export function DataGrid<TRow extends { id: string }>({
                     <button
                       type="button"
                       className="dg-islem-tus"
-                      title="Satırı düzenle"
+                      title={dgTooltipMetni('Satırı düzenle')}
                       aria-label="Satırı düzenle"
                       onClick={() => setSatirPanel(satir)}
                     >
@@ -770,7 +770,7 @@ export function DataGrid<TRow extends { id: string }>({
                       <button
                         type="button"
                         className="dg-islem-tus dg-islem-tus--tehlike"
-                        title="Satırı sil"
+                        title={dgTooltipMetni('Satırı sil')}
                         aria-label="Satırı sil"
                         onClick={() => satirSil(satir.id)}
                       >
@@ -837,7 +837,7 @@ export function DataGrid<TRow extends { id: string }>({
                 }}
               >
                 {kolon.duzenlenebilir && hover && !duzenliyor && (
-                  <span className="dg-tooltip">Düzenlemek için çift tıklayın</span>
+                  <span className="dg-tooltip">{dgTooltipMetni('Düzenlemek için çift tıklayın')}</span>
                 )}
                 {duzenliyor ? (
                   kolon.secenekler?.length ? (
@@ -872,7 +872,7 @@ export function DataGrid<TRow extends { id: string }>({
                       value={duzenleme.hamDeger}
                       title={(() => {
                         const ft = kolonFormulaTipi(kolon);
-                        return ft ? formulaIpucuMetni(ft) : undefined;
+                        return ft ? dgTooltipMetni(formulaIpucuMetni(ft)) : undefined;
                       })()}
                       placeholder={(() => {
                         const ft = kolonFormulaTipi(kolon);
@@ -949,7 +949,7 @@ export function DataGrid<TRow extends { id: string }>({
           type="text"
           className={`dg-hizli-giris-girdi${kucuk ? ' dg-hizli-giris-girdi--kucuk' : ''}${ekSinif ? ` ${ekSinif}` : ''}`}
           placeholder={gosterilenPlaceholder}
-          title={ipucu}
+          title={ipucu ? dgTooltipMetni(ipucu) : undefined}
           value={deger}
           onChange={(e) => girdiDegistir(kolonId, e.target.value)}
           onKeyDown={(e) => {
@@ -984,7 +984,7 @@ export function DataGrid<TRow extends { id: string }>({
       return (
         <select
           className="dg-hizli-giris-girdi dg-hizli-giris-secim"
-          title={girisAyar.ipucu}
+          title={girisAyar.ipucu ? dgTooltipMetni(girisAyar.ipucu) : undefined}
           value={girdiDeger}
           onChange={(e) => girdiDegistir(kolonId, e.target.value)}
         >
@@ -1030,7 +1030,7 @@ export function DataGrid<TRow extends { id: string }>({
               type="button"
               className="dg-hizli-giris-ekle"
               onClick={hizliGirisGonder}
-              title="Satır ekle (Enter)"
+              title={dgTooltipMetni('Satır ekle (Enter)')}
               aria-label="Satır ekle"
             >
               +
@@ -1113,7 +1113,7 @@ export function DataGrid<TRow extends { id: string }>({
                 type="button"
                 className={`dg-switch${acik ? ' dg-switch--acik' : ''}`}
                 aria-pressed={acik}
-                title={acik ? 'Aktif' : 'Pasif'}
+                title={dgTooltipMetni(acik ? 'Aktif' : 'Pasif')}
                 onClick={() => girdiDegistir(kolon.id, acik ? 'false' : 'true')}
               >
                 <span className="dg-switch-thumb" />
@@ -1185,7 +1185,7 @@ export function DataGrid<TRow extends { id: string }>({
                   <button
                     type="button"
                     className={`dg-sutun-ok${sabitli ? ' dg-sutun-ok--aktif' : ''}`}
-                    title={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
+                    title={dgTooltipMetni(sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle')}
                     aria-label={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
                     onClick={() => dg.sabitlenmisToggle(id)}
                   >
@@ -1196,7 +1196,7 @@ export function DataGrid<TRow extends { id: string }>({
                       type="button"
                       className="dg-sutun-ok"
                       disabled={idx === 0 || kolon.sabitSag}
-                      title="Sütunu yukarı taşı"
+                      title={dgTooltipMetni('Sütunu yukarı taşı')}
                       aria-label="Sütunu yukarı taşı"
                       onClick={() => dg.kolonTasi(id, 'yukari')}
                     >
@@ -1206,7 +1206,7 @@ export function DataGrid<TRow extends { id: string }>({
                       type="button"
                       className="dg-sutun-ok"
                       disabled={idx === arr.length - 1 || kolon.sabitSag}
-                      title="Sütunu aşağı taşı"
+                      title={dgTooltipMetni('Sütunu aşağı taşı')}
                       aria-label="Sütunu aşağı taşı"
                       onClick={() => dg.kolonTasi(id, 'asagi')}
                     >
@@ -1285,7 +1285,7 @@ export function DataGrid<TRow extends { id: string }>({
                     key={mod}
                     type="button"
                     className={`dg-tus dg-tus-ikon${dg.ayar.cizgiModu === mod ? ' dg-tus-aktif' : ''}`}
-                    title={title}
+                    title={dgTooltipMetni(title)}
                     aria-pressed={dg.ayar.cizgiModu === mod}
                     onClick={() => dg.cizgiModuAyarla(mod)}
                   >
@@ -1305,7 +1305,9 @@ export function DataGrid<TRow extends { id: string }>({
                 className={`dg-switch${kdvDahil ? ' dg-switch--acik' : ''}`}
                 onClick={() => onKdvDahilDegistir(!kdvDahil)}
                 aria-pressed={kdvDahil}
-                title={kdvDahil ? 'Fiyatlar KDV dahil hesaplanıyor' : 'Fiyatlar KDV hariç hesaplanıyor'}
+                title={dgTooltipMetni(
+                  kdvDahil ? 'Fiyatlar KDV dahil hesaplanıyor' : 'Fiyatlar KDV hariç hesaplanıyor'
+                )}
               >
                 <span className="dg-switch-thumb" />
               </button>
@@ -1317,7 +1319,7 @@ export function DataGrid<TRow extends { id: string }>({
                 ref={formulTusRef}
                 type="button"
                 className={`dg-tus dg-tus-ikon dg-tus-formul${formulMenuAcik ? ' dg-tus-aktif' : ''}`}
-                title="Sayı Formülleri"
+                title={dgTooltipMetni('Sayı Formülleri')}
                 aria-pressed={formulMenuAcik}
                 onClick={() => {
                   if (formulMenuAcik) {
@@ -1338,7 +1340,7 @@ export function DataGrid<TRow extends { id: string }>({
                 ref={sutunTusRef}
                 type="button"
                 className={`dg-tus dg-tus-ikon${dg.sutunMenuAcik ? ' dg-tus-aktif' : ''}`}
-                title="Sütun görünürlüğü"
+                title={dgTooltipMetni('Sütun görünürlüğü')}
                 onClick={() => {
                   if (!dg.sutunMenuAcik) sutunMenuKonumGuncelle();
                   setFormulMenuAcik(false);
@@ -1348,7 +1350,7 @@ export function DataGrid<TRow extends { id: string }>({
                 <DgIkon ad="sutun" />
               </button>
             </div>
-            <button type="button" className="dg-tus dg-tus-ikon" title="CSV indir" onClick={() => csvAktar(false)}>
+            <button type="button" className="dg-tus dg-tus-ikon" title={dgTooltipMetni('CSV indir')} onClick={() => csvAktar(false)}>
               <DgIkon ad="indir" />
             </button>
           </div>
@@ -1437,7 +1439,7 @@ export function DataGrid<TRow extends { id: string }>({
                   >
                     <div className="dg-baslik-icerik">
                       {!kolon.sabitSag && (
-                        <span className="dg-surukle-tutamac" title="Sürükle">
+                        <span className="dg-surukle-tutamac" title={dgTooltipMetni('Sürükle')}>
                           ⠿
                         </span>
                       )}
@@ -1448,14 +1450,14 @@ export function DataGrid<TRow extends { id: string }>({
                           type="button"
                           className={`dg-siralama-tus${siralamaAktif ? ' dg-siralama-tus--aktif' : ''}`}
                           onClick={() => dg.siralamaToggle(kolon.id)}
-                          title="Sırala"
+                          title={dgTooltipMetni('Sırala')}
                         >
                           {siralamaAktif ? (dg.siralama?.yon === 'asc' ? '▲' : '▼') : '↕'}
                         </button>
                       )}
                     </div>
                     {pinGoster && !kolon.sabitSag && (
-                      <span className="dg-sabit-igne" title="Sabit sütun" aria-hidden>
+                      <span className="dg-sabit-igne" title={dgTooltipMetni('Sabit sütun')} aria-hidden>
                         <DgIkon ad="igne" />
                       </span>
                     )}

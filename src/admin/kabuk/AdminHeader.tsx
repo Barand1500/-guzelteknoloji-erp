@@ -7,6 +7,7 @@ import { UstSekmeCubugu } from './sekme-cubugu/UstSekmeCubugu';
 import type { AdminModul, AdminSekme } from '@/admin/ortak/tipler/admin';
 import type { SekmeSagTikIslem } from '@/admin/kabuk/sekme-cubugu/sekmeSagTikYardimci';
 import { sekmeAyarlariOku, sekmeTabCssDegiskenleri } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 interface AdminHeaderProps {
   sekmeler: AdminSekme[];
@@ -114,7 +115,7 @@ export function AdminHeader({
             type="button"
             onClick={() => setProfilAcik(true)}
             className={kareYerlesim ? 'ap-profil-btn ap-profil-btn--kare' : 'ap-profil-btn'}
-            title="Profil ayarları"
+            title={tooltipMetni('Profil ayarları')}
           >
             <span className="ap-profil-avatar">{basHarf}</span>
             <span className={`ap-profil-ad ${kareYerlesim ? '' : 'hidden sm:block'}`}>{kullanici?.ad ?? 'Profil'}</span>

@@ -3,6 +3,7 @@ import { AdminRehberModal } from './AdminRehberModal';
 import { modulRehberBul } from '@/admin/veri/adminModulRehberleri';
 import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 interface ModulRehberSistemiProps {
   modulId: string;
@@ -43,7 +44,7 @@ export function ModulRehberSistemi({ modulId, zorlaAcik, onAcikDegisti, gizliBut
           type="button"
           onClick={ac}
           className="ap-rehber-float"
-          title={`Rehber (${kisayolAyarlariOku().rehber})`}
+          title={tooltipMetni(`Rehber (${kisayolAyarlariOku().rehber})`)}
           aria-label="Sayfa rehberini aç"
         >
           ?

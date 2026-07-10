@@ -11,6 +11,7 @@ import {
   sayiGoster,
 } from './hesapMakinesiYardimci';
 import { KlasikHesapMakinesi } from './KlasikHesapMakinesi';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 type HesapModu = 'hizli' | 'normal';
 
@@ -63,7 +64,7 @@ function KopyalaBtn({ deger, etiket }: { deger: string; etiket: string }) {
       type="button"
       className={`ap-hesap-kopyala${basarili ? ' ap-hesap-kopyala--ok' : ''}`}
       onClick={() => void kopyala()}
-      title={`${etiket} kopyala`}
+      title={tooltipMetni(`${etiket} kopyala`)}
       aria-label={`${etiket} kopyala`}
     >
       {basarili ? (
@@ -323,7 +324,7 @@ export function HesapMakinesiPaneli({ acik, onKapat }: HesapMakinesiPaneliProps)
               if (hizliAramaAcik) setHizliArama('');
             }}
             aria-label="Hızlı işlemlerde ara"
-            title="Hızlı işlemlerde ara"
+            title={tooltipMetni('Hızlı işlemlerde ara')}
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <circle cx="11" cy="11" r="7" />

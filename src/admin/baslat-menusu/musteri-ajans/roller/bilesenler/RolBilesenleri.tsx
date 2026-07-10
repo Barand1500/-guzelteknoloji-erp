@@ -1,4 +1,5 @@
 import { korunmusRolMu } from '@/admin/ortak/panelRolYardimci';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 import { YETKI_ETIKETLERI, type RolTanimi, type YetkiKodu, type YetkiTanimi } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
 
 const SISTEM_ROL_KODLARI = new Set([
@@ -60,7 +61,7 @@ export function RolMatrisi({ roller, yetkiler, duzenlenebilir, onYetkiToggle }: 
                               ? 'bg-green-500/25 text-green-400 hover:bg-green-500/35'
                               : 'text-slate-600 hover:bg-slate-700/80 hover:text-slate-400'
                           }`}
-                          title={varMi ? 'Yetkiyi kaldır' : 'Yetki ver'}
+                          title={tooltipMetni(varMi ? 'Yetkiyi kaldır' : 'Yetki ver')}
                           aria-pressed={varMi}
                         >
                           {varMi ? '✓' : '—'}
@@ -134,7 +135,7 @@ export function RolKartlari({ roller, seciliKod, duzenlenebilir, onSec, onDuzenl
                   onDuzenle?.(rol);
                 }}
                 className="absolute right-3 top-3 rounded p-1 text-slate-400 hover:bg-slate-700 hover:text-white"
-                title="Rolü düzenle"
+                title={tooltipMetni('Rolü düzenle')}
                 aria-label={`${rol.baslik} düzenle`}
               >
                 ✏️

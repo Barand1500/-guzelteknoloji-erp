@@ -7,6 +7,7 @@ import {
   type KenarlikRenkAyari,
 } from '@/admin/baslat-menusu/sistem/ayarlar/kenarlikRenkYardimci';
 import { OzelRenkPaneli } from './OzelRenkPaneli';
+import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 interface KenarlikRenkSeciciProps {
   kenarlikRenk: string;
@@ -31,7 +32,7 @@ function RenkNoktasi({
       role="radio"
       aria-checked={secili}
       aria-label={etiket}
-      title={etiket}
+      title={tooltipMetni(etiket)}
       onClick={onClick}
       className={`h-9 w-9 shrink-0 rounded-full transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ap-accent)] ${
         secili ? 'ring-2 ring-[var(--ap-accent)] ring-offset-2 ring-offset-[var(--ap-surface)]' : ''
@@ -80,7 +81,7 @@ export function KenarlikRenkSecici({ kenarlikRenk, kenarlikNeon, onChange }: Ken
           aria-checked={ozelMi || panelAcik}
           aria-expanded={panelAcik}
           aria-label="Özel renk"
-          title="Özel renk seç"
+          title={tooltipMetni('Özel renk seç')}
           onClick={() => setPanelAcik((v) => !v)}
           className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ap-accent)] ${
             ozelMi || panelAcik
