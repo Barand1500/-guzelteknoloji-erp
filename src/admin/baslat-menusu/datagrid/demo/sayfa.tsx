@@ -47,12 +47,13 @@ function UrunKoduAdiHucre({ satir }: { satir: SiparisSatiri }) {
   if (ikili) {
     return (
       <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
-        <span className="dg-urun-adi-ust">{ad}</span>
         <span className="dg-urun-kodu-alt">{kod}</span>
+        <span className="dg-urun-adi-ust">{ad}</span>
       </div>
     );
   }
 
+  if (kod && !ad) return <span className="dg-urun-kodu-alt">{kod}</span>;
   return <span className="dg-urun-adi-ust">{ad || kod}</span>;
 }
 
@@ -80,15 +81,15 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
       zorunlu: true,
       siralama: true,
       duzenlenebilir: true,
-      degerAl: (s) => ({ ust: s.urun.ad, alt: s.urun.sku }),
+      degerAl: (s) => ({ ust: s.urun.sku, alt: s.urun.ad }),
       degerYaz: (s, d) =>
-        hesapla(s, { urun: { ...s.urun, ad: String(d).trim() || s.urun.ad } }),
+        hesapla(s, { urun: { ...s.urun, sku: String(d).trim() || s.urun.sku } }),
       birlesikDuzenle: {
-        altDegerAl: (s) => s.urun.sku,
+        altDegerAl: (s) => s.urun.ad,
         altDegerYaz: (s, d) =>
-          hesapla(s, { urun: { ...s.urun, sku: String(d).trim() || s.urun.sku } }),
+          hesapla(s, { urun: { ...s.urun, ad: String(d).trim() || s.urun.ad } }),
       },
-      siralamaDegeri: (s) => `${s.urun.ad} ${s.urun.sku}`,
+      siralamaDegeri: (s) => `${s.urun.sku} ${s.urun.ad}`,
       goster: (s) => <UrunKoduAdiHucre satir={s} />,
     },
     {

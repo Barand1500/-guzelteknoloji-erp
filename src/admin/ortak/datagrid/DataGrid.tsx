@@ -657,7 +657,7 @@ export function DataGrid<TRow extends { id: string }>({
       const urunDegeri = satir && urunKolon ? urunKolon.degerAl(satir) : null;
       const urunMetni =
         urunDegeri && typeof urunDegeri === 'object' && 'ust' in (urunDegeri as Record<string, unknown>)
-          ? String((urunDegeri as { ust?: string }).ust ?? '').trim()
+          ? String((urunDegeri as { alt?: string; ust?: string }).alt ?? (urunDegeri as { ust?: string }).ust ?? '').trim()
           : '';
       setSilmeOnay({
         satirId,

@@ -13,7 +13,7 @@ export function hucrePanoyaMetni(
   if (kolonId === 'urunKoduAdi') {
     const ad = satir.urun.ad?.trim();
     const kod = satir.urun.sku?.trim();
-    if (ad && kod) return `${ad} (${kod})`;
+    if (ad && kod) return `${kod} (${ad})`;
     return ad || kod || '';
   }
   if (kolonId === 'birim') return birimEtiketi(satir.birim);

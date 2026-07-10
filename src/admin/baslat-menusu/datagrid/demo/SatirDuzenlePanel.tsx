@@ -113,11 +113,11 @@ export function SatirDuzenlePanel({
       <header className="dg-duzenle-baslik">
         <div>
           <p className="dg-duzenle-ust-etiket">Satır düzenle</p>
-          <h3 className="dg-duzenle-urun-ad">{satir.urun.ad}</h3>
-          <p className="dg-duzenle-urun-meta">
+          <p className="dg-duzenle-urun-meta dg-duzenle-urun-meta--ust">
             <span className="dg-duzenle-sku">{satir.urun.sku}</span>
             {satir.urun.kur ? <span className="dg-duzenle-kur">{satir.urun.kur}</span> : null}
           </p>
+          <h3 className="dg-duzenle-urun-ad">{satir.urun.ad}</h3>
         </div>
       </header>
 

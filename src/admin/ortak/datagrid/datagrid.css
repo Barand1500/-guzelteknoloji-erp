@@ -1981,6 +1981,10 @@
   margin: 0.35rem 0 0;
 }
 
+.dg-duzenle-urun-meta--ust {
+  margin: 0 0 0.35rem;
+}
+
 .dg-duzenle-sku {
   font-family: ui-monospace, monospace;
   font-size: 0.75rem;
