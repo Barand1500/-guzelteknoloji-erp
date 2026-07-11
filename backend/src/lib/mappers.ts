@@ -109,6 +109,7 @@ export async function sistemAyarlariYanitOlustur(surum: string) {
   const scriptAyarlari = ayarlar.script as Record<string, string>;
   const sagTikPaneli = ayarlar.sagTikPaneli as Record<string, unknown>;
   const varsayilanAyarlar = ayarlar.varsayilanAyarlar as Record<string, unknown> | null;
+  const panelGorunum = ayarlar.panelGorunum as { rollerTasarim?: string } | null;
 
   return {
     site: {
@@ -145,6 +146,7 @@ export async function sistemAyarlariYanitOlustur(surum: string) {
       robotsEngelle: Boolean(guvenlik.robotsEngelle),
       sagTikPaneli,
       varsayilanAyarlar: varsayilanAyarlar ?? undefined,
+      panelGorunum: panelGorunum ?? { rollerTasarim: 'yeni-renkli' },
       scriptAyarlari: {
         googleAnalytics: scriptAyarlari.googleAnalytics ?? '',
         headerScript: scriptAyarlari.headerScript ?? '',

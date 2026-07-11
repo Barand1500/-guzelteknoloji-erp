@@ -8,6 +8,13 @@ import {
   varsayilanAyarlarNormalize,
   type VarsayilanAyarlar,
 } from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
+import {
+  VARSAYILAN_PANEL_GORUNUM,
+  panelGorunumNormalize,
+  type PanelGorunumAyarlari,
+} from '@/admin/baslat-menusu/sistem/ayarlar/panelGorunum';
+
+export type { PanelGorunumAyarlari };
 
 export type { VarsayilanAyarlar };
 
@@ -81,12 +88,14 @@ export interface SistemAyarlariForm {
   sagTikPaneli: SagTikPanelAyarlari;
   scriptAyarlari: ScriptAyarlari;
   varsayilanAyarlar: VarsayilanAyarlar;
+  panelGorunum: PanelGorunumAyarlari;
 }
 
-export type SistemSekmeId = 'genel' | 'bakim' | 'sayfa404' | 'dil' | 'guvenlik' | 'script' | 'sagTik' | 'eklentiler';
+export type SistemSekmeId = 'genel' | 'gorunum' | 'bakim' | 'sayfa404' | 'dil' | 'guvenlik' | 'script' | 'sagTik' | 'eklentiler';
 
 export const SISTEM_SEKMELER: { id: SistemSekmeId; ad: string; ikon: string }[] = [
   { id: 'genel', ad: 'Genel', ikon: '⚡' },
+  { id: 'gorunum', ad: 'Görünüm', ikon: '🎨' },
   { id: 'bakim', ad: 'Bakım Modu', ikon: '🔧' },
   { id: 'sayfa404', ad: '404 Sayfası', ikon: '🚫' },
   { id: 'dil', ad: 'Panel Dili', ikon: '🌐' },
@@ -98,6 +107,7 @@ export const SISTEM_SEKMELER: { id: SistemSekmeId; ad: string; ikon: string }[] 
 
 export const SEKME_BASLIK: Record<SistemSekmeId, string> = {
   genel: 'Genel Ayarlar',
+  gorunum: 'Görünüm',
   bakim: 'Bakım Modu',
   sayfa404: '404 Sayfası',
   dil: 'Panel Dili & Çeviriler',
@@ -109,6 +119,7 @@ export const SEKME_BASLIK: Record<SistemSekmeId, string> = {
 
 export const SEKME_ALT: Record<SistemSekmeId, string> = {
   genel: 'Yayın durumu ve domain',
+  gorunum: 'Panel stili, tema ve varsayılan davranışlar',
   bakim: 'Bakım ekranı ve görsel',
   sayfa404: 'Menü ve içerik yapılandırması',
   dil: 'JSON çeviri editörü',
@@ -165,6 +176,7 @@ export const bosSistemForm: SistemAyarlariForm = {
   sagTikPaneli: { ...VARSAYILAN_SAG_TIK_PANEL, ogeler: [...VARSAYILAN_SAG_TIK_PANEL.ogeler] },
   scriptAyarlari: { ...varsayilanScriptAyarlari },
   varsayilanAyarlar: { ...VARSAYILAN_AYARLAR, sekme: { ...VARSAYILAN_AYARLAR.sekme } },
+  panelGorunum: { ...VARSAYILAN_PANEL_GORUNUM },
 };
 
 export function sistemdenForm(
@@ -194,5 +206,6 @@ export function sistemdenForm(
     sagTikPaneli: sagTikPanelNormalize(sistem.sagTikPaneli),
     scriptAyarlari: { ...varsayilanScriptAyarlari, ...sistem.scriptAyarlari },
     varsayilanAyarlar: varsayilanAyarlarNormalize(sistem.varsayilanAyarlar),
+    panelGorunum: panelGorunumNormalize(sistem.panelGorunum),
   };
 }

@@ -31,6 +31,8 @@ import { kenarlikAyariNormalize, kenarlikRenkYayinla } from '@/admin/baslat-menu
 import { SagTikPaneliYonetimSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SagTikPaneliYonetimSekme';
 import { sagTikAyarlariYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/yardimci-sag-tik';
 import { varsayilanAyarlarYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
+import { panelGorunumYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/panelGorunum';
+import { SistemGorunumSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemGorunumSekme';
 import { siteVerisiGuncellendiYayinla } from '@/araclar/siteVerisiOlaylari';
 import './ayarlar.css';
 
@@ -61,6 +63,8 @@ function SekmeIcerik({
           siteAktifIslemde={siteAktifIslemde}
         />
       );
+    case 'gorunum':
+      return <SistemGorunumSekme form={form} onChange={onChange} />;
     case 'bakim':
       return <SistemBakimSekme form={form} onChange={onChange} siteAdi={siteAdi} />;
     case 'sayfa404':
@@ -114,6 +118,7 @@ export function SistemAyarlariSayfasi() {
       siteVerisiGuncellendiYayinla();
       sagTikAyarlariYayinla();
       varsayilanAyarlarYayinla(yeniForm.varsayilanAyarlar);
+      panelGorunumYayinla(yeniForm.panelGorunum);
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
@@ -140,6 +145,7 @@ export function SistemAyarlariSayfasi() {
         siteVerisiGuncellendiYayinla();
         sagTikAyarlariYayinla();
         varsayilanAyarlarYayinla(yeniForm.varsayilanAyarlar);
+      panelGorunumYayinla(yeniForm.panelGorunum);
       } catch (err) {
         setForm(onceki);
         hataBildir(err instanceof Error ? err.message : 'Site durumu güncellenemedi');
@@ -168,6 +174,7 @@ export function SistemAyarlariSayfasi() {
         dilAyarla(yuklenen.panelDili);
         cevirileriAyarla(yuklenen.panelCeviriler);
         varsayilanAyarlarYayinla(yuklenen.varsayilanAyarlar);
+        panelGorunumYayinla(yuklenen.panelGorunum);
       } catch (err) {
         hataBildir(err instanceof Error ? err.message : 'Ayarlar alınamadı');
       } finally {
@@ -209,7 +216,8 @@ export function SistemAyarlariSayfasi() {
                 <div>
                   <h2 className="ap-ayarlar-ust-baslik">{SEKME_BASLIK[sekme]}</h2>
                   <p className="ap-ayarlar-ust-aciklama">
-                    {sekme === 'genel' && 'Site durumu, domain ve varsayılan panel ayarları'}
+                    {sekme === 'genel' && 'Site durumu, domain ve log saklama'}
+                    {sekme === 'gorunum' && 'Panel sürümü, tema ve varsayılan davranışlar'}
                     {sekme === 'bakim' && 'Ziyaretçilere gösterilecek bakım ekranı ve erişim kuralları'}
                     {sekme === 'sayfa404' && 'Bulunamayan sayfa görünümü ve yönlendirme'}
                     {sekme === 'dil' && 'Admin panel dili ve çeviri dosyaları'}

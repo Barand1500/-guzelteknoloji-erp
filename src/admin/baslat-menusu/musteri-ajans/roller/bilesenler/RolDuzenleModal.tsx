@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { RolTanimi } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
-import { formInputSinifi } from '@/formlar/FormAlani';
+import { FormAlani, formInputSinifi } from '@/formlar/FormAlani';
 
 export interface RolFormDegeri {
   baslik: string;
@@ -44,14 +44,11 @@ export function RolDuzenleModal({ acik, rol, onKapat, onKaydet }: RolDuzenleModa
 
   if (!acik || !rol) return null;
 
-  const sistemRolu = rol.sistemRolu !== false && [
-    'SUPER_ADMIN',
-    'AJANS_ADMIN',
-    'MUSTERI_ADMIN',
-    'EDITOR',
-    'SEO_EDITOR',
-    'GORUNTULEME',
-  ].includes(rol.kod);
+  const sistemRolu =
+    rol.sistemRolu !== false &&
+    ['SUPER_ADMIN', 'AJANS_ADMIN', 'MUSTERI_ADMIN', 'EDITOR', 'SEO_EDITOR', 'GORUNTULEME'].includes(
+      rol.kod
+    );
 
   function kaydet() {
     if (!form.baslik.trim()) {
@@ -64,55 +61,58 @@ export function RolDuzenleModal({ acik, rol, onKapat, onKaydet }: RolDuzenleModa
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/60"
-        aria-label="Kapat"
-        onClick={kapat}
-      />
-      <div className="relative w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-xl">
-        <h2 className="text-lg font-semibold text-white">Rol Düzenle</h2>
-        <div className="mt-4 space-y-3">
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Rol kodu</label>
-            <input className={`${formInputSinifi} bg-slate-800/80`} value={rol.kod} readOnly />
+    <div className="ap-sistem-modal-arka">
+      <button type="button" className="absolute inset-0" aria-label="Kapat" onClick={kapat} />
+      <div className="ap-sistem-modal ap-sistem-modal-v2 relative max-w-md" role="dialog" aria-modal="true">
+        <div className="ap-sistem-modal-v2-ust-cizgi" />
+        <div className="ap-sistem-modal-baslik ap-sistem-modal-baslik-v2">
+          <div className="flex items-start gap-3">
+            <span className="ap-sistem-modal-ikon" aria-hidden>
+              ✏️
+            </span>
+            <div>
+              <h2 className="ap-heading text-lg font-semibold">Rol Düzenle</h2>
+              <p className="ap-muted mt-0.5 text-sm">{rol.kod}</p>
+            </div>
           </div>
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Rol adı</label>
+          <button type="button" onClick={kapat} className="ap-sistem-modal-kapat ap-sistem-modal-kapat-v2">
+            ✕
+          </button>
+        </div>
+        <div className="ap-sistem-modal-govde-v2 space-y-3">
+          <FormAlani etiket="Rol kodu">
+            <input className={`${formInputSinifi} opacity-80`} value={rol.kod} readOnly />
+          </FormAlani>
+          <FormAlani etiket="Rol adı">
             <input
               className={formInputSinifi}
               value={form.baslik}
               onChange={(e) => setForm({ ...form, baslik: e.target.value })}
               autoFocus
             />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-slate-500">Açıklama</label>
+          </FormAlani>
+          <FormAlani etiket="Açıklama">
             <textarea
               className={`${formInputSinifi} min-h-[80px] resize-y`}
               value={form.aciklama}
               onChange={(e) => setForm({ ...form, aciklama: e.target.value })}
             />
-          </div>
+          </FormAlani>
           {sistemRolu && (
-            <p className="text-xs text-slate-500">Sistem rolü: kod değiştirilemez, silinemez.</p>
+            <div className="ap-sistem-modal-bilgi-kutu">
+              <span className="ap-sistem-modal-bilgi-ikon" aria-hidden>
+                🔒
+              </span>
+              <span>Sistem rolü: kod değiştirilemez, silinemez.</span>
+            </div>
           )}
           {hata && <p className="text-sm text-red-400">{hata}</p>}
         </div>
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={kapat}
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
-          >
+        <div className="ap-sistem-modal-alt-v2">
+          <button type="button" onClick={kapat} className="ap-sistem-modal-btn">
             İptal
           </button>
-          <button
-            type="button"
-            onClick={kaydet}
-            className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500"
-          >
+          <button type="button" onClick={kaydet} className="ap-sistem-modal-btn ap-sistem-modal-btn-birincil">
             Uygula
           </button>
         </div>

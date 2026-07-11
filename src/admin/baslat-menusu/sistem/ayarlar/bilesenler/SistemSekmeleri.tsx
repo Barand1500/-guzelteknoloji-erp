@@ -4,7 +4,6 @@ import { GorselAlan } from '@/formlar/GorselAlan';
 import { BakimEkrani } from './BakimEkrani';
 import { AdminPanelKarti } from '@/admin/ortak/AdminBilesenleri';
 import { DurumAnahtari } from './SistemSekmeCubugu';
-import { VarsayilanAyarlarAkordiyon } from './VarsayilanAyarlarAkordiyon';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { PANEL_DILLERI } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { panelJsonIceAktar, PANEL_VARSAYILAN_DILLER } from '@/dil/panelSozluk';
@@ -250,8 +249,6 @@ export function SistemGenelSekme({
           onChange={(e) => onChange({ ...form, logSaklamaGun: Number(e.target.value) || 90 })}
         />
       </FormAlani>
-
-      <VarsayilanAyarlarAkordiyon form={form} onChange={onChange} />
     </div>
   );
 }

@@ -1,0 +1,276 @@
+/* Kullanıcılar — GT-Panel 1.1.2 */
+
+.ap-kullanicilar-sayfa--yeni {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.ap-kullanici-kirli-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, #f59e0b 35%, var(--ap-border));
+  background: color-mix(in srgb, #f59e0b 10%, var(--ap-surface));
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, #fbbf24 70%, var(--ap-heading));
+}
+
+.ap-kullanicilar-yeni-duzen {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* Form kartı — solda, içeriğe göre yükseklik */
+.ap-kullanicilar-yeni-duzen > .ap-panel-kart {
+  flex: 0 0 auto;
+  width: min(100%, 26rem);
+  max-width: 26rem;
+  height: auto;
+}
+
+.ap-kullanicilar-yeni-duzen > .ap-panel-kart .ap-panel-kart-icerik {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+/* Liste — formun sağında */
+.ap-kullanicilar-yeni-liste-alan {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: flex-start;
+}
+
+/* Kare kullanıcı kartları */
+.ap-kullanici-yeni-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.25rem, 8.25rem));
+  gap: 0.75rem;
+  justify-content: flex-start;
+}
+
+.ap-kullanici-yeni-liste > li {
+  min-width: 0;
+  overflow: visible;
+}
+
+.ap-kullanici-yeni-bos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+  color: var(--ap-muted);
+  font-size: 0.8125rem;
+}
+
+.ap-kullanici-yeni-bos span:first-child {
+  font-size: 1.35rem;
+  opacity: 0.65;
+}
+
+.ap-kullanici-yeni-bos small {
+  font-size: 0.6875rem;
+}
+
+.ap-kullanici-yeni-kart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0.85rem 0.65rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
+  background: var(--ap-surface);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.ap-kullanici-yeni-kart:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--ap-accent) 12%, transparent);
+}
+
+.ap-kullanici-yeni-kart--secili:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 58%, var(--ap-border));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ap-accent) 24%, transparent) inset,
+    0 8px 18px color-mix(in srgb, var(--ap-accent) 12%, transparent);
+}
+
+.ap-kullanici-yeni-kart--secili {
+  border-color: color-mix(in srgb, var(--ap-accent) 58%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 9%, var(--ap-surface));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ap-accent) 24%, transparent) inset,
+    0 8px 18px color-mix(in srgb, var(--ap-accent) 12%, transparent);
+}
+
+.ap-kullanici-yeni-kart--pasif {
+  opacity: 0.7;
+}
+
+.ap-kullanici-yeni-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.65rem;
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent) 0%,
+    color-mix(in srgb, var(--ap-accent) 70%, #6366f1) 100%
+  );
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ap-accent) 25%, transparent);
+}
+
+.ap-kullanici-yeni-ad {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 0.75rem;
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--ap-heading);
+  word-break: break-word;
+}
+
+.ap-kullanici-yeni-email {
+  display: block;
+  max-width: 100%;
+  font-size: 0.625rem;
+  color: var(--ap-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-kullanici-yeni-kart-alt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: auto;
+}
+
+.ap-kullanici-yeni-rol {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
+  color: color-mix(in srgb, var(--ap-accent) 78%, var(--ap-heading));
+  font-size: 0.5rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-kullanici-yeni-durum {
+  font-size: 0.5rem;
+  font-weight: 650;
+  color: #f87171;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ap-kullanici-yeni-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ap-kullanici-yeni-alan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ap-kullanici-yeni-etiket {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+}
+
+.ap-kullanici-yeni-aciklama {
+  margin: 0.12rem 0 0;
+  font-size: 0.625rem;
+  color: var(--ap-muted);
+}
+
+.ap-kullanici-yeni-input {
+  width: 100%;
+  padding: 0.48rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
+  background: var(--ap-input-bg);
+  color: var(--ap-heading);
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ap-kullanici-yeni-input:focus {
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 18%, transparent);
+}
+
+.ap-kullanici-yeni-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  background: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
+}
+
+.ap-kullanici-yeni-form .ap-form-acilir-secim-tus {
+  border-radius: 0.5rem;
+  border-color: color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
+}
+
+@media (max-width: 720px) {
+  .ap-kullanicilar-yeni-duzen {
+    flex-direction: column;
+  }
+
+  .ap-kullanicilar-yeni-duzen > .ap-panel-kart {
+    width: 100%;
+    max-width: none;
+  }
+
+  .ap-kullanici-yeni-liste {
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  }
+}
