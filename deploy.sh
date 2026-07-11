@@ -7,6 +7,17 @@ set -euo pipefail
 #     repo/
 #     frontend/
 #     backend/
+#
+# Nginx (CloudPanel -> Site -> Vhost -> Nginx Config), server { } icinde:
+#   location /api/ {
+#       proxy_pass http://127.0.0.1:3006/;
+#       proxy_http_version 1.1;
+#       proxy_set_header Host $host;
+#       proxy_set_header X-Real-IP $remote_addr;
+#       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#       proxy_set_header X-Forwarded-Proto $scheme;
+#   }
+# Backend hem /api/admin hem /admin yollarini dinler (proxy /api on ekini dusururse de calisir).
 
 SITE="${DEPLOY_SITE:-$HOME/htdocs/erp.guzelteknoloji.com}"
 GIT_REMOTE="https://github.com/Barand1500/-guzelteknoloji-erp.git"
@@ -19,6 +30,25 @@ DB_RESET="${DB_RESET:-0}"
 # 1 => frontend uses mock auth (skip real login flow)
 # 0 => frontend uses real backend auth
 FRONTEND_MOCK_AUTH="${FRONTEND_MOCK_AUTH:-0}"
+
+api_get_check() {
+  local path="$1"
+  local expect="$2"
+  local raw code body
+  raw="$(curl -sS -w $'\nHTTP_CODE:%{http_code}' "http://127.0.0.1:${API_PORT}${path}" 2>/dev/null || echo $'\nHTTP_CODE:000')"
+  code="${raw##*HTTP_CODE:}"
+  body="${raw%HTTP_CODE:*}"
+  body="$(echo "$body" | tr -d '\r')"
+  if [ "$code" = "200" ] && echo "$body" | grep -q "$expect"; then
+    echo "  OK  ${path} (HTTP ${code})"
+    return 0
+  fi
+  echo "  FAIL ${path} (HTTP ${code})"
+  if [ -n "$body" ]; then
+    echo "       $(echo "$body" | head -c 140)"
+  fi
+  return 1
+}
 
 echo ""
 echo "=== GUZEL TEKNOLOJI ERP - DEPLOY START ==="
@@ -47,6 +77,15 @@ if [ ! -f "$SITE/backend/.env" ]; then
   exit 1
 fi
 
+MOCK_AUTH_VAL="$(grep -E '^MOCK_AUTH=' "$SITE/backend/.env" 2>/dev/null | cut -d= -f2- | tr -d ' "' | tr '[:upper:]' '[:lower:]' || true)"
+echo "  backend/.env MOCK_AUTH=${MOCK_AUTH_VAL:-<yok>}"
+if [ "$FRONTEND_MOCK_AUTH" = "0" ] && { [ "$MOCK_AUTH_VAL" = "true" ] || [ "$MOCK_AUTH_VAL" = "1" ] || [ "$MOCK_AUTH_VAL" = "yes" ]; }; then
+  echo ""
+  echo "  WARNING: Frontend gercek API kullaniyor ama backend MOCK_AUTH acik."
+  echo "  Production icin backend/.env icinde MOCK_AUTH=0 yapin, sonra tekrar deploy edin."
+  echo ""
+fi
+
 echo "[1/6] Updating git from origin/$GIT_BRANCH ..."
 cd "$SITE/repo"
 git fetch origin "$GIT_BRANCH"
@@ -73,6 +112,12 @@ echo "[3/6] Building backend ..."
 cd "$SITE/repo/backend"
 npm ci
 npm run build
+for f in dist/index.js dist/routes/auth.js dist/routes/tanimlar.js; do
+  if [ ! -f "$f" ]; then
+    echo "  ERROR: Build eksik: $f"
+    exit 1
+  fi
+done
 rsync -a \
   --exclude='node_modules' \
   --exclude='.env' \
@@ -83,7 +128,7 @@ echo "  Output: $SITE/backend/dist/"
 echo "[4/6] Installing backend production dependencies ..."
 cd "$SITE/backend"
 npm ci --omit=dev
-chmod +x scripts/db-push-safe.sh 2>/dev/null || true
+chmod +x scripts/db-push-safe.sh scripts/api-smoke.sh 2>/dev/null || true
 
 echo "[5/6] Syncing database ..."
 PRISMA_SCHEMA="$(bash scripts/prisma-sema.sh)"
@@ -104,12 +149,10 @@ fi
 
 echo "[6/6] Restarting PM2 ($PM2_NAME on $API_PORT) ..."
 cd "$SITE/backend"
-if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
-  pm2 restart "$PM2_NAME" --update-env
-else
-  pm2 start ecosystem.config.cjs
-fi
+pm2 delete "$PM2_NAME" 2>/dev/null || true
+pm2 start ecosystem.config.cjs
 pm2 save
+sleep 2
 
 echo ""
 if [ "$DB_OK" = "1" ]; then
@@ -122,24 +165,28 @@ echo ""
 echo "API checks (127.0.0.1:${API_PORT}) ..."
 OTURUM_OK=0
 
-if curl -sf "http://127.0.0.1:${API_PORT}/api/health" >/dev/null; then
-  echo "  OK  /api/health"
+if api_get_check "/api/health" '"durum"'; then
+  :
 else
-  echo "  FAIL /api/health - check: pm2 logs ${PM2_NAME} --lines 30"
+  echo "  -> pm2 logs ${PM2_NAME} --lines 40"
 fi
 
-if curl -sf "http://127.0.0.1:${API_PORT}/api/admin/auth/oturum-secenekleri" | grep -q '"firmalar"'; then
+if api_get_check "/api/admin/auth/oturum-secenekleri" '"firmalar"'; then
   OTURUM_OK=1
-  echo "  OK  /api/admin/auth/oturum-secenekleri"
-else
-  echo "  FAIL /api/admin/auth/oturum-secenekleri"
+elif api_get_check "/admin/auth/oturum-secenekleri" '"firmalar"'; then
+  OTURUM_OK=1
+  echo "  (nginx /api on ekini dusuruyor; /admin yolu calisiyor)"
 fi
 
 echo ""
 if [ "$OTURUM_OK" = "1" ]; then
-  echo "Frontend updated. Do hard refresh (Ctrl+Shift+R)."
+  echo "Frontend updated. Hard refresh (Ctrl+Shift+R)."
+  echo "Giris: ADMIN / eRc241016!  (MOCK_AUTH=0 ise DB seed kullanicisi)"
 else
-  echo "Deploy finished; login API is still not ready."
-  echo "Mock auth mode should still allow direct panel access if FRONTEND_MOCK_AUTH=1."
+  echo "Login API hazir degil. Tanilama:"
+  echo "  cd $SITE/backend && bash scripts/api-smoke.sh"
+  echo "  pm2 logs ${PM2_NAME} --lines 40"
+  echo "  grep MOCK_AUTH .env   # production: MOCK_AUTH=0"
+  echo "Gecici panel erisimi: FRONTEND_MOCK_AUTH=1 ./deploy.sh"
 fi
 echo ""

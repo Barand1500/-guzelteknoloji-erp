@@ -17,54 +17,59 @@ import { authZorunlu } from '../middleware/auth.js';
 const router = Router();
 
 router.get('/oturum-secenekleri', async (_req, res) => {
-  if (mockAuthAktif()) {
-    return res.json(MOCK_OTURUM_SECENEKLERI);
-  }
+  try {
+    if (mockAuthAktif()) {
+      return res.json(MOCK_OTURUM_SECENEKLERI);
+    }
 
-  const firmalar = await prisma.firma.findMany({
-    where: { durum: true },
-    orderBy: { firmaKodu: 'asc' },
-    select: {
-      id: true,
-      firmaKodu: true,
-      firmaAdi: true,
-      donemler: {
-        where: { durum: true },
-        orderBy: { donemKodu: 'asc' },
-        select: { id: true, donemKodu: true, donemAdi: true },
-      },
-      subeler: {
-        where: { durum: true },
-        orderBy: { subeKodu: 'asc' },
-        select: {
-          id: true,
-          subeKodu: true,
-          subeAdi: true,
-          kasalar: {
-            where: { durum: true },
-            orderBy: { kasaKodu: 'asc' },
-            select: { id: true, kasaKodu: true, kasaAdi: true },
-          },
-          depolar: {
-            where: { durum: true },
-            orderBy: { depoKodu: 'asc' },
-            select: { id: true, depoKodu: true, depoAdi: true },
+    const firmalar = await prisma.firma.findMany({
+      where: { durum: true },
+      orderBy: { firmaKodu: 'asc' },
+      select: {
+        id: true,
+        firmaKodu: true,
+        firmaAdi: true,
+        donemler: {
+          where: { durum: true },
+          orderBy: { donemKodu: 'asc' },
+          select: { id: true, donemKodu: true, donemAdi: true },
+        },
+        subeler: {
+          where: { durum: true },
+          orderBy: { subeKodu: 'asc' },
+          select: {
+            id: true,
+            subeKodu: true,
+            subeAdi: true,
+            kasalar: {
+              where: { durum: true },
+              orderBy: { kasaKodu: 'asc' },
+              select: { id: true, kasaKodu: true, kasaAdi: true },
+            },
+            depolar: {
+              where: { durum: true },
+              orderBy: { depoKodu: 'asc' },
+              select: { id: true, depoKodu: true, depoAdi: true },
+            },
           },
         },
       },
-    },
-  });
+    });
 
-  return res.json({
-    firmalar,
-    kullaniciKodlari: (
-      await prisma.kullanici.findMany({
-        where: { durum: true },
-        orderBy: { kullaniciKodu: 'asc' },
-        select: { kullaniciKodu: true },
-      })
-    ).map((k) => k.kullaniciKodu),
-  });
+    return res.json({
+      firmalar,
+      kullaniciKodlari: (
+        await prisma.kullanici.findMany({
+          where: { durum: true },
+          orderBy: { kullaniciKodu: 'asc' },
+          select: { kullaniciKodu: true },
+        })
+      ).map((k) => k.kullaniciKodu),
+    });
+  } catch (err) {
+    console.error('[auth/oturum-secenekleri]', err);
+    return res.status(500).json({ mesaj: 'Oturum secenekleri yuklenemedi' });
+  }
 });
 
 router.post('/giris', async (req, res) => {
