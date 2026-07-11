@@ -54,8 +54,15 @@ export function varsayilanKisayollar(): KisayolHaritasi {
   }, {} as KisayolHaritasi);
 }
 
-function haritaNormalize(kayitli?: Partial<KisayolHaritasi> & { onizle?: string } | null): KisayolHaritasi {
-  const ham = kayitli ?? {};
+function haritaHamGecerliMi(kayitli: unknown): kayitli is Partial<KisayolHaritasi> & { onizle?: string } {
+  return !!kayitli && typeof kayitli === 'object' && !Array.isArray(kayitli);
+}
+
+function haritaNormalize(kayitli?: Partial<KisayolHaritasi> & { onizle?: string } | null | unknown): KisayolHaritasi {
+  if (!haritaHamGecerliMi(kayitli)) {
+    return varsayilanKisayollar();
+  }
+  const ham = { ...kayitli };
   if (ham.onizle && !ham.guncelle) {
     ham.guncelle = ham.onizle;
     delete ham.onizle;

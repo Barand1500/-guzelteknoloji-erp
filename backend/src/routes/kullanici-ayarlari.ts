@@ -8,6 +8,10 @@ import { authZorunlu } from '../middleware/auth.js';
 const router = Router();
 router.use(authZorunlu);
 
+function jsonNesneMi(deger: unknown): deger is Record<string, unknown> {
+  return !!deger && typeof deger === 'object' && !Array.isArray(deger);
+}
+
 function kullaniciIdAl(req: AuthRequest): number {
   return req.kullanici!.id;
 }
@@ -15,7 +19,7 @@ function kullaniciIdAl(req: AuthRequest): number {
 router.get('/kisayol', async (req: AuthRequest, res: Response) => {
   const kullaniciId = kullaniciIdAl(req);
   const kayit = await prisma.kullaniciKisayol.findUnique({ where: { kullaniciId } });
-  const harita = (kayit?.harita ?? {}) as Record<string, string>;
+  const harita = jsonNesneMi(kayit?.harita) ? kayit.harita : {};
   return res.json({ harita });
 });
 
@@ -35,13 +39,14 @@ router.put('/kisayol', async (req: AuthRequest, res: Response) => {
     update: { harita: haritaJson },
   });
 
-  return res.json({ harita: kayit.harita });
+  const harita = jsonNesneMi(kayit.harita) ? kayit.harita : body.harita;
+  return res.json({ harita });
 });
 
 router.get('/sekme', async (req: AuthRequest, res: Response) => {
   const kullaniciId = kullaniciIdAl(req);
   const kayit = await prisma.kullaniciSekmeAyar.findUnique({ where: { kullaniciId } });
-  const ayarlar = (kayit?.ayarlar ?? {}) as Record<string, unknown>;
+  const ayarlar = jsonNesneMi(kayit?.ayarlar) ? kayit.ayarlar : {};
   return res.json({ ayarlar });
 });
 
