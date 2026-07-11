@@ -99,6 +99,16 @@ cd ~/htdocs/erp.guzelteknoloji.com
 
 **Nginx (502 hatası için zorunlu):** CloudPanel → Site → Vhost → Nginx Directives içine `nginx-api.conf.example` dosyasındaki `location /api` bloğunu ekleyin.
 
+**CloudPanel Node.js (3007):** Site ayarlarındaki Node.js uygulamasını **kapatın**. ERP API yalnızca **PM2 (`erp-api`)** ile çalışır. CloudPanel Node.js ve PM2 aynı portu (3007) kullanırsa `EADDRINUSE` oluşur; tarayıcıda Kısayol Ayarları `Endpoint bulunamadi` hatası verir (eski backend process kalır).
+
+**Kısayol 404 / EADDRINUSE onarımı:**
+
+```bash
+# 1) CloudPanel → Site → Node.js uygulamasını durdurun
+cd ~/htdocs/erp.guzelteknoloji.com/backend
+bash scripts/sunucu-api-duzelt.sh
+```
+
 **İlk kurulum (PM2 yoksa önce bunu yapın):**
 
 ```bash

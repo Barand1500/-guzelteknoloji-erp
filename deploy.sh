@@ -199,6 +199,17 @@ else
   echo "  Nginx /api proxy gerekli — bkz. repo/nginx-api.conf.example"
 fi
 
+PUB_KISAYOL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "${PUBLIC_URL}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
+if [ "$PUB_KISAYOL_CODE" = "401" ]; then
+  echo "  OK  ${PUBLIC_URL}/api/admin/kullanici-ayarlari/kisayol (401 — route mevcut)"
+elif [ "$PUB_KISAYOL_CODE" = "404" ] && [ "$KISAYOL_CODE" = "401" ]; then
+  echo "  FAIL public kisayol (HTTP 404) — yerel API guncel, nginx veya CloudPanel Node.js cakismasi"
+  echo "  CloudPanel → Site → Node.js uygulamasini DURDURUN (port ${API_PORT})."
+  echo "  Sonra: cd $SITE/backend && bash scripts/sunucu-api-duzelt.sh"
+else
+  echo "  FAIL public kisayol (HTTP ${PUB_KISAYOL_CODE}, beklenen 401)"
+fi
+
 echo ""
 if [ "$OTURUM_OK" = "1" ]; then
   echo "Frontend updated. Do hard refresh (Ctrl+Shift+R)."

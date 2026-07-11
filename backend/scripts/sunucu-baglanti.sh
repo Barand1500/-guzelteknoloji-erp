@@ -68,6 +68,15 @@ else
   echo "  WARN /api/admin/tanimlar/firmalar (HTTP ${TANIM_CODE})"
 fi
 
+KISAYOL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
+if [ "$KISAYOL_CODE" = "401" ]; then
+  echo "  OK   /api/admin/kullanici-ayarlari/kisayol (401 — route mevcut)"
+elif [ "$KISAYOL_CODE" = "404" ]; then
+  echo "  FAIL /api/admin/kullanici-ayarlari/kisayol (404 — eski backend, ./deploy.sh + sunucu-api-duzelt.sh)"
+else
+  echo "  WARN /api/admin/kullanici-ayarlari/kisayol (HTTP ${KISAYOL_CODE})"
+fi
+
 echo ""
 echo "[4/5] Veritabani seed ..."
 npm run db:seed
