@@ -97,7 +97,20 @@ cd ~/htdocs/erp.guzelteknoloji.com
 ./deploy.sh
 ```
 
-İlk kurulum ve nginx ayarları için `deploy.sh` dosyasının üstündeki yorumları okuyun.
+**Nginx (502 hatası için zorunlu):** CloudPanel → Site → Vhost → Nginx Directives içine `nginx-api.conf.example` dosyasındaki `location /api` bloğunu ekleyin.
+
+**İlk kurulum / sorun giderme:**
+
+```bash
+cd ~/htdocs/erp.guzelteknoloji.com
+cp repo/backend/.env.example backend/.env   # DATABASE_URL, JWT_SECRET doldurun
+FRONTEND_MOCK_AUTH=0 ./deploy.sh
+cd backend && bash scripts/sunucu-baglanti.sh
+```
+
+Varsayılan admin (seed sonrası): `ADMIN` / `eRc241016!`
+
+İlk kurulum ve nginx ayarları için `deploy.sh` ve `nginx-api.conf.example` dosyalarına bakın.
 
 ---
 
