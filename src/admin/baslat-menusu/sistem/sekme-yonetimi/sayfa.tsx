@@ -109,7 +109,7 @@ export function SekmeYonetimiSayfasi() {
     sekmeAyarlariGetir()
       .then((veri) => {
         if (iptal) return;
-        sekmeAyarlariBellegeYaz(veri.ayarlar);
+        sekmeAyarlariBellegeYaz(veri.ayarlar ?? {});
         const guncel = sekmeAyarlariOku();
         setAyarlar(guncel);
         setSonKayitli(guncel);

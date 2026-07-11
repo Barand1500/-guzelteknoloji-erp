@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { AdminModulKabuk, AdminPanelKarti, BildirimKutusu, YukleniyorDurumu } from '@/admin/ortak/AdminBilesenleri';
-import { kisayolAyarlariGetir } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
+import { kisayolAyarlariGetir, kullaniciAyarlariVeritabaniModuMu } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
 import {
   KISAYOL_ISLEMLERI,
   kisayolAyarlariBellegeYaz,
@@ -33,7 +33,7 @@ export function KisayolAyarlariSayfasi() {
     kisayolAyarlariGetir()
       .then((veri) => {
         if (iptal) return;
-        kisayolAyarlariBellegeYaz(veri.harita);
+        kisayolAyarlariBellegeYaz(veri.harita ?? {});
         const guncel = kisayolAyarlariOku();
         setHarita(guncel);
         setSonKayitli(guncel);
@@ -69,7 +69,11 @@ export function KisayolAyarlariSayfasi() {
       setSonKayitli(kayitli);
       const ozet = KISAYOL_ISLEMLERI.map((i) => `${i.etiket}: ${kayitli[i.id]}`).join(', ');
       logMesajiAyarla(logMesaj.kaydetti('Kısayol Ayarları', `klavye kısayollarını (${ozet})`));
-      setBasari('Kısayol ayarları veritabanına kaydedildi.');
+      setBasari(
+        kullaniciAyarlariVeritabaniModuMu()
+          ? 'Kısayol ayarları veritabanına kaydedildi.'
+          : 'Kısayol ayarları kaydedildi (oturum belleği).'
+      );
     } catch (err) {
       setHata(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {

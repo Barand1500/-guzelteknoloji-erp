@@ -47,12 +47,13 @@ export function varsayilanKisayollar(): KisayolHaritasi {
   }, {} as KisayolHaritasi);
 }
 
-function haritaNormalize(kayitli: Partial<KisayolHaritasi> & { onizle?: string }): KisayolHaritasi {
-  if (kayitli.onizle && !kayitli.guncelle) {
-    kayitli.guncelle = kayitli.onizle;
-    delete kayitli.onizle;
+function haritaNormalize(kayitli?: Partial<KisayolHaritasi> & { onizle?: string } | null): KisayolHaritasi {
+  const ham = kayitli ?? {};
+  if (ham.onizle && !ham.guncelle) {
+    ham.guncelle = ham.onizle;
+    delete ham.onizle;
   }
-  return { ...varsayilanKisayollar(), ...kayitli };
+  return { ...varsayilanKisayollar(), ...ham };
 }
 
 function eskiLocalStorageTemizle() {
@@ -68,7 +69,7 @@ export function kisayolAyarlariOku(): KisayolHaritasi {
   return varsayilanKisayollar();
 }
 
-export function kisayolAyarlariBellegeYaz(ham: Partial<KisayolHaritasi>) {
+export function kisayolAyarlariBellegeYaz(ham?: Partial<KisayolHaritasi> | null) {
   eskiLocalStorageTemizle();
   bellekHarita = haritaNormalize(ham);
   window.dispatchEvent(new CustomEvent('ap-kisayol-ayarlari-guncellendi'));
@@ -82,7 +83,7 @@ export function kisayolAyarlariTemizle() {
 export async function kisayolAyarlariSunucuyaKaydet(harita: KisayolHaritasi): Promise<KisayolHaritasi> {
   const { kisayolAyarlariGuncelle } = await import('@/admin/baslat-menusu/sistem/kullanici-ayarlari/api');
   const yanit = await kisayolAyarlariGuncelle(harita);
-  kisayolAyarlariBellegeYaz(yanit.harita);
+  kisayolAyarlariBellegeYaz(yanit.harita ?? harita);
   return kisayolAyarlariOku();
 }
 

@@ -55,8 +55,9 @@ function siteVarsayilanSekmeAyarlari(): Partial<SekmePanelAyarlari> {
   }
 }
 
-function ayarlariNormalize(parsed: Partial<SekmePanelAyarlari> & { grupDavranisi?: string }): SekmePanelAyarlari {
-  const { grupDavranisi: _eski, ...gerisi } = parsed;
+function ayarlariNormalize(parsed?: Partial<SekmePanelAyarlari> & { grupDavranisi?: string } | null): SekmePanelAyarlari {
+  const kaynak = parsed ?? {};
+  const { grupDavranisi: _eski, ...gerisi } = kaynak;
   return { ...VARSAYILAN_SEKME_AYARLARI, ...siteVarsayilanSekmeAyarlari(), ...gerisi };
 }
 
@@ -92,7 +93,7 @@ export function sekmeAyarlariOku(): SekmePanelAyarlari {
   return ayarlariNormalize({});
 }
 
-export function sekmeAyarlariBellegeYaz(ham: Partial<SekmePanelAyarlari>) {
+export function sekmeAyarlariBellegeYaz(ham?: Partial<SekmePanelAyarlari> | null) {
   eskiLocalStorageTemizle();
   bellekAyarlar = ayarlariNormalize(ham);
   window.dispatchEvent(new CustomEvent('ap-sekme-ayarlari-guncellendi'));
@@ -106,7 +107,7 @@ export function sekmeAyarlariTemizle() {
 export async function sekmeAyarlariSunucuyaKaydet(ayarlar: SekmePanelAyarlari): Promise<SekmePanelAyarlari> {
   const { sekmeAyarlariGuncelle } = await import('@/admin/baslat-menusu/sistem/kullanici-ayarlari/api');
   const yanit = await sekmeAyarlariGuncelle(ayarlar);
-  sekmeAyarlariBellegeYaz(yanit.ayarlar);
+  sekmeAyarlariBellegeYaz(yanit.ayarlar ?? ayarlar);
   return sekmeAyarlariOku();
 }
 
