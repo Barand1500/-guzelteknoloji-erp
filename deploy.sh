@@ -18,7 +18,7 @@ DB_RESET="${DB_RESET:-0}"
 # Temporary toggle:
 # 1 => frontend uses mock auth (skip real login flow)
 # 0 => frontend uses real backend auth
-FRONTEND_MOCK_AUTH="${FRONTEND_MOCK_AUTH:-1}"
+FRONTEND_MOCK_AUTH="${FRONTEND_MOCK_AUTH:-0}"
 
 echo ""
 echo "=== GUZEL TEKNOLOJI ERP - DEPLOY START ==="

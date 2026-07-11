@@ -4,36 +4,104 @@ export type RolKodu = string;
 
 export interface AdminKullanici {
   id: string;
-  email: string;
+  kullaniciKodu: string;
   ad: string;
   rol: RolKodu;
   aktif: boolean;
+  firmaId: string;
+  donemId: string;
+  subeId: string;
+  depoId: string;
+  kasaId: string;
+  pin: string;
   olusturma: string;
   guncelleme: string;
 }
 
 export interface KullaniciFormDegeri {
-  email: string;
+  kullaniciKodu: string;
   ad: string;
   sifre: string;
   rol: RolKodu;
   aktif: boolean;
+  firmaId: string;
+  donemId: string;
+  subeId: string;
+  depoId: string;
+  kasaId: string;
+  pin: string;
+}
+
+export const bosKullaniciForm: KullaniciFormDegeri = {
+  kullaniciKodu: '',
+  ad: '',
+  sifre: '',
+  rol: 'MUSTERI_ADMIN',
+  aktif: true,
+  firmaId: '',
+  donemId: '',
+  subeId: '',
+  depoId: '',
+  kasaId: '',
+  pin: '',
+};
+
+function alanStr(ham: Record<string, unknown>, ...anahtarlar: string[]): string {
+  for (const a of anahtarlar) {
+    const v = ham[a];
+    if (v !== undefined && v !== null && String(v).trim() !== '') return String(v);
+  }
+  return '';
+}
+
+function kullaniciMap(ham: Record<string, unknown>): AdminKullanici {
+  return {
+    id: String(ham.id),
+    kullaniciKodu: String(ham.kullaniciKodu ?? ham.email ?? '').trim().toUpperCase(),
+    ad: String(ham.ad ?? ham.adSoyad ?? ''),
+    rol: String(ham.rol),
+    aktif: ham.aktif !== false && ham.durum !== false,
+    firmaId: alanStr(ham, 'firmaId'),
+    donemId: alanStr(ham, 'donemId'),
+    subeId: alanStr(ham, 'subeId'),
+    depoId: alanStr(ham, 'depoId'),
+    kasaId: alanStr(ham, 'kasaId'),
+    pin: String(ham.pin ?? ''),
+    olusturma: String(ham.olusturma ?? ham.kayitTarihi ?? ''),
+    guncelleme: String(ham.guncelleme ?? ham.guncellemeTarihi ?? ''),
+  };
+}
+
+export function kullanicidanForm(k: AdminKullanici): KullaniciFormDegeri {
+  return {
+    kullaniciKodu: k.kullaniciKodu,
+    ad: k.ad,
+    sifre: '',
+    rol: k.rol,
+    aktif: k.aktif,
+    firmaId: k.firmaId,
+    donemId: k.donemId,
+    subeId: k.subeId,
+    depoId: k.depoId,
+    kasaId: k.kasaId,
+    pin: k.pin,
+  };
 }
 
 export async function adminKullanicilariGetir(): Promise<AdminKullanici[]> {
-  const veri = await adminJsonFetch<{ kullanicilar: AdminKullanici[] }>('/kullanicilar', {
+  const veri = await adminJsonFetch<{ kullanicilar: Record<string, unknown>[] }>('/kullanicilar', {
     headers: adminHeaders(),
   });
-  return veri.kullanicilar ?? [];
+  return (veri.kullanicilar ?? []).map(kullaniciMap);
 }
 
 export async function adminKullaniciOlustur(form: KullaniciFormDegeri): Promise<AdminKullanici> {
-  const veri = await adminJsonFetch<{ kullanici: AdminKullanici }>('/kullanicilar', {
+  const veri = await adminJsonFetch<{ kullanici: Record<string, unknown> }>('/kullanicilar', {
     method: 'POST',
     headers: adminHeaders(),
     body: JSON.stringify(payloadHazirla(form, true)),
   });
-  return veri.kullanici;
+  return kullaniciMap(veri.kullanici);
 }
 
 export async function adminKullaniciGuncelle(
@@ -41,12 +109,12 @@ export async function adminKullaniciGuncelle(
   form: KullaniciFormDegeri,
   sifreDegisti: boolean
 ): Promise<AdminKullanici> {
-  const veri = await adminJsonFetch<{ kullanici: AdminKullanici }>(`/kullanicilar/${id}`, {
+  const veri = await adminJsonFetch<{ kullanici: Record<string, unknown> }>(`/kullanicilar/${id}`, {
     method: 'PUT',
     headers: adminHeaders(),
     body: JSON.stringify(payloadHazirla(form, sifreDegisti)),
   });
-  return veri.kullanici;
+  return kullaniciMap(veri.kullanici);
 }
 
 export async function adminKullaniciSil(id: string): Promise<void> {
@@ -69,10 +137,16 @@ export function rolEtiketi(kod: string, etiketler: Record<string, string> = VARS
 
 function payloadHazirla(form: KullaniciFormDegeri, sifreDahil: boolean) {
   const payload: Record<string, unknown> = {
-    email: form.email.trim(),
+    kullaniciKodu: form.kullaniciKodu.trim().toUpperCase(),
     ad: form.ad.trim(),
     rol: form.rol,
     aktif: form.aktif,
+    firmaId: form.firmaId ? Number(form.firmaId) : undefined,
+    donemId: form.donemId ? Number(form.donemId) : null,
+    subeId: form.subeId ? Number(form.subeId) : null,
+    depoId: form.depoId ? Number(form.depoId) : null,
+    kasaId: form.kasaId ? Number(form.kasaId) : null,
+    pin: form.pin.trim() || null,
   };
   if (sifreDahil && form.sifre.trim()) {
     payload.sifre = form.sifre;

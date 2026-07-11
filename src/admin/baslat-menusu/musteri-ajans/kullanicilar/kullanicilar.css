@@ -27,11 +27,12 @@
   min-width: 0;
 }
 
-/* Form kartı — solda, içeriğe göre yükseklik */
+/* Form kartı — iki yatay satır için geniş alan */
 .ap-kullanicilar-yeni-duzen > .ap-panel-kart {
-  flex: 0 0 auto;
-  width: min(100%, 26rem);
-  max-width: 26rem;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: min(100%, 28rem);
+  max-width: none;
   height: auto;
 }
 
@@ -203,13 +204,64 @@
 .ap-kullanici-yeni-form {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.ap-kullanici-yeni-form-satir {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 0.55rem;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  padding-bottom: 0.15rem;
 }
 
 .ap-kullanici-yeni-alan {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  flex: 1 1 0;
+  min-width: 6.5rem;
+}
+
+.ap-kullanici-yeni-alan--ad {
+  flex: 1.4 1 0;
+  min-width: 8rem;
+}
+
+.ap-kullanici-yeni-alan--kod {
+  flex: 0.9 1 0;
+  min-width: 6rem;
+}
+
+.ap-kullanici-yeni-alan--sifre {
+  flex: 0.9 1 0;
+  min-width: 6.5rem;
+}
+
+.ap-kullanici-yeni-alan--rol {
+  flex: 1 1 0;
+  min-width: 7rem;
+}
+
+.ap-kullanici-yeni-alan--pin {
+  flex: 0 0 auto;
+  min-width: 4.25rem;
+  max-width: 5rem;
+}
+
+.ap-kullanici-yeni-form-satir--oturum {
+  padding-top: 0.15rem;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 65%, transparent);
+}
+
+.ap-kullanici-yeni-form-satir .ap-form-acilir-secim-tus {
+  min-height: 2.05rem;
+  font-size: 0.8125rem;
 }
 
 .ap-kullanici-yeni-etiket {
@@ -255,9 +307,188 @@
   background: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
 }
 
+.ap-kullanici-yeni-toggle--satir {
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-width: 3.75rem;
+  padding: 0.35rem 0.5rem 0.42rem;
+  align-self: stretch;
+}
+
+.ap-kullanici-yeni-toggle--satir .ap-kullanici-yeni-etiket {
+  text-align: center;
+}
+
 .ap-kullanici-yeni-form .ap-form-acilir-secim-tus {
   border-radius: 0.5rem;
   border-color: color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
+}
+
+.ap-kullanici-yeni-bolum-baslik {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+/* Oturum bağlamı — yatay menü çubuğu */
+.ap-kullanici-oturum-cubuk {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  background: color-mix(in srgb, var(--ap-surface-2) 35%, var(--ap-surface));
+}
+
+.ap-kullanici-oturum-cubuk-baslik {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding-right: 0.35rem;
+  border-right: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+  writing-mode: horizontal-tb;
+  white-space: nowrap;
+}
+
+.ap-kullanici-oturum-satir {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 0.55rem;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  padding-bottom: 0.1rem;
+}
+
+.ap-kullanici-oturum-alan {
+  flex: 1 1 0;
+  min-width: 7.5rem;
+  max-width: 12rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.ap-kullanici-oturum-alan--pin {
+  flex: 0 0 auto;
+  min-width: 4.5rem;
+  max-width: 5.5rem;
+}
+
+.ap-kullanici-oturum-etiket {
+  margin: 0;
+  font-size: 0.5625rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+  white-space: nowrap;
+}
+
+.ap-kullanici-oturum-cubuk .ap-form-acilir-secim-tus {
+  min-height: 1.85rem;
+  padding-top: 0.28rem;
+  padding-bottom: 0.28rem;
+  font-size: 0.6875rem;
+  border-radius: 0.45rem;
+  border-color: color-mix(in srgb, var(--ap-accent) 20%, var(--ap-border));
+}
+
+.ap-kullanici-oturum-cubuk .ap-kullanici-yeni-input,
+.ap-kullanici-oturum-pin-input {
+  min-height: 1.85rem;
+  padding: 0.28rem 0.45rem;
+  font-size: 0.6875rem;
+  border-radius: 0.45rem;
+}
+
+.ap-kullanici-oturum-pin-input {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
+  background: var(--ap-input-bg);
+  color: var(--ap-heading);
+  outline: none;
+}
+
+.ap-kullanici-oturum-alan--eski .ap-form-acilir-secim-tus,
+.ap-kullanici-oturum-alan--eski .ap-kullanici-oturum-pin-input {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
+}
+
+.ap-kullanicilar-eski-oturum-wrap {
+  margin-top: 1rem;
+  min-width: 0;
+}
+
+/* Eski düzen — yatay form satırı */
+.ap-kullanici-editor-form-satir {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 0.55rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 0.15rem;
+}
+
+.ap-kullanici-editor-alan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  flex: 1 1 0;
+  min-width: 6.5rem;
+}
+
+.ap-kullanici-editor-alan--toggle {
+  flex: 0 0 auto;
+  min-width: 4.5rem;
+  justify-content: flex-end;
+}
+
+.ap-kullanici-editor-alan--pin {
+  flex: 0 0 auto;
+  min-width: 4.25rem;
+  max-width: 5rem;
+}
+
+.ap-kullanici-editor-form-satir--oturum {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.ap-kullanici-editor-etiket {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+  white-space: nowrap;
+}
+
+.ap-kullanici-editor-form-satir .ap-form-acilir-secim-tus,
+.ap-kullanici-editor-form-satir input {
+  min-height: 2.05rem;
+  font-size: 0.8125rem;
 }
 
 @media (max-width: 720px) {

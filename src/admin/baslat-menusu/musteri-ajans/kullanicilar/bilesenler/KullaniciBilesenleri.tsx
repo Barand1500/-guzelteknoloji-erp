@@ -1,4 +1,6 @@
 import type { AdminKullanici, KullaniciFormDegeri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
+import { KullaniciOturumCubugu } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciOturumCubugu';
+import type { KullaniciOturumSecenekleri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/kullaniciOturumYardimci';
 import { formInputSinifi } from '@/formlar/FormAlani';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { AdminAnahtarDugme } from '@/admin/ortak/AdminFormBilesenleri';
@@ -33,7 +35,7 @@ export function KullaniciListesi({ kullanicilar, seciliId, rolBasliklari, onSec 
                 className={`ap-liste-oge ${seciliId === k.id ? 'ap-liste-oge-secili' : ''}`}
               >
                 <span className="ap-heading font-medium">{k.ad}</span>
-                <span className="ap-muted mt-0.5 block text-xs">{k.email}</span>
+                <span className="ap-muted mt-0.5 block text-xs">{k.kullaniciKodu}</span>
                 <span className="mt-1 flex flex-wrap gap-2 text-[10px]">
                   <span className="ap-etiket ap-etiket-gri">{rolBasliklari[k.rol] ?? k.rol}</span>
                   {!k.aktif && <span className="text-red-400">Pasif</span>}
@@ -51,6 +53,7 @@ interface KullaniciDuzenleFormuProps {
   form: KullaniciFormDegeri;
   seciliId: string | null;
   atanabilirRoller: AtanabilirRol[];
+  oturumSecenekleri: KullaniciOturumSecenekleri;
   onSifreDegisti: (v: boolean) => void;
   onChange: (form: KullaniciFormDegeri) => void;
 }
@@ -59,6 +62,7 @@ export function KullaniciDuzenleFormu({
   form,
   seciliId,
   atanabilirRoller,
+  oturumSecenekleri,
   onSifreDegisti,
   onChange,
 }: KullaniciDuzenleFormuProps) {
@@ -67,51 +71,68 @@ export function KullaniciDuzenleFormu({
       <div className="ap-editor-baslik">
         <h2 className="ap-heading text-base font-semibold">{seciliId ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı'}</h2>
       </div>
-      <div className="ap-editor-icerik ap-kullanici-editor-icerik space-y-3">
-        <input
-          className={formInputSinifi}
-          placeholder="Ad Soyad"
-          value={form.ad}
-          onChange={(e) => onChange({ ...form, ad: e.target.value })}
-          required
-          autoComplete="name"
-        />
-        <input
-          className={formInputSinifi}
-          type="email"
-          placeholder="E-Posta"
-          value={form.email}
-          onChange={(e) => onChange({ ...form, email: e.target.value })}
-          required
-          autoComplete="email"
-        />
-        <input
-          className={formInputSinifi}
-          type="password"
-          placeholder={seciliId ? 'Yeni şifre (boş bırak = değişmez)' : 'Şifre (min 6 karakter)'}
-          value={form.sifre}
-          onChange={(e) => {
-            onChange({ ...form, sifre: e.target.value });
-            onSifreDegisti(true);
-          }}
-          required={!seciliId}
-          minLength={seciliId ? undefined : 6}
-          autoComplete={seciliId ? 'new-password' : 'new-password'}
-        />
-
-        <FormAcilirSecim
-          aria-label="Kullanıcı rolü"
-          value={form.rol}
-          onChange={(rol) => onChange({ ...form, rol })}
-          secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
-        />
-
-        <AdminAnahtarDugme
-          etiket="Aktif kullanıcı"
-          acik={form.aktif}
-          onDegistir={(aktif) => onChange({ ...form, aktif })}
-        />
+      <div className="ap-editor-icerik ap-kullanici-editor-icerik ap-kullanici-editor-form-satir">
+        <label className="ap-kullanici-editor-alan">
+          <span className="ap-kullanici-editor-etiket">Ad Soyad</span>
+          <input
+            className={formInputSinifi}
+            placeholder="Ad Soyad"
+            value={form.ad}
+            onChange={(e) => onChange({ ...form, ad: e.target.value })}
+            required
+            autoComplete="name"
+          />
+        </label>
+        <label className="ap-kullanici-editor-alan">
+          <span className="ap-kullanici-editor-etiket">Kullanıcı Kodu</span>
+          <input
+            className={formInputSinifi}
+            placeholder="ADMIN"
+            value={form.kullaniciKodu}
+            onChange={(e) => onChange({ ...form, kullaniciKodu: e.target.value.toUpperCase() })}
+            required
+            autoComplete="username"
+          />
+        </label>
+        <label className="ap-kullanici-editor-alan">
+          <span className="ap-kullanici-editor-etiket">{seciliId ? 'Yeni şifre' : 'Şifre'}</span>
+          <input
+            className={formInputSinifi}
+            type="password"
+            placeholder={seciliId ? 'Boş = değişmez' : 'Min 6 karakter'}
+            value={form.sifre}
+            onChange={(e) => {
+              onChange({ ...form, sifre: e.target.value });
+              onSifreDegisti(true);
+            }}
+            required={!seciliId}
+            minLength={seciliId ? undefined : 6}
+            autoComplete="new-password"
+          />
+        </label>
+        <label className="ap-kullanici-editor-alan">
+          <span className="ap-kullanici-editor-etiket">Rol</span>
+          <FormAcilirSecim
+            aria-label="Kullanıcı rolü"
+            value={form.rol}
+            onChange={(rol) => onChange({ ...form, rol })}
+            secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
+          />
+        </label>
+        <div className="ap-kullanici-editor-alan ap-kullanici-editor-alan--toggle">
+          <AdminAnahtarDugme
+            etiket="Aktif"
+            acik={form.aktif}
+            onDegistir={(aktif) => onChange({ ...form, aktif })}
+          />
+        </div>
       </div>
+      <KullaniciOturumCubugu
+        form={form}
+        oturumSecenekleri={oturumSecenekleri}
+        onChange={onChange}
+        variant="form-ici-eski"
+      />
     </div>
   );
 }

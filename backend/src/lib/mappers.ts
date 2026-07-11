@@ -83,11 +83,17 @@ export async function kullaniciYanit(k: Kullanici, yetkiler: string[]) {
 
 export async function adminKullaniciYanit(k: Kullanici) {
   return {
-    id: k.id,
+    id: String(k.id),
     kullaniciKodu: k.kullaniciKodu,
     ad: k.adSoyad,
     rol: k.rol,
     aktif: k.durum,
+    firmaId: String(k.firmaId),
+    donemId: k.donemId != null ? String(k.donemId) : '',
+    subeId: k.subeId != null ? String(k.subeId) : '',
+    depoId: k.depoId != null ? String(k.depoId) : '',
+    kasaId: k.kasaId != null ? String(k.kasaId) : '',
+    pin: k.pin ?? '',
     olusturma: tarihIso(k.kayitTarihi),
     guncelleme: tarihIso(k.guncellemeTarihi),
   };
@@ -192,7 +198,7 @@ export function yetkiListesiYanit() {
 
 export function adminFirmaYanit(f: Firma) {
   return {
-    id: f.id,
+    id: String(f.id),
     firmaKodu: f.firmaKodu,
     firmaAdi: f.firmaAdi,
     vergiDairesi: f.vergiDairesi ?? '',
@@ -205,8 +211,8 @@ export function adminFirmaYanit(f: Firma) {
 
 export function adminDonemYanit(d: Donem) {
   return {
-    id: d.id,
-    firmaId: d.firmaId,
+    id: String(d.id),
+    firmaId: String(d.firmaId),
     donemKodu: d.donemKodu,
     donemAdi: d.donemAdi,
     aktif: d.durum,
@@ -226,8 +232,8 @@ function adresMetni(s: {
 
 export function adminSubeYanit(s: Sube) {
   return {
-    id: s.id,
-    firmaId: s.firmaId,
+    id: String(s.id),
+    firmaId: String(s.firmaId),
     subeKodu: s.subeKodu,
     subeAdi: s.subeAdi,
     il: s.il ?? '',
@@ -248,8 +254,8 @@ export function adminSubeYanit(s: Sube) {
 
 export function adminDepoYanit(d: Depo & { sube?: { subeKodu: string; subeAdi: string } | null }) {
   return {
-    id: d.id,
-    subeId: d.subeId,
+    id: String(d.id),
+    subeId: String(d.subeId),
     subeKodu: d.sube?.subeKodu ?? '',
     subeAdi: d.sube?.subeAdi ?? '',
     depoKodu: d.depoKodu,
@@ -267,8 +273,8 @@ export function adminDepoYanit(d: Depo & { sube?: { subeKodu: string; subeAdi: s
 
 export function adminKasaYanit(k: Kasa & { sube?: { subeKodu: string; subeAdi: string } | null }) {
   return {
-    id: k.id,
-    subeId: k.subeId,
+    id: String(k.id),
+    subeId: String(k.subeId),
     subeKodu: k.sube?.subeKodu ?? '',
     subeAdi: k.sube?.subeAdi ?? '',
     kasaKodu: k.kasaKodu,

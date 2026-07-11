@@ -2,11 +2,16 @@ import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/ti
 import { EKLENTI_KATALOGU } from '@/admin/baslat-menusu/sistem/ayarlar/veri-eklentiKatalogu';
 import type { EklentiDurum } from '@/admin/ortak/tipler/eklenti';
 import { offlineKullanici } from '@/admin/ortak/api/authApi';
+import {
+  offlineKullaniciPanelYanit,
+  offlineKullanicilariKaydet,
+  offlineKullanicilariOku,
+  type OfflineKullaniciKayit,
+} from '@/admin/ortak/api/offlineKullaniciDepo';
 import { offlineTanimlarGetir, offlineTanimlarYaz } from '@/admin/ortak/api/offlineTanimlar';
 
 const OFFLINE_SISTEM_ANAHTAR = 'erp-offline-sistem-ayarlari';
 const OFFLINE_MODUL_ANAHTAR = 'erp-offline-moduller';
-const OFFLINE_KULLANICI_ANAHTAR = 'erp-offline-kullanicilar';
 const OFFLINE_LOG_ANAHTAR = 'erp-offline-loglar';
 const OFFLINE_EKLENTI_ANAHTAR = 'erp-offline-eklenti-kurulum';
 const OFFLINE_LOG_LIMIT = 500;
@@ -19,16 +24,6 @@ interface OfflineModul {
   rolSayisi: number;
   kayitTarihi: string;
   guncellemeTarihi: string;
-}
-
-interface OfflinePanelKullanici {
-  id: string;
-  email: string;
-  ad: string;
-  rol: string;
-  aktif: boolean;
-  olusturma: string;
-  guncelleme: string;
 }
 
 interface OfflineLogKayit {
@@ -113,7 +108,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
 
   if (p.includes('/moduller')) return offlineModulListe();
   if (p.includes('/kullanicilar/siteler')) return { siteler: [] };
-  if (p.includes('/kullanicilar')) return { kullanicilar: offlineKullaniciOku() };
+  if (p.includes('/kullanicilar')) return { kullanicilar: offlineKullanicilariOku().map(offlineKullaniciPanelYanit) };
   if (p.includes('/sayfalar') || p.endsWith('/menu')) return { sayfalar: [] };
   if (p.includes('/roller/yetkiler')) return { yetkiler: [...OFFLINE_YETKILER] };
   if (p.includes('/roller')) return { roller: OFFLINE_ROLLER, yetkiler: [...OFFLINE_YETKILER], moduller: offlineModulOku() };
@@ -251,87 +246,101 @@ function offlineModulYaz(body: BodyInit | null | undefined, method: string, path
   return { mesaj: 'Kayit (offline mod)' };
 }
 
-function offlineKullaniciVarsayilan(): OfflinePanelKullanici[] {
-  const simdi = new Date().toISOString();
-  const oturum = offlineKullanici();
-  return [
-    {
-      id: String(oturum.id),
-      email: oturum.kullaniciKodu ?? '',
-      ad: oturum.ad,
-      rol: oturum.rol,
-      aktif: true,
-      olusturma: simdi,
-      guncelleme: simdi,
-    },
-  ];
-}
-
-function offlineKullaniciOku(): OfflinePanelKullanici[] {
-  try {
-    const ham = localStorage.getItem(OFFLINE_KULLANICI_ANAHTAR);
-    if (ham) return JSON.parse(ham) as OfflinePanelKullanici[];
-  } catch {
-    /* bozuk kayit */
-  }
-  return offlineKullaniciVarsayilan();
-}
-
-function offlineKullaniciKaydet(liste: OfflinePanelKullanici[]) {
-  localStorage.setItem(OFFLINE_KULLANICI_ANAHTAR, JSON.stringify(liste));
-}
-
 function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, path: string) {
-  const liste = offlineKullaniciOku();
+  const liste = offlineKullanicilariOku();
   const simdi = new Date().toISOString();
 
   if (method === 'POST' && typeof body === 'string') {
-    const girdi = JSON.parse(body) as { ad?: string; email?: string; rol?: string; aktif?: boolean };
-    const email = girdi.email?.trim().toLowerCase() ?? '';
-    if (!email || !girdi.ad?.trim() || !girdi.rol?.trim()) {
+    const girdi = JSON.parse(body) as {
+      ad?: string;
+      kullaniciKodu?: string;
+      email?: string;
+      sifre?: string;
+      rol?: string;
+      aktif?: boolean;
+      firmaId?: number | string;
+      donemId?: number | string | null;
+      subeId?: number | string | null;
+      depoId?: number | string | null;
+      kasaId?: number | string | null;
+      pin?: string | null;
+    };
+    const kullaniciKodu = String(girdi.kullaniciKodu ?? girdi.email ?? '')
+      .trim()
+      .toUpperCase();
+    const sifre = String(girdi.sifre ?? '').trim();
+    if (!kullaniciKodu || !girdi.ad?.trim() || !sifre || !girdi.rol?.trim()) {
       return { mesaj: 'Zorunlu alanlar eksik' };
     }
-    if (liste.some((k) => k.email.toLowerCase() === email)) {
-      return { mesaj: 'Bu E-Posta zaten kayıtlı' };
+    if (liste.some((k) => k.kullaniciKodu === kullaniciKodu)) {
+      return { mesaj: 'Bu kullanıcı kodu zaten kayıtlı' };
     }
-    const kullanici: OfflinePanelKullanici = {
+    const kullanici: OfflineKullaniciKayit = {
       id: String(Math.max(0, ...liste.map((k) => Number(k.id) || 0)) + 1),
       ad: girdi.ad.trim(),
-      email,
+      kullaniciKodu,
+      sifre,
       rol: girdi.rol.trim(),
       aktif: girdi.aktif !== false,
+      firmaId: girdi.firmaId != null ? String(girdi.firmaId) : '1',
+      donemId: girdi.donemId != null && girdi.donemId !== '' ? String(girdi.donemId) : '',
+      subeId: girdi.subeId != null && girdi.subeId !== '' ? String(girdi.subeId) : '',
+      depoId: girdi.depoId != null && girdi.depoId !== '' ? String(girdi.depoId) : '',
+      kasaId: girdi.kasaId != null && girdi.kasaId !== '' ? String(girdi.kasaId) : '',
+      pin: girdi.pin != null ? String(girdi.pin) : '',
       olusturma: simdi,
       guncelleme: simdi,
     };
-    offlineKullaniciKaydet([...liste, kullanici]);
-    return { kullanici };
+    offlineKullanicilariKaydet([...liste, kullanici]);
+    return { kullanici: offlineKullaniciPanelYanit(kullanici) };
   }
 
   if ((method === 'PUT' || method === 'PATCH') && typeof body === 'string') {
     const id = path.split('/').pop() ?? '';
-    const girdi = JSON.parse(body) as { ad?: string; email?: string; rol?: string; aktif?: boolean };
+    const girdi = JSON.parse(body) as {
+      ad?: string;
+      kullaniciKodu?: string;
+      email?: string;
+      sifre?: string;
+      rol?: string;
+      aktif?: boolean;
+      firmaId?: number | string;
+      donemId?: number | string | null;
+      subeId?: number | string | null;
+      depoId?: number | string | null;
+      kasaId?: number | string | null;
+      pin?: string | null;
+    };
     const idx = liste.findIndex((k) => k.id === id);
     if (idx < 0) return { mesaj: 'Kullanici bulunamadi' };
 
-    if (girdi.email) {
-      const email = girdi.email.trim().toLowerCase();
-      if (liste.some((k) => k.id !== id && k.email.toLowerCase() === email)) {
-        return { mesaj: 'Bu E-Posta zaten kayıtlı' };
+    const yeniKod = girdi.kullaniciKodu ?? girdi.email;
+    if (yeniKod) {
+      const kod = yeniKod.trim().toUpperCase();
+      if (liste.some((k) => k.id !== id && k.kullaniciKodu === kod)) {
+        return { mesaj: 'Bu kullanıcı kodu zaten kayıtlı' };
       }
     }
 
-    const guncel: OfflinePanelKullanici = {
+    const guncel: OfflineKullaniciKayit = {
       ...liste[idx],
       ...(girdi.ad !== undefined ? { ad: girdi.ad.trim() } : {}),
-      ...(girdi.email !== undefined ? { email: girdi.email.trim().toLowerCase() } : {}),
+      ...(yeniKod !== undefined ? { kullaniciKodu: yeniKod.trim().toUpperCase() } : {}),
+      ...(girdi.sifre?.trim() ? { sifre: girdi.sifre.trim() } : {}),
       ...(girdi.rol !== undefined ? { rol: girdi.rol.trim() } : {}),
       ...('aktif' in girdi ? { aktif: Boolean(girdi.aktif) } : {}),
+      ...('firmaId' in girdi && girdi.firmaId != null ? { firmaId: String(girdi.firmaId) } : {}),
+      ...('donemId' in girdi ? { donemId: girdi.donemId != null && girdi.donemId !== '' ? String(girdi.donemId) : '' } : {}),
+      ...('subeId' in girdi ? { subeId: girdi.subeId != null && girdi.subeId !== '' ? String(girdi.subeId) : '' } : {}),
+      ...('depoId' in girdi ? { depoId: girdi.depoId != null && girdi.depoId !== '' ? String(girdi.depoId) : '' } : {}),
+      ...('kasaId' in girdi ? { kasaId: girdi.kasaId != null && girdi.kasaId !== '' ? String(girdi.kasaId) : '' } : {}),
+      ...('pin' in girdi ? { pin: girdi.pin != null ? String(girdi.pin) : '' } : {}),
       guncelleme: simdi,
     };
     const yeni = [...liste];
     yeni[idx] = guncel;
-    offlineKullaniciKaydet(yeni);
-    return { kullanici: guncel };
+    offlineKullanicilariKaydet(yeni);
+    return { kullanici: offlineKullaniciPanelYanit(guncel) };
   }
 
   if (method === 'DELETE') {
@@ -339,7 +348,7 @@ function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, 
     if (id === '1') return { mesaj: 'Varsayilan admin silinemez' };
     const yeni = liste.filter((k) => k.id !== id);
     if (yeni.length === liste.length) return { mesaj: 'Kullanici bulunamadi' };
-    offlineKullaniciKaydet(yeni);
+    offlineKullanicilariKaydet(yeni);
     return { mesaj: 'Silindi' };
   }
 

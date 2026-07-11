@@ -9,6 +9,12 @@ import { authZorunlu } from '../middleware/auth.js';
 const router = Router();
 router.use(authZorunlu);
 
+function sayiAl(deger: unknown): number | null {
+  if (deger === null || deger === undefined || deger === '') return null;
+  const n = Number(deger);
+  return Number.isFinite(n) ? n : null;
+}
+
 router.get('/', async (_req: AuthRequest, res: Response) => {
   const kullanicilar = await prisma.kullanici.findMany({
     orderBy: { kayitTarihi: 'desc' },
@@ -23,11 +29,16 @@ router.get('/siteler', (_req: AuthRequest, res: Response) => {
 
 router.post('/', async (req: AuthRequest, res: Response) => {
   const body = req.body as Record<string, unknown>;
-  const kullaniciKodu = String(body.kullaniciKodu ?? '').trim().toUpperCase();
+  const kullaniciKodu = String(body.kullaniciKodu ?? body.email ?? '').trim().toUpperCase();
   const ad = String(body.ad ?? body.adSoyad ?? '').trim();
   const sifre = String(body.sifre ?? '').trim();
   const rol = String(body.rol ?? 'EDITOR');
-  const firmaId = Number(body.firmaId ?? req.kullanici?.firmaId ?? 1);
+  const firmaId = sayiAl(body.firmaId) ?? req.kullanici?.firmaId ?? 1;
+  const donemId = sayiAl(body.donemId);
+  const subeId = sayiAl(body.subeId);
+  const depoId = sayiAl(body.depoId);
+  const kasaId = sayiAl(body.kasaId);
+  const pin = body.pin != null && String(body.pin).trim() ? String(body.pin).trim() : null;
 
   if (!kullaniciKodu || !ad || !sifre) {
     return res.status(400).json({ mesaj: 'Zorunlu alanlar eksik' });
@@ -36,9 +47,14 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   const kullanici = await prisma.kullanici.create({
     data: {
       firmaId,
+      donemId,
+      subeId,
+      depoId,
+      kasaId,
       kullaniciKodu,
       adSoyad: ad,
       sifreHash: sifreHashle(sifre),
+      pin,
       rol,
       durum: body.aktif !== false,
     },
@@ -53,21 +69,25 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const id = Number(req.params.id);
-  const { kullaniciKodu, ad, adSoyad, sifre, rol, aktif } = req.body as {
-    kullaniciKodu?: string;
-    ad?: string;
-    adSoyad?: string;
-    sifre?: string;
-    rol?: string;
-    aktif?: boolean;
-  };
+  const body = req.body as Record<string, unknown>;
 
   const veri: Record<string, unknown> = {};
-  if (kullaniciKodu) veri.kullaniciKodu = kullaniciKodu.trim().toUpperCase();
-  if (ad || adSoyad) veri.adSoyad = (ad ?? adSoyad)!.trim();
-  if (rol) veri.rol = rol;
-  if (aktif !== undefined) veri.durum = aktif;
-  if (sifre?.trim()) veri.sifreHash = sifreHashle(sifre);
+  if (body.kullaniciKodu) veri.kullaniciKodu = String(body.kullaniciKodu).trim().toUpperCase();
+  if (body.ad || body.adSoyad) veri.adSoyad = String(body.ad ?? body.adSoyad).trim();
+  if (body.rol) veri.rol = String(body.rol);
+  if (body.aktif !== undefined) veri.durum = body.aktif;
+  if (body.sifre && String(body.sifre).trim()) veri.sifreHash = sifreHashle(String(body.sifre).trim());
+  if ('firmaId' in body) {
+    const firmaId = sayiAl(body.firmaId);
+    if (firmaId) veri.firmaId = firmaId;
+  }
+  if ('donemId' in body) veri.donemId = sayiAl(body.donemId);
+  if ('subeId' in body) veri.subeId = sayiAl(body.subeId);
+  if ('depoId' in body) veri.depoId = sayiAl(body.depoId);
+  if ('kasaId' in body) veri.kasaId = sayiAl(body.kasaId);
+  if ('pin' in body) {
+    veri.pin = body.pin != null && String(body.pin).trim() ? String(body.pin).trim() : null;
+  }
 
   const kullanici = await prisma.kullanici.update({
     where: { id },

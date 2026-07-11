@@ -3,7 +3,6 @@ import type { AuthKullanici, GirisFormu, KullaniciTercihleri } from '@/admin/ort
 import {
   benGetir,
   girisYap,
-  offlineKullanici,
   profilGuncelle,
   tercihlerKaydet,
   tokenAl,
@@ -11,6 +10,7 @@ import {
   tokenSil,
   type ProfilGuncelleForm,
 } from '@/admin/ortak/api/authApi';
+import { offlineOturumTemizle } from '@/admin/ortak/api/offlineKullaniciDepo';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 
 interface AuthContextDeger {
@@ -30,8 +30,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (BACKEND_YOK) {
-      if (!tokenAl()) tokenKaydet('offline-token');
-      setKullanici(offlineKullanici());
+      const token = tokenAl();
+      if (token === 'offline-token') {
+        benGetir()
+          .then(setKullanici)
+          .catch(() => {
+            tokenSil();
+            offlineOturumTemizle();
+          })
+          .finally(() => setYukleniyor(false));
+        return;
+      }
       setYukleniyor(false);
       return;
     }
@@ -61,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function cikis() {
     tokenSil();
+    offlineOturumTemizle();
     setKullanici(null);
   }
 

@@ -7,6 +7,15 @@ import type {
 } from '@/admin/ortak/tipler/admin';
 import { jsonYanitOku } from '@/araclar/jsonFetch';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
+import {
+  offlineAktifKullaniciKodlari,
+  offlineGirisDogrula,
+  offlineKullanicilariOku,
+  offlineOturumKaydet,
+  offlineOturumOku,
+  offlineOturumTemizle,
+  type OfflineKullaniciKayit,
+} from '@/admin/ortak/api/offlineKullaniciDepo';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 const TOKEN_KEY = 'gt_admin_token';
@@ -75,8 +84,20 @@ const OFFLINE_OTURUM_SECENEKLERI: OturumSecenekleriYanit = {
       ],
     },
   ],
-  kullaniciKodlari: ['ADMIN'],
+  kullaniciKodlari: offlineAktifKullaniciKodlari(),
 };
+
+function offlineAuthKullaniciOlustur(kayit: OfflineKullaniciKayit): AuthKullanici {
+  return {
+    id: kayit.id,
+    kullaniciKodu: kayit.kullaniciKodu,
+    ad: kayit.ad,
+    rol: kayit.rol,
+    tercihler: { dashboardHizliErisim: hizliErisimOku(kayit.id) },
+    yetkiler: [],
+    oturum: OFFLINE_KULLANICI.oturum,
+  };
+}
 
 const OFFLINE_KULLANICI: AuthKullanici = {
   id: '1',
@@ -123,14 +144,21 @@ export function tokenSil() {
 }
 
 export function offlineKullanici(kullaniciKodu?: string): AuthKullanici {
+  const kod = kullaniciKodu?.trim().toUpperCase();
+  const kayit = kod
+    ? offlineKullanicilariOku().find((k) => k.kullaniciKodu === kod)
+    : offlineKullanicilariOku()[0];
+  if (kayit) return offlineAuthKullaniciOlustur(kayit);
   return {
     ...OFFLINE_KULLANICI,
-    kullaniciKodu: kullaniciKodu?.trim().toUpperCase() || OFFLINE_KULLANICI.kullaniciKodu,
+    kullaniciKodu: kod || OFFLINE_KULLANICI.kullaniciKodu,
   };
 }
 
 export async function oturumSecenekleriGetir(): Promise<OturumSecenekleriYanit> {
-  if (authOfflineMi()) return OFFLINE_OTURUM_SECENEKLERI;
+  if (authOfflineMi()) {
+    return { ...OFFLINE_OTURUM_SECENEKLERI, kullaniciKodlari: offlineAktifKullaniciKodlari() };
+  }
 
   try {
     const yanit = await fetch(`${API_URL}/admin/auth/oturum-secenekleri`);
@@ -144,7 +172,7 @@ export async function oturumSecenekleriGetir(): Promise<OturumSecenekleriYanit> 
   } catch (err) {
     if (authApiKullanilamazMi(err)) {
       authOfflineAyarla();
-      return OFFLINE_OTURUM_SECENEKLERI;
+      return { ...OFFLINE_OTURUM_SECENEKLERI, kullaniciKodlari: offlineAktifKullaniciKodlari() };
     }
     throw err;
   }
@@ -152,7 +180,10 @@ export async function oturumSecenekleriGetir(): Promise<OturumSecenekleriYanit> 
 
 export async function girisYap(form: GirisFormu): Promise<AuthYanit> {
   if (authOfflineMi()) {
-    return { token: 'offline-token', kullanici: offlineKullanici(form.kullaniciKodu) };
+    const kayit = offlineGirisDogrula(form.kullaniciKodu, form.sifre);
+    if (!kayit) throw new Error('Geçersiz kullanıcı veya şifre');
+    offlineOturumKaydet(kayit.kullaniciKodu);
+    return { token: 'offline-token', kullanici: offlineAuthKullaniciOlustur(kayit) };
   }
 
   try {
@@ -171,7 +202,10 @@ export async function girisYap(form: GirisFormu): Promise<AuthYanit> {
 
     if (yanit.status === 404) {
       authOfflineAyarla();
-      return { token: 'offline-token', kullanici: offlineKullanici(form.kullaniciKodu) };
+      const kayit = offlineGirisDogrula(form.kullaniciKodu, form.sifre);
+      if (!kayit) throw new Error('Geçersiz kullanıcı veya şifre');
+      offlineOturumKaydet(kayit.kullaniciKodu);
+      return { token: 'offline-token', kullanici: offlineAuthKullaniciOlustur(kayit) };
     }
 
     const veri = await jsonYanitOku<{ mesaj?: string } & AuthYanit>(yanit);
@@ -180,7 +214,10 @@ export async function girisYap(form: GirisFormu): Promise<AuthYanit> {
   } catch (err) {
     if (authApiKullanilamazMi(err)) {
       authOfflineAyarla();
-      return { token: 'offline-token', kullanici: offlineKullanici(form.kullaniciKodu) };
+      const kayit = offlineGirisDogrula(form.kullaniciKodu, form.sifre);
+      if (!kayit) throw new Error('Geçersiz kullanıcı veya şifre');
+      offlineOturumKaydet(kayit.kullaniciKodu);
+      return { token: 'offline-token', kullanici: offlineAuthKullaniciOlustur(kayit) };
     }
     throw err;
   }
@@ -191,7 +228,14 @@ export async function benGetir(): Promise<AuthKullanici> {
   if (!token) throw new Error('Token yok');
 
   if (authOfflineMi()) {
-    return offlineKullanici();
+    const kod = offlineOturumOku();
+    if (!kod) throw new Error('Oturum yok');
+    const kayit = offlineKullanicilariOku().find((k) => k.kullaniciKodu === kod);
+    if (!kayit || !kayit.aktif) {
+      offlineOturumTemizle();
+      throw new Error('Oturum geçersiz');
+    }
+    return offlineAuthKullaniciOlustur(kayit);
   }
 
   try {
@@ -201,7 +245,11 @@ export async function benGetir(): Promise<AuthKullanici> {
 
     if (yanit.status === 404) {
       authOfflineAyarla();
-      return offlineKullanici();
+      const kod = offlineOturumOku();
+      if (!kod) throw new Error('Oturum yok');
+      const kayit = offlineKullanicilariOku().find((k) => k.kullaniciKodu === kod);
+      if (!kayit) throw new Error('Oturum geçersiz');
+      return offlineAuthKullaniciOlustur(kayit);
     }
 
     const veri = await jsonYanitOku<{ mesaj?: string; kullanici: AuthKullanici }>(yanit);
@@ -210,7 +258,11 @@ export async function benGetir(): Promise<AuthKullanici> {
   } catch (err) {
     if (authApiKullanilamazMi(err)) {
       authOfflineAyarla();
-      return offlineKullanici();
+      const kod = offlineOturumOku();
+      if (!kod) throw new Error('Oturum yok');
+      const kayit = offlineKullanicilariOku().find((k) => k.kullaniciKodu === kod);
+      if (!kayit) throw new Error('Oturum geçersiz');
+      return offlineAuthKullaniciOlustur(kayit);
     }
     throw err;
   }

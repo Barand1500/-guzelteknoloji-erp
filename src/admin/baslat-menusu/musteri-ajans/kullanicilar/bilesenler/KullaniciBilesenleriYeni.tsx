@@ -1,9 +1,11 @@
 import type { AdminKullanici, KullaniciFormDegeri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
 import type { AtanabilirRol } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleri';
+import { KullaniciOturumCubugu } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciOturumCubugu';
+import type { KullaniciOturumSecenekleri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/kullaniciOturumYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 
-function basHarf(ad: string, email: string): string {
-  const kaynak = ad.trim() || email.trim();
+function basHarf(ad: string, kullaniciKodu: string): string {
+  const kaynak = ad.trim() || kullaniciKodu.trim();
   return (kaynak[0] ?? '?').toUpperCase();
 }
 
@@ -42,10 +44,10 @@ export function KullaniciListesiYeni({
               onClick={() => onSec(k)}
             >
               <span className="ap-kullanici-yeni-avatar" aria-hidden>
-                {basHarf(k.ad, k.email)}
+                {basHarf(k.ad, k.kullaniciKodu)}
               </span>
               <span className="ap-kullanici-yeni-ad">{k.ad}</span>
-              <span className="ap-kullanici-yeni-email">{k.email}</span>
+              <span className="ap-kullanici-yeni-email">{k.kullaniciKodu}</span>
               <span className="ap-kullanici-yeni-kart-alt">
                 <span className="ap-kullanici-yeni-rol">{rolBasliklari[k.rol] ?? k.rol}</span>
                 {!k.aktif && <span className="ap-kullanici-yeni-durum">Pasif</span>}
@@ -62,6 +64,7 @@ interface KullaniciDuzenleFormuYeniProps {
   form: KullaniciFormDegeri;
   seciliId: string | null;
   atanabilirRoller: AtanabilirRol[];
+  oturumSecenekleri: KullaniciOturumSecenekleri;
   onSifreDegisti: (v: boolean) => void;
   onChange: (form: KullaniciFormDegeri) => void;
 }
@@ -70,77 +73,82 @@ export function KullaniciDuzenleFormuYeni({
   form,
   seciliId,
   atanabilirRoller,
+  oturumSecenekleri,
   onSifreDegisti,
   onChange,
 }: KullaniciDuzenleFormuYeniProps) {
   return (
     <div className="ap-kullanici-yeni-form">
-      <label className="ap-kullanici-yeni-alan">
-        <span className="ap-kullanici-yeni-etiket">Ad Soyad</span>
-        <input
-          className="ap-kullanici-yeni-input"
-          placeholder="Ad Soyad"
-          value={form.ad}
-          onChange={(e) => onChange({ ...form, ad: e.target.value })}
-          required
-          autoComplete="name"
-        />
-      </label>
-      <label className="ap-kullanici-yeni-alan">
-        <span className="ap-kullanici-yeni-etiket">E-Posta</span>
-        <input
-          className="ap-kullanici-yeni-input"
-          type="email"
-          placeholder="ornek@sirket.com"
-          value={form.email}
-          onChange={(e) => onChange({ ...form, email: e.target.value })}
-          required
-          autoComplete="email"
-        />
-      </label>
-      <label className="ap-kullanici-yeni-alan">
-        <span className="ap-kullanici-yeni-etiket">
-          {seciliId ? 'Yeni şifre' : 'Şifre'}
-        </span>
-        <input
-          className="ap-kullanici-yeni-input"
-          type="password"
-          placeholder={seciliId ? 'Boş bırak = değişmez' : 'En az 6 karakter'}
-          value={form.sifre}
-          onChange={(e) => {
-            onChange({ ...form, sifre: e.target.value });
-            onSifreDegisti(true);
-          }}
-          required={!seciliId}
-          minLength={seciliId ? undefined : 6}
-          autoComplete="new-password"
-        />
-      </label>
-      <label className="ap-kullanici-yeni-alan">
-        <span className="ap-kullanici-yeni-etiket">Rol</span>
-        <FormAcilirSecim
-          aria-label="Kullanıcı rolü"
-          value={form.rol}
-          onChange={(rol) => onChange({ ...form, rol })}
-          secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
-        />
-      </label>
-      <div className="ap-kullanici-yeni-toggle">
-        <div>
-          <p className="ap-kullanici-yeni-etiket">Aktif kullanıcı</p>
-          <p className="ap-kullanici-yeni-aciklama">Pasif kullanıcılar panele giriş yapamaz</p>
+      <div className="ap-kullanici-yeni-form-satir">
+        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--ad">
+          <span className="ap-kullanici-yeni-etiket">Ad Soyad</span>
+          <input
+            className="ap-kullanici-yeni-input"
+            placeholder="Ad Soyad"
+            value={form.ad}
+            onChange={(e) => onChange({ ...form, ad: e.target.value })}
+            required
+            autoComplete="name"
+          />
+        </label>
+        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--kod">
+          <span className="ap-kullanici-yeni-etiket">Kullanıcı Kodu</span>
+          <input
+            className="ap-kullanici-yeni-input"
+            placeholder="ADMIN"
+            value={form.kullaniciKodu}
+            onChange={(e) => onChange({ ...form, kullaniciKodu: e.target.value.toUpperCase() })}
+            required
+            autoComplete="username"
+          />
+        </label>
+        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--sifre">
+          <span className="ap-kullanici-yeni-etiket">
+            {seciliId ? 'Yeni şifre' : 'Şifre'}
+          </span>
+          <input
+            className="ap-kullanici-yeni-input"
+            type="password"
+            placeholder={seciliId ? 'Boş = değişmez' : 'Min 6 karakter'}
+            value={form.sifre}
+            onChange={(e) => {
+              onChange({ ...form, sifre: e.target.value });
+              onSifreDegisti(true);
+            }}
+            required={!seciliId}
+            minLength={seciliId ? undefined : 6}
+            autoComplete="new-password"
+          />
+        </label>
+        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--rol">
+          <span className="ap-kullanici-yeni-etiket">Rol</span>
+          <FormAcilirSecim
+            aria-label="Kullanıcı rolü"
+            value={form.rol}
+            onChange={(rol) => onChange({ ...form, rol })}
+            secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
+          />
+        </label>
+        <div className="ap-kullanici-yeni-toggle ap-kullanici-yeni-toggle--satir">
+          <span className="ap-kullanici-yeni-etiket">Aktif</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={form.aktif}
+            className={`ap-toggle ${form.aktif ? 'ap-toggle-on' : ''}`}
+            aria-label={`Aktif kullanıcı: ${form.aktif ? 'Açık' : 'Kapalı'}`}
+            onClick={() => onChange({ ...form, aktif: !form.aktif })}
+          >
+            <span className="ap-toggle-thumb" />
+          </button>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={form.aktif}
-          className={`ap-toggle ${form.aktif ? 'ap-toggle-on' : ''}`}
-          aria-label={`Aktif kullanıcı: ${form.aktif ? 'Açık' : 'Kapalı'}`}
-          onClick={() => onChange({ ...form, aktif: !form.aktif })}
-        >
-          <span className="ap-toggle-thumb" />
-        </button>
       </div>
+      <KullaniciOturumCubugu
+        form={form}
+        oturumSecenekleri={oturumSecenekleri}
+        onChange={onChange}
+        variant="form-ici-yeni"
+      />
     </div>
   );
 }

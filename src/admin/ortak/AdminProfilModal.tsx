@@ -12,7 +12,6 @@ interface AdminProfilModalProps {
 export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
   const { kullanici, profilKaydet, cikisYap } = useAuth();
   const [ad, setAd] = useState('');
-  const [email, setEmail] = useState('');
   const [mevcutSifre, setMevcutSifre] = useState('');
   const [yeniSifre, setYeniSifre] = useState('');
   const [kaydediliyor, setKaydediliyor] = useState(false);
@@ -24,7 +23,6 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
   useEffect(() => {
     if (!acik || !kullanici) return;
     setAd(kullanici.ad);
-    setEmail(kullanici.email ?? '');
     setMevcutSifre('');
     setYeniSifre('');
     setHata('');
@@ -57,7 +55,6 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
     try {
       await profilKaydet({
         ad,
-        email,
         mevcutSifre: mevcutSifre || undefined,
         yeniSifre: yeniSifre || undefined,
       });
@@ -110,14 +107,12 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
             />
           </FormAlani>
 
-          <FormAlani etiket="E-Posta">
+          <FormAlani etiket="Kullanıcı Kodu">
             <input
-              type="email"
               className={formInputSinifi}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
+              value={kullanici.kullaniciKodu}
+              readOnly
+              aria-readonly="true"
             />
           </FormAlani>
 
