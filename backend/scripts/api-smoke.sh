@@ -87,6 +87,8 @@ check_auth_route "/api/admin/tanimlar/donemler" || FAIL=1
 check_auth_route "/api/admin/tanimlar/subeler" || FAIL=1
 check_auth_route "/api/admin/datagrid-demo/siparis-icerigi" || FAIL=1
 check_auth_route "/api/admin/roller" || FAIL=1
+check_auth_route "/api/admin/kullanici-ayarlari/kisayol" || FAIL=1
+check_auth_route "/api/admin/kullanici-ayarlari/sekme" || FAIL=1
 
 echo ""
 if [ "$FAIL" = "0" ]; then
@@ -97,7 +99,7 @@ else
   echo "Hints:"
   echo "  pm2 logs erp-api --lines 40"
   echo "  grep MOCK_AUTH .env   # production: MOCK_AUTH=0"
-  echo "  ls -la dist/routes/auth.js dist/routes/tanimlar.js"
+  echo "  ls -la dist/routes/kullanici-ayarlari.js dist/routes/auth.js"
   echo "  pm2 delete erp-api; pm2 start ecosystem.config.cjs; pm2 save"
   exit 1
 fi
