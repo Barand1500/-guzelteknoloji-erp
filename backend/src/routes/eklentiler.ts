@@ -22,12 +22,18 @@ function eklentiListesiOlustur() {
 const router = Router();
 router.use(authZorunlu);
 
+/** Express 5 tiplerinde req.params değerleri string | string[] olabilir */
+function paramKod(req: AuthRequest): string {
+  const v = req.params.kod;
+  return Array.isArray(v) ? (v[0] ?? '') : (v ?? '');
+}
+
 router.get('/', (_req: AuthRequest, res: Response) => {
   return res.json({ eklentiler: eklentiListesiOlustur() });
 });
 
 router.post('/:kod/kur', (req: AuthRequest, res: Response) => {
-  const kod = req.params.kod;
+  const kod = paramKod(req);
   if (!EKLENTI_KATALOGU.some((e) => e.kod === kod)) {
     return res.status(404).json({ mesaj: 'Eklenti bulunamadi' });
   }
@@ -36,21 +42,21 @@ router.post('/:kod/kur', (req: AuthRequest, res: Response) => {
 });
 
 router.patch('/:kod/aktif', (req: AuthRequest, res: Response) => {
-  const kod = req.params.kod;
+  const kod = paramKod(req);
   if (!kurulumlar.has(kod)) return res.status(404).json({ mesaj: 'Eklenti kurulu degil' });
   kurulumlar.set(kod, 'aktif');
   return res.json({ mesaj: 'Eklenti etkinlestirildi', eklentiler: eklentiListesiOlustur() });
 });
 
 router.patch('/:kod/pasif', (req: AuthRequest, res: Response) => {
-  const kod = req.params.kod;
+  const kod = paramKod(req);
   if (!kurulumlar.has(kod)) return res.status(404).json({ mesaj: 'Eklenti kurulu degil' });
   kurulumlar.set(kod, 'pasif');
   return res.json({ mesaj: 'Eklenti pasiflestirildi', eklentiler: eklentiListesiOlustur() });
 });
 
 router.delete('/:kod', (req: AuthRequest, res: Response) => {
-  const kod = req.params.kod;
+  const kod = paramKod(req);
   kurulumlar.delete(kod);
   return res.json({ mesaj: 'Eklenti kaldirildi', eklentiler: eklentiListesiOlustur() });
 });
