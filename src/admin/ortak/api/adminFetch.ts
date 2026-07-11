@@ -22,7 +22,10 @@ export function adminHeaders(json = true): HeadersInit {
 }
 
 export async function adminJsonFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  if (BACKEND_YOK || authOfflineMi()) {
+  // Uretimde yalnizca VITE_BACKEND_YOK=true mock acilir; authOfflineMi prod'da kapali
+  const offlineMock =
+    BACKEND_YOK || (!import.meta.env.PROD && authOfflineMi());
+  if (offlineMock) {
     const method = init?.method ?? 'GET';
     return offlineAdminYanit(path, method, init?.body) as T;
   }

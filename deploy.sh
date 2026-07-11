@@ -62,10 +62,10 @@ cd "$SITE/repo"
 npm ci
 if [ "$FRONTEND_MOCK_AUTH" = "1" ]; then
   echo "  Frontend mode: mock auth (VITE_BACKEND_YOK=true)"
-  VITE_API_URL=/api VITE_BACKEND_YOK=true npm run build
+  VITE_API_URL=/api VITE_BACKEND_YOK=true npx vite build
 else
   echo "  Frontend mode: real auth (VITE_BACKEND_YOK=false)"
-  VITE_API_URL=/api VITE_BACKEND_YOK=false npm run build
+  VITE_API_URL=/api VITE_BACKEND_YOK=false npx vite build
 fi
 rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
 FRONTEND_JS="$(grep -oE 'index-[^"]+\.js' "$SITE/frontend/index.html" | head -1 || true)"
@@ -133,6 +133,9 @@ else
   pm2 start ecosystem.config.cjs
 fi
 pm2 save
+
+# Yerel saglik kontrolu — PM2 restart sonrasi kisa bekleme
+sleep 2
 
 echo ""
 if [ "$DB_OK" = "1" ]; then
