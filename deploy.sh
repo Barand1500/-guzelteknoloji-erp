@@ -135,7 +135,7 @@ if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
 fi
 sleep 1
 if [ -x scripts/api-port-serbest.sh ]; then
-  API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
+  BACKEND_DIR="$SITE/backend" API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
 fi
 sleep 1
 pm2 start ecosystem.config.cjs
@@ -145,6 +145,14 @@ pm2 save
 sleep 2
 if pm2 describe "$PM2_NAME" 2>/dev/null | grep -qE 'status.*online'; then
   echo "  PM2 ${PM2_NAME}: online"
+  HEALTH_PM2="$(curl -sf "http://127.0.0.1:${API_PORT}/api/health" 2>/dev/null || echo '')"
+  if echo "$HEALTH_PM2" | grep -q '"kullaniciAyarlari"'; then
+    echo "  PM2 health: guncel backend"
+  else
+    echo "  UYARI: PM2 online ama health eski — CloudPanel Node.js port ${API_PORT}'u kapmis olabilir"
+    echo "  CloudPanel → Site → Node.js uygulamasini KAPATIN"
+    echo "  Sonra: cd $SITE/backend && bash scripts/sunucu-api-duzelt.sh"
+  fi
 else
   echo "  UYARI: PM2 ${PM2_NAME} online degil — pm2 logs ${PM2_NAME} --lines 30"
 fi

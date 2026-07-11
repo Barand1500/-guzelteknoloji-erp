@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # CloudPanel Node.js + PM2 cakismasini giderir; 3007'de guncel erp-api'yi baslatir.
+# Deploy zaten basariliysa TEKRAR calistirmayin — yalnizca PM2 errored / kisayol 404 ise.
 # Kullanim: cd ~/htdocs/erp.guzelteknoloji.com/backend && bash scripts/sunucu-api-duzelt.sh
 set -euo pipefail
 
@@ -41,7 +42,7 @@ fi
 sleep 1
 chmod +x scripts/api-port-serbest.sh 2>/dev/null || true
 if [ -x scripts/api-port-serbest.sh ]; then
-  API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
+  BACKEND_DIR="$BACKEND_DIR" API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
 fi
 sleep 1
 
@@ -58,15 +59,24 @@ pm2 status "$PM2_NAME" || true
 LOCAL_KISAYOL="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
 LOCAL_KULL="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/kullanicilar" 2>/dev/null || echo 000)"
 PUB_KISAYOL="$(curl -sS -o /dev/null -w '%{http_code}' "${PUBLIC_URL}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
+HEALTH_BODY="$(curl -sf "http://127.0.0.1:${API_PORT}/api/health" 2>/dev/null || echo '{}')"
 
 echo "  Yerel kisayol:     HTTP $LOCAL_KISAYOL (beklenen 401)"
 echo "  Yerel kullanicilar: HTTP $LOCAL_KULL (beklenen 401)"
 echo "  Public kisayol:    HTTP $PUB_KISAYOL (beklenen 401)"
+echo "  Health:            $HEALTH_BODY"
 
 OK=1
 if ! pm2 describe "$PM2_NAME" 2>/dev/null | grep -qE 'status.*online'; then
   echo ""
   echo "  HATA: PM2 online degil. pm2 logs $PM2_NAME --lines 30"
+  OK=0
+fi
+if ! echo "$HEALTH_BODY" | grep -q '"kullaniciAyarlari"'; then
+  echo ""
+  echo "  HATA: 3007 portunda PM2 degil, CloudPanel Node.js (veya eski process) calisiyor."
+  echo "  Health yanitinda ozellikler.kullaniciAyarlari olmali."
+  echo "  CloudPanel → Site → Node.js uygulamasini KAPATIN, sonra bu scripti tekrar calistirin."
   OK=0
 fi
 if [ "$LOCAL_KISAYOL" != "401" ]; then
