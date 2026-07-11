@@ -39,6 +39,13 @@ check_get() {
 
 FAIL=0
 check_get "/api/health" '"durum"' || FAIL=1
+HEALTH="$(curl -sS "${BASE}/api/health" 2>/dev/null || true)"
+if echo "$HEALTH" | grep -q '"dbTuru":"erp"'; then
+  echo "  OK   dbTuru=erp"
+else
+  echo "  WARN dbTuru erp degil: ${HEALTH}"
+  FAIL=1
+fi
 check_get "/health" '"durum"' || FAIL=1
 check_get "/api/admin/auth/oturum-secenekleri" '"firmalar"' || FAIL=1
 check_get "/admin/auth/oturum-secenekleri" '"firmalar"' || FAIL=1

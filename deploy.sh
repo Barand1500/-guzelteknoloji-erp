@@ -50,6 +50,16 @@ api_get_check() {
   return 1
 }
 
+port_serbest_birak() {
+  local port="$1"
+  if command -v fuser >/dev/null 2>&1; then
+    fuser -k "${port}/tcp" 2>/dev/null || true
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -ti ":${port}" 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+  fi
+  sleep 1
+}
+
 echo ""
 echo "=== GUZEL TEKNOLOJI ERP - DEPLOY START ==="
 echo "  Site: $SITE"
@@ -150,9 +160,10 @@ fi
 echo "[6/6] Restarting PM2 ($PM2_NAME on $API_PORT) ..."
 cd "$SITE/backend"
 pm2 delete "$PM2_NAME" 2>/dev/null || true
+port_serbest_birak "$API_PORT"
 pm2 start ecosystem.config.cjs
 pm2 save
-sleep 2
+sleep 3
 
 echo ""
 if [ "$DB_OK" = "1" ]; then
@@ -164,9 +175,19 @@ fi
 echo ""
 echo "API checks (127.0.0.1:${API_PORT}) ..."
 OTURUM_OK=0
+HEALTH_OK=0
 
 if api_get_check "/api/health" '"durum"'; then
-  :
+  HEALTH_OK=1
+  HEALTH_BODY="$(curl -sS "http://127.0.0.1:${API_PORT}/api/health" 2>/dev/null || true)"
+  if echo "$HEALTH_BODY" | grep -q '"dbTuru":"erp"'; then
+    echo "  OK  dbTuru=erp (yeni backend)"
+  else
+    echo "  WARN dbTuru erp degil — port ${API_PORT} baska uygulama tarafindan kullaniliyor olabilir"
+    echo "       ${HEALTH_BODY}"
+    echo "  -> ss -ltnp | grep :${API_PORT}"
+    echo "  -> pm2 list"
+  fi
 else
   echo "  -> pm2 logs ${PM2_NAME} --lines 40"
 fi
