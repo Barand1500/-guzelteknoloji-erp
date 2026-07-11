@@ -99,11 +99,21 @@ cd ~/htdocs/erp.guzelteknoloji.com
 
 **Nginx (502 hatası için zorunlu):** CloudPanel → Site → Vhost → Nginx Directives içine `nginx-api.conf.example` dosyasındaki `location /api` bloğunu ekleyin.
 
-**İlk kurulum / sorun giderme:**
+**İlk kurulum (PM2 yoksa önce bunu yapın):**
 
 ```bash
 cd ~/htdocs/erp.guzelteknoloji.com
 cp repo/backend/.env.example backend/.env   # DATABASE_URL, JWT_SECRET doldurun
+./deploy.sh                                 # PM2 yoksa deploy otomatik kurar
+# veya sadece PM2: cd backend && bash scripts/pm2-kur.sh
+pm2 startup                                 # bir kez — reboot sonrasi otomatik baslat
+pm2 save
+```
+
+**Sorun giderme:**
+
+```bash
+cd ~/htdocs/erp.guzelteknoloji.com
 FRONTEND_MOCK_AUTH=0 ./deploy.sh
 cd backend && bash scripts/sunucu-baglanti.sh
 ```

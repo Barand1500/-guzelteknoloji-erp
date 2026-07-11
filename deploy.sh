@@ -110,6 +110,11 @@ fi
 
 echo "[6/6] Restarting PM2 ($PM2_NAME on $API_PORT) ..."
 cd "$SITE/backend"
+if ! command -v pm2 >/dev/null 2>&1; then
+  echo "  PM2 bulunamadi — global kurulum ..."
+  npm install -g pm2
+fi
+chmod +x scripts/pm2-kur.sh 2>/dev/null || true
 if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
   pm2 restart "$PM2_NAME" --update-env
 else
