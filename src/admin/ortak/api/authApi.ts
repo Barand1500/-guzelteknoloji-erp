@@ -22,8 +22,14 @@ const TOKEN_KEY = 'gt_admin_token';
 const HIZLI_ERISIM_KEY = 'gt_admin_hizli_erisim';
 const AUTH_OFFLINE_KEY = 'gt_auth_offline';
 
-function authOfflineMi(): boolean {
+/** Uretimde (VITE_BACKEND_YOK=false) offline fallback kapali — karisik oturum onlenir. */
+function offlineFallbackAktif(): boolean {
+  return BACKEND_YOK || !import.meta.env.PROD;
+}
+
+export function authOfflineMi(): boolean {
   if (BACKEND_YOK) return true;
+  if (import.meta.env.PROD) return false;
   try {
     return sessionStorage.getItem(AUTH_OFFLINE_KEY) === '1';
   } catch {
@@ -31,7 +37,16 @@ function authOfflineMi(): boolean {
   }
 }
 
+export function authOfflineTemizle() {
+  try {
+    sessionStorage.removeItem(AUTH_OFFLINE_KEY);
+  } catch {
+    /* storage yok */
+  }
+}
+
 function authOfflineAyarla() {
+  if (!offlineFallbackAktif()) return;
   try {
     sessionStorage.setItem(AUTH_OFFLINE_KEY, '1');
   } catch {
@@ -210,6 +225,7 @@ export async function girisYap(form: GirisFormu): Promise<AuthYanit> {
 
     const veri = await jsonYanitOku<{ mesaj?: string } & AuthYanit>(yanit);
     if (!yanit.ok) throw new Error(veri.mesaj ?? 'Giris basarisiz');
+    authOfflineTemizle();
     return { ...veri, kullanici: kullaniciTercihleriEkle(veri.kullanici) };
   } catch (err) {
     if (authApiKullanilamazMi(err)) {

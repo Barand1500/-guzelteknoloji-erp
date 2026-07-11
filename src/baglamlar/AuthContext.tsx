@@ -3,6 +3,7 @@ import type { AuthKullanici, GirisFormu, KullaniciTercihleri } from '@/admin/ort
 import {
   benGetir,
   girisYap,
+  authOfflineTemizle,
   profilGuncelle,
   tercihlerKaydet,
   tokenAl,
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (tokenAl() === 'offline-token') {
       tokenSil();
     }
+    authOfflineTemizle();
 
     const token = tokenAl();
     if (!token) {
@@ -64,12 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function giris(form: GirisFormu) {
     const sonuc = await girisYap(form);
+    authOfflineTemizle();
     tokenKaydet(sonuc.token);
     setKullanici(sonuc.kullanici);
   }
 
   function cikis() {
     tokenSil();
+    authOfflineTemizle();
     offlineOturumTemizle();
     setKullanici(null);
   }

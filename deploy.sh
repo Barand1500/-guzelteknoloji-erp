@@ -50,6 +50,46 @@ api_get_check() {
   return 1
 }
 
+api_auth_route_check() {
+  local path="$1"
+  local raw code body
+  raw="$(curl -sS -w $'\nHTTP_CODE:%{http_code}' "http://127.0.0.1:${API_PORT}${path}" 2>/dev/null || echo $'\nHTTP_CODE:000')"
+  code="${raw##*HTTP_CODE:}"
+  body="${raw%HTTP_CODE:*}"
+  body="$(echo "$body" | tr -d '\r')"
+  if [ "$code" = "401" ]; then
+    echo "  OK  ${path} (HTTP ${code} — route mevcut)"
+    return 0
+  fi
+  if [ "$code" = "404" ] && echo "$body" | grep -q 'Endpoint bulunamadi'; then
+    echo "  FAIL ${path} (HTTP 404 — route eksik)"
+    return 1
+  fi
+  echo "  FAIL ${path} (HTTP ${code}, beklenen 401)"
+  if [ -n "$body" ]; then
+    echo "       $(echo "$body" | head -c 140)"
+  fi
+  return 1
+}
+
+env_dogrula() {
+  local env_file="$1"
+  local hata=0
+  for anahtar in DATABASE_URL JWT_SECRET; do
+    if ! grep -qE "^${anahtar}=.+" "$env_file" 2>/dev/null; then
+      echo "  ERROR: ${anahtar} eksik veya bos — $env_file"
+      hata=1
+    fi
+  done
+  if ! grep -qE '^MOCK_AUTH=(0|false|no)' "$env_file" 2>/dev/null; then
+    echo "  WARNING: MOCK_AUTH=0 degil — production icin gercek DB auth kullanilmali"
+  fi
+  if ! grep -qE '^SEED_ADMIN_PASSWORD=.+' "$env_file" 2>/dev/null; then
+    echo "  WARNING: SEED_ADMIN_PASSWORD yok — sifre sifirlama icin ekleyin"
+  fi
+  return "$hata"
+}
+
 port_serbest_birak() {
   local port="$1"
   if command -v fuser >/dev/null 2>&1; then
@@ -89,6 +129,11 @@ fi
 
 MOCK_AUTH_VAL="$(grep -E '^MOCK_AUTH=' "$SITE/backend/.env" 2>/dev/null | cut -d= -f2- | tr -d ' "' | tr '[:upper:]' '[:lower:]' || true)"
 echo "  backend/.env MOCK_AUTH=${MOCK_AUTH_VAL:-<yok>}"
+echo "  backend/.env dogrulama ..."
+if ! env_dogrula "$SITE/backend/.env"; then
+  echo "ERROR: backend/.env duzeltin ve tekrar calistirin."
+  exit 1
+fi
 if [ "$FRONTEND_MOCK_AUTH" = "0" ] && { [ "$MOCK_AUTH_VAL" = "true" ] || [ "$MOCK_AUTH_VAL" = "1" ] || [ "$MOCK_AUTH_VAL" = "yes" ]; }; then
   echo ""
   echo "  WARNING: Frontend gercek API kullaniyor ama backend MOCK_AUTH acik."
@@ -199,10 +244,30 @@ elif api_get_check "/admin/auth/oturum-secenekleri" '"firmalar"'; then
   echo "  (nginx /api on ekini dusuruyor; /admin yolu calisiyor)"
 fi
 
+ROUTE_OK=1
 echo ""
-if [ "$OTURUM_OK" = "1" ]; then
+echo "Protected routes (401 = OK, 404 = backend eski):"
+api_auth_route_check "/api/admin/kullanicilar" || ROUTE_OK=0
+api_auth_route_check "/api/admin/tanimlar/firmalar" || ROUTE_OK=0
+api_auth_route_check "/api/admin/tanimlar/donemler" || ROUTE_OK=0
+api_auth_route_check "/api/admin/roller" || ROUTE_OK=0
+
+if [ "$ROUTE_OK" = "1" ] && [ -x "$SITE/backend/scripts/api-smoke.sh" ]; then
+  echo ""
+  echo "Tam smoke test ..."
+  (cd "$SITE/backend" && bash scripts/api-smoke.sh) || ROUTE_OK=0
+fi
+
+echo ""
+if [ "$OTURUM_OK" = "1" ] && [ "$ROUTE_OK" = "1" ]; then
   echo "Frontend updated. Hard refresh (Ctrl+Shift+R)."
-  echo "Giris: ADMIN / eRc241016!  (MOCK_AUTH=0 ise DB seed kullanicisi)"
+  echo "Tarayici: Local Storage gt_admin_token silin, Session Storage gt_auth_offline silin."
+  echo "Giris: ADMIN / eRc241016!  (veya backend/.env SEED_ADMIN_PASSWORD)"
+  echo "Sifre unutulduysa: cd $SITE/backend && npm run db:seed"
+elif [ "$OTURUM_OK" = "1" ]; then
+  echo "Login API calisiyor ama bazi route'lar eksik."
+  echo "  cd $SITE/backend && bash scripts/api-smoke.sh"
+  echo "  pm2 logs ${PM2_NAME} --lines 40"
 else
   echo "Login API hazir degil. Tanilama:"
   echo "  cd $SITE/backend && bash scripts/api-smoke.sh"

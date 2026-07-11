@@ -37,6 +37,35 @@ check_get() {
   return 1
 }
 
+# Korunan route var mi? Token olmadan 401 beklenir (404 = route eksik).
+check_auth_route() {
+  local path="$1"
+  local raw code body
+  raw="$(curl -sS -w $'\nHTTP_CODE:%{http_code}' "${BASE}${path}" 2>/dev/null || echo $'\nHTTP_CODE:000')"
+  code="${raw##*HTTP_CODE:}"
+  body="${raw%HTTP_CODE:*}"
+  body="$(echo "$body" | tr -d '\r')"
+
+  if [ "$code" = "401" ]; then
+    echo "  OK   GET ${path} (HTTP ${code} — route mevcut)"
+    return 0
+  fi
+
+  if [ "$code" = "404" ] && echo "$body" | grep -q 'Endpoint bulunamadi'; then
+    echo "  FAIL GET ${path} (HTTP 404 — route eksik, ./deploy.sh yeniden calistirin)"
+    if [ -n "$body" ]; then
+      echo "       $(echo "$body" | head -c 160)"
+    fi
+    return 1
+  fi
+
+  echo "  FAIL GET ${path} (HTTP ${code}, beklenen 401)"
+  if [ -n "$body" ]; then
+    echo "       $(echo "$body" | head -c 160)"
+  fi
+  return 1
+}
+
 FAIL=0
 check_get "/api/health" '"durum"' || FAIL=1
 HEALTH="$(curl -sS "${BASE}/api/health" 2>/dev/null || true)"
@@ -49,6 +78,14 @@ fi
 check_get "/health" '"durum"' || FAIL=1
 check_get "/api/admin/auth/oturum-secenekleri" '"firmalar"' || FAIL=1
 check_get "/admin/auth/oturum-secenekleri" '"firmalar"' || FAIL=1
+
+echo ""
+echo "Protected routes (401 = OK, 404 = eksik backend build):"
+check_auth_route "/api/admin/kullanicilar" || FAIL=1
+check_auth_route "/api/admin/tanimlar/firmalar" || FAIL=1
+check_auth_route "/api/admin/tanimlar/donemler" || FAIL=1
+check_auth_route "/api/admin/tanimlar/subeler" || FAIL=1
+check_auth_route "/api/admin/roller" || FAIL=1
 
 echo ""
 if [ "$FAIL" = "0" ]; then
