@@ -188,10 +188,12 @@ export function TanimKayitlarOzeti() {
       setDepolar(d);
       setKasalar(k);
       setDonemler(dn);
+    } catch (err) {
+      hataBildir(err instanceof Error ? err.message : 'Tanımlar yüklenemedi');
     } finally {
       setYukleniyor(false);
     }
-  }, []);
+  }, [hataBildir]);
 
   useEffect(() => {
     void yukle();

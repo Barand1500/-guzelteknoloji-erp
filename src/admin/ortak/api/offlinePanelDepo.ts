@@ -3,6 +3,7 @@
 const OFFLINE_ANAHTARLAR = [
   'erp-offline-kullanicilar',
   'erp-offline-tanimlar',
+  'erp-offline-datagrid-demo',
   'erp-offline-sistem-ayarlari',
   'erp-offline-moduller',
   'erp-offline-loglar',

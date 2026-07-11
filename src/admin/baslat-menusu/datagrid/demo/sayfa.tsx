@@ -17,6 +17,8 @@ import {
   type SiparisSatiri,
 } from './demoVeri';
 
+import { siparisIcerigiGetir, siparisIcerigiKaydet } from './api';
+
 import { SatirDuzenlePanel } from './SatirDuzenlePanel';
 import { birimEtiketi, birimSecenekleri, gecerliBirim } from './birimVeri';
 import { gecerliParaBirimi, paraBirimiEtiketi, paraBirimiSecenekleri } from './paraBirimiVeri';
@@ -515,6 +517,9 @@ export function DatagridDemoSayfasi() {
   const [kdvDahil, setKdvDahil] = useState(true);
 
   const [yukleniyor, setYukleniyor] = useState(true);
+  const [veritabaniHazir, setVeritabaniHazir] = useState(false);
+  const otomatikKaydetAtlaRef = useRef(true);
+  const kaydetmeZamanlayiciRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [slaytMod, setSlaytMod] = useState<'tablo' | 'arama'>('tablo');
   const [aramaSorgusu, setAramaSorgusu] = useState('');
   const [aramaSonuclari, setAramaSonuclari] = useState<UrunKaydi[]>([]);
@@ -650,17 +655,48 @@ export function DatagridDemoSayfasi() {
 
   useModulAksiyonlari({ sil: seciliSatirlariSil }, { sil: seciliSatirSayisi > 0 });
 
-
+  useEffect(() => {
+    let iptal = false;
+    void (async () => {
+      try {
+        const veri = await siparisIcerigiGetir();
+        if (iptal) return;
+        if (veri.satirlar.length > 0) {
+          setSatirlar(veri.satirlar);
+          setKdvDahil(veri.kdvDahil);
+        }
+      } catch (err) {
+        if (!iptal) {
+          logMesajiAyarla(err instanceof Error ? err.message : 'Sipariş içeriği yüklenemedi');
+        }
+      } finally {
+        if (!iptal) {
+          setYukleniyor(false);
+          setVeritabaniHazir(true);
+        }
+      }
+    })();
+    return () => {
+      iptal = true;
+    };
+  }, [logMesajiAyarla]);
 
   useEffect(() => {
-
-    const t = setTimeout(() => setYukleniyor(false), 400);
-
-    return () => clearTimeout(t);
-
-  }, []);
-
-
+    if (!veritabaniHazir || yukleniyor) return;
+    if (otomatikKaydetAtlaRef.current) {
+      otomatikKaydetAtlaRef.current = false;
+      return;
+    }
+    if (kaydetmeZamanlayiciRef.current) clearTimeout(kaydetmeZamanlayiciRef.current);
+    kaydetmeZamanlayiciRef.current = setTimeout(() => {
+      void siparisIcerigiKaydet({ kdvDahil, satirlar }).catch((err) => {
+        logMesajiAyarla(err instanceof Error ? err.message : 'Kayıt başarısız');
+      });
+    }, 700);
+    return () => {
+      if (kaydetmeZamanlayiciRef.current) clearTimeout(kaydetmeZamanlayiciRef.current);
+    };
+  }, [satirlar, kdvDahil, veritabaniHazir, yukleniyor, logMesajiAyarla]);
 
   useEffect(() => {
     const panel = document.querySelector<HTMLElement>('.ap-modul-panel[data-ap-kesif-modul="datagrid-demo"]');

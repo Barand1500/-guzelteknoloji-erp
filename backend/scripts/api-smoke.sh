@@ -85,6 +85,7 @@ check_auth_route "/api/admin/kullanicilar" || FAIL=1
 check_auth_route "/api/admin/tanimlar/firmalar" || FAIL=1
 check_auth_route "/api/admin/tanimlar/donemler" || FAIL=1
 check_auth_route "/api/admin/tanimlar/subeler" || FAIL=1
+check_auth_route "/api/admin/datagrid-demo/siparis-icerigi" || FAIL=1
 check_auth_route "/api/admin/roller" || FAIL=1
 
 echo ""

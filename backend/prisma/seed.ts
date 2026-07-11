@@ -11,6 +11,7 @@ const PANEL_MODULLERI = [
   { modulAdi: 'Kisayol Ayarlari', prefix: 'kisayol_ayarlari' },
   { modulAdi: 'Loglar', prefix: 'loglar' },
   { modulAdi: 'Veri Yedekleme', prefix: 'veri_yedekleme' },
+  { modulAdi: 'Tanimlar', prefix: 'tanimlar' },
 ];
 
 const SISTEM_ROLLERI = [

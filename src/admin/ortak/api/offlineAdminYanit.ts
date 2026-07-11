@@ -9,6 +9,10 @@ import {
   type OfflineKullaniciKayit,
 } from '@/admin/ortak/api/offlineKullaniciDepo';
 import { offlineTanimlarGetir, offlineTanimlarYaz } from '@/admin/ortak/api/offlineTanimlar';
+import {
+  offlineDatagridDemoGetir,
+  offlineDatagridDemoKaydet,
+} from '@/admin/ortak/api/offlineDatagridDemo';
 
 const OFFLINE_SISTEM_ANAHTAR = 'erp-offline-sistem-ayarlari';
 const OFFLINE_MODUL_ANAHTAR = 'erp-offline-moduller';
@@ -102,6 +106,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
     if (p.includes('/moduller')) return offlineModulYaz(body, m, p);
     if (p.includes('/loglar')) return offlineLogYaz(body, m, p);
     if (p.includes('/tanimlar')) return offlineTanimlarYaz(p, m, body);
+    if (p.includes('/datagrid-demo')) return offlineDatagridDemoKaydet(body);
     if (p.includes('/eklentiler')) return offlineEklentiYaz(m, p);
     return { mesaj: 'Kayit (offline mod)' };
   }
@@ -119,6 +124,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
   if (p.includes('/bildirim')) return { bildirimler: [], okunmamisSayi: 0 };
   if (p.includes('/eklentiler')) return offlineEklentiListe();
   if (p.includes('/tanimlar')) return offlineTanimlarGetir(p);
+  if (p.includes('/datagrid-demo')) return offlineDatagridDemoGetir();
 
   return {};
 }

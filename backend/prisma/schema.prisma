@@ -64,6 +64,7 @@ model Firma {
   f001Cariler    F001Cari[]
   bildirimler    Bildirim[]
   yedekKayitlari YedekKaydi[]
+  datagridDemoKayit DatagridDemoKayit?
 
   @@map("firmalar")
 }
@@ -287,6 +288,19 @@ model F001Maliyet {
 // ---------------------------------------------------------------------------
 // Panel yardimci tablolari
 // ---------------------------------------------------------------------------
+
+model DatagridDemoKayit {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @unique @map("firma_id")
+  kdvDahil         Boolean  @default(true) @map("kdv_dahil")
+  satirlar         Json     @default("[]")
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
+
+  firma Firma @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+
+  @@map("datagrid_demo_kayitlari")
+}
 
 enum BildirimTipi {
   sistem
