@@ -4,7 +4,7 @@
 set -euo pipefail
 
 SITE="${DEPLOY_SITE:-$HOME/htdocs/erp.guzelteknoloji.com}"
-API_PORT="${API_PORT:-3006}"
+API_PORT="${API_PORT:-3007}"
 PUBLIC_URL="${PUBLIC_URL:-https://erp.guzelteknoloji.com}"
 PM2_NAME="${PM2_NAME:-erp-api}"
 

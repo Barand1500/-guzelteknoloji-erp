@@ -4,7 +4,7 @@
 set -euo pipefail
 
 PM2_NAME="${PM2_NAME:-erp-api}"
-API_PORT="${API_PORT:-3006}"
+API_PORT="${API_PORT:-3007}"
 
 cd "$(dirname "$0")/.."
 BACKEND_DIR="$(pwd)"

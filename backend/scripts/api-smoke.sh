@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-API_PORT="${API_PORT:-3006}"
+API_PORT="${API_PORT:-3007}"
 BASE="http://127.0.0.1:${API_PORT}"
 
 mock_auth() {

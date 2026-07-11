@@ -57,7 +57,7 @@ npm install
 npm run dev
 ```
 
-API: http://localhost:3006/api/health
+API: http://localhost:3007/api/health
 
 ### Veritabanı
 

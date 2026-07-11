@@ -15,7 +15,7 @@ SITE="${DEPLOY_SITE:-$HOME/htdocs/erp.guzelteknoloji.com}"
 GIT_REMOTE="https://github.com/Barand1500/-guzelteknoloji-erp.git"
 GIT_BRANCH="main"
 PM2_NAME="erp-api"
-API_PORT="3006"
+API_PORT="3007"
 DB_RESET="${DB_RESET:-0}"
 PUBLIC_URL="${PUBLIC_URL:-https://erp.guzelteknoloji.com}"
 

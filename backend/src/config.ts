@@ -7,7 +7,7 @@ function zorunlu(anahtar: string, varsayilan?: string): string {
 }
 
 export const config = {
-  port: Number(process.env.PORT ?? 3006),
+  port: Number(process.env.PORT ?? 3007),
   nodeEnv: process.env.NODE_ENV ?? 'development',
   dbTuru: 'erp' as const,
   databaseUrl: zorunlu('DATABASE_URL'),

@@ -2,10 +2,10 @@
 # server { ... } blogunun ICINE ekleyin (frontend location'dan once veya sonra).
 #
 # Document root: ~/htdocs/erp.guzelteknoloji.com/frontend
-# PM2 API:       erp-api @ 127.0.0.1:3006
+# PM2 API:       erp-api @ 127.0.0.1:3007
 
 location /api {
-    proxy_pass http://127.0.0.1:3006;
+    proxy_pass http://127.0.0.1:3007;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -13,5 +13,5 @@ location /api {
     proxy_set_header X-Forwarded-Proto $scheme;
 }
 
-# Trailing slash KULLANMAYIN: proxy_pass http://127.0.0.1:3006/;  (yanlis)
-# Dogru: proxy_pass http://127.0.0.1:3006;
+# Trailing slash KULLANMAYIN: proxy_pass http://127.0.0.1:3007/;  (yanlis)
+# Dogru: proxy_pass http://127.0.0.1:3007;
