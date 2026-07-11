@@ -14,6 +14,7 @@ import legacyStubsRouter from './routes/legacy-stubs.js';
 import referansRouter from './routes/referans.js';
 import tanimlarRouter from './routes/tanimlar.js';
 import datagridDemoRouter from './routes/datagrid-demo.js';
+import kullaniciAyarlariRouter from './routes/kullanici-ayarlari.js';
 
 export function appOlustur() {
   const app = express();
@@ -46,6 +47,7 @@ export function appOlustur() {
   admin.use('/referans', referansRouter);
   admin.use('/tanimlar', tanimlarRouter);
   admin.use('/datagrid-demo', datagridDemoRouter);
+  admin.use('/kullanici-ayarlari', kullaniciAyarlariRouter);
   admin.use('/', legacyStubsRouter);
 
   app.use('/api/admin', admin);

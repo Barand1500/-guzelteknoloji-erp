@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
-import { AdminModulKabuk, AdminPanelKarti, BildirimKutusu } from '@/admin/ortak/AdminBilesenleri';
+import { AdminModulKabuk, AdminPanelKarti, BildirimKutusu, YukleniyorDurumu } from '@/admin/ortak/AdminBilesenleri';
+import { kisayolAyarlariGetir } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
 import {
   KISAYOL_ISLEMLERI,
-  kisayolAyarlariKaydet,
+  kisayolAyarlariBellegeYaz,
   kisayolAyarlariOku,
+  kisayolAyarlariSunucuyaKaydet,
   kisayolCakismaBul,
   tusKombinasyonuYakala,
   varsayilanKisayollar,
@@ -20,27 +22,62 @@ export function KisayolAyarlariSayfasi() {
   const [dinlenen, setDinlenen] = useState<KisayolIslemId | null>(null);
   const [hata, setHata] = useState('');
   const [basari, setBasari] = useState('');
+  const [yukleniyor, setYukleniyor] = useState(true);
+  const [kaydediliyor, setKaydediliyor] = useState(false);
 
   const kirli = useMemo(() => JSON.stringify(harita) !== JSON.stringify(sonKayitli), [harita, sonKayitli]);
 
-  const kaydet = useCallback(() => {
+  useEffect(() => {
+    let iptal = false;
+    setYukleniyor(true);
+    kisayolAyarlariGetir()
+      .then((veri) => {
+        if (iptal) return;
+        kisayolAyarlariBellegeYaz(veri.harita);
+        const guncel = kisayolAyarlariOku();
+        setHarita(guncel);
+        setSonKayitli(guncel);
+      })
+      .catch((err) => {
+        if (iptal) return;
+        setHata(err instanceof Error ? err.message : 'Kısayol ayarları yüklenemedi');
+      })
+      .finally(() => {
+        if (!iptal) setYukleniyor(false);
+      });
+    return () => {
+      iptal = true;
+    };
+  }, []);
+
+  const kaydet = useCallback(async () => {
     setHata('');
+    setBasari('');
     for (const islem of KISAYOL_ISLEMLERI) {
       const cakisma = kisayolCakismaBul(harita, islem.id, harita[islem.id]);
       if (cakisma) {
-        setHata(`"${harita[islem.id]}" kombinasyonu hem ${islem.etiket} hem ${KISAYOL_ISLEMLERI.find((k) => k.id === cakisma)?.etiket} için atanmış.`);
+        setHata(
+          `"${harita[islem.id]}" kombinasyonu hem ${islem.etiket} hem ${KISAYOL_ISLEMLERI.find((k) => k.id === cakisma)?.etiket} için atanmış.`
+        );
         return;
       }
     }
-    kisayolAyarlariKaydet(harita);
-    setSonKayitli({ ...harita });
-    const ozet = KISAYOL_ISLEMLERI.map((i) => `${i.etiket}: ${harita[i.id]}`).join(', ');
-    logMesajiAyarla(logMesaj.kaydetti('Kısayol Ayarları', `klavye kısayollarını (${ozet})`));
-    window.dispatchEvent(new CustomEvent('ap-kisayol-ayarlari-guncellendi'));
-    setBasari('Kısayol ayarları kaydedildi.');
+    setKaydediliyor(true);
+    try {
+      const kayitli = await kisayolAyarlariSunucuyaKaydet(harita);
+      setHarita(kayitli);
+      setSonKayitli(kayitli);
+      const ozet = KISAYOL_ISLEMLERI.map((i) => `${i.etiket}: ${kayitli[i.id]}`).join(', ');
+      logMesajiAyarla(logMesaj.kaydetti('Kısayol Ayarları', `klavye kısayollarını (${ozet})`));
+      setBasari('Kısayol ayarları veritabanına kaydedildi.');
+    } catch (err) {
+      setHata(err instanceof Error ? err.message : 'Kayıt başarısız');
+    } finally {
+      setKaydediliyor(false);
+    }
   }, [harita, logMesajiAyarla]);
 
-  useModulAksiyonlari({ kaydet }, { kaydet: kirli }, kirli);
+  useModulAksiyonlari({ kaydet }, { kaydet: kirli && !kaydediliyor }, kirli && !kaydediliyor);
 
   useEffect(() => {
     if (!dinlenen) return;
@@ -57,20 +94,22 @@ export function KisayolAyarlariSayfasi() {
         setDinlenen(null);
         return;
       }
-      setHarita((h) => {
-        const yeni = { ...h, [islem]: komb };
-        kisayolAyarlariKaydet(yeni);
-        setSonKayitli({ ...yeni });
-        window.dispatchEvent(new CustomEvent('ap-kisayol-ayarlari-guncellendi'));
-        return yeni;
-      });
+      setHarita((h) => ({ ...h, [islem]: komb }));
       setDinlenen(null);
       setHata('');
-      setBasari(`"${KISAYOL_ISLEMLERI.find((k) => k.id === islem)?.etiket}" kısayolu güncellendi.`);
+      setBasari(`"${KISAYOL_ISLEMLERI.find((k) => k.id === islem)?.etiket}" kısayolu güncellendi. Kaydet ile veritabanına yazın.`);
     }
     window.addEventListener('keydown', tusDinle, true);
     return () => window.removeEventListener('keydown', tusDinle, true);
   }, [dinlenen, harita]);
+
+  if (yukleniyor) {
+    return (
+      <AdminModulKabuk baslik="Kısayol Ayarları" aciklama="Panel kısayollarını özelleştirin." onizleGoster={false}>
+        <YukleniyorDurumu />
+      </AdminModulKabuk>
+    );
+  }
 
   return (
     <AdminModulKabuk baslik="Kısayol Ayarları" aciklama="Panel kısayollarını özelleştirin." onizleGoster={false}>

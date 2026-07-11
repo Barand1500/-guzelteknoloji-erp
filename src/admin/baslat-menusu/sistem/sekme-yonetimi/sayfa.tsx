@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
-import { AdminModulKabuk, AdminPanelKarti } from '@/admin/ortak/AdminBilesenleri';
+import { AdminModulKabuk, AdminPanelKarti, BildirimKutusu, YukleniyorDurumu } from '@/admin/ortak/AdminBilesenleri';
+import { sekmeAyarlariGetir } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
 import {
   VARSAYILAN_SEKME_AYARLARI,
-  sekmeAyarlariKaydet,
+  sekmeAyarlariBellegeYaz,
   sekmeAyarlariLogOzeti,
   sekmeAyarlariOku,
+  sekmeAyarlariSunucuyaKaydet,
   type SekmePanelAyarlari,
 } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 
@@ -62,6 +64,9 @@ export function SekmeYonetimiSayfasi() {
   const logMesajiAyarla = useAdminLogMesaji();
   const [ayarlar, setAyarlar] = useState<SekmePanelAyarlari>(() => sekmeAyarlariOku());
   const [sonKayitli, setSonKayitli] = useState<SekmePanelAyarlari>(() => sekmeAyarlariOku());
+  const [yukleniyor, setYukleniyor] = useState(true);
+  const [kaydediliyor, setKaydediliyor] = useState(false);
+  const [hata, setHata] = useState('');
   const kirli = useMemo(() => JSON.stringify(ayarlar) !== JSON.stringify(sonKayitli), [ayarlar, sonKayitli]);
   const seciliButonStili = {
     borderColor: 'var(--ap-accent)',
@@ -79,16 +84,47 @@ export function SekmeYonetimiSayfasi() {
     color: 'color-mix(in srgb, var(--ap-accent) 70%, var(--ap-text))',
   } as const;
 
-  const kaydet = useCallback(() => {
+  const kaydet = useCallback(async () => {
     const kaydedilecek = { ...ayarlar, hoverOnizleme: false };
     setAyarlar(kaydedilecek);
-    sekmeAyarlariKaydet(kaydedilecek);
-    setSonKayitli(kaydedilecek);
-    logMesajiAyarla(sekmeAyarlariLogOzeti(kaydedilecek));
-    window.dispatchEvent(new CustomEvent('ap-sekme-ayarlari-guncellendi'));
+    setKaydediliyor(true);
+    setHata('');
+    try {
+      const kayitli = await sekmeAyarlariSunucuyaKaydet(kaydedilecek);
+      setAyarlar(kayitli);
+      setSonKayitli(kayitli);
+      logMesajiAyarla(sekmeAyarlariLogOzeti(kayitli));
+    } catch (err) {
+      setHata(err instanceof Error ? err.message : 'Kayıt başarısız');
+    } finally {
+      setKaydediliyor(false);
+    }
   }, [ayarlar, logMesajiAyarla]);
 
-  useModulAksiyonlari({ kaydet }, { kaydet: kirli }, kirli);
+  useModulAksiyonlari({ kaydet }, { kaydet: kirli && !kaydediliyor }, kirli && !kaydediliyor);
+
+  useEffect(() => {
+    let iptal = false;
+    setYukleniyor(true);
+    sekmeAyarlariGetir()
+      .then((veri) => {
+        if (iptal) return;
+        sekmeAyarlariBellegeYaz(veri.ayarlar);
+        const guncel = sekmeAyarlariOku();
+        setAyarlar(guncel);
+        setSonKayitli(guncel);
+      })
+      .catch((err) => {
+        if (iptal) return;
+        setHata(err instanceof Error ? err.message : 'Sekme ayarları yüklenemedi');
+      })
+      .finally(() => {
+        if (!iptal) setYukleniyor(false);
+      });
+    return () => {
+      iptal = true;
+    };
+  }, []);
 
   useEffect(() => {
     const handler = () => {
@@ -100,12 +136,25 @@ export function SekmeYonetimiSayfasi() {
     return () => window.removeEventListener('ap-sekme-ayarlari-guncellendi', handler);
   }, []);
 
+  if (yukleniyor) {
+    return (
+      <AdminModulKabuk
+        baslik="Sekme Yönetimi"
+        aciklama="Üst sekme çubuğunun boyutunu ve davranışını ayarlayın."
+        onizleGoster={false}
+      >
+        <YukleniyorDurumu />
+      </AdminModulKabuk>
+    );
+  }
+
   return (
     <AdminModulKabuk
       baslik="Sekme Yönetimi"
       aciklama="Üst sekme çubuğunun boyutunu ve davranışını ayarlayın."
       onizleGoster={false}
     >
+      {hata && <BildirimKutusu mesaj={hata} tur="hata" />}
       <div className="mt-6">
         <AdminPanelKarti baslik="Sekme Ayarları" altBaslik="Değişiklikler, Kaydet ile uygulanır">
           <div className="space-y-5">

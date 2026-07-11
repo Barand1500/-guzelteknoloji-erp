@@ -34,9 +34,11 @@ export const KISAYOL_ISLEMLERI: KisayolTanimi[] = [
   },
 ];
 
-const STORAGE_KEY = 'ap-kisayol-ayarlari';
+const ESKI_STORAGE_KEY = 'ap-kisayol-ayarlari';
 
 export type KisayolHaritasi = Record<KisayolIslemId, string>;
+
+let bellekHarita: KisayolHaritasi | null = null;
 
 export function varsayilanKisayollar(): KisayolHaritasi {
   return KISAYOL_ISLEMLERI.reduce((acc, k) => {
@@ -45,23 +47,43 @@ export function varsayilanKisayollar(): KisayolHaritasi {
   }, {} as KisayolHaritasi);
 }
 
-export function kisayolAyarlariOku(): KisayolHaritasi {
+function haritaNormalize(kayitli: Partial<KisayolHaritasi> & { onizle?: string }): KisayolHaritasi {
+  if (kayitli.onizle && !kayitli.guncelle) {
+    kayitli.guncelle = kayitli.onizle;
+    delete kayitli.onizle;
+  }
+  return { ...varsayilanKisayollar(), ...kayitli };
+}
+
+function eskiLocalStorageTemizle() {
   try {
-    const ham = localStorage.getItem(STORAGE_KEY);
-    if (!ham) return varsayilanKisayollar();
-    const kayitli = JSON.parse(ham) as Partial<KisayolHaritasi> & { onizle?: string };
-    if (kayitli.onizle && !kayitli.guncelle) {
-      kayitli.guncelle = kayitli.onizle;
-      delete kayitli.onizle;
-    }
-    return { ...varsayilanKisayollar(), ...kayitli };
+    localStorage.removeItem(ESKI_STORAGE_KEY);
   } catch {
-    return varsayilanKisayollar();
+    /* storage yok */
   }
 }
 
-export function kisayolAyarlariKaydet(harita: KisayolHaritasi) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(harita));
+export function kisayolAyarlariOku(): KisayolHaritasi {
+  if (bellekHarita) return { ...bellekHarita };
+  return varsayilanKisayollar();
+}
+
+export function kisayolAyarlariBellegeYaz(ham: Partial<KisayolHaritasi>) {
+  eskiLocalStorageTemizle();
+  bellekHarita = haritaNormalize(ham);
+  window.dispatchEvent(new CustomEvent('ap-kisayol-ayarlari-guncellendi'));
+}
+
+export function kisayolAyarlariTemizle() {
+  eskiLocalStorageTemizle();
+  bellekHarita = null;
+}
+
+export async function kisayolAyarlariSunucuyaKaydet(harita: KisayolHaritasi): Promise<KisayolHaritasi> {
+  const { kisayolAyarlariGuncelle } = await import('@/admin/baslat-menusu/sistem/kullanici-ayarlari/api');
+  const yanit = await kisayolAyarlariGuncelle(harita);
+  kisayolAyarlariBellegeYaz(yanit.harita);
+  return kisayolAyarlariOku();
 }
 
 export function tusKombinasyonuYakala(e: KeyboardEvent): string {

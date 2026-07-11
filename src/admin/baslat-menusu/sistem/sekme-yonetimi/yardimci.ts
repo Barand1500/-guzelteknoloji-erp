@@ -40,8 +40,33 @@ export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
   sekmeGecisindeOtomatikKaydet: true,
 };
 
-const STORAGE_KEY = 'ap-sekme-panel-ayarlari';
+const ESKI_STORAGE_KEY = 'ap-sekme-panel-ayarlari';
 const SITE_VARSAYILAN_ANAHTAR = 'erp-site-varsayilan-ayarlar';
+
+let bellekAyarlar: SekmePanelAyarlari | null = null;
+
+function siteVarsayilanSekmeAyarlari(): Partial<SekmePanelAyarlari> {
+  try {
+    const siteHam = localStorage.getItem(SITE_VARSAYILAN_ANAHTAR);
+    const site = siteHam ? (JSON.parse(siteHam) as { sekme?: Partial<SekmePanelAyarlari> }) : null;
+    return site?.sekme ?? {};
+  } catch {
+    return {};
+  }
+}
+
+function ayarlariNormalize(parsed: Partial<SekmePanelAyarlari> & { grupDavranisi?: string }): SekmePanelAyarlari {
+  const { grupDavranisi: _eski, ...gerisi } = parsed;
+  return { ...VARSAYILAN_SEKME_AYARLARI, ...siteVarsayilanSekmeAyarlari(), ...gerisi };
+}
+
+function eskiLocalStorageTemizle() {
+  try {
+    localStorage.removeItem(ESKI_STORAGE_KEY);
+  } catch {
+    /* storage yok */
+  }
+}
 
 /** Birleştirilmiş sekmeler için Chrome tarzı yan yana split (en fazla 2 panel). */
 export function splitSekmeleriHesapla<T extends { id: string; grupId?: string }>(
@@ -63,27 +88,26 @@ export function splitSekmeleriHesapla<T extends { id: string; grupId?: string }>
 }
 
 export function sekmeAyarlariOku(): SekmePanelAyarlari {
-  try {
-    const ham = localStorage.getItem(STORAGE_KEY);
-    if (!ham) {
-      try {
-        const siteHam = localStorage.getItem(SITE_VARSAYILAN_ANAHTAR);
-        const site = siteHam ? (JSON.parse(siteHam) as { sekme?: Partial<SekmePanelAyarlari> }) : null;
-        return { ...VARSAYILAN_SEKME_AYARLARI, ...(site?.sekme ?? {}) };
-      } catch {
-        return { ...VARSAYILAN_SEKME_AYARLARI };
-      }
-    }
-    const parsed = JSON.parse(ham) as Partial<SekmePanelAyarlari> & { grupDavranisi?: string };
-    const { grupDavranisi: _eski, ...gerisi } = parsed;
-    return { ...VARSAYILAN_SEKME_AYARLARI, ...gerisi };
-  } catch {
-    return { ...VARSAYILAN_SEKME_AYARLARI };
-  }
+  if (bellekAyarlar) return { ...bellekAyarlar };
+  return ayarlariNormalize({});
 }
 
-export function sekmeAyarlariKaydet(ayarlar: SekmePanelAyarlari) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(ayarlar));
+export function sekmeAyarlariBellegeYaz(ham: Partial<SekmePanelAyarlari>) {
+  eskiLocalStorageTemizle();
+  bellekAyarlar = ayarlariNormalize(ham);
+  window.dispatchEvent(new CustomEvent('ap-sekme-ayarlari-guncellendi'));
+}
+
+export function sekmeAyarlariTemizle() {
+  eskiLocalStorageTemizle();
+  bellekAyarlar = null;
+}
+
+export async function sekmeAyarlariSunucuyaKaydet(ayarlar: SekmePanelAyarlari): Promise<SekmePanelAyarlari> {
+  const { sekmeAyarlariGuncelle } = await import('@/admin/baslat-menusu/sistem/kullanici-ayarlari/api');
+  const yanit = await sekmeAyarlariGuncelle(ayarlar);
+  sekmeAyarlariBellegeYaz(yanit.ayarlar);
+  return sekmeAyarlariOku();
 }
 
 export function sekmeAyarlariLogOzeti(ayarlar: SekmePanelAyarlari): string {

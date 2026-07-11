@@ -13,6 +13,11 @@ import {
 } from '@/admin/ortak/api/authApi';
 import { offlineOturumTemizle } from '@/admin/ortak/api/offlineKullaniciDepo';
 import { offlinePanelDeposuTemizle } from '@/admin/ortak/api/offlinePanelDepo';
+import { kullaniciAyarlariSunucudanYukle } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
+import {
+  kisayolAyarlariTemizle,
+} from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
+import { sekmeAyarlariTemizle } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 
 interface AuthContextDeger {
@@ -26,6 +31,14 @@ interface AuthContextDeger {
 
 const AuthContext = createContext<AuthContextDeger | null>(null);
 
+async function kullaniciAyarlariSenkronizeEt() {
+  try {
+    await kullaniciAyarlariSunucudanYukle();
+  } catch {
+    /* oturum acilisinda sessizce gec */
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [kullanici, setKullanici] = useState<AuthKullanici | null>(null);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -35,7 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = tokenAl();
       if (token === 'offline-token') {
         benGetir()
-          .then(setKullanici)
+          .then(async (k) => {
+            setKullanici(k);
+            await kullaniciAyarlariSenkronizeEt();
+          })
           .catch(() => {
             tokenSil();
             offlineOturumTemizle();
@@ -61,7 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     benGetir()
-      .then(setKullanici)
+      .then(async (k) => {
+        setKullanici(k);
+        await kullaniciAyarlariSenkronizeEt();
+      })
       .catch(() => tokenSil())
       .finally(() => setYukleniyor(false));
   }, []);
@@ -72,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     offlinePanelDeposuTemizle();
     tokenKaydet(sonuc.token);
     setKullanici(sonuc.kullanici);
+    await kullaniciAyarlariSenkronizeEt();
   }
 
   function cikis() {
@@ -79,6 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authOfflineTemizle();
     offlinePanelDeposuTemizle();
     offlineOturumTemizle();
+    kisayolAyarlariTemizle();
+    sekmeAyarlariTemizle();
     setKullanici(null);
   }
 

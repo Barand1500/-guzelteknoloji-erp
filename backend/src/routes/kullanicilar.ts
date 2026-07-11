@@ -63,6 +63,9 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   await prisma.kullaniciKisayol.create({
     data: { kullaniciId: kullanici.id, harita: {} },
   });
+  await prisma.kullaniciSekmeAyar.create({
+    data: { kullaniciId: kullanici.id, ayarlar: {} },
+  });
 
   return res.status(201).json({ kullanici: await adminKullaniciYanit(kullanici) });
 });
