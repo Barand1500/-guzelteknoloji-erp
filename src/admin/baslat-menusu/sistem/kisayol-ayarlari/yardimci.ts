@@ -1,5 +1,6 @@
 export type KisayolIslemId =
   | 'rehber'
+  | 'baslatMenu'
   | 'kaydet'
   | 'ekle'
   | 'guncelle'
@@ -16,6 +17,12 @@ export interface KisayolTanimi {
 
 export const KISAYOL_ISLEMLERI: KisayolTanimi[] = [
   { id: 'rehber', etiket: 'Rehber', aciklama: 'Nasıl kullanılır modalını açar', varsayilan: 'F1' },
+  {
+    id: 'baslatMenu',
+    etiket: 'Başlat Menüsü',
+    aciklama: 'Windows (⊞) tuşu ile başlat menüsünü aç/kapat',
+    varsayilan: 'Win',
+  },
   { id: 'kaydet', etiket: 'Kaydet', aciklama: 'Aktif modülde kaydet', varsayilan: 'Ctrl+S' },
   { id: 'ekle', etiket: 'Yeni Ekle', aciklama: 'Aktif modülde yeni kayıt', varsayilan: 'Ctrl+N' },
   { id: 'guncelle', etiket: 'Güncelle', aciklama: 'Aktif modülde güncelle / yazdır / önizle', varsayilan: 'Ctrl+P' },
@@ -80,13 +87,25 @@ export function kisayolAyarlariTemizle() {
   bellekHarita = null;
 }
 
+const WIN_TUSLARI = new Set(['Meta', 'OS', 'Win']);
+
+export function winTusuMu(e: KeyboardEvent): boolean {
+  return WIN_TUSLARI.has(e.key);
+}
+
 export function tusKombinasyonuYakala(e: KeyboardEvent): string {
+  if (winTusuMu(e) && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+    return 'Win';
+  }
+
   const parcalar: string[] = [];
-  if (e.ctrlKey || e.metaKey) parcalar.push('Ctrl');
+  if (e.ctrlKey) parcalar.push('Ctrl');
   if (e.altKey) parcalar.push('Alt');
   if (e.shiftKey) parcalar.push('Shift');
+  if (e.metaKey && !e.ctrlKey) parcalar.push('Ctrl');
+
   const anahtar = e.key.length === 1 ? e.key.toUpperCase() : e.key;
-  if (!['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) {
+  if (!['Control', 'Alt', 'Shift', 'Meta', 'OS', 'Win'].includes(e.key)) {
     parcalar.push(anahtar);
   }
   return parcalar.join('+');
@@ -107,5 +126,9 @@ export function kisayolCakismaBul(
 
 export function klavyeOlayiEslesir(e: KeyboardEvent, kombinasyon: string): boolean {
   if (!kombinasyon) return false;
-  return tusKombinasyonuYakala(e) === kombinasyon;
+  const norm = kombinasyon.trim();
+  if (norm === 'Win' || norm === 'Meta') {
+    return winTusuMu(e) && !e.ctrlKey && !e.altKey && !e.shiftKey;
+  }
+  return tusKombinasyonuYakala(e) === norm;
 }

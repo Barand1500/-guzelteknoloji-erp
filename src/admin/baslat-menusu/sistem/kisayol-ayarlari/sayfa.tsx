@@ -89,7 +89,7 @@ export function KisayolAyarlariSayfasi() {
       e.preventDefault();
       e.stopPropagation();
       const komb = tusKombinasyonuYakala(e);
-      if (!komb || komb === 'Ctrl' || komb === 'Alt' || komb === 'Shift') return;
+      if (!komb || ['Ctrl', 'Alt', 'Shift'].includes(komb)) return;
       const islem = dinlenen;
       if (!islem) return;
       const cakisma = kisayolCakismaBul(harita, islem, komb);

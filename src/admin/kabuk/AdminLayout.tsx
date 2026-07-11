@@ -145,7 +145,14 @@ function AdminPanelGovde() {
       const hedef = e.target as HTMLElement;
       const inputIcinde =
         hedef.tagName === 'INPUT' || hedef.tagName === 'TEXTAREA' || hedef.isContentEditable;
+      const baslatMenuTusu = klavyeOlayiEslesir(e, harita.baslatMenu);
       const rehberTusu = klavyeOlayiEslesir(e, harita.rehber);
+
+      if (baslatMenuTusu) {
+        e.preventDefault();
+        setBaslatMenuAcik((acik) => !acik);
+        return;
+      }
 
       if (inputIcinde && !e.ctrlKey && !e.metaKey && !rehberTusu) return;
 
