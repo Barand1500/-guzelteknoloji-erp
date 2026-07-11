@@ -12,6 +12,7 @@ import {
   type ProfilGuncelleForm,
 } from '@/admin/ortak/api/authApi';
 import { offlineOturumTemizle } from '@/admin/ortak/api/offlineKullaniciDepo';
+import { offlinePanelDeposuTemizle } from '@/admin/ortak/api/offlinePanelDepo';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 
 interface AuthContextDeger {
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenSil();
     }
     authOfflineTemizle();
+    offlinePanelDeposuTemizle();
 
     const token = tokenAl();
     if (!token) {
@@ -67,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function giris(form: GirisFormu) {
     const sonuc = await girisYap(form);
     authOfflineTemizle();
+    offlinePanelDeposuTemizle();
     tokenKaydet(sonuc.token);
     setKullanici(sonuc.kullanici);
   }
@@ -74,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function cikis() {
     tokenSil();
     authOfflineTemizle();
+    offlinePanelDeposuTemizle();
     offlineOturumTemizle();
     setKullanici(null);
   }

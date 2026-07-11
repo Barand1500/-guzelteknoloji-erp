@@ -16,6 +16,7 @@ import {
   offlineOturumTemizle,
   type OfflineKullaniciKayit,
 } from '@/admin/ortak/api/offlineKullaniciDepo';
+import { offlinePanelDeposuTemizle } from '@/admin/ortak/api/offlinePanelDepo';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 const TOKEN_KEY = 'gt_admin_token';
@@ -226,6 +227,7 @@ export async function girisYap(form: GirisFormu): Promise<AuthYanit> {
     const veri = await jsonYanitOku<{ mesaj?: string } & AuthYanit>(yanit);
     if (!yanit.ok) throw new Error(veri.mesaj ?? 'Giris basarisiz');
     authOfflineTemizle();
+    offlinePanelDeposuTemizle();
     return { ...veri, kullanici: kullaniciTercihleriEkle(veri.kullanici) };
   } catch (err) {
     if (authApiKullanilamazMi(err)) {
