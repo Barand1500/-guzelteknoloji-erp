@@ -12,12 +12,12 @@
     "db:push": "bash scripts/db-push-safe.sh",
     "db:reset": "DB_RESET=1 bash scripts/db-push-safe.sh",
     "db:migrate": "node ./node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "bash scripts/db-seed.sh",
     "db:studio": "node ./node_modules/prisma/build/index.js studio --schema prisma/schema.prisma",
     "postinstall": "node scripts/prisma-generate.mjs"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "bash scripts/db-seed.sh"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

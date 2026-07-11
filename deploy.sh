@@ -86,6 +86,7 @@ echo "[4/6] Installing backend production dependencies ..."
 cd "$SITE/backend"
 npm ci --omit=dev
 chmod +x scripts/db-push-safe.sh 2>/dev/null || true
+chmod +x scripts/db-seed.sh 2>/dev/null || true
 chmod +x scripts/sunucu-baglanti.sh 2>/dev/null || true
 chmod +x scripts/api-smoke.sh 2>/dev/null || true
 
@@ -98,7 +99,18 @@ export DB_RESET
 if bash scripts/db-push-safe.sh; then
   echo "  Database synced."
   echo "  Running seed (upsert — idempotent) ..."
-  npm run db:seed
+  SEED_DIR="$SITE/repo/backend"
+  if [ ! -d "$SEED_DIR/node_modules/.bin" ]; then
+    ( cd "$SEED_DIR" && npm ci )
+  fi
+  (
+    cd "$SEED_DIR"
+    set -a
+    # shellcheck disable=SC1091
+    source "$SITE/backend/.env"
+    set +a
+    bash scripts/db-seed.sh
+  )
 else
   DB_OK=0
   echo ""
