@@ -127,15 +127,27 @@ if ! command -v pm2 >/dev/null 2>&1; then
   npm install -g pm2
 fi
 chmod +x scripts/pm2-kur.sh 2>/dev/null || true
+chmod +x scripts/api-port-serbest.sh 2>/dev/null || true
+
+# EADDRINUSE onlemi: PM2'yi durdur, portu bosalt, temiz baslat
 if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
-  pm2 restart "$PM2_NAME" --update-env
-else
-  pm2 start ecosystem.config.cjs
+  pm2 delete "$PM2_NAME" 2>/dev/null || pm2 stop "$PM2_NAME" || true
 fi
+sleep 1
+if [ -x scripts/api-port-serbest.sh ]; then
+  API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
+fi
+sleep 1
+pm2 start ecosystem.config.cjs
 pm2 save
 
 # Yerel saglik kontrolu — PM2 restart sonrasi kisa bekleme
 sleep 2
+if pm2 describe "$PM2_NAME" 2>/dev/null | grep -qE 'status.*online'; then
+  echo "  PM2 ${PM2_NAME}: online"
+else
+  echo "  UYARI: PM2 ${PM2_NAME} online degil — pm2 logs ${PM2_NAME} --lines 30"
+fi
 
 echo ""
 if [ "$DB_OK" = "1" ]; then
