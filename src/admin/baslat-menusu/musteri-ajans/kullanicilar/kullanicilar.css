@@ -21,17 +21,16 @@
 
 .ap-kullanicilar-yeni-duzen {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.25rem;
   min-width: 0;
 }
 
-/* Form kartı — iki yatay satır için geniş alan */
+/* Form kartı — tam genişlik */
 .ap-kullanicilar-yeni-duzen > .ap-panel-kart {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: min(100%, 28rem);
+  flex: 0 0 auto;
+  width: 100%;
   max-width: none;
   height: auto;
 }
@@ -51,22 +50,24 @@
   line-height: 1.45;
 }
 
-/* Liste — formun sağında */
+/* Liste — formun altında */
 .ap-kullanicilar-yeni-liste-alan {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  width: 100%;
   min-width: 0;
-  align-self: flex-start;
+  padding-top: 0.15rem;
 }
 
-/* Kare kullanıcı kartları */
+/* Kare kullanıcı kartları — yatay grid */
 .ap-kullanici-yeni-liste {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8.25rem, 8.25rem));
+  grid-template-columns: repeat(auto-fill, minmax(8.25rem, 1fr));
   gap: 0.75rem;
   justify-content: flex-start;
+  max-width: 100%;
 }
 
 .ap-kullanici-yeni-liste > li {
@@ -261,6 +262,12 @@
   max-width: 6rem;
 }
 
+.ap-kullanici-yeni-alan--aktif {
+  flex: 0 0 auto;
+  min-width: 9.5rem;
+  max-width: 11rem;
+}
+
 .ap-kullanici-yeni-form-satir--oturum {
   margin-top: 0.15rem;
   padding-top: 1rem;
@@ -307,30 +314,83 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 18%, transparent);
 }
 
-.ap-kullanici-yeni-toggle {
+/* Aktif / pasif — site accent rengi */
+.ap-kullanici-yeni-durum-kutu {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.65rem 0.75rem;
+  gap: 0.55rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.45rem 0.35rem 0.55rem;
   border-radius: 0.55rem;
-  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
-  background: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
+  border: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
+  background: color-mix(in srgb, var(--ap-surface-2) 28%, var(--ap-surface));
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.ap-kullanici-yeni-toggle--satir {
+.ap-kullanici-yeni-durum-kutu--aktif {
+  border-color: color-mix(in srgb, var(--ap-accent) 42%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 12%, transparent) inset;
+}
+
+.ap-kullanici-yeni-durum-kutu--pasif {
+  border-color: color-mix(in srgb, var(--ap-border) 90%, transparent);
+  background: color-mix(in srgb, var(--ap-muted) 6%, var(--ap-surface));
+}
+
+.ap-kullanici-yeni-durum-rozet {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+  white-space: nowrap;
+}
+
+.ap-kullanici-yeni-durum-kutu--aktif .ap-kullanici-yeni-durum-rozet {
+  color: color-mix(in srgb, var(--ap-accent) 82%, var(--ap-heading));
+}
+
+.ap-kullanici-yeni-switch {
+  position: relative;
   flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.42rem;
-  min-width: 4.25rem;
-  padding: 0.15rem 0.5rem 0.2rem;
-  align-self: stretch;
+  width: 2.75rem;
+  height: 1.55rem;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-muted) 28%, var(--ap-border));
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.ap-kullanici-yeni-toggle--satir .ap-kullanici-yeni-etiket {
-  text-align: center;
+.ap-kullanici-yeni-switch--acik {
+  background: var(--ap-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+}
+
+.ap-kullanici-yeni-switch-thumb {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+  transition: transform 0.2s ease;
+}
+
+.ap-kullanici-yeni-switch--acik .ap-kullanici-yeni-switch-thumb {
+  transform: translateX(1.15rem);
+}
+
+.ap-kullanici-yeni-switch:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ap-accent) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .ap-kullanici-yeni-form .ap-form-acilir-secim-tus {
@@ -513,16 +573,12 @@
 }
 
 @media (max-width: 720px) {
-  .ap-kullanicilar-yeni-duzen {
-    flex-direction: column;
-  }
-
-  .ap-kullanicilar-yeni-duzen > .ap-panel-kart {
-    width: 100%;
-    max-width: none;
-  }
-
   .ap-kullanici-yeni-liste {
     grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  }
+
+  .ap-kullanici-yeni-alan--aktif {
+    flex: 1 1 100%;
+    max-width: none;
   }
 }

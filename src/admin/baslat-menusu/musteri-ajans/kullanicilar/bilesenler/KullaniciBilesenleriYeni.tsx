@@ -129,18 +129,25 @@ export function KullaniciDuzenleFormuYeni({
             secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
           />
         </label>
-        <div className="ap-kullanici-yeni-toggle ap-kullanici-yeni-toggle--satir">
-          <span className="ap-kullanici-yeni-etiket">Aktif</span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={form.aktif}
-            className={`ap-toggle ${form.aktif ? 'ap-toggle-on' : ''}`}
-            aria-label={`Aktif kullanıcı: ${form.aktif ? 'Açık' : 'Kapalı'}`}
-            onClick={() => onChange({ ...form, aktif: !form.aktif })}
+        <div className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--aktif">
+          <span className="ap-kullanici-yeni-etiket">Durum</span>
+          <div
+            className={`ap-kullanici-yeni-durum-kutu${form.aktif ? ' ap-kullanici-yeni-durum-kutu--aktif' : ' ap-kullanici-yeni-durum-kutu--pasif'}`}
           >
-            <span className="ap-toggle-thumb" />
-          </button>
+            <span className="ap-kullanici-yeni-durum-rozet" aria-hidden>
+              {form.aktif ? 'Aktif' : 'Pasif'}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={form.aktif}
+              className={`ap-kullanici-yeni-switch${form.aktif ? ' ap-kullanici-yeni-switch--acik' : ''}`}
+              aria-label={`Kullanıcı durumu: ${form.aktif ? 'Aktif' : 'Pasif'}`}
+              onClick={() => onChange({ ...form, aktif: !form.aktif })}
+            >
+              <span className="ap-kullanici-yeni-switch-thumb" />
+            </button>
+          </div>
         </div>
       </div>
       <KullaniciOturumCubugu
