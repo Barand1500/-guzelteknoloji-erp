@@ -248,6 +248,16 @@ export function KullanicilarSayfasiEski() {
 
 
 
+  useEffect(() => {
+    if (yukleniyor || !oturumSecenekleri.firmalar.length || form.firmaId) return;
+    setForm((onceki) => ({
+      ...onceki,
+      ...varsayilanOturumAlanlari(oturumSecenekleri),
+    }));
+  }, [yukleniyor, oturumSecenekleri, form.firmaId]);
+
+
+
   const yeniBaslat = useCallback(() => {
 
     setSeciliId(null);
