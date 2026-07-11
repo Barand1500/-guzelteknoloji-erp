@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Response } from 'express';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import type { AuthRequest } from '../middleware/auth.js';
 import { authZorunlu } from '../middleware/auth.js';
@@ -45,16 +46,18 @@ router.put('/siparis-icerigi', async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ mesaj: 'Gecersiz firma baglami' });
   }
 
+  const satirlarJson = body.satirlar as Prisma.InputJsonValue;
+
   const kayit = await prisma.datagridDemoKayit.upsert({
     where: { firmaId },
     create: {
       firmaId,
       kdvDahil: body.kdvDahil !== false,
-      satirlar: body.satirlar,
+      satirlar: satirlarJson,
     },
     update: {
       kdvDahil: body.kdvDahil !== false,
-      satirlar: body.satirlar,
+      satirlar: satirlarJson,
     },
   });
 

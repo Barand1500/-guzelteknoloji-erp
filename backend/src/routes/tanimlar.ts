@@ -70,11 +70,13 @@ router.post('/firmalar', async (req: AuthRequest, res: Response) => {
   if (!body.firmaKodu?.trim() || !body.firmaAdi?.trim()) {
     return res.status(400).json({ mesaj: 'Firma kodu ve adi zorunlu' });
   }
+  const firmaKodu = body.firmaKodu.trim().toUpperCase();
+  const firmaAdi = body.firmaAdi.trim();
   const firma = await prisma.$transaction(async (tx) => {
     const olusturulan = await tx.firma.create({
       data: {
-        firmaKodu: body.firmaKodu.trim().toUpperCase(),
-        firmaAdi: body.firmaAdi.trim(),
+        firmaKodu,
+        firmaAdi,
         vergiDairesi: body.vergiDairesi?.trim() || null,
         vergiNo: body.vergiNo?.trim() || null,
         durum: body.aktif !== false,
