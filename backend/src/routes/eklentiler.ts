@@ -2,32 +2,61 @@ import { Router } from 'express';
 import type { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.js';
 import { authZorunlu } from '../middleware/auth.js';
+import { EKLENTI_KATALOGU } from '../lib/eklentiKatalogu.js';
+
+/** Bellek içi kurulum durumu — tam DB entegrasyonu gelene kadar */
+const kurulumlar = new Map<string, 'kurulu' | 'aktif' | 'pasif'>();
+
+function eklentiListesiOlustur() {
+  return EKLENTI_KATALOGU.map((sablon) => {
+    const durum = kurulumlar.get(sablon.kod);
+    return {
+      ...sablon,
+      kurulu: !!durum,
+      durum: durum ?? undefined,
+      kaynak: 'katalog' as const,
+    };
+  });
+}
 
 const router = Router();
 router.use(authZorunlu);
 
 router.get('/', (_req: AuthRequest, res: Response) => {
-  return res.json({ eklentiler: [] });
+  return res.json({ eklentiler: eklentiListesiOlustur() });
 });
 
-router.post('/:kod/kur', (_req: AuthRequest, res: Response) => {
-  return res.status(501).json({ mesaj: 'Eklenti sistemi ERP surumunde henuz aktif degil' });
+router.post('/:kod/kur', (req: AuthRequest, res: Response) => {
+  const kod = req.params.kod;
+  if (!EKLENTI_KATALOGU.some((e) => e.kod === kod)) {
+    return res.status(404).json({ mesaj: 'Eklenti bulunamadi' });
+  }
+  kurulumlar.set(kod, 'kurulu');
+  return res.json({ mesaj: 'Eklenti kuruldu', eklentiler: eklentiListesiOlustur() });
 });
 
-router.post('/:kod/aktif', (_req: AuthRequest, res: Response) => {
-  return res.status(501).json({ mesaj: 'Eklenti sistemi ERP surumunde henuz aktif degil' });
+router.patch('/:kod/aktif', (req: AuthRequest, res: Response) => {
+  const kod = req.params.kod;
+  if (!kurulumlar.has(kod)) return res.status(404).json({ mesaj: 'Eklenti kurulu degil' });
+  kurulumlar.set(kod, 'aktif');
+  return res.json({ mesaj: 'Eklenti etkinlestirildi', eklentiler: eklentiListesiOlustur() });
 });
 
-router.post('/:kod/pasif', (_req: AuthRequest, res: Response) => {
-  return res.status(501).json({ mesaj: 'Eklenti sistemi ERP surumunde henuz aktif degil' });
+router.patch('/:kod/pasif', (req: AuthRequest, res: Response) => {
+  const kod = req.params.kod;
+  if (!kurulumlar.has(kod)) return res.status(404).json({ mesaj: 'Eklenti kurulu degil' });
+  kurulumlar.set(kod, 'pasif');
+  return res.json({ mesaj: 'Eklenti pasiflestirildi', eklentiler: eklentiListesiOlustur() });
 });
 
-router.delete('/:kod', (_req: AuthRequest, res: Response) => {
-  return res.status(501).json({ mesaj: 'Eklenti sistemi ERP surumunde henuz aktif degil' });
+router.delete('/:kod', (req: AuthRequest, res: Response) => {
+  const kod = req.params.kod;
+  kurulumlar.delete(kod);
+  return res.json({ mesaj: 'Eklenti kaldirildi', eklentiler: eklentiListesiOlustur() });
 });
 
 router.post('/yukle', (_req: AuthRequest, res: Response) => {
-  return res.status(501).json({ mesaj: 'Eklenti sistemi ERP surumunde henuz aktif degil' });
+  return res.status(501).json({ mesaj: 'Zip yukleme henuz desteklenmiyor' });
 });
 
 export default router;

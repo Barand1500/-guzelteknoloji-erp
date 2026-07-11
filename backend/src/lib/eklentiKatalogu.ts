@@ -1,0 +1,32 @@
+/** Eklenti katalog sablonu — frontend veri-eklentiKatalogu.ts ile senkron tutulmalı */
+export interface EklentiKatalogSablon {
+  kod: string;
+  ad: string;
+  aciklama: string;
+  gelistirici: string;
+  ikon: string;
+  kategori: 'one-cikan' | 'populer' | 'onerilen';
+  surum: string;
+  puan: number;
+  etkinKurulum: number;
+  sonGuncelleme: string;
+  publicHook?: string;
+}
+
+export const EKLENTI_KATALOGU: EklentiKatalogSablon[] = [
+  { kod: 'efatura-entegrasyon', ad: 'E-Fatura Entegrasyonu', aciklama: 'GİB uyumlu e-fatura gönderimi, alımı ve durum takibini ERP içinden yönetin.', gelistirici: 'Güzel Teknoloji', ikon: '🧾', kategori: 'one-cikan', surum: '2.4.0', puan: 4.8, etkinKurulum: 1240, sonGuncelleme: '12.03.2026', publicHook: 'efatura' },
+  { kod: 'excel-aktarim', ad: 'Excel İçe / Dışa Aktarım', aciklama: 'Stok, cari ve sipariş listelerini Excel ile toplu içe aktarın veya dışa aktarın.', gelistirici: 'Güzel Teknoloji', ikon: '📊', kategori: 'one-cikan', surum: '1.9.2', puan: 4.7, etkinKurulum: 2180, sonGuncelleme: '08.03.2026', publicHook: 'excel' },
+  { kod: 'barkod-okuyucu', ad: 'Barkod Okuyucu', aciklama: 'Depo ve satış ekranlarında barkod ile hızlı ürün arama, sayım ve stok girişi.', gelistirici: 'Güzel Teknoloji', ikon: '📷', kategori: 'one-cikan', surum: '3.1.0', puan: 4.6, etkinKurulum: 890, sonGuncelleme: '01.03.2026', publicHook: 'barkod' },
+  { kod: 'whatsapp-bildirim', ad: 'WhatsApp Bildirim', aciklama: 'Sipariş onayı, kargo bilgisi ve tahsilat hatırlatmalarını WhatsApp üzerinden gönderin.', gelistirici: 'Güzel Teknoloji', ikon: '💬', kategori: 'one-cikan', surum: '1.5.1', puan: 4.5, etkinKurulum: 760, sonGuncelleme: '15.02.2026', publicHook: 'whatsapp' },
+  { kod: 'stok-uyari', ad: 'Stok Uyarı Sistemi', aciklama: 'Kritik stok seviyesine düşen ürünler için otomatik bildirim ve e-posta uyarısı.', gelistirici: 'Güzel Teknoloji', ikon: '⚠️', kategori: 'one-cikan', surum: '2.0.3', puan: 4.4, etkinKurulum: 1540, sonGuncelleme: '20.02.2026', publicHook: 'stok-uyari' },
+  { kod: 'kargo-entegrasyon', ad: 'Kargo Entegrasyonu', aciklama: 'Yurtiçi, Aras, MNG ve Sürat Kargo ile otomatik gönderi oluşturma ve takip.', gelistirici: 'Güzel Teknoloji', ikon: '🚚', kategori: 'populer', surum: '2.2.0', puan: 4.7, etkinKurulum: 980, sonGuncelleme: '10.03.2026', publicHook: 'kargo' },
+  { kod: 'sms-bildirim', ad: 'SMS Bildirim', aciklama: 'Müşteri ve tedarikçilere otomatik SMS: sipariş, fatura ve vade hatırlatmaları.', gelistirici: 'Güzel Teknoloji', ikon: '📱', kategori: 'populer', surum: '1.8.0', puan: 4.5, etkinKurulum: 1120, sonGuncelleme: '05.03.2026', publicHook: 'sms' },
+  { kod: 'cari-ekstre', ad: 'Cari Hesap Ekstre', aciklama: 'Cari hesap hareketlerini PDF ekstre olarak oluşturun ve e-posta ile paylaşın.', gelistirici: 'Güzel Teknoloji', ikon: '📋', kategori: 'populer', surum: '1.6.4', puan: 4.6, etkinKurulum: 1340, sonGuncelleme: '18.02.2026', publicHook: 'cari-ekstre' },
+  { kod: 'coklu-para-birimi', ad: 'Çoklu Para Birimi', aciklama: 'USD, EUR ve GBP ile fiyatlandırma, kur güncelleme ve çoklu döviz raporlama.', gelistirici: 'Güzel Teknoloji', ikon: '💱', kategori: 'populer', surum: '2.1.0', puan: 4.3, etkinKurulum: 670, sonGuncelleme: '22.02.2026', publicHook: 'doviz' },
+  { kod: 'earsiv-fatura', ad: 'E-Arşiv Fatura', aciklama: 'Bireysel müşterilere e-arşiv fatura kesimi, iptal ve raporlama desteği.', gelistirici: 'Güzel Teknoloji', ikon: '🗂️', kategori: 'populer', surum: '1.4.2', puan: 4.5, etkinKurulum: 820, sonGuncelleme: '28.02.2026', publicHook: 'earsiv' },
+  { kod: 'qr-etiket', ad: 'QR Kod Etiket', aciklama: 'Ürün, raf ve depo etiketlerini QR kod ile yazdırın; mobil okuma desteği.', gelistirici: 'Güzel Teknoloji', ikon: '🔲', kategori: 'onerilen', surum: '1.3.0', puan: 4.4, etkinKurulum: 540, sonGuncelleme: '14.02.2026', publicHook: 'qr-etiket' },
+  { kod: 'ldap-giris', ad: 'LDAP / Active Directory', aciklama: 'Kurumsal Active Directory veya LDAP ile tek oturum açma (SSO) entegrasyonu.', gelistirici: 'Güzel Teknoloji', ikon: '🔐', kategori: 'onerilen', surum: '1.2.1', puan: 4.2, etkinKurulum: 310, sonGuncelleme: '06.02.2026', publicHook: 'ldap' },
+  { kod: 'bulut-yedek', ad: 'Bulut Yedekleme', aciklama: 'Veritabanı ve dosya yedeklerini Google Drive veya OneDrive\'a otomatik yükleyin.', gelistirici: 'Güzel Teknoloji', ikon: '☁️', kategori: 'onerilen', surum: '1.7.0', puan: 4.6, etkinKurulum: 890, sonGuncelleme: '25.02.2026', publicHook: 'bulut-yedek' },
+  { kod: 'dashboard-widget', ad: 'Dashboard Widget', aciklama: 'Ana panele özel grafik, KPI kartı ve hızlı erişim widget\'ları ekleyin.', gelistirici: 'Güzel Teknoloji', ikon: '📈', kategori: 'onerilen', surum: '2.0.0', puan: 4.3, etkinKurulum: 420, sonGuncelleme: '11.03.2026', publicHook: 'dashboard' },
+  { kod: 'otomatik-fiyat', ad: 'Otomatik Fiyat Güncelleme', aciklama: 'Tedarikçi fiyat listelerine göre satış fiyatlarını kural bazlı otomatik güncelleyin.', gelistirici: 'Güzel Teknoloji', ikon: '💰', kategori: 'onerilen', surum: '1.1.0', puan: 4.1, etkinKurulum: 280, sonGuncelleme: '03.03.2026', publicHook: 'fiyat' },
+];

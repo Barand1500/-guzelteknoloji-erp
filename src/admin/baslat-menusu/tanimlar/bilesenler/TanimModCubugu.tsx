@@ -1,17 +1,26 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import type { TanimSekmeId } from '@/admin/baslat-menusu/tanimlar/tipler';
-import { TANIM_SEKMELER } from '@/admin/baslat-menusu/tanimlar/tipler';
 
-interface TanimSekmeCubuguProps {
-  aktif: TanimSekmeId;
-  onDegistir: (id: TanimSekmeId) => void;
+export interface TanimModSekme {
+  id: string;
+  ad: string;
+  ikon?: string;
 }
 
-function sekmeIndeksi(id: TanimSekmeId): number {
-  return TANIM_SEKMELER.findIndex((s) => s.id === id);
+interface TanimModCubuguProps {
+  sekmeler: readonly TanimModSekme[];
+  aktif: string;
+  onDegistir: (id: string) => void;
+  ariaLabel?: string;
+  kompakt?: boolean;
 }
 
-export function TanimSekmeCubugu({ aktif, onDegistir }: TanimSekmeCubuguProps) {
+export function TanimModCubugu({
+  sekmeler,
+  aktif,
+  onDegistir,
+  ariaLabel = 'Sekme',
+  kompakt = false,
+}: TanimModCubuguProps) {
   const konteynerRef = useRef<HTMLDivElement>(null);
   const oncekiAktifRef = useRef(aktif);
   const [gosterge, setGosterge] = useState({ sol: 0, genislik: 0 });
@@ -21,7 +30,7 @@ export function TanimSekmeCubugu({ aktif, onDegistir }: TanimSekmeCubuguProps) {
   const gostergeyiGuncelle = useCallback(() => {
     const kok = konteynerRef.current;
     if (!kok) return;
-    const dugme = kok.querySelector<HTMLButtonElement>(`[data-tanim-sekme="${aktif}"]`);
+    const dugme = kok.querySelector<HTMLButtonElement>(`[data-tanim-mod-sekme="${aktif}"]`);
     if (!dugme) return;
     setGosterge({ sol: dugme.offsetLeft, genislik: dugme.offsetWidth });
   }, [aktif]);
@@ -38,17 +47,17 @@ export function TanimSekmeCubugu({ aktif, onDegistir }: TanimSekmeCubuguProps) {
   useLayoutEffect(() => {
     if (oncekiAktifRef.current === aktif) return;
     setGostergeKayiyor(true);
-    const dugme = konteynerRef.current?.querySelector<HTMLButtonElement>(`[data-tanim-sekme="${aktif}"]`);
+    const dugme = konteynerRef.current?.querySelector<HTMLButtonElement>(`[data-tanim-mod-sekme="${aktif}"]`);
     dugme?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     const zamanlayici = window.setTimeout(() => setGostergeKayiyor(false), 480);
     oncekiAktifRef.current = aktif;
     return () => window.clearTimeout(zamanlayici);
   }, [aktif]);
 
-  const sekmeTikla = (id: TanimSekmeId) => {
+  const sekmeTikla = (id: string) => {
     if (id === aktif) return;
-    const eski = sekmeIndeksi(aktif);
-    const yeni = sekmeIndeksi(id);
+    const eski = sekmeler.findIndex((s) => s.id === aktif);
+    const yeni = sekmeler.findIndex((s) => s.id === id);
     if (eski >= 0 && yeni >= 0) {
       setYon(yeni > eski ? 'ileri' : 'geri');
     }
@@ -56,30 +65,37 @@ export function TanimSekmeCubugu({ aktif, onDegistir }: TanimSekmeCubuguProps) {
   };
 
   return (
-    <div className="ap-tanimlar-tur-sarmal">
-      <div className="ap-tanimlar-tur-cubugu" ref={konteynerRef} role="tablist" aria-label="Tanım türü">
+    <div className={`ap-tanimlar-mod-sarmal${kompakt ? ' ap-tanimlar-mod-sarmal--kompakt' : ''}`}>
+      <div
+        className="ap-tanimlar-mod-cubugu"
+        ref={konteynerRef}
+        role="tablist"
+        aria-label={ariaLabel}
+      >
         <span
-          className={`ap-tanimlar-tur-gosterge ${gostergeKayiyor ? 'ap-tanimlar-tur-gosterge--kayma' : ''} ap-tanimlar-tur-gosterge--${yon}`}
+          className={`ap-tanimlar-mod-gosterge ${gostergeKayiyor ? 'ap-tanimlar-mod-gosterge--kayma' : ''} ap-tanimlar-mod-gosterge--${yon}`}
           aria-hidden
           style={{ transform: `translateX(${gosterge.sol}px)`, width: gosterge.genislik }}
         />
-        {TANIM_SEKMELER.map((s) => {
+        {sekmeler.map((s) => {
           const secili = aktif === s.id;
           return (
             <button
               key={s.id}
               type="button"
               role="tab"
-              data-tanim-sekme={s.id}
+              data-tanim-mod-sekme={s.id}
               aria-selected={secili}
               tabIndex={secili ? 0 : -1}
               onClick={() => sekmeTikla(s.id)}
-              className={`ap-tanimlar-tur-sekme ${secili ? 'ap-tanimlar-tur-sekme--aktif' : ''}`}
+              className={`ap-tanimlar-mod-sekme ${secili ? 'ap-tanimlar-mod-sekme--aktif' : ''}`}
             >
-              <span className="ap-tanimlar-tur-ikon" aria-hidden>
-                {s.ikon}
-              </span>
-              <span className="ap-tanimlar-tur-metin">{s.ad}</span>
+              {s.ikon && (
+                <span className="ap-tanimlar-mod-ikon" aria-hidden>
+                  {s.ikon}
+                </span>
+              )}
+              <span className="ap-tanimlar-mod-metin">{s.ad}</span>
             </button>
           );
         })}

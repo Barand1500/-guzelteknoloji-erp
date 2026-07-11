@@ -104,16 +104,6 @@ export function SistemEklentiSekme() {
     <div className="ap-eklenti-yonetimi">
       <div className="ap-eklenti-ust">
         <div className="ap-eklenti-baslik-cubugu">
-          <button
-            type="button"
-            className="ap-eklenti-ust-btn ap-eklenti-ust-btn-aktif"
-            onClick={() => {
-              setSekme('one-cikan');
-              setArama('');
-            }}
-          >
-            Eklenti ekle
-          </button>
           <input
             ref={dosyaRef}
             type="file"

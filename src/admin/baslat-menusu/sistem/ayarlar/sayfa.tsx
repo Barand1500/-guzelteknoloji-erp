@@ -23,6 +23,7 @@ import {
   bosSistemForm,
   sistemdenForm,
   SEKME_BASLIK,
+  SISTEM_SEKMELER,
   type SistemAyarlariForm,
   type SistemSekmeId,
 } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
@@ -86,6 +87,7 @@ export function SistemAyarlariSayfasi() {
   const [sayfalar, setSayfalar] = useState<AdminSayfa[]>([]);
   const [siteAdi, setSiteAdi] = useState('');
   const [sekme, setSekme] = useState<SistemSekmeId>('genel');
+  const [sekmeYonu, setSekmeYonu] = useState<'ileri' | 'geri'>('ileri');
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [sonKayitliForm, setSonKayitliForm] = useState<SistemAyarlariForm>(bosSistemForm);
@@ -176,17 +178,49 @@ export function SistemAyarlariSayfasi() {
 
   useModulAksiyonlari({ kaydet }, { kaydet: kirli && !kaydediliyor }, kirli);
 
+  const sekmeDegistir = useCallback((yeni: SistemSekmeId) => {
+    if (yeni === sekme) return;
+    const eskiIdx = SISTEM_SEKMELER.findIndex((s) => s.id === sekme);
+    const yeniIdx = SISTEM_SEKMELER.findIndex((s) => s.id === yeni);
+    if (eskiIdx >= 0 && yeniIdx >= 0) {
+      setSekmeYonu(yeniIdx > eskiIdx ? 'ileri' : 'geri');
+    }
+    setSekme(yeni);
+  }, [sekme]);
+
+  const aktifSekme = SISTEM_SEKMELER.find((s) => s.id === sekme);
+
   if (yukleniyor) return <YukleniyorDurumu mesaj="Sistem ayarları yükleniyor..." />;
 
   return (
     <AdminModulKabuk
       baslik="Sistem Ayarları"
       aciklama="Site, güvenlik, dil ve panel davranış ayarlarını buradan yönetirsiniz."
-      ustAksiyon={<SistemSekmeCubugu aktif={sekme} onDegistir={setSekme} />}
+      ustAksiyon={<SistemSekmeCubugu aktif={sekme} onDegistir={sekmeDegistir} />}
     >
       <div className="ap-ayarlar-sayfa">
-        <div className="ap-ayarlar-icerik" key={sekme}>
+        <div className={`ap-ayarlar-icerik ap-ayarlar-icerik--${sekmeYonu}`} key={sekme}>
           <div className="ap-ayarlar-panel">
+            <div className="ap-ayarlar-panel-baslik">
+              <div className="ap-ayarlar-ust-metin" key={`baslik-${sekme}`}>
+                <span className="ap-ayarlar-ust-ikon" aria-hidden>
+                  {aktifSekme?.ikon}
+                </span>
+                <div>
+                  <h2 className="ap-ayarlar-ust-baslik">{SEKME_BASLIK[sekme]}</h2>
+                  <p className="ap-ayarlar-ust-aciklama">
+                    {sekme === 'genel' && 'Site durumu, domain ve varsayılan panel ayarları'}
+                    {sekme === 'bakim' && 'Ziyaretçilere gösterilecek bakım ekranı ve erişim kuralları'}
+                    {sekme === 'sayfa404' && 'Bulunamayan sayfa görünümü ve yönlendirme'}
+                    {sekme === 'dil' && 'Admin panel dili ve çeviri dosyaları'}
+                    {sekme === 'guvenlik' && 'Oturum, erişim ve güvenlik politikaları'}
+                    {sekme === 'script' && 'Head ve body script enjeksiyonları'}
+                    {sekme === 'eklentiler' && 'Katalog eklentileri kurulum ve yönetim'}
+                    {sekme === 'sagTik' && 'Sağ tık menüsü öğeleri ve davranışı'}
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="ap-ayarlar-panel-govde ap-ayarlar-govde">
               <SekmeIcerik
                 sekme={sekme}

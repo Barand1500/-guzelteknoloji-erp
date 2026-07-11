@@ -96,9 +96,19 @@
   gap: 0.2rem;
   padding: 0.3rem;
   border-radius: 0.85rem;
-  border: 1px solid var(--ap-border);
-  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 12%, var(--ap-border));
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--ap-surface-2) 70%, var(--ap-surface)) 0%,
+      color-mix(in srgb, var(--ap-surface-2) 40%, var(--ap-surface)) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent),
+    0 4px 18px color-mix(in srgb, #000 8%, transparent);
+  backdrop-filter: blur(10px);
   min-width: min(100%, max-content);
+  isolation: isolate;
 }
 
 .ap-tanimlar-tur-gosterge {
@@ -107,15 +117,48 @@
   bottom: 0.3rem;
   left: 0;
   border-radius: 0.6rem;
-  background: var(--ap-accent);
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent) 0%,
+    color-mix(in srgb, var(--ap-accent) 82%, white) 48%,
+    color-mix(in srgb, var(--ap-accent) 92%, black) 100%
+  );
   box-shadow:
-    0 1px 2px color-mix(in srgb, var(--ap-accent) 35%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--ap-accent) 25%, transparent);
+    0 2px 8px color-mix(in srgb, var(--ap-accent) 45%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--ap-accent) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent);
   transition:
-    transform 0.32s cubic-bezier(0.34, 1.2, 0.64, 1),
-    width 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+    transform 0.46s cubic-bezier(0.34, 1.45, 0.64, 1),
+    width 0.42s cubic-bezier(0.34, 1.25, 0.64, 1);
   pointer-events: none;
   z-index: 0;
+  overflow: hidden;
+}
+
+.ap-tanimlar-tur-gosterge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 28%,
+    color-mix(in srgb, #fff 35%, transparent) 50%,
+    transparent 72%
+  );
+  transform: translateX(-120%);
+  animation: ap-tanimlar-gosterge-parilti 2.8s ease-in-out infinite;
+}
+
+.ap-tanimlar-tur-gosterge--kayma {
+  animation: ap-tanimlar-gosterge-nabiz 0.48s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.ap-tanimlar-tur-gosterge--kayma.ap-tanimlar-tur-gosterge--ileri {
+  animation-name: ap-tanimlar-gosterge-nabiz-ileri;
+}
+
+.ap-tanimlar-tur-gosterge--kayma.ap-tanimlar-tur-gosterge--geri {
+  animation-name: ap-tanimlar-gosterge-nabiz-geri;
 }
 
 .ap-tanimlar-tur-sekme {
@@ -132,27 +175,71 @@
   font-weight: 600;
   color: var(--ap-muted);
   white-space: nowrap;
-  transition: color 0.22s ease;
+  transition:
+    color 0.28s ease,
+    transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.ap-tanimlar-tur-sekme::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 
 .ap-tanimlar-tur-sekme:hover {
   color: var(--ap-heading);
+  transform: translateY(-1px);
+}
+
+.ap-tanimlar-tur-sekme:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ap-tanimlar-tur-sekme:active {
+  transform: translateY(0) scale(0.97);
 }
 
 .ap-tanimlar-tur-sekme--aktif {
   color: #fff;
 }
 
+.ap-tanimlar-tur-sekme--aktif::before {
+  opacity: 0;
+}
+
 .ap-tanimlar-tur-ikon {
   font-size: 0.9rem;
   line-height: 1;
   opacity: 0.85;
-  transition: transform 0.25s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
+    opacity 0.25s ease;
+  display: inline-block;
+}
+
+.ap-tanimlar-tur-metin {
+  position: relative;
+  z-index: 1;
+  transition: letter-spacing 0.28s ease;
 }
 
 .ap-tanimlar-tur-sekme--aktif .ap-tanimlar-tur-ikon {
   opacity: 1;
-  transform: scale(1.08);
+  animation: ap-tanimlar-ikon-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.ap-tanimlar-tur-sekme--aktif .ap-tanimlar-tur-metin {
+  letter-spacing: 0.01em;
 }
 
 .ap-tanimlar-ust-metin {
@@ -176,17 +263,93 @@
 
 /* İçerik geçişi */
 .ap-tanimlar-icerik {
-  animation: ap-tanimlar-icerik-gir 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: ap-tanimlar-icerik-gir 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ap-tanimlar-icerik--ileri {
+  animation: ap-tanimlar-icerik-ileri 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ap-tanimlar-icerik--geri {
+  animation: ap-tanimlar-icerik-geri 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ap-tanimlar-gosterge-parilti {
+  0%,
+  72%,
+  100% {
+    transform: translateX(-120%);
+  }
+  88% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes ap-tanimlar-gosterge-nabiz-ileri {
+  0% {
+    filter: brightness(1);
+    box-shadow:
+      0 2px 8px color-mix(in srgb, var(--ap-accent) 45%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--ap-accent) 30%, transparent);
+  }
+  45% {
+    filter: brightness(1.12);
+    box-shadow:
+      0 4px 16px color-mix(in srgb, var(--ap-accent) 55%, transparent),
+      0 0 20px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+  }
+  100% {
+    filter: brightness(1);
+    box-shadow:
+      0 2px 8px color-mix(in srgb, var(--ap-accent) 45%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--ap-accent) 30%, transparent);
+  }
+}
+
+@keyframes ap-tanimlar-gosterge-nabiz-geri {
+  0% {
+    filter: brightness(1);
+    box-shadow:
+      0 2px 8px color-mix(in srgb, var(--ap-accent) 45%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--ap-accent) 30%, transparent);
+  }
+  45% {
+    filter: brightness(1.1);
+    box-shadow:
+      0 4px 14px color-mix(in srgb, var(--ap-accent) 50%, transparent),
+      0 0 16px color-mix(in srgb, var(--ap-accent) 28%, transparent);
+  }
+  100% {
+    filter: brightness(1);
+    box-shadow:
+      0 2px 8px color-mix(in srgb, var(--ap-accent) 45%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--ap-accent) 30%, transparent);
+  }
+}
+
+@keyframes ap-tanimlar-ikon-pop {
+  0% {
+    transform: scale(0.7) rotate(-12deg);
+    opacity: 0.5;
+  }
+  55% {
+    transform: scale(1.18) rotate(6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.08) rotate(0deg);
+    opacity: 1;
+  }
 }
 
 @keyframes ap-tanimlar-metin-gir {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px) translateX(-6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) translateX(0);
   }
 }
 
@@ -198,6 +361,32 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes ap-tanimlar-icerik-ileri {
+  from {
+    opacity: 0;
+    transform: translateX(22px) translateY(6px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes ap-tanimlar-icerik-geri {
+  from {
+    opacity: 0;
+    transform: translateX(-22px) translateY(6px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -625,14 +814,22 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ap-tanimlar-tur-gosterge,
+  .ap-tanimlar-tur-gosterge::after,
+  .ap-tanimlar-mod-gosterge,
+  .ap-tanimlar-mod-gosterge::after,
   .ap-tanimlar-tur-sekme,
   .ap-tanimlar-tur-ikon,
+  .ap-tanimlar-mod-sekme,
+  .ap-tanimlar-mod-ikon,
   .ap-tanimlar-liste-oge,
   .ap-tanimlar-liste-oge::before,
   .ap-tanimlar-ust-metin,
-  .ap-tanimlar-icerik {
+  .ap-tanimlar-icerik,
+  .ap-tanimlar-ozet,
+  .ap-tanimlar-gezgin {
     animation: none !important;
     transition: none !important;
+    filter: none !important;
   }
 }
 
@@ -1368,34 +1565,181 @@ button.ap-tanimlar-sihirbaz-faz {
   color: #16a34a;
 }
 
+.ap-tanimlar-mod-sarmal {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ap-tanimlar-mod-sarmal::-webkit-scrollbar {
+  display: none;
+}
+
 .ap-tanimlar-mod-cubugu {
+  position: relative;
   display: inline-flex;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--ap-border);
-  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.3rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 12%, var(--ap-border));
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--ap-surface-2) 70%, var(--ap-surface)) 0%,
+      color-mix(in srgb, var(--ap-surface-2) 40%, var(--ap-surface)) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent),
+    0 4px 18px color-mix(in srgb, #000 8%, transparent);
+  backdrop-filter: blur(10px);
+  min-width: min(100%, max-content);
+  isolation: isolate;
+}
+
+.ap-tanimlar-mod-gosterge {
+  position: absolute;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  left: 0;
+  border-radius: 0.6rem;
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent) 0%,
+    color-mix(in srgb, var(--ap-accent) 82%, white) 48%,
+    color-mix(in srgb, var(--ap-accent) 92%, black) 100%
+  );
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--ap-accent) 45%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--ap-accent) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent);
+  transition:
+    transform 0.46s cubic-bezier(0.34, 1.45, 0.64, 1),
+    width 0.42s cubic-bezier(0.34, 1.25, 0.64, 1);
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ap-tanimlar-mod-gosterge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 28%,
+    color-mix(in srgb, #fff 35%, transparent) 50%,
+    transparent 72%
+  );
+  transform: translateX(-120%);
+  animation: ap-tanimlar-gosterge-parilti 2.8s ease-in-out infinite;
+}
+
+.ap-tanimlar-mod-gosterge--kayma {
+  animation: ap-tanimlar-gosterge-nabiz 0.48s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.ap-tanimlar-mod-gosterge--kayma.ap-tanimlar-mod-gosterge--ileri {
+  animation-name: ap-tanimlar-gosterge-nabiz-ileri;
+}
+
+.ap-tanimlar-mod-gosterge--kayma.ap-tanimlar-mod-gosterge--geri {
+  animation-name: ap-tanimlar-gosterge-nabiz-geri;
 }
 
 .ap-tanimlar-mod-sekme {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.85rem;
   border: none;
-  border-radius: 0.55rem;
+  border-radius: 0.6rem;
   background: transparent;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--ap-muted);
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    color 0.28s ease,
+    transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
+  overflow: hidden;
+}
+
+.ap-tanimlar-mod-sekme::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.ap-tanimlar-mod-sekme:hover {
+  color: var(--ap-heading);
+  transform: translateY(-1px);
+}
+
+.ap-tanimlar-mod-sekme:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ap-tanimlar-mod-sekme:active {
+  transform: translateY(0) scale(0.97);
 }
 
 .ap-tanimlar-mod-sekme--aktif {
-  background: var(--ap-accent);
   color: #fff;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+}
+
+.ap-tanimlar-mod-sekme--aktif::before {
+  opacity: 0;
+}
+
+.ap-tanimlar-mod-ikon {
+  font-size: 0.9rem;
+  line-height: 1;
+  opacity: 0.85;
+  display: inline-block;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
+    opacity 0.25s ease;
+}
+
+.ap-tanimlar-mod-metin {
+  position: relative;
+  z-index: 1;
+  transition: letter-spacing 0.28s ease;
+}
+
+.ap-tanimlar-mod-sekme--aktif .ap-tanimlar-mod-ikon {
+  opacity: 1;
+  animation: ap-tanimlar-ikon-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.ap-tanimlar-mod-sekme--aktif .ap-tanimlar-mod-metin {
+  letter-spacing: 0.01em;
+}
+
+.ap-tanimlar-mod-sarmal--kompakt .ap-tanimlar-mod-cubugu {
+  padding: 0.25rem;
+}
+
+.ap-tanimlar-mod-sarmal--kompakt .ap-tanimlar-mod-gosterge {
+  top: 0.25rem;
+  bottom: 0.25rem;
+}
+
+.ap-tanimlar-mod-sarmal--kompakt .ap-tanimlar-mod-sekme {
+  padding: 0.38rem 0.72rem;
+  font-size: 0.78rem;
 }
 
 .ap-tanimlar-ozet {
@@ -1527,17 +1871,27 @@ button.ap-tanimlar-sihirbaz-faz {
   background: var(--ap-surface);
 }
 
-.ap-tanimlar-gezgin-sekme-bar .ap-tanimlar-mod-cubugu {
-  gap: 0.2rem;
+.ap-tanimlar-gezgin-sekme-bar .ap-tanimlar-mod-sarmal {
+  width: 100%;
 }
 
-.ap-tanimlar-mod-sekme:hover {
-  color: var(--ap-heading);
-}
-
-.ap-tanimlar-mod-sekme--aktif,
-.ap-tanimlar-mod-sekme--aktif:hover {
-  color: #fff;
+@media (prefers-reduced-motion: reduce) {
+  .ap-tanimlar-tur-gosterge,
+  .ap-tanimlar-tur-gosterge::after,
+  .ap-tanimlar-mod-gosterge,
+  .ap-tanimlar-mod-gosterge::after,
+  .ap-tanimlar-tur-sekme,
+  .ap-tanimlar-tur-ikon,
+  .ap-tanimlar-mod-sekme,
+  .ap-tanimlar-mod-ikon,
+  .ap-tanimlar-liste-oge,
+  .ap-tanimlar-liste-oge::before,
+  .ap-tanimlar-ust-metin,
+  .ap-tanimlar-icerik {
+    animation: none !important;
+    transition: none !important;
+    filter: none !important;
+  }
 }
 
 .ap-tanimlar-gezgin-grid {

@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { FormAlani } from '@/formlar/FormAlani';
 import { KenarlikRenkSecici } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/KenarlikRenkSecici';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
-import type { VarsayilanAyarlar } from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
+import {
+  VARSAYILAN_AYARLAR,
+  type VarsayilanAyarlar,
+} from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
 import type { DataGridCizgiModu } from '@/admin/ortak/datagrid/types';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 
@@ -24,7 +27,7 @@ function SecimGrubu<T extends string | number>({
 }: {
   etiket: string;
   aciklama?: string;
-  secenekler: { id: T; ad: string; alt?: string }[];
+  secenekler: { id: T; ad: string; alt?: string; ikon?: string }[];
   deger: T;
   onSec: (id: T) => void;
 }) {
@@ -42,7 +45,11 @@ function SecimGrubu<T extends string | number>({
             className={`ap-var-ayar-secim${deger === s.id ? ' ap-var-ayar-secim--aktif' : ''}`}
             onClick={() => onSec(s.id)}
           >
-            <span>{s.ad}</span>
+            <span className="ap-var-ayar-secim-ust">
+              {s.ikon && <span aria-hidden>{s.ikon}</span>}
+              <span>{s.ad}</span>
+              {deger === s.id && <span className="ap-var-ayar-secim-onay" aria-hidden>✓</span>}
+            </span>
             {s.alt && <span className="ap-var-ayar-secim-alt">{s.alt}</span>}
           </button>
         ))}
@@ -63,7 +70,7 @@ function ToggleSatir({
   onDegistir: (v: boolean) => void;
 }) {
   return (
-    <label className="ap-var-ayar-toggle">
+    <div className="ap-var-ayar-toggle">
       <div>
         <p className="ap-var-ayar-etiket">{etiket}</p>
         {aciklama && <p className="ap-var-ayar-aciklama">{aciklama}</p>}
@@ -74,10 +81,11 @@ function ToggleSatir({
         aria-checked={acik}
         onClick={() => onDegistir(!acik)}
         className={`ap-toggle ${acik ? 'ap-toggle-on' : ''}`}
+        aria-label={`${etiket}: ${acik ? 'Açık' : 'Kapalı'}`}
       >
         <span className="ap-toggle-thumb" />
       </button>
-    </label>
+    </div>
   );
 }
 
@@ -112,11 +120,13 @@ function AkordiyonOge({
           </span>
           <span className="ap-var-ayar-akordiyon-metin">
             <span className="ap-var-ayar-akordiyon-baslik">{baslik}</span>
-            {!acik && <span className="ap-var-ayar-akordiyon-ozet">{ozet}</span>}
           </span>
         </span>
-        <span className={`ap-var-ayar-akordiyon-ok${acik ? ' ap-var-ayar-akordiyon-ok--acik' : ''}`} aria-hidden>
-          ›
+        <span className="ap-var-ayar-akordiyon-sag">
+          <span className="ap-var-ayar-akordiyon-durum">{ozet}</span>
+          <span className={`ap-var-ayar-akordiyon-ok${acik ? ' ap-var-ayar-akordiyon-ok--acik' : ''}`} aria-hidden>
+            ›
+          </span>
         </span>
       </button>
       {acik && <div className="ap-var-ayar-akordiyon-icerik">{children}</div>}
@@ -155,16 +165,53 @@ export function VarsayilanAyarlarAkordiyon({ form, onChange }: VarsayilanAyarlar
     va.sekme.sekmeYukseklik === 'buyuk' ? 'Büyük' : va.sekme.sekmeYukseklik === 'kucuk' ? 'Küçük' : 'Orta'
   }`;
 
+  const onerilenlereDon = () => {
+    onChange({
+      ...form,
+      kenarlikRenk: 'turuncu',
+      kenarlikNeon: false,
+      varsayilanAyarlar: {
+        ...VARSAYILAN_AYARLAR,
+        sekme: { ...VARSAYILAN_AYARLAR.sekme },
+      },
+    });
+  };
+
   return (
     <section className="ap-var-ayar-blok">
       <header className="ap-var-ayar-blok-baslik">
-        <div>
-          <h3 className="ap-var-ayar-blok-baslik-metin">Varsayılan Ayarlar</h3>
-          <p className="ap-var-ayar-blok-aciklama">
-            Yeni oturumlarda ve kişisel tercih yapılmamış alanlarda kullanılacak site geneli varsayılanlar.
-          </p>
+        <div className="ap-var-ayar-blok-baslik-sol">
+          <span className="ap-var-ayar-blok-ikon" aria-hidden>⚙️</span>
+          <div>
+            <div className="ap-var-ayar-blok-baslik-satir">
+              <h3 className="ap-var-ayar-blok-baslik-metin">Varsayılan Ayarlar</h3>
+              <span className="ap-var-ayar-site-rozeti">Site geneli</span>
+            </div>
+            <p className="ap-var-ayar-blok-aciklama">
+              Kişisel seçim yapılmamış ekranların başlangıç görünümünü buradan belirleyin.
+            </p>
+          </div>
         </div>
+        <button type="button" className="ap-var-ayar-sifirla" onClick={onerilenlereDon}>
+          <span aria-hidden>↺</span>
+          Önerilenlere dön
+        </button>
       </header>
+
+      <div className="ap-var-ayar-ozetler" aria-label="Seçili varsayılanların özeti">
+        <div className="ap-var-ayar-ozet-kart">
+          <span className="ap-var-ayar-ozet-ikon" aria-hidden>{va.panelTema === 'acik' ? '☀️' : '🌙'}</span>
+          <span><small>Tema</small><strong>{temaOzet}</strong></span>
+        </div>
+        <div className="ap-var-ayar-ozet-kart">
+          <span className="ap-var-ayar-ozet-ikon" aria-hidden>▦</span>
+          <span><small>Tablo</small><strong>{tabloOzet}</strong></span>
+        </div>
+        <div className="ap-var-ayar-ozet-kart">
+          <span className="ap-var-ayar-ozet-ikon" aria-hidden>▱</span>
+          <span><small>Sekmeler</small><strong>{sekmeOzet}</strong></span>
+        </div>
+      </div>
 
       <div className="ap-var-ayar-akordiyon-liste">
         <AkordiyonOge
@@ -179,8 +226,8 @@ export function VarsayilanAyarlarAkordiyon({ form, onChange }: VarsayilanAyarlar
             etiket="Varsayılan mod"
             aciklama="Panel ilk açıldığında gece veya gündüz teması"
             secenekler={[
-              { id: 'koyu' as const, ad: 'Gece', alt: 'Koyu arayüz' },
-              { id: 'acik' as const, ad: 'Gündüz', alt: 'Açık arayüz' },
+              { id: 'koyu' as const, ad: 'Gece', alt: 'Koyu arayüz', ikon: '🌙' },
+              { id: 'acik' as const, ad: 'Gündüz', alt: 'Açık arayüz', ikon: '☀️' },
             ]}
             deger={va.panelTema}
             onSec={(panelTema) => vaGuncelle({ panelTema })}
@@ -216,22 +263,19 @@ export function VarsayilanAyarlarAkordiyon({ form, onChange }: VarsayilanAyarlar
               <p className="ap-var-ayar-etiket">Sayfa başına kayıt</p>
               <p className="ap-var-ayar-aciklama">DataGrid ve liste tablolarında varsayılan gösterim</p>
             </div>
-            <div className="ap-var-ayar-kayit-sec">
-              <select
-                className="ap-var-ayar-kayit-select"
-                value={va.dataGridSayfaBoyutu}
-                onChange={(e) =>
-                  vaGuncelle({ dataGridSayfaBoyutu: Number(e.target.value) as 5 | 10 | 25 | 50 })
-                }
-                aria-label="Sayfa başına kayıt sayısı"
-              >
-                {SAYFA_BOYUTLARI.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-              <span className="ap-var-ayar-kayit-etiket">Kayıt</span>
+            <div className="ap-var-ayar-kayit-sec" role="group" aria-label="Sayfa başına kayıt sayısı">
+              {SAYFA_BOYUTLARI.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`ap-var-ayar-kayit-tus${va.dataGridSayfaBoyutu === n ? ' ap-var-ayar-kayit-tus--aktif' : ''}`}
+                  aria-pressed={va.dataGridSayfaBoyutu === n}
+                  onClick={() => vaGuncelle({ dataGridSayfaBoyutu: n })}
+                >
+                  <strong>{n}</strong>
+                  <span>kayıt</span>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -252,6 +296,7 @@ export function VarsayilanAyarlarAkordiyon({ form, onChange }: VarsayilanAyarlar
                   onClick={() => vaGuncelle({ dataGridCizgiModu: mod })}
                 >
                   <DgIkon ad={ikon} />
+                  <span>{etiket}</span>
                 </button>
               ))}
             </div>
@@ -266,6 +311,10 @@ export function VarsayilanAyarlarAkordiyon({ form, onChange }: VarsayilanAyarlar
           acik={acikPanel === 'sekme'}
           onAc={setAcikPanel}
         >
+          <div className="ap-var-ayar-alt-baslik">
+            <span aria-hidden>◫</span>
+            Görünüm
+          </div>
           <SecimGrubu
             etiket="Sekme görünümü"
             secenekler={[
@@ -332,6 +381,10 @@ export function VarsayilanAyarlarAkordiyon({ form, onChange }: VarsayilanAyarlar
             />
           )}
 
+          <div className="ap-var-ayar-alt-baslik">
+            <span aria-hidden>⌁</span>
+            Davranış
+          </div>
           <div className="ap-var-ayar-toggle-grup">
             <ToggleSatir
               etiket="Yan yana sekme"

@@ -1,4 +1,6 @@
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
+import { EKLENTI_KATALOGU } from '@/admin/baslat-menusu/sistem/ayarlar/veri-eklentiKatalogu';
+import type { EklentiDurum } from '@/admin/ortak/tipler/eklenti';
 import { offlineKullanici } from '@/admin/ortak/api/authApi';
 import { offlineTanimlarGetir, offlineTanimlarYaz } from '@/admin/ortak/api/offlineTanimlar';
 
@@ -6,6 +8,7 @@ const OFFLINE_SISTEM_ANAHTAR = 'erp-offline-sistem-ayarlari';
 const OFFLINE_MODUL_ANAHTAR = 'erp-offline-moduller';
 const OFFLINE_KULLANICI_ANAHTAR = 'erp-offline-kullanicilar';
 const OFFLINE_LOG_ANAHTAR = 'erp-offline-loglar';
+const OFFLINE_EKLENTI_ANAHTAR = 'erp-offline-eklenti-kurulum';
 const OFFLINE_LOG_LIMIT = 500;
 
 interface OfflineModul {
@@ -104,6 +107,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
     if (p.includes('/moduller')) return offlineModulYaz(body, m, p);
     if (p.includes('/loglar')) return offlineLogYaz(body, m, p);
     if (p.includes('/tanimlar')) return offlineTanimlarYaz(p, m, body);
+    if (p.includes('/eklentiler')) return offlineEklentiYaz(m, p);
     return { mesaj: 'Kayit (offline mod)' };
   }
 
@@ -118,7 +122,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
   if (p.includes('/yedek/gecmis')) return { kayitlar: [], sonKayit: null };
   if (p.includes('/sistem-ayarlari')) return offlineSistemAyarlari();
   if (p.includes('/bildirim')) return { bildirimler: [], okunmamisSayi: 0 };
-  if (p.includes('/eklentiler')) return { eklentiler: [] };
+  if (p.includes('/eklentiler')) return offlineEklentiListe();
   if (p.includes('/tanimlar')) return offlineTanimlarGetir(p);
 
   return {};
@@ -387,6 +391,81 @@ function offlineLogYaz(body: BodyInit | null | undefined, method: string, path: 
     };
     offlineLogKaydetStorage([kayit, ...offlineLogOku()]);
     return { mesaj: 'Kaydedildi' };
+  }
+
+  return { mesaj: 'Kayit (offline mod)' };
+}
+
+type OfflineEklentiKurulum = Record<string, EklentiDurum>;
+
+function offlineEklentiKurulumOku(): OfflineEklentiKurulum {
+  try {
+    const raw = localStorage.getItem(OFFLINE_EKLENTI_ANAHTAR);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as OfflineEklentiKurulum;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function offlineEklentiKurulumKaydet(kurulum: OfflineEklentiKurulum): void {
+  localStorage.setItem(OFFLINE_EKLENTI_ANAHTAR, JSON.stringify(kurulum));
+}
+
+function offlineEklentiListe() {
+  const kurulum = offlineEklentiKurulumOku();
+  const eklentiler = EKLENTI_KATALOGU.map((e) => {
+    const durum = kurulum[e.kod];
+    return {
+      ...e,
+      kurulu: !!durum,
+      durum: durum ?? undefined,
+      kaynak: 'katalog' as const,
+    };
+  });
+  return { eklentiler };
+}
+
+function offlineEklentiYaz(method: string, path: string): { mesaj: string } {
+  const kodMatch = path.match(/\/eklentiler\/([^/]+)/);
+  const kod = kodMatch?.[1] ? decodeURIComponent(kodMatch[1]) : null;
+  if (!kod) return { mesaj: 'Eklenti kodu gerekli' };
+
+  const kart = EKLENTI_KATALOGU.find((e) => e.kod === kod);
+  if (!kart) return { mesaj: 'Eklenti bulunamadi' };
+
+  const kurulum = offlineEklentiKurulumOku();
+  const mevcut = kurulum[kod];
+
+  if (method === 'DELETE') {
+    delete kurulum[kod];
+    offlineEklentiKurulumKaydet(kurulum);
+    return { mesaj: 'Kaldirildi' };
+  }
+
+  if (path.endsWith('/kur') && method === 'POST') {
+    kurulum[kod] = 'kurulu';
+    offlineEklentiKurulumKaydet(kurulum);
+    return { mesaj: 'Kuruldu' };
+  }
+
+  if (path.endsWith('/aktif') && method === 'PATCH') {
+    if (!mevcut) {
+      return { mesaj: 'Eklenti kurulu degil' };
+    }
+    kurulum[kod] = 'aktif';
+    offlineEklentiKurulumKaydet(kurulum);
+    return { mesaj: 'Aktif edildi' };
+  }
+
+  if (path.endsWith('/pasif') && method === 'PATCH') {
+    if (mevcut !== 'aktif') {
+      return { mesaj: 'Eklenti aktif degil' };
+    }
+    kurulum[kod] = 'pasif';
+    offlineEklentiKurulumKaydet(kurulum);
+    return { mesaj: 'Pasif edildi' };
   }
 
   return { mesaj: 'Kayit (offline mod)' };

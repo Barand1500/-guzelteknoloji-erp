@@ -128,4 +128,5 @@ export function varsayilanSekmeAyarlariBirlestir(
 export function varsayilanAyarlarYayinla(ayarlar: VarsayilanAyarlar) {
   const normalize = siteVarsayilanAyarlarKaydet(ayarlar);
   window.dispatchEvent(new CustomEvent('ap-varsayilan-ayarlar-guncellendi', { detail: normalize }));
+  window.dispatchEvent(new CustomEvent('ap-sekme-ayarlari-guncellendi'));
 }

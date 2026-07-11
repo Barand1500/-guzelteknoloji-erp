@@ -7,9 +7,16 @@ interface SistemSekmeCubuguProps {
   onDegistir: (id: SistemSekmeId) => void;
 }
 
+function sekmeIndeksi(id: SistemSekmeId): number {
+  return SISTEM_SEKMELER.findIndex((s) => s.id === id);
+}
+
 export function SistemSekmeCubugu({ aktif, onDegistir }: SistemSekmeCubuguProps) {
   const konteynerRef = useRef<HTMLDivElement>(null);
+  const oncekiAktifRef = useRef(aktif);
   const [gosterge, setGosterge] = useState({ sol: 0, genislik: 0 });
+  const [gostergeKayiyor, setGostergeKayiyor] = useState(false);
+  const [yon, setYon] = useState<'ileri' | 'geri'>('ileri');
 
   const gostergeyiGuncelle = useCallback(() => {
     const kok = konteynerRef.current;
@@ -28,11 +35,31 @@ export function SistemSekmeCubugu({ aktif, onDegistir }: SistemSekmeCubuguProps)
     return () => gozlemci.disconnect();
   }, [gostergeyiGuncelle]);
 
+  useLayoutEffect(() => {
+    if (oncekiAktifRef.current === aktif) return;
+    setGostergeKayiyor(true);
+    const dugme = konteynerRef.current?.querySelector<HTMLButtonElement>(`[data-ayarlar-sekme="${aktif}"]`);
+    dugme?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    const zamanlayici = window.setTimeout(() => setGostergeKayiyor(false), 480);
+    oncekiAktifRef.current = aktif;
+    return () => window.clearTimeout(zamanlayici);
+  }, [aktif]);
+
+  const sekmeTikla = (id: SistemSekmeId) => {
+    if (id === aktif) return;
+    const eski = sekmeIndeksi(aktif);
+    const yeni = sekmeIndeksi(id);
+    if (eski >= 0 && yeni >= 0) {
+      setYon(yeni > eski ? 'ileri' : 'geri');
+    }
+    onDegistir(id);
+  };
+
   return (
     <div className="ap-ayarlar-tur-sarmal">
       <div className="ap-ayarlar-tur-cubugu" ref={konteynerRef} role="tablist" aria-label="Ayar sekmesi">
         <span
-          className="ap-ayarlar-tur-gosterge"
+          className={`ap-ayarlar-tur-gosterge ${gostergeKayiyor ? 'ap-ayarlar-tur-gosterge--kayma' : ''} ap-ayarlar-tur-gosterge--${yon}`}
           aria-hidden
           style={{ transform: `translateX(${gosterge.sol}px)`, width: gosterge.genislik }}
         />
@@ -46,13 +73,13 @@ export function SistemSekmeCubugu({ aktif, onDegistir }: SistemSekmeCubuguProps)
               data-ayarlar-sekme={s.id}
               aria-selected={secili}
               tabIndex={secili ? 0 : -1}
-              onClick={() => onDegistir(s.id)}
+              onClick={() => sekmeTikla(s.id)}
               className={`ap-ayarlar-tur-sekme ${secili ? 'ap-ayarlar-tur-sekme--aktif' : ''}`}
             >
               <span className="ap-ayarlar-tur-ikon" aria-hidden>
                 {s.ikon}
               </span>
-              <span>{s.ad}</span>
+              <span className="ap-ayarlar-tur-metin">{s.ad}</span>
             </button>
           );
         })}

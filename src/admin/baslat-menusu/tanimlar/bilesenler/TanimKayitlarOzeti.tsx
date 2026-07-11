@@ -28,6 +28,7 @@ import { KasaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/KasaSekme';
 import { SubeSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/SubeSekme';
 import { TanimBagliSilOnayModal } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimBagliSilOnayModal';
 import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
+import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import type {
   AdminDepo,
@@ -139,20 +140,13 @@ function GezginSekmeler({
 }) {
   return (
     <div className="ap-tanimlar-gezgin-sekme-bar">
-      <div className="ap-tanimlar-mod-cubugu" role="tablist" aria-label="Alt kayıt türü">
-        {sekmeler.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            role="tab"
-            aria-selected={aktif === s.id}
-            className={`ap-tanimlar-mod-sekme${aktif === s.id ? ' ap-tanimlar-mod-sekme--aktif' : ''}`}
-            onClick={() => onSec(s.id)}
-          >
-            {s.etiket}
-          </button>
-        ))}
-      </div>
+      <TanimModCubugu
+        sekmeler={sekmeler.map((s) => ({ id: s.id, ad: s.etiket }))}
+        aktif={aktif}
+        onDegistir={onSec}
+        ariaLabel="Alt kayıt türü"
+        kompakt
+      />
     </div>
   );
 }
