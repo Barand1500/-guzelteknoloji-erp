@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Windows CRLF satir sonlari Linux bash'te syntax hatasi verir; otomatik duzelt.
+if grep -q $'\r' "$0" 2>/dev/null; then
+  sed -i 's/\r$//' "$0"
+  exec bash "$0" "$@"
+fi
 set -euo pipefail
 
 # Single-file deploy script for CloudPanel layout
@@ -58,11 +63,11 @@ api_auth_route_check() {
   body="${raw%HTTP_CODE:*}"
   body="$(echo "$body" | tr -d '\r')"
   if [ "$code" = "401" ]; then
-    echo "  OK  ${path} (HTTP ${code} — route mevcut)"
+    echo "  OK  ${path} (HTTP ${code} - route mevcut)"
     return 0
   fi
   if [ "$code" = "404" ] && echo "$body" | grep -q 'Endpoint bulunamadi'; then
-    echo "  FAIL ${path} (HTTP 404 — route eksik)"
+    echo "  FAIL ${path} (HTTP 404 - route eksik)"
     return 1
   fi
   echo "  FAIL ${path} (HTTP ${code}, beklenen 401)"
@@ -77,15 +82,15 @@ env_dogrula() {
   local hata=0
   for anahtar in DATABASE_URL JWT_SECRET; do
     if ! grep -qE "^${anahtar}=.+" "$env_file" 2>/dev/null; then
-      echo "  ERROR: ${anahtar} eksik veya bos — $env_file"
+      echo "  ERROR: ${anahtar} eksik veya bos - $env_file"
       hata=1
     fi
   done
   if ! grep -qE '^MOCK_AUTH=(0|false|no)' "$env_file" 2>/dev/null; then
-    echo "  WARNING: MOCK_AUTH=0 degil — production icin gercek DB auth kullanilmali"
+    echo "  WARNING: MOCK_AUTH=0 degil - production icin gercek DB auth kullanilmali"
   fi
   if ! grep -qE '^SEED_ADMIN_PASSWORD=.+' "$env_file" 2>/dev/null; then
-    echo "  WARNING: SEED_ADMIN_PASSWORD yok — sifre sifirlama icin ekleyin"
+    echo "  WARNING: SEED_ADMIN_PASSWORD yok - sifre sifirlama icin ekleyin"
   fi
   return "$hata"
 }
@@ -128,17 +133,19 @@ if [ ! -f "$SITE/backend/.env" ]; then
 fi
 
 MOCK_AUTH_VAL="$(grep -E '^MOCK_AUTH=' "$SITE/backend/.env" 2>/dev/null | cut -d= -f2- | tr -d ' "' | tr '[:upper:]' '[:lower:]' || true)"
-echo "  backend/.env MOCK_AUTH=${MOCK_AUTH_VAL:-<yok>}"
+echo "  backend/.env MOCK_AUTH=${MOCK_AUTH_VAL:-bos}"
 echo "  backend/.env dogrulama ..."
 if ! env_dogrula "$SITE/backend/.env"; then
   echo "ERROR: backend/.env duzeltin ve tekrar calistirin."
   exit 1
 fi
-if [ "$FRONTEND_MOCK_AUTH" = "0" ] && { [ "$MOCK_AUTH_VAL" = "true" ] || [ "$MOCK_AUTH_VAL" = "1" ] || [ "$MOCK_AUTH_VAL" = "yes" ]; }; then
-  echo ""
-  echo "  WARNING: Frontend gercek API kullaniyor ama backend MOCK_AUTH acik."
-  echo "  Production icin backend/.env icinde MOCK_AUTH=0 yapin, sonra tekrar deploy edin."
-  echo ""
+if [ "$FRONTEND_MOCK_AUTH" = "0" ]; then
+  if [ "$MOCK_AUTH_VAL" = "true" ] || [ "$MOCK_AUTH_VAL" = "1" ] || [ "$MOCK_AUTH_VAL" = "yes" ]; then
+    echo ""
+    echo "  WARNING: Frontend gercek API kullaniyor ama backend MOCK_AUTH acik."
+    echo "  Production icin backend/.env icinde MOCK_AUTH=0 yapin, sonra tekrar deploy edin."
+    echo ""
+  fi
 fi
 
 echo "[1/6] Updating git from origin/$GIT_BRANCH ..."
@@ -147,16 +154,18 @@ git fetch origin "$GIT_BRANCH"
 git reset --hard "origin/$GIT_BRANCH"
 cp "$SITE/repo/deploy.sh" "$SITE/deploy.sh"
 chmod +x "$SITE/deploy.sh"
+sed -i 's/\r$//' "$SITE/deploy.sh" "$SITE/repo/deploy.sh" 2>/dev/null || true
+find "$SITE/repo/backend/scripts" -name '*.sh' -exec sed -i 's/\r$//' {} + 2>/dev/null || true
 echo "  Commit: $(git log -1 --oneline)"
 
 echo "[2/6] Building frontend ..."
 cd "$SITE/repo"
 npm ci
 if [ "$FRONTEND_MOCK_AUTH" = "1" ]; then
-  echo "  Frontend mode: mock auth (VITE_BACKEND_YOK=true)"
+  echo "  Frontend mode: mock auth - VITE_BACKEND_YOK=true"
   VITE_API_URL=/api VITE_BACKEND_YOK=true npm run build
 else
-  echo "  Frontend mode: real auth (VITE_BACKEND_YOK=false)"
+  echo "  Frontend mode: real auth - VITE_BACKEND_YOK=false"
   VITE_API_URL=/api VITE_BACKEND_YOK=false npm run build
 fi
 rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
@@ -202,7 +211,7 @@ else
   echo ""
 fi
 
-echo "[6/6] Restarting PM2 ($PM2_NAME on $API_PORT) ..."
+echo "[6/6] Restarting PM2: ${PM2_NAME} port ${API_PORT} ..."
 cd "$SITE/backend"
 pm2 delete "$PM2_NAME" 2>/dev/null || true
 port_serbest_birak "$API_PORT"
@@ -228,7 +237,7 @@ if api_get_check "/api/health" '"durum"'; then
   if echo "$HEALTH_BODY" | grep -q '"dbTuru":"erp"'; then
     echo "  OK  dbTuru=erp (yeni backend)"
   else
-    echo "  WARN dbTuru erp degil — port ${API_PORT} baska uygulama tarafindan kullaniliyor olabilir"
+    echo "  WARN dbTuru erp degil - port ${API_PORT} baska uygulama tarafindan kullaniliyor olabilir"
     echo "       ${HEALTH_BODY}"
     echo "  -> ss -ltnp | grep :${API_PORT}"
     echo "  -> pm2 list"
@@ -246,7 +255,7 @@ fi
 
 ROUTE_OK=1
 echo ""
-echo "Protected routes (401 = OK, 404 = backend eski):"
+echo "Protected routes - 401 OK, 404 backend eski:"
 api_auth_route_check "/api/admin/kullanicilar" || ROUTE_OK=0
 api_auth_route_check "/api/admin/tanimlar/firmalar" || ROUTE_OK=0
 api_auth_route_check "/api/admin/tanimlar/donemler" || ROUTE_OK=0
@@ -255,7 +264,10 @@ api_auth_route_check "/api/admin/roller" || ROUTE_OK=0
 if [ "$ROUTE_OK" = "1" ] && [ -x "$SITE/backend/scripts/api-smoke.sh" ]; then
   echo ""
   echo "Tam smoke test ..."
-  (cd "$SITE/backend" && bash scripts/api-smoke.sh) || ROUTE_OK=0
+  (
+    cd "$SITE/backend"
+    bash scripts/api-smoke.sh
+  ) || ROUTE_OK=0
 fi
 
 echo ""

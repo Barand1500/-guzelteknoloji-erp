@@ -47,12 +47,12 @@ check_auth_route() {
   body="$(echo "$body" | tr -d '\r')"
 
   if [ "$code" = "401" ]; then
-    echo "  OK   GET ${path} (HTTP ${code} — route mevcut)"
+    echo "  OK   GET ${path} (HTTP ${code} - route mevcut)"
     return 0
   fi
 
   if [ "$code" = "404" ] && echo "$body" | grep -q 'Endpoint bulunamadi'; then
-    echo "  FAIL GET ${path} (HTTP 404 — route eksik, ./deploy.sh yeniden calistirin)"
+    echo "  FAIL GET ${path} (HTTP 404 - route eksik, ./deploy.sh yeniden calistirin)"
     if [ -n "$body" ]; then
       echo "       $(echo "$body" | head -c 160)"
     fi
@@ -80,7 +80,7 @@ check_get "/api/admin/auth/oturum-secenekleri" '"firmalar"' || FAIL=1
 check_get "/admin/auth/oturum-secenekleri" '"firmalar"' || FAIL=1
 
 echo ""
-echo "Protected routes (401 = OK, 404 = eksik backend build):"
+echo "Protected routes - 401 OK, 404 eksik backend build:"
 check_auth_route "/api/admin/kullanicilar" || FAIL=1
 check_auth_route "/api/admin/tanimlar/firmalar" || FAIL=1
 check_auth_route "/api/admin/tanimlar/donemler" || FAIL=1
