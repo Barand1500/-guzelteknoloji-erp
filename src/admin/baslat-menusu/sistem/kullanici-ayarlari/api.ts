@@ -1,7 +1,15 @@
 import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
-import type { KisayolHaritasi } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
-import type { SekmePanelAyarlari } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import {
+  kisayolAyarlariBellegeYaz,
+  kisayolAyarlariOku,
+  type KisayolHaritasi,
+} from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
+import {
+  sekmeAyarlariBellegeYaz,
+  sekmeAyarlariOku,
+  type SekmePanelAyarlari,
+} from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 
 const TABAN = '/kullanici-ayarlari';
 
@@ -11,7 +19,6 @@ export function kullaniciAyarlariVeritabaniModuMu(): boolean {
 }
 
 export async function kisayolAyarlariGetir(): Promise<{ harita: Partial<KisayolHaritasi> }> {
-  const { kisayolAyarlariOku } = await import('@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci');
   if (!kullaniciAyarlariVeritabaniModuMu()) {
     return { harita: kisayolAyarlariOku() };
   }
@@ -22,9 +29,6 @@ export async function kisayolAyarlariGetir(): Promise<{ harita: Partial<KisayolH
 }
 
 export async function kisayolAyarlariGuncelle(harita: KisayolHaritasi): Promise<{ harita: KisayolHaritasi }> {
-  const { kisayolAyarlariBellegeYaz, kisayolAyarlariOku } = await import(
-    '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci'
-  );
   if (!kullaniciAyarlariVeritabaniModuMu()) {
     kisayolAyarlariBellegeYaz(harita);
     return { harita: kisayolAyarlariOku() };
@@ -34,11 +38,12 @@ export async function kisayolAyarlariGuncelle(harita: KisayolHaritasi): Promise<
     headers: adminHeaders(),
     body: JSON.stringify({ harita }),
   });
-  return { harita: yanit.harita ?? harita };
+  const kayitli = yanit.harita ?? harita;
+  kisayolAyarlariBellegeYaz(kayitli);
+  return { harita: kisayolAyarlariOku() };
 }
 
 export async function sekmeAyarlariGetir(): Promise<{ ayarlar: Partial<SekmePanelAyarlari> }> {
-  const { sekmeAyarlariOku } = await import('@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci');
   if (!kullaniciAyarlariVeritabaniModuMu()) {
     return { ayarlar: sekmeAyarlariOku() };
   }
@@ -51,9 +56,6 @@ export async function sekmeAyarlariGetir(): Promise<{ ayarlar: Partial<SekmePane
 export async function sekmeAyarlariGuncelle(
   ayarlar: SekmePanelAyarlari
 ): Promise<{ ayarlar: SekmePanelAyarlari }> {
-  const { sekmeAyarlariBellegeYaz, sekmeAyarlariOku } = await import(
-    '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci'
-  );
   if (!kullaniciAyarlariVeritabaniModuMu()) {
     sekmeAyarlariBellegeYaz(ayarlar);
     return { ayarlar: sekmeAyarlariOku() };
@@ -63,17 +65,15 @@ export async function sekmeAyarlariGuncelle(
     headers: adminHeaders(),
     body: JSON.stringify({ ayarlar }),
   });
-  return { ayarlar: yanit.ayarlar ?? ayarlar };
+  const kayitli = yanit.ayarlar ?? ayarlar;
+  sekmeAyarlariBellegeYaz(kayitli);
+  return { ayarlar: sekmeAyarlariOku() };
 }
 
 export async function kullaniciAyarlariSunucudanYukle(): Promise<void> {
-  const { kisayolAyarlariBellegeYaz } = await import('@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci');
-  const { sekmeAyarlariBellegeYaz } = await import('@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci');
-
   if (!kullaniciAyarlariVeritabaniModuMu()) {
     return;
   }
-
   const [kisayol, sekme] = await Promise.all([kisayolAyarlariGetir(), sekmeAyarlariGetir()]);
   kisayolAyarlariBellegeYaz(kisayol.harita ?? {});
   sekmeAyarlariBellegeYaz(sekme.ayarlar ?? {});

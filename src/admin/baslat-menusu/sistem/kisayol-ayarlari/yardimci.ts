@@ -80,13 +80,6 @@ export function kisayolAyarlariTemizle() {
   bellekHarita = null;
 }
 
-export async function kisayolAyarlariSunucuyaKaydet(harita: KisayolHaritasi): Promise<KisayolHaritasi> {
-  const { kisayolAyarlariGuncelle } = await import('@/admin/baslat-menusu/sistem/kullanici-ayarlari/api');
-  const yanit = await kisayolAyarlariGuncelle(harita);
-  kisayolAyarlariBellegeYaz(yanit.harita ?? harita);
-  return kisayolAyarlariOku();
-}
-
 export function tusKombinasyonuYakala(e: KeyboardEvent): string {
   const parcalar: string[] = [];
   if (e.ctrlKey || e.metaKey) parcalar.push('Ctrl');

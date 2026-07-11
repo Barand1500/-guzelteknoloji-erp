@@ -168,6 +168,14 @@ else
   echo "  FAIL /api/admin/tanimlar/firmalar (HTTP ${TANIM_CODE}, beklenen 401)"
 fi
 
+KISAYOL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
+SEKME_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/kullanici-ayarlari/sekme" 2>/dev/null || echo 000)"
+if [ "$KISAYOL_CODE" = "401" ] && [ "$SEKME_CODE" = "401" ]; then
+  echo "  OK  /api/admin/kullanici-ayarlari/kisayol + sekme (401 — route mevcut)"
+else
+  echo "  FAIL kullanici-ayarlari (kisayol HTTP ${KISAYOL_CODE}, sekme HTTP ${SEKME_CODE}, beklenen 401)"
+fi
+
 echo ""
 echo "Public API check (${PUBLIC_URL}) ..."
 PUB_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "${PUBLIC_URL}/api/health" 2>/dev/null || echo 000)"

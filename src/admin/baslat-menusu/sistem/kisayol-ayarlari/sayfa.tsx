@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { AdminModulKabuk, AdminPanelKarti, BildirimKutusu, YukleniyorDurumu } from '@/admin/ortak/AdminBilesenleri';
-import { kisayolAyarlariGetir, kullaniciAyarlariVeritabaniModuMu } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
+import { kisayolAyarlariGetir, kisayolAyarlariGuncelle, kullaniciAyarlariVeritabaniModuMu } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
 import {
   KISAYOL_ISLEMLERI,
   kisayolAyarlariBellegeYaz,
   kisayolAyarlariOku,
-  kisayolAyarlariSunucuyaKaydet,
   kisayolCakismaBul,
   tusKombinasyonuYakala,
   varsayilanKisayollar,
@@ -64,7 +63,8 @@ export function KisayolAyarlariSayfasi() {
     }
     setKaydediliyor(true);
     try {
-      const kayitli = await kisayolAyarlariSunucuyaKaydet(harita);
+      const yanit = await kisayolAyarlariGuncelle(harita);
+      const kayitli = yanit.harita;
       setHarita(kayitli);
       setSonKayitli(kayitli);
       const ozet = KISAYOL_ISLEMLERI.map((i) => `${i.etiket}: ${kayitli[i.id]}`).join(', ');

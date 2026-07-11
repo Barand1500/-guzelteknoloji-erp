@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { AdminModulKabuk, AdminPanelKarti, BildirimKutusu, YukleniyorDurumu } from '@/admin/ortak/AdminBilesenleri';
-import { sekmeAyarlariGetir } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
+import { sekmeAyarlariGetir, sekmeAyarlariGuncelle } from '@/admin/baslat-menusu/sistem/kullanici-ayarlari/api';
 import {
   VARSAYILAN_SEKME_AYARLARI,
   sekmeAyarlariBellegeYaz,
   sekmeAyarlariLogOzeti,
   sekmeAyarlariOku,
-  sekmeAyarlariSunucuyaKaydet,
   type SekmePanelAyarlari,
 } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 
@@ -90,7 +89,8 @@ export function SekmeYonetimiSayfasi() {
     setKaydediliyor(true);
     setHata('');
     try {
-      const kayitli = await sekmeAyarlariSunucuyaKaydet(kaydedilecek);
+      const yanit = await sekmeAyarlariGuncelle(kaydedilecek);
+      const kayitli = yanit.ayarlar;
       setAyarlar(kayitli);
       setSonKayitli(kayitli);
       logMesajiAyarla(sekmeAyarlariLogOzeti(kayitli));

@@ -104,13 +104,6 @@ export function sekmeAyarlariTemizle() {
   bellekAyarlar = null;
 }
 
-export async function sekmeAyarlariSunucuyaKaydet(ayarlar: SekmePanelAyarlari): Promise<SekmePanelAyarlari> {
-  const { sekmeAyarlariGuncelle } = await import('@/admin/baslat-menusu/sistem/kullanici-ayarlari/api');
-  const yanit = await sekmeAyarlariGuncelle(ayarlar);
-  sekmeAyarlariBellegeYaz(yanit.ayarlar ?? ayarlar);
-  return sekmeAyarlariOku();
-}
-
 export function sekmeAyarlariLogOzeti(ayarlar: SekmePanelAyarlari): string {
   const gorunum: Record<SekmeGorunumModu, string> = {
     'ikon-isim': 'İkon + isim',
