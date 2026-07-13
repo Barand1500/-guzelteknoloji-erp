@@ -60,6 +60,21 @@ const MODUL_AKSIYON_YETKI: Partial<Record<string, Partial<Record<AksiyonId, Yetk
     ekle: 'kullanici_yonetimi',
     sil: 'kullanici_yonetimi',
   },
+  roller: {
+    kaydet: 'kullanici_yonetimi',
+    ekle: 'kullanici_yonetimi',
+    sil: 'kullanici_yonetimi',
+  },
+  tanimlar: {
+    kaydet: 'duzenleme',
+    ekle: 'ekleme',
+    sil: 'silme',
+  },
+  'datagrid-demo': {
+    kaydet: 'duzenleme',
+    ekle: 'ekleme',
+    sil: 'silme',
+  },
 };
 
 const AKSIYON_YETKI: Partial<Record<StandartAksiyonId, YetkiKodu>> = {

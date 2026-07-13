@@ -20,22 +20,43 @@ const YETKI_ETIKETLERI: Record<string, string> = {
 
 export const GECERLI_YETKILER = Object.keys(YETKI_ETIKETLERI);
 
+const VARSAYILAN_ROL_YETKILERI: Record<string, string[]> = {
+  YONETICI: [...GECERLI_YETKILER],
+  SUPER_ADMIN: [...GECERLI_YETKILER],
+  AJANS_ADMIN: [...GECERLI_YETKILER],
+  MUSTERI_ADMIN: ['goruntuleme', 'ekleme', 'duzenleme', 'silme'],
+  EDITOR: ['goruntuleme', 'ekleme', 'duzenleme'],
+  SEO_EDITOR: ['goruntuleme', 'duzenleme'],
+  GORUNTULEME: ['goruntuleme'],
+};
+
+const BOS_YETKI_VARSAYILAN_ROLLER = new Set(['YONETICI', 'SUPER_ADMIN', 'AJANS_ADMIN']);
+
 export async function kullaniciYetkileriAl(kullanici: Kullanici): Promise<string[]> {
   const satirlar = await prisma.rol.findMany({
     where: { rolAdi: kullanici.rol, durum: true },
   });
 
+  if (satirlar.length === 0) {
+    return VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme'];
+  }
+
   const birlesik = new Set<string>();
+  if (BOS_YETKI_VARSAYILAN_ROLLER.has(kullanici.rol)) {
+    for (const y of VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme']) {
+      birlesik.add(y);
+    }
+  }
   for (const satir of satirlar) {
     const liste = Array.isArray(satir.yetki) ? (satir.yetki as string[]) : [];
     for (const y of liste) birlesik.add(y);
   }
 
-  if (birlesik.size === 0 && kullanici.rol === 'YONETICI') {
-    return [...GECERLI_YETKILER];
+  const sonuc = [...birlesik].filter((y) => GECERLI_YETKILER.includes(y));
+  if (sonuc.length === 0) {
+    return VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme'];
   }
-
-  return [...birlesik];
+  return sonuc;
 }
 
 export function tarihIso(d: Date): string {

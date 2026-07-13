@@ -24,7 +24,8 @@ import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
 import { panelRolYoneticisiMi } from '@/admin/ortak/panelRolYardimci';
 
-import { useYetkiler } from '@/kancalar/useYetkiler';
+import { kullaniciModuluErisimVar, useYetkiler } from '@/kancalar/useYetkiler';
+import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 
 import { adminRolleriGetir } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
 
@@ -154,7 +155,7 @@ export function KullanicilarSayfasiYeni() {
 
   const { kullanici: oturum } = useAuth();
 
-  const { kullaniciYonetimiVar } = useYetkiler();
+  const { yetkiler, kullaniciYonetimiVar } = useYetkiler();
 
   const [kullanicilar, setKullanicilar] = useState<AdminKullanici[]>([]);
 
@@ -180,7 +181,8 @@ export function KullanicilarSayfasiYeni() {
 
 
 
-  const yetkili = kullaniciYonetimiVar;
+  const yetkili = kullaniciModuluErisimVar(yetkiler);
+  const saltOkunur = !kullaniciYonetimiVar;
 
 
 
@@ -446,25 +448,9 @@ export function KullanicilarSayfasiYeni() {
 
 
   if (!yetkili) {
-
     return (
-
-      <div className="flex flex-col items-center py-16 text-center">
-
-        <p className="text-4xl">🔒</p>
-
-        <h1 className="ap-heading mt-4 text-xl font-bold">Yetkisiz Erişim</h1>
-
-        <p className="ap-muted mt-2 max-w-md text-sm">
-
-          Kullanıcı yönetimi için Kullanıcı Yönetimi yetkisi gerekir.
-
-        </p>
-
-      </div>
-
+      <YetkisizErisim aciklama="Kullanıcı listesini görmek için Görüntüleme veya Kullanıcı Yönetimi yetkisi gerekir." />
     );
-
   }
 
 
@@ -482,6 +468,12 @@ export function KullanicilarSayfasiYeni() {
     >
 
       <div className="ap-kullanicilar-sayfa ap-kullanicilar-sayfa--yeni">
+
+        {saltOkunur && (
+          <div className="ap-bildirim ap-bildirim-uyari rounded-xl p-4 text-sm" role="status">
+            Salt okunur mod — kullanıcıları görüntüleyebilirsiniz; değişiklik için Kullanıcı Yönetimi yetkisi gerekir.
+          </div>
+        )}
 
         {hata && <div className="ap-bildirim ap-bildirim-hata rounded-xl p-4 text-sm">{hata}</div>}
 
@@ -526,19 +518,13 @@ export function KullanicilarSayfasiYeni() {
             >
 
               <KullaniciDuzenleFormuYeni
-
                 form={form}
-
                 seciliId={seciliId}
-
                 atanabilirRoller={atanabilirRoller}
-
                 oturumSecenekleri={oturumSecenekleri}
-
                 onSifreDegisti={setSifreDegisti}
-
                 onChange={setForm}
-
+                saltOkunur={saltOkunur}
               />
 
             </AdminPanelKarti>

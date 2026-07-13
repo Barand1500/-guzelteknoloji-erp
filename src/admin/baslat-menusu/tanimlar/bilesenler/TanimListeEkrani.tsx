@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 interface TanimListeEkraniProps {
-  onYeniEkle: () => void;
+  onYeniEkle?: () => void;
   yeniEkleMetin?: string;
   children: ReactNode;
 }
@@ -13,12 +13,14 @@ export function TanimListeEkrani({
 }: TanimListeEkraniProps) {
   return (
     <div className="ap-tanimlar-liste-ekran">
-      <div className="ap-tanimlar-liste-ekran-ust">
-        <button type="button" className="ap-tanimlar-yeni-ekle" onClick={onYeniEkle}>
-          <span aria-hidden>+</span>
-          {yeniEkleMetin}
-        </button>
-      </div>
+      {onYeniEkle ? (
+        <div className="ap-tanimlar-liste-ekran-ust">
+          <button type="button" className="ap-tanimlar-yeni-ekle" onClick={onYeniEkle}>
+            <span aria-hidden>+</span>
+            {yeniEkleMetin}
+          </button>
+        </div>
+      ) : null}
       {children}
     </div>
   );

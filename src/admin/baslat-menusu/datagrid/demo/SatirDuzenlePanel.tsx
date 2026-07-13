@@ -79,9 +79,6 @@ export function SatirDuzenlePanel({
         return;
       }
       if (e.key === 'Enter' && !e.shiftKey) {
-        const hedef = e.target as HTMLElement | null;
-        const tag = hedef?.tagName;
-        if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
         e.preventDefault();
         kaydet();
       }
@@ -192,7 +189,7 @@ export function SatirDuzenlePanel({
         </div>
       </div>
 
-      <footer className="dg-duzenle-alt">
+      <footer className="dg-duzenle-alt dg-duzenle-alt--genis">
         <button type="button" className="dg-duzenle-btn dg-duzenle-btn--iptal" onClick={onKapat}>
           <ModalTusIcerik metin="İptal" kisayol="Esc" />
         </button>

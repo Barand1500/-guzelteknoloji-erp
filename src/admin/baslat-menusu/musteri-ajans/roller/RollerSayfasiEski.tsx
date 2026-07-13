@@ -7,11 +7,12 @@ import {
 import { RolDuzenleModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolDuzenleModal';
 import { RolEkleModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/eski/RolEkleModal';
 import { RolSilModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/eski/RolSilModal';
-import { useAuth } from '@/baglamlar/AuthContext';
 import { useKaydedilmemisBildirim } from '@/baglamlar/AdminUyariBildirimContext';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
-import { korunmusRolMu, panelRolYoneticisiMi, panelUstRolMu } from '@/admin/ortak/panelRolYardimci';
+import { korunmusRolMu } from '@/admin/ortak/panelRolYardimci';
+import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
+import { kullaniciModuluErisimVar, useYetkiler } from '@/kancalar/useYetkiler';
 import {
   adminRolleriGetir,
   adminRolleriKaydet,
@@ -36,10 +37,9 @@ function rollerEsitMi(a: RolTanimi[], b: RolTanimi[]): boolean {
 
 export function RollerSayfasiEski() {
   const logMesajiAyarla = useAdminLogMesaji();
-  const { kullanici } = useAuth();
   const [taslakRoller, setTaslakRoller] = useState<RolTanimi[]>([]);
   const [kayitliRoller, setKayitliRoller] = useState<RolTanimi[]>([]);
-  const yetkiler = GECERLI_YETKI_LISTESI;
+  const yetkiTanimlari = GECERLI_YETKI_LISTESI;
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState('');
@@ -49,19 +49,20 @@ export function RollerSayfasiEski() {
   const [seciliRolKod, setSeciliRolKod] = useState<string | null>(null);
   const kayitliRef = useRef<RolTanimi[]>([]);
 
-  const yetkili = panelUstRolMu(kullanici?.rol);
-  const superAdminMi = panelRolYoneticisiMi(kullanici?.rol);
+  const { yetkiler: oturumYetkileri, kullaniciYonetimiVar } = useYetkiler();
+  const yetkili = kullaniciModuluErisimVar(oturumYetkileri);
+  const duzenlenebilir = kullaniciYonetimiVar;
   const degisti = !rollerEsitMi(taslakRoller, kayitliRoller);
 
   useKaydedilmemisBildirim(
-    superAdminMi && degisti && !kaydediliyor,
+    duzenlenebilir && degisti && !kaydediliyor,
     'Kaydedilmemiş değişiklikler var.',
     'Roller ve Yetkiler',
     'roller'
   );
 
   const seciliRol = taslakRoller.find((r) => r.kod === seciliRolKod) ?? null;
-  const silAktif = superAdminMi && !!seciliRol && rolSilinebilirMi(seciliRol);
+  const silAktif = duzenlenebilir && !!seciliRol && rolSilinebilirMi(seciliRol);
 
   async function yukle() {
     setYukleniyor(true);
@@ -165,22 +166,16 @@ export function RollerSayfasiEski() {
   useModulAksiyonlari(
     { kaydet, ekle: ekleAc, sil: silIste },
     {
-      kaydet: superAdminMi && degisti && !kaydediliyor,
-      ekle: superAdminMi && !kaydediliyor,
+      kaydet: duzenlenebilir && degisti && !kaydediliyor,
+      ekle: duzenlenebilir && !kaydediliyor,
       sil: silAktif && !kaydediliyor,
     },
-    superAdminMi && degisti
+    duzenlenebilir && degisti
   );
 
   if (!yetkili) {
     return (
-      <div className="py-16 text-center">
-        <p className="text-4xl">🔒</p>
-        <h1 className="mt-4 text-xl font-bold text-white">Yetkisiz Erişim</h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Rol ve yetki bilgilerini görmek için Yönetici, Super Admin veya Ajans Admin yetkisi gerekir.
-        </p>
-      </div>
+      <YetkisizErisim aciklama="Rol ve yetki bilgilerini görmek için Görüntüleme veya Kullanıcı Yönetimi yetkisi gerekir." />
     );
   }
 
@@ -204,8 +199,8 @@ export function RollerSayfasiEski() {
             </h2>
             <RolMatrisi
               roller={taslakRoller}
-              yetkiler={yetkiler}
-              duzenlenebilir={superAdminMi}
+              yetkiler={yetkiTanimlari}
+              duzenlenebilir={duzenlenebilir}
               onYetkiToggle={yetkiToggle}
             />
           </section>
@@ -217,7 +212,7 @@ export function RollerSayfasiEski() {
             <RolKartlari
               roller={taslakRoller}
               seciliKod={seciliRolKod}
-              duzenlenebilir={superAdminMi}
+              duzenlenebilir={duzenlenebilir}
               onSec={rolSec}
               onDuzenle={setDuzenleRol}
             />

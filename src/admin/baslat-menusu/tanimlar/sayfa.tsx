@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { firmalariGetir } from '@/admin/baslat-menusu/tanimlar/api';
 import { KurulumSihirbazi } from '@/admin/baslat-menusu/tanimlar/bilesenler/KurulumSihirbazi';
 import { TanimKayitlarOzeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitlarOzeti';
 import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
+import { useYetkiler } from '@/kancalar/useYetkiler';
+import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import './tanimlar.css';
 
@@ -16,6 +18,11 @@ const MOD_SEKMELER = [
 ] as const;
 
 export function TanimlarSayfasi() {
+  const { goruntulemeVar, eklemeVar } = useYetkiler();
+  const gorunurSekmeler = useMemo(
+    () => (eklemeVar ? MOD_SEKMELER : MOD_SEKMELER.filter((s) => s.id !== 'kurulum')),
+    [eklemeVar]
+  );
   const [mod, setMod] = useState<TanimSayfaModu>('kayitlar');
   const [modYonu, setModYonu] = useState<'ileri' | 'geri'>('ileri');
   const [ilkYukleniyor, setIlkYukleniyor] = useState(true);
@@ -33,12 +40,12 @@ export function TanimlarSayfasi() {
     void (async () => {
       try {
         const firmalar = await firmalariGetir();
-        setMod(firmalar.length === 0 ? 'kurulum' : 'kayitlar');
+        setMod(firmalar.length === 0 && eklemeVar ? 'kurulum' : 'kayitlar');
       } finally {
         setIlkYukleniyor(false);
       }
     })();
-  }, []);
+  }, [eklemeVar]);
 
   const kurulumTamamlandi = useCallback(() => {
     setModYonu('ileri');
@@ -61,13 +68,19 @@ export function TanimlarSayfasi() {
 
   if (ilkYukleniyor) return <TanimYukleniyor />;
 
+  if (!goruntulemeVar) {
+    return (
+      <YetkisizErisim aciklama="Tanım kayıtlarını görmek için Görüntüleme yetkisi gerekir." />
+    );
+  }
+
   return (
     <AdminModulKabuk
       baslik="Tanımlar"
       aciklama="Firma, şube, dönem, depo ve kasa kayıtlarını buradan oluşturur, düzenler ve hiyerarşik olarak yönetirsiniz."
       ustAksiyon={
         <TanimModCubugu
-          sekmeler={MOD_SEKMELER}
+          sekmeler={gorunurSekmeler}
           aktif={mod}
           onDegistir={(id) => modDegistir(id as TanimSayfaModu)}
           ariaLabel="Tanımlar görünümü"
@@ -79,7 +92,7 @@ export function TanimlarSayfasi() {
           className={`ap-tanimlar-icerik ap-tanimlar-icerik--${modYonu}`}
           key={mod === 'kurulum' ? 'kurulum' : `kayitlar-${ozetAnahtar}`}
         >
-          {mod === 'kurulum' ? (
+          {mod === 'kurulum' && eklemeVar ? (
             <KurulumSihirbazi
               onTamamlandi={kurulumTamamlandi}
               onIptal={() => modDegistir('kayitlar')}

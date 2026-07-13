@@ -96,7 +96,7 @@ export function modulIdDenPrefix(modulId: string): string {
   return modulId.replace(/-/g, '_');
 }
 
-const PANEL_ALTYAPI_MODUL_IDLERI = new Set(['ayarlar', 'sekme-yonetimi', 'kisayol-ayarlari', 'datagrid-demo']);
+const PANEL_ALTYAPI_MODUL_IDLERI = new Set(['ayarlar', 'sekme-yonetimi', 'kisayol-ayarlari']);
 
 export function modulMenuGorunurMu(modulId: string, aktifPrefixler: Set<string> | null | undefined): boolean {
   if (PANEL_ALTYAPI_MODUL_IDLERI.has(modulId)) return true;

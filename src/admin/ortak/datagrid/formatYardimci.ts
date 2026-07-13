@@ -3,14 +3,14 @@
 export { tooltipMetni as dgTooltipMetni };
 
 export function bosGosterim(deger: unknown): string {
-  if (deger === null || deger === undefined || deger === '') return 'â€”';
+  if (deger === null || deger === undefined || deger === '') return '—';
   return String(deger);
 }
 
 export function tarihFormatla(deger: unknown): string {
-  if (!deger) return 'â€”';
+  if (!deger) return '—';
   const d = deger instanceof Date ? deger : new Date(String(deger));
-  if (Number.isNaN(d.getTime())) return 'â€”';
+  if (Number.isNaN(d.getTime())) return '—';
   const gun = String(d.getDate()).padStart(2, '0');
   const ay = String(d.getMonth() + 1).padStart(2, '0');
   const yil = d.getFullYear();
@@ -18,9 +18,9 @@ export function tarihFormatla(deger: unknown): string {
 }
 
 export function tarihSaatFormatla(deger: unknown): string {
-  if (!deger) return 'â€”';
+  if (!deger) return '—';
   const d = deger instanceof Date ? deger : new Date(String(deger));
-  if (Number.isNaN(d.getTime())) return 'â€”';
+  if (Number.isNaN(d.getTime())) return '—';
   const gun = String(d.getDate()).padStart(2, '0');
   const ay = String(d.getMonth() + 1).padStart(2, '0');
   const yil = d.getFullYear();
@@ -30,19 +30,19 @@ export function tarihSaatFormatla(deger: unknown): string {
 }
 
 export function sayiFormatla(deger: number): string {
-  if (!Number.isFinite(deger)) return 'â€”';
+  if (!Number.isFinite(deger)) return '—';
   return deger.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function paraFormatla(deger: number, pb: string | null = 'â‚º'): string {
-  if (!Number.isFinite(deger)) return 'â€”';
+export function paraFormatla(deger: number, pb: string | null = '₺'): string {
+  if (!Number.isFinite(deger)) return '—';
   const sayi = sayiFormatla(deger);
   if (!pb) return sayi;
-  return pb === 'â‚º' ? `${sayi} â‚º` : `${sayi} ${pb}`;
+  return pb === '₺' ? `${sayi} ₺` : `${sayi} ${pb}`;
 }
 
 export function yuzdeFormatla(deger: number): string {
-  if (!Number.isFinite(deger)) return 'â€”';
+  if (!Number.isFinite(deger)) return '—';
   return `%${deger.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 

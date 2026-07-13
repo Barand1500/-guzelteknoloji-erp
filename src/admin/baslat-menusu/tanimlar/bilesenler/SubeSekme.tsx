@@ -28,6 +28,7 @@ import {
   postaKoduGecerliMi,
 } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
 import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
+import { useGomuluDuzenleFormYukle } from '@/admin/baslat-menusu/tanimlar/kancalar/useGomuluDuzenleForm';
 import {
   bosSubeForm,
   type AdminFirma,
@@ -39,6 +40,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
@@ -103,6 +105,7 @@ export function SubeSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { firmaBagliPasifMi } = useTanimFirmaDurumu();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
   const [kayitlar, setKayitlar] = useState<AdminSube[]>([]);
   const [firmalar, setFirmalar] = useState<AdminFirma[]>([]);
   const [seciliFirmaId, setSeciliFirmaId] = useState('');
@@ -169,6 +172,14 @@ export function SubeSekme({
   }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
+    if (gorunum === 'duzenle' && !duzenlemeVar) {
+      hataBildir('Kayıt düzenleme yetkiniz yok');
+      return;
+    }
+    if (gorunum === 'ekle' && !eklemeVar) {
+      hataBildir('Yeni kayıt ekleme yetkiniz yok');
+      return;
+    }
     const dogrulama = subeFormDogrula(form);
     if (dogrulama) {
       hataBildir(dogrulama);
@@ -201,7 +212,7 @@ export function SubeSekme({
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, gorunum, seciliId, seciliFirmaId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+  }, [form, gorunum, seciliId, seciliFirmaId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle, duzenlemeVar, eklemeVar]);
 
   const sil = useCallback(() => {
     if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
@@ -229,17 +240,20 @@ export function SubeSekme({
     }
   }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
-  useEffect(() => {
-    if (!gomuluDuzenle || !seciliKayit) return;
-    setForm(subedenForm(seciliKayit));
-  }, [gomuluDuzenle, seciliKayit]);
+  useGomuluDuzenleFormYukle(
+    gomuluDuzenle,
+    seciliKayit,
+    useCallback(() => {
+      if (seciliKayit) setForm(subedenForm(seciliKayit));
+    }, [seciliKayit])
+  );
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && !kaydediliyor,
-      ekle: gorunum === 'liste' && !gomuluDuzenle,
-      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle && eklemeVar,
+      sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
     kirli
   );
@@ -265,14 +279,14 @@ export function SubeSekme({
         deger={form.subeKodu}
         kural="kod"
         zorunlu
-        onChange={(subeKodu) => setForm({ ...form, subeKodu })}
+        onChange={(subeKodu) => setForm((f) => ({ ...f, subeKodu }))}
       />
       <TanimGirdi
         etiket="Şube Adı"
         deger={form.subeAdi}
         kural="ad"
         zorunlu
-        onChange={(subeAdi) => setForm({ ...form, subeAdi })}
+        onChange={(subeAdi) => setForm((f) => ({ ...f, subeAdi }))}
       />
       </div>
     </>
@@ -284,19 +298,19 @@ export function SubeSekme({
         etiket="E-Fatura Seri"
         deger={form.efaturaSeri}
         kural="ebelgeSeri"
-        onChange={(efaturaSeri) => setForm({ ...form, efaturaSeri })}
+        onChange={(efaturaSeri) => setForm((f) => ({ ...f, efaturaSeri }))}
       />
       <TanimGirdi
         etiket="E-Arşiv Seri"
         deger={form.earsivSeri}
         kural="ebelgeSeri"
-        onChange={(earsivSeri) => setForm({ ...form, earsivSeri })}
+        onChange={(earsivSeri) => setForm((f) => ({ ...f, earsivSeri }))}
       />
       <TanimGirdi
         etiket="E-İrsaliye Seri"
         deger={form.eirsaliyeSeri}
         kural="ebelgeSeri"
-        onChange={(eirsaliyeSeri) => setForm({ ...form, eirsaliyeSeri })}
+        onChange={(eirsaliyeSeri) => setForm((f) => ({ ...f, eirsaliyeSeri }))}
       />
     </div>
   );
@@ -307,13 +321,13 @@ export function SubeSekme({
         etiket="MERSİS No"
         deger={form.mersis}
         kural="mersis"
-        onChange={(mersis) => setForm({ ...form, mersis })}
+        onChange={(mersis) => setForm((f) => ({ ...f, mersis }))}
       />
       <TanimGirdi
         etiket="Ticaret Sicil No"
         deger={form.ticaretSicil}
         kural="ticaretSicil"
-        onChange={(ticaretSicil) => setForm({ ...form, ticaretSicil })}
+        onChange={(ticaretSicil) => setForm((f) => ({ ...f, ticaretSicil }))}
       />
     </div>
   );
@@ -345,7 +359,7 @@ export function SubeSekme({
                 <OrtakAdresFormu
                   bolumsuz
                   deger={form}
-                  onChange={(adres) => setForm({ ...form, ...adres })}
+                  onChange={(adres) => setForm((f) => ({ ...f, ...adres }))}
                 />
               ),
             },
@@ -363,7 +377,7 @@ export function SubeSekme({
               baslik: 'Durum',
               aciklama: 'Şubenin aktif/pasif durumunu belirleyin',
               icerik: (
-                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} />
               ),
             },
           ]}
@@ -389,14 +403,15 @@ export function SubeSekme({
           ustEtiket="Şube Düzenle"
           baslik={seciliKayit.subeAdi}
           onGeri={listeyeDon}
-          onKaydet={() => void kaydet()}
+          onKaydet={duzenlemeVar ? () => void kaydet() : undefined}
           kaydediliyor={kaydediliyor}
+          saltOkunur={!duzenlemeVar}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
-          <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />
+          <OrtakAdresFormu deger={form} onChange={(adres) => setForm((f) => ({ ...f, ...adres }))} />
           <TanimFormBolum baslik="E-Belge Serileri">{ebelgeAlanlar}</TanimFormBolum>
           <TanimFormBolum baslik="Ticari Bilgiler">{ticariAlanlar}</TanimFormBolum>
-          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} />
         </TanimDuzenleEkrani>
         <SilmeOnayModal
           acik={silModalAcik}
@@ -412,7 +427,7 @@ export function SubeSekme({
 
   return (
     <>
-      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Şube">
+      <TanimListeEkrani onYeniEkle={eklemeVar ? yeniBaslat : undefined} yeniEkleMetin="Yeni Şube">
         <TanimKayitTablosu
           baslik="Şubeler"
           kayitlar={kayitlar}

@@ -20,15 +20,15 @@ import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 
 import { AdminModulKabuk, AdminPanelKarti, YukleniyorDurumu } from '@/admin/ortak/AdminBilesenleri';
 
-import { useAuth } from '@/baglamlar/AuthContext';
-
 import { useKaydedilmemisBildirim } from '@/baglamlar/AdminUyariBildirimContext';
 
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
 
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
-import { korunmusRolMu, panelRolYoneticisiMi, panelUstRolMu } from '@/admin/ortak/panelRolYardimci';
+import { korunmusRolMu } from '@/admin/ortak/panelRolYardimci';
+import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
+import { kullaniciModuluErisimVar, useYetkiler } from '@/kancalar/useYetkiler';
 
 import {
 
@@ -124,13 +124,13 @@ export function RollerSayfasiYeni() {
 
   const logMesajiAyarla = useAdminLogMesaji();
 
-  const { kullanici } = useAuth();
+  const { yetkiler: oturumYetkileri, kullaniciYonetimiVar } = useYetkiler();
 
   const [taslakRoller, setTaslakRoller] = useState<RolTanimi[]>([]);
 
   const [kayitliRoller, setKayitliRoller] = useState<RolTanimi[]>([]);
 
-  const yetkiler = GECERLI_YETKI_LISTESI;
+  const yetkiTanimlari = GECERLI_YETKI_LISTESI;
 
   const [yukleniyor, setYukleniyor] = useState(true);
 
@@ -156,9 +156,8 @@ export function RollerSayfasiYeni() {
 
 
 
-  const yetkili = panelUstRolMu(kullanici?.rol);
-
-  const superAdminMi = panelRolYoneticisiMi(kullanici?.rol);
+  const yetkili = kullaniciModuluErisimVar(oturumYetkileri);
+  const duzenlenebilir = kullaniciYonetimiVar;
 
   const degisti = !rollerEsitMi(taslakRoller, kayitliRoller);
 
@@ -206,7 +205,7 @@ export function RollerSayfasiYeni() {
 
   useKaydedilmemisBildirim(
 
-    superAdminMi && degisti && !kaydediliyor,
+    duzenlenebilir && degisti && !kaydediliyor,
 
     'Kaydedilmemiş değişiklikler var.',
 
@@ -220,7 +219,7 @@ export function RollerSayfasiYeni() {
 
   const seciliRol = taslakRoller.find((r) => r.kod === seciliRolKod) ?? null;
 
-  const silAktif = superAdminMi && !!seciliRol && rolSilinebilirMi(seciliRol);
+  const silAktif = duzenlenebilir && !!seciliRol && rolSilinebilirMi(seciliRol);
 
 
 
@@ -570,40 +569,24 @@ export function RollerSayfasiYeni() {
 
     {
 
-      kaydet: superAdminMi && degisti && !kaydediliyor,
+      kaydet: duzenlenebilir && degisti && !kaydediliyor,
 
-      ekle: superAdminMi && !kaydediliyor && !acikTaslakVar,
+      ekle: duzenlenebilir && !kaydediliyor && !acikTaslakVar,
 
       sil: silAktif && !kaydediliyor,
 
     },
 
-    superAdminMi && degisti
+    duzenlenebilir && degisti
 
   );
 
 
 
   if (!yetkili) {
-
     return (
-
-      <div className="flex flex-col items-center py-16 text-center">
-
-        <p className="text-4xl">🔒</p>
-
-        <h1 className="ap-heading mt-4 text-xl font-bold">Yetkisiz Erişim</h1>
-
-        <p className="ap-muted mt-2 max-w-md text-sm">
-
-          Rol ve yetki bilgilerini görmek için Yönetici, Super Admin veya Ajans Admin yetkisi gerekir.
-
-        </p>
-
-      </div>
-
+      <YetkisizErisim aciklama="Rol ve yetki bilgilerini görmek için Görüntüleme veya Kullanıcı Yönetimi yetkisi gerekir." />
     );
-
   }
 
 
@@ -642,7 +625,7 @@ export function RollerSayfasiYeni() {
 
 
 
-        {superAdminMi && degisti && !kaydediliyor && (
+        {duzenlenebilir && degisti && !kaydediliyor && (
 
           <div className="ap-roller-kirli-banner" role="status">
 
@@ -678,9 +661,9 @@ export function RollerSayfasiYeni() {
 
                   roller={matrisRoller}
 
-                  yetkiler={yetkiler}
+                  yetkiler={yetkiTanimlari}
 
-                  duzenlenebilir={superAdminMi}
+                  duzenlenebilir={duzenlenebilir}
 
                   yeniRolKodlari={yeniMatrisKodlari}
 
@@ -714,7 +697,7 @@ export function RollerSayfasiYeni() {
 
                   seciliKod={seciliRolKod}
 
-                  duzenlenebilir={superAdminMi}
+                  duzenlenebilir={duzenlenebilir}
 
                   yeniKartKodlari={yeniKartKodlari}
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useGomuluDuzenleFormYukle } from '@/admin/baslat-menusu/tanimlar/kancalar/useGomuluDuzenleForm';
 import {
   depoGuncelle,
   depoOlustur,
@@ -36,6 +37,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
@@ -86,6 +88,7 @@ export function DepoSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
   const [kayitlar, setKayitlar] = useState<AdminDepo[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
@@ -158,6 +161,14 @@ export function DepoSekme({
   }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
+    if (gorunum === 'duzenle' && !duzenlemeVar) {
+      hataBildir('Kayıt düzenleme yetkiniz yok');
+      return;
+    }
+    if (gorunum === 'ekle' && !eklemeVar) {
+      hataBildir('Yeni kayıt ekleme yetkiniz yok');
+      return;
+    }
     const dogrulama = depoFormDogrula(form);
     if (dogrulama) {
       hataBildir(dogrulama);
@@ -182,7 +193,7 @@ export function DepoSekme({
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle, duzenlemeVar, eklemeVar]);
 
   const sil = useCallback(() => {
     if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
@@ -210,17 +221,20 @@ export function DepoSekme({
     }
   }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
-  useEffect(() => {
-    if (!gomuluDuzenle || !seciliKayit) return;
-    setForm(depodanForm(seciliKayit));
-  }, [gomuluDuzenle, seciliKayit]);
+  useGomuluDuzenleFormYukle(
+    gomuluDuzenle,
+    seciliKayit,
+    useCallback(() => {
+      if (seciliKayit) setForm(depodanForm(seciliKayit));
+    }, [seciliKayit])
+  );
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && !kaydediliyor,
-      ekle: gorunum === 'liste' && !gomuluDuzenle,
-      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle && eklemeVar,
+      sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
     kirli
   );
@@ -298,7 +312,7 @@ export function DepoSekme({
                 <OrtakAdresFormu
                   bolumsuz
                   deger={form}
-                  onChange={(adres) => setForm({ ...form, ...adres })}
+                  onChange={(adres) => setForm((f) => ({ ...f, ...adres }))}
                 />
               ),
             },
@@ -332,11 +346,12 @@ export function DepoSekme({
           ustEtiket="Depo Düzenle"
           baslik={seciliKayit.depoAdi}
           onGeri={listeyeDon}
-          onKaydet={() => void kaydet()}
+          onKaydet={duzenlemeVar ? () => void kaydet() : undefined}
           kaydediliyor={kaydediliyor}
+          saltOkunur={!duzenlemeVar}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
-          <OrtakAdresFormu deger={form} onChange={(adres) => setForm({ ...form, ...adres })} />
+          <OrtakAdresFormu deger={form} onChange={(adres) => setForm((f) => ({ ...f, ...adres }))} />
           <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
         </TanimDuzenleEkrani>
         <SilmeOnayModal
@@ -353,7 +368,7 @@ export function DepoSekme({
 
   return (
     <>
-      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Depo">
+      <TanimListeEkrani onYeniEkle={eklemeVar ? yeniBaslat : undefined} yeniEkleMetin="Yeni Depo">
         <TanimKayitTablosu
           baslik="Depolar"
           kayitlar={filtrelenmisKayitlar}

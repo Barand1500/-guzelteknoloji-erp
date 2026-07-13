@@ -5,9 +5,11 @@ import { adminKullaniciYanit } from '../lib/mappers.js';
 import { prisma } from '../lib/prisma.js';
 import type { AuthRequest } from '../middleware/auth.js';
 import { authZorunlu } from '../middleware/auth.js';
+import { kullaniciYonetimiErisimi, kullaniciYonetimiYazma } from '../middleware/yetki.js';
 
 const router = Router();
 router.use(authZorunlu);
+router.use(kullaniciYonetimiErisimi);
 
 function sayiAl(deger: unknown): number | null {
   if (deger === null || deger === undefined || deger === '') return null;
@@ -27,7 +29,7 @@ router.get('/siteler', (_req: AuthRequest, res: Response) => {
   return res.json({ siteler: [] });
 });
 
-router.post('/', async (req: AuthRequest, res: Response) => {
+router.post('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response) => {
   const body = req.body as Record<string, unknown>;
   const kullaniciKodu = String(body.kullaniciKodu ?? body.email ?? '').trim().toUpperCase();
   const ad = String(body.ad ?? body.adSoyad ?? '').trim();
@@ -70,7 +72,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   return res.status(201).json({ kullanici: await adminKullaniciYanit(kullanici) });
 });
 
-router.put('/:id', async (req: AuthRequest, res: Response) => {
+router.put('/:id', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response) => {
   const id = Number(req.params.id);
   const body = req.body as Record<string, unknown>;
 
@@ -100,7 +102,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   return res.json({ kullanici: await adminKullaniciYanit(kullanici) });
 });
 
-router.delete('/:id', async (req: AuthRequest, res: Response) => {
+router.delete('/:id', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response) => {
   const id = Number(req.params.id);
   if (id === req.kullanici?.id) {
     return res.status(400).json({ mesaj: 'Kendi hesabinizi silemezsiniz' });

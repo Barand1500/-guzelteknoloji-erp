@@ -32,6 +32,8 @@ import {
   URUN_ARAMA_ALANLARI,
 } from './urunAramaYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { useYetkiler } from '@/kancalar/useYetkiler';
+import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { DatagridSagTikMenu, type SatirEkleKonumu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import { hucrePanoyaMetni } from './sagTikYardimci';
@@ -534,6 +536,7 @@ export function DatagridDemoSayfasi() {
   const gridApiRef = useRef<DataGridApi | null>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
   const logMesajiAyarla = useAdminLogMesaji();
+  const { goruntulemeVar } = useYetkiler();
 
   const kolonlar = useMemo(() => siparisKolonlari(kdvDahil), [kdvDahil]);
 
@@ -706,6 +709,12 @@ export function DatagridDemoSayfasi() {
   }, []);
 
 
+
+  if (!goruntulemeVar) {
+    return (
+      <YetkisizErisim aciklama="Sipariş tablosunu görmek için Görüntüleme yetkisi gerekir." />
+    );
+  }
 
   return (
 

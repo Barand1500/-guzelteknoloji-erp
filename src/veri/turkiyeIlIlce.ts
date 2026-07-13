@@ -62,7 +62,7 @@ async function ilceAdlariniYukle(il: string): Promise<string[]> {
   if (!ilKaydi) return [];
 
   const yanit = await apiGet<{ data: { id: number; name: string }[] }>(
-    `/provinces/${ilKaydi.id}/districts?fields=id,name&limit=1000&sort=name`
+    `/districts?provinceId=${ilKaydi.id}&fields=id,name&limit=1000&sort=name`
   );
   ilceleriOnbellegeYaz(ilKaydi.name, yanit.data);
   const liste = trSirala(yanit.data.map((d) => d.name));

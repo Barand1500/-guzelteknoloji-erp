@@ -67,6 +67,7 @@ interface KullaniciDuzenleFormuYeniProps {
   oturumSecenekleri: KullaniciOturumSecenekleri;
   onSifreDegisti: (v: boolean) => void;
   onChange: (form: KullaniciFormDegeri) => void;
+  saltOkunur?: boolean;
 }
 
 export function KullaniciDuzenleFormuYeni({

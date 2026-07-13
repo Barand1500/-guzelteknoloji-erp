@@ -15,6 +15,7 @@ interface TanimDuzenleEkraniProps {
   onKaydet?: () => void;
   kaydediliyor?: boolean;
   panel?: boolean;
+  saltOkunur?: boolean;
   children: ReactNode;
 }
 
@@ -28,6 +29,7 @@ export function TanimDuzenleEkrani({
   onKaydet,
   kaydediliyor = false,
   panel = false,
+  saltOkunur = false,
   children,
 }: TanimDuzenleEkraniProps) {
   if (panel) {
@@ -35,8 +37,9 @@ export function TanimDuzenleEkrani({
       <TanimDuzenlePanel
         ustEtiket={ustEtiket}
         onGeri={onGeri}
-        onKaydet={onKaydet}
+        onKaydet={saltOkunur ? undefined : onKaydet}
         kaydediliyor={kaydediliyor}
+        saltOkunur={saltOkunur}
       >
         {children}
       </TanimDuzenlePanel>
@@ -80,12 +83,14 @@ function TanimDuzenlePanel({
   onGeri,
   onKaydet,
   kaydediliyor,
+  saltOkunur = false,
   children,
 }: {
   ustEtiket: string;
   onGeri: () => void;
   onKaydet?: () => void;
   kaydediliyor?: boolean;
+  saltOkunur?: boolean;
   children: ReactNode;
 }) {
   const [surukleY, setSurukleY] = useState(0);
@@ -131,7 +136,7 @@ function TanimDuzenlePanel({
       if (e.key === 'Enter' && !e.shiftKey) {
         const hedef = e.target as HTMLElement | null;
         const tag = hedef?.tagName;
-        if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+        if (tag === 'TEXTAREA') return;
         e.preventDefault();
         kaydet();
       }
@@ -158,14 +163,18 @@ function TanimDuzenlePanel({
         aria-label="Aşağı kaydırarak kaydet"
       >
         <div className="dg-duzenle-tutamac" />
-        <span className="dg-duzenle-tutamac-metin">Aşağı çekerek kaydet</span>
+        <span className="dg-duzenle-tutamac-metin">
+          {saltOkunur ? 'Salt okunur' : 'Aşağı çekerek kaydet'}
+        </span>
       </div>
 
       <header className="dg-duzenle-baslik ap-tanimlar-duzenle-panel-baslik">
         <h3 className="dg-duzenle-urun-ad">{ustEtiket}</h3>
       </header>
 
-      <div className="dg-duzenle-govde ap-scroll ap-tanimlar-panel-govde">{children}</div>
+      <div className="dg-duzenle-govde ap-scroll ap-tanimlar-panel-govde">
+        {children}
+      </div>
 
       <footer className="dg-duzenle-alt dg-duzenle-alt--genis">
         <button

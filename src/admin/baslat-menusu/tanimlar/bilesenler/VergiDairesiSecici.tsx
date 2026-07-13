@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import { FormAramaSecim } from '@/formlar/FormAramaSecim';
 import { vergiDaireleriAra } from '@/veri/vergiDaireleriApi';
 
+import { MIN_ADRES_ARAMA_UZUNLUGU } from '@/veri/turkiyeIlIlce';
+
 interface VergiDairesiSeciciProps {
   deger: string;
   onChange: (vergiDairesi: string) => void;
@@ -17,6 +19,7 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
         value={deger}
         onChange={onChange}
         secenekAra={daireAra}
+        minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
         placeholder="En az 2 harf yazın…"
         aria-label="Vergi dairesi"
       />

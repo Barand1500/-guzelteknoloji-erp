@@ -5,9 +5,11 @@ import { modulListesi } from '../lib/panelModulleri.js';
 import { prisma } from '../lib/prisma.js';
 import type { AuthRequest } from '../middleware/auth.js';
 import { authZorunlu } from '../middleware/auth.js';
+import { kullaniciYonetimiErisimi, kullaniciYonetimiYazma } from '../middleware/yetki.js';
 
 const router = Router();
 router.use(authZorunlu);
+router.use(kullaniciYonetimiErisimi);
 
 async function rolleriGetir() {
   const [satirlar, moduller] = await Promise.all([
@@ -38,7 +40,7 @@ router.get('/', async (_req: AuthRequest, res: Response) => {
   return res.json(await rolleriGetir());
 });
 
-router.put('/', async (req: AuthRequest, res: Response) => {
+router.put('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response) => {
   const { roller } = req.body as {
     roller?: { kod: string; baslik: string; yetkiler: string[] }[];
   };

@@ -44,6 +44,7 @@ import {
 import { TanimFirmaSecici } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFirmaSecici';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
@@ -66,6 +67,7 @@ interface KurulumSihirbaziProps {
 export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProps) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { eklemeVar } = useYetkiler();
 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
@@ -442,6 +444,10 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
 
   const fazKaydet = useCallback(
     async (hedefFaz: KurulumFazId): Promise<string | null> => {
+      if (!eklemeVar) {
+        hataBildir('Kurulum kaydetme yetkiniz yok');
+        return 'Kurulum kaydetme yetkiniz yok';
+      }
       const faz = hedefFaz;
       try {
         if (faz === 'firma') {
@@ -524,6 +530,8 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
       merkezKayitlariniYukle,
       logMesajiAyarla,
       basariBildir,
+      eklemeVar,
+      hataBildir,
     ]
   );
 

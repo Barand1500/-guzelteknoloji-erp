@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useGomuluDuzenleFormYukle } from '@/admin/baslat-menusu/tanimlar/kancalar/useGomuluDuzenleForm';
 import {
   adGecerliMi,
   kodGecerliMi,
@@ -32,6 +33,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
@@ -70,6 +72,7 @@ export function FirmaSekme({
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
   const [kayitlar, setKayitlar] = useState<AdminFirma[]>([]);
   const [form, setForm] = useState<FirmaFormDegeri>(bosFirmaForm);
   const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
@@ -135,6 +138,14 @@ export function FirmaSekme({
   }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
+    if (gorunum === 'duzenle' && !duzenlemeVar) {
+      hataBildir('Kayıt düzenleme yetkiniz yok');
+      return;
+    }
+    if (gorunum === 'ekle' && !eklemeVar) {
+      hataBildir('Yeni kayıt ekleme yetkiniz yok');
+      return;
+    }
     const hata = firmaFormDogrula(form);
     if (hata) {
       hataBildir(hata);
@@ -159,7 +170,7 @@ export function FirmaSekme({
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle, duzenlemeVar, eklemeVar]);
 
   const sil = useCallback(() => {
     if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
@@ -187,17 +198,20 @@ export function FirmaSekme({
     }
   }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
-  useEffect(() => {
-    if (!gomuluDuzenle || !seciliKayit) return;
-    setForm(firmadanForm(seciliKayit));
-  }, [gomuluDuzenle, seciliKayit]);
+  useGomuluDuzenleFormYukle(
+    gomuluDuzenle,
+    seciliKayit,
+    useCallback(() => {
+      if (seciliKayit) setForm(firmadanForm(seciliKayit));
+    }, [seciliKayit])
+  );
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && !kaydediliyor,
-      ekle: gorunum === 'liste' && !gomuluDuzenle,
-      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle && eklemeVar,
+      sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
     kirli
   );
@@ -209,7 +223,7 @@ export function FirmaSekme({
         deger={form.firmaKodu}
         kural="kod"
         zorunlu
-        onChange={(firmaKodu) => setForm({ ...form, firmaKodu })}
+        onChange={(firmaKodu) => setForm((f) => ({ ...f, firmaKodu }))}
       />
       <TanimGirdi
         etiket="Firma Adı"
@@ -217,7 +231,7 @@ export function FirmaSekme({
         kural="serbestMetin"
         maxLength={255}
         zorunlu
-        onChange={(firmaAdi) => setForm({ ...form, firmaAdi })}
+        onChange={(firmaAdi) => setForm((f) => ({ ...f, firmaAdi }))}
       />
     </div>
   );
@@ -226,13 +240,14 @@ export function FirmaSekme({
     <>
       <VergiDairesiSecici
         deger={form.vergiDairesi}
-        onChange={(vergiDairesi) => setForm({ ...form, vergiDairesi })}
+        onChange={(vergiDairesi) => setForm((f) => ({ ...f, vergiDairesi }))}
       />
       <TanimGirdi
         etiket="Vergi No"
         deger={form.vergiNo}
         kural="vergiNo"
-        onChange={(vergiNo) => setForm({ ...form, vergiNo })}
+        onChange={(vergiNo) => setForm((f) => ({ ...f, vergiNo }))}
+        placeholder="10 haneli vergi numarası"
       />
     </>
   );
@@ -266,7 +281,7 @@ export function FirmaSekme({
               baslik: 'Durum',
               aciklama: 'Firmanın aktif/pasif durumunu belirleyin',
               icerik: (
-                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} />
               ),
             },
           ]}
@@ -292,12 +307,13 @@ export function FirmaSekme({
           ustEtiket="Firma Düzenle"
           baslik={seciliKayit.firmaAdi}
           onGeri={listeyeDon}
-          onKaydet={() => void kaydet()}
+          onKaydet={duzenlemeVar ? () => void kaydet() : undefined}
           kaydediliyor={kaydediliyor}
+          saltOkunur={!duzenlemeVar}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
           <TanimFormBolum baslik="Vergi Bilgileri">{vergiAlanlar}</TanimFormBolum>
-          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} />
         </TanimDuzenleEkrani>
         <SilmeOnayModal
           acik={silModalAcik}
@@ -313,7 +329,7 @@ export function FirmaSekme({
 
   return (
     <>
-      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Firma">
+      <TanimListeEkrani onYeniEkle={eklemeVar ? yeniBaslat : undefined} yeniEkleMetin="Yeni Firma">
         <TanimKayitTablosu
           baslik="Firmalar"
           kayitlar={kayitlar}

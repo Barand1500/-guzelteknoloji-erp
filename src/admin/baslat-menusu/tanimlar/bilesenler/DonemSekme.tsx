@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useGomuluDuzenleFormYukle } from '@/admin/baslat-menusu/tanimlar/kancalar/useGomuluDuzenleForm';
 import {
   donemGuncelle,
   donemOlustur,
@@ -26,6 +27,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
@@ -48,6 +50,7 @@ export function DonemSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { firmaBagliPasifMi } = useTanimFirmaDurumu();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
   const [kayitlar, setKayitlar] = useState<AdminDonem[]>([]);
   const [form, setForm] = useState<DonemFormDegeri>(bosDonemForm);
   const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
@@ -105,6 +108,14 @@ export function DonemSekme({
   }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
+    if (gorunum === 'duzenle' && !duzenlemeVar) {
+      hataBildir('Kayıt düzenleme yetkiniz yok');
+      return;
+    }
+    if (gorunum === 'ekle' && !eklemeVar) {
+      hataBildir('Yeni kayıt ekleme yetkiniz yok');
+      return;
+    }
     const dogrulama = donemFormDogrula(form);
     if (dogrulama) {
       hataBildir(dogrulama);
@@ -129,7 +140,7 @@ export function DonemSekme({
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle, duzenlemeVar, eklemeVar]);
 
   const sil = useCallback(() => {
     if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
@@ -157,17 +168,20 @@ export function DonemSekme({
     }
   }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
-  useEffect(() => {
-    if (!gomuluDuzenle || !seciliKayit) return;
-    setForm(donemdenForm(seciliKayit));
-  }, [gomuluDuzenle, seciliKayit]);
+  useGomuluDuzenleFormYukle(
+    gomuluDuzenle,
+    seciliKayit,
+    useCallback(() => {
+      if (seciliKayit) setForm(donemdenForm(seciliKayit));
+    }, [seciliKayit])
+  );
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && !kaydediliyor,
-      ekle: gorunum === 'liste' && !gomuluDuzenle,
-      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle && eklemeVar,
+      sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
     kirli
   );
@@ -226,8 +240,9 @@ export function DonemSekme({
           ustEtiket="Dönem Düzenle"
           baslik={seciliKayit.donemAdi}
           onGeri={listeyeDon}
-          onKaydet={() => void kaydet()}
+          onKaydet={duzenlemeVar ? () => void kaydet() : undefined}
           kaydediliyor={kaydediliyor}
+          saltOkunur={!duzenlemeVar}
         >
           {bilgiAlanlar}
           <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
@@ -246,7 +261,7 @@ export function DonemSekme({
 
   return (
     <>
-      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Dönem">
+      <TanimListeEkrani onYeniEkle={eklemeVar ? yeniBaslat : undefined} yeniEkleMetin="Yeni Dönem">
         <TanimKayitTablosu
           baslik="Dönemler"
           kayitlar={kayitlar}

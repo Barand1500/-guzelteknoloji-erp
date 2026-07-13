@@ -20,7 +20,8 @@ import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
 import { panelRolYoneticisiMi } from '@/admin/ortak/panelRolYardimci';
 
-import { useYetkiler } from '@/kancalar/useYetkiler';
+import { kullaniciModuluErisimVar, useYetkiler } from '@/kancalar/useYetkiler';
+import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 
 import { adminRolleriGetir } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
 
@@ -148,7 +149,7 @@ export function KullanicilarSayfasiEski() {
 
   const { kullanici: oturum } = useAuth();
 
-  const { kullaniciYonetimiVar } = useYetkiler();
+  const { yetkiler } = useYetkiler();
 
   const [kullanicilar, setKullanicilar] = useState<AdminKullanici[]>([]);
 
@@ -174,7 +175,7 @@ export function KullanicilarSayfasiEski() {
 
 
 
-  const yetkili = kullaniciYonetimiVar;
+  const yetkili = kullaniciModuluErisimVar(yetkiler);
 
 
 
@@ -423,25 +424,9 @@ export function KullanicilarSayfasiEski() {
 
 
   if (!yetkili) {
-
     return (
-
-      <div className="py-16 text-center">
-
-        <p className="text-4xl">🔒</p>
-
-        <h1 className="mt-4 text-xl font-bold text-white">Yetkisiz Erişim</h1>
-
-        <p className="mt-2 text-sm text-slate-400">
-
-          Kullanıcı yönetimi için Kullanıcı Yönetimi yetkisi gerekir.
-
-        </p>
-
-      </div>
-
+      <YetkisizErisim aciklama="Kullanıcı listesini görmek için Görüntüleme veya Kullanıcı Yönetimi yetkisi gerekir." />
     );
-
   }
 
 

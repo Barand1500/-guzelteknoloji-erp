@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useGomuluDuzenleFormYukle } from '@/admin/baslat-menusu/tanimlar/kancalar/useGomuluDuzenleForm';
 import {
   kasaGuncelle,
   kasaOlustur,
@@ -31,6 +32,7 @@ import {
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
@@ -75,6 +77,7 @@ export function KasaSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
   const [kayitlar, setKayitlar] = useState<AdminKasa[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
@@ -147,6 +150,14 @@ export function KasaSekme({
   }, [gorunum, seciliKayit, form]);
 
   const kaydet = useCallback(async () => {
+    if (gorunum === 'duzenle' && !duzenlemeVar) {
+      hataBildir('Kayıt düzenleme yetkiniz yok');
+      return;
+    }
+    if (gorunum === 'ekle' && !eklemeVar) {
+      hataBildir('Yeni kayıt ekleme yetkiniz yok');
+      return;
+    }
     const dogrulama = kasaFormDogrula(form);
     if (dogrulama) {
       hataBildir(dogrulama);
@@ -171,7 +182,7 @@ export function KasaSekme({
     } finally {
       setKaydediliyor(false);
     }
-  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
+  }, [form, gorunum, seciliId, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle, duzenlemeVar, eklemeVar]);
 
   const sil = useCallback(() => {
     if (gorunum === 'duzenle' && seciliId) setSilModalAcik(true);
@@ -199,17 +210,20 @@ export function KasaSekme({
     }
   }, [seciliId, seciliKayit, listeyeDon, logMesajiAyarla, basariBildir, hataBildir, gomuluDuzenle]);
 
-  useEffect(() => {
-    if (!gomuluDuzenle || !seciliKayit) return;
-    setForm(kasadanForm(seciliKayit));
-  }, [gomuluDuzenle, seciliKayit]);
+  useGomuluDuzenleFormYukle(
+    gomuluDuzenle,
+    seciliKayit,
+    useCallback(() => {
+      if (seciliKayit) setForm(kasadanForm(seciliKayit));
+    }, [seciliKayit])
+  );
 
   useModulAksiyonlari(
     { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && !kaydediliyor,
-      ekle: gorunum === 'liste' && !gomuluDuzenle,
-      sil: gorunum === 'duzenle' && !!seciliId && !kaydediliyor,
+      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      ekle: gorunum === 'liste' && !gomuluDuzenle && eklemeVar,
+      sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
     kirli
   );
@@ -318,8 +332,9 @@ export function KasaSekme({
           ustEtiket="Kasa Düzenle"
           baslik={seciliKayit.kasaAdi}
           onGeri={listeyeDon}
-          onKaydet={() => void kaydet()}
+          onKaydet={duzenlemeVar ? () => void kaydet() : undefined}
           kaydediliyor={kaydediliyor}
+          saltOkunur={!duzenlemeVar}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
           <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
@@ -338,7 +353,7 @@ export function KasaSekme({
 
   return (
     <>
-      <TanimListeEkrani onYeniEkle={yeniBaslat} yeniEkleMetin="Yeni Kasa">
+      <TanimListeEkrani onYeniEkle={eklemeVar ? yeniBaslat : undefined} yeniEkleMetin="Yeni Kasa">
         <TanimKayitTablosu
           baslik="Kasalar"
           kayitlar={filtrelenmisKayitlar}

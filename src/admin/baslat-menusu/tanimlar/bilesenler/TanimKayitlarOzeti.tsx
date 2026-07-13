@@ -47,6 +47,7 @@ import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 
 const VARSAYILAN_GIZLI: string[] = [];
@@ -152,6 +153,7 @@ function GezginSekmeler({
 }
 
 export function TanimKayitlarOzeti() {
+  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler();
   const { firmaBagliPasifMi, subeBagliPasifMi } = useTanimFirmaDurumu();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const sayfaRef = useRef<HTMLDivElement>(null);
@@ -340,23 +342,24 @@ export function TanimKayitlarOzeti() {
       };
       switch (aktifKayitTipi) {
         case 'firma':
-          return <FirmaSekme gomuluDuzenle={opts} />;
+          return <FirmaSekme key={`firma-${satir.id}`} gomuluDuzenle={opts} />;
         case 'sube':
-          return <SubeSekme gomuluDuzenle={opts} />;
+          return <SubeSekme key={`sube-${satir.id}`} gomuluDuzenle={opts} />;
         case 'depo':
-          return <DepoSekme gomuluDuzenle={opts} />;
+          return <DepoSekme key={`depo-${satir.id}`} gomuluDuzenle={opts} />;
         case 'kasa':
-          return <KasaSekme gomuluDuzenle={opts} />;
+          return <KasaSekme key={`kasa-${satir.id}`} gomuluDuzenle={opts} />;
         case 'donem':
-          return <DonemSekme gomuluDuzenle={opts} />;
+          return <DonemSekme key={`donem-${satir.id}`} gomuluDuzenle={opts} />;
       }
     },
     [aktifKayitTipi, panelKapat]
   );
 
   const satirDuzenleAc = useCallback((id: string) => {
+    if (!duzenlemeVar) return;
     gridApiRef.current?.satirDuzenleAc(id);
-  }, []);
+  }, [duzenlemeVar]);
 
   const sagTikSatirSil = useCallback(
     (satir: { id: string }) => {
@@ -719,16 +722,16 @@ export function TanimKayitlarOzeti() {
       yukleniyor,
       varsayilanGizliKolonlar: VARSAYILAN_GIZLI,
       gridApiRef,
-      satirDuzenlePaneli,
+      satirDuzenlePaneli: duzenlemeVar ? satirDuzenlePaneli : undefined,
       satirPanelModu: 'cubuk' as const,
       formulMenuGoster: false,
       hizliGirisIstegeBagli: true,
       hizliGirisVarsayilanAlan: true,
-      hizliGirisKolonlari: tanimHizliGirisKolonlari(aktifKayitTipi),
-      onHizliGiris: hizliGirisKaydet,
+      hizliGirisKolonlari: eklemeVar ? tanimHizliGirisKolonlari(aktifKayitTipi) : undefined,
+      onHizliGiris: eklemeVar ? hizliGirisKaydet : undefined,
       onSecimDegistir: (ids: string[]) => setSeciliSatirSayisi(ids.length),
     }),
-    [yukleniyor, satirDuzenlePaneli, aktifKayitTipi, hizliGirisKaydet]
+    [yukleniyor, satirDuzenlePaneli, aktifKayitTipi, hizliGirisKaydet, duzenlemeVar, eklemeVar]
   );
 
   const gridIcerik = useMemo((): ReactNode => {
@@ -744,7 +747,7 @@ export function TanimKayitlarOzeti() {
           bosMesaj="Henüz firma tanımı yok"
           satirSinifAdi={(f) => (!f.aktif ? 'dg-satir--pasif' : undefined)}
           onSatirTikla={(f) => setKonum({ seviye: 'firma', firmaId: f.id, sekme: 'subeler' })}
-          onSatirSil={(f) => silmeAc({ tip: 'firma', kayit: f })}
+          onSatirSil={silmeVar ? (f) => silmeAc({ tip: 'firma', kayit: f }) : undefined}
         />
       );
     }
@@ -790,7 +793,7 @@ export function TanimKayitlarOzeti() {
                   sekme: 'depolar',
                 })
               }
-              onSatirSil={(s) => silmeAc({ tip: 'sube', kayit: s })}
+              onSatirSil={silmeVar ? (s) => silmeAc({ tip: 'sube', kayit: s }) : undefined}
             />
           ) : (
             <DataGrid
@@ -805,7 +808,7 @@ export function TanimKayitlarOzeti() {
                 firmaBagliPasifMi(d.aktif, d.firmaId) ? 'dg-satir--pasif' : undefined
               }
               onSatirTikla={(d) => satirDuzenleAc(d.id)}
-              onSatirSil={(d) => silmeAc({ tip: 'donem', kayit: d })}
+              onSatirSil={silmeVar ? (d) => silmeAc({ tip: 'donem', kayit: d }) : undefined}
             />
           )}
         </div>
@@ -847,7 +850,7 @@ export function TanimKayitlarOzeti() {
                 subeBagliPasifMi(d.aktif, d.subeId) ? 'dg-satir--pasif' : undefined
               }
               onSatirTikla={(d) => satirDuzenleAc(d.id)}
-              onSatirSil={(d) => silmeAc({ tip: 'depo', kayit: d })}
+              onSatirSil={silmeVar ? (d) => silmeAc({ tip: 'depo', kayit: d }) : undefined}
             />
           ) : (
             <DataGrid
@@ -862,7 +865,7 @@ export function TanimKayitlarOzeti() {
                 subeBagliPasifMi(k.aktif, k.subeId) ? 'dg-satir--pasif' : undefined
               }
               onSatirTikla={(k) => satirDuzenleAc(k.id)}
-              onSatirSil={(k) => silmeAc({ tip: 'kasa', kayit: k })}
+              onSatirSil={silmeVar ? (k) => silmeAc({ tip: 'kasa', kayit: k }) : undefined}
             />
           )}
         </div>
@@ -911,8 +914,8 @@ export function TanimKayitlarOzeti() {
         satirCogaltGoster={false}
         seciliSilGoster={false}
         dahiliSilmeOnay={false}
-        onSatirEkleBaslat={sagTikSatirEkle}
-        onSatirSil={sagTikSatirSil}
+        onSatirEkleBaslat={eklemeVar ? sagTikSatirEkle : undefined}
+        onSatirSil={silmeVar ? sagTikSatirSil : undefined}
         satirSilMetniAl={sagTikSatirSilMetni}
         onBilgi={basariBildir}
       />
@@ -933,10 +936,12 @@ export function TanimKayitlarOzeti() {
             ))}
           </ol>
         </nav>
-        <button type="button" className="ap-tanimlar-yeni-ekle" onClick={yeniEkle}>
-          <span aria-hidden>+</span>
-          {ekleEtiketi}
-        </button>
+        {eklemeVar ? (
+          <button type="button" className="ap-tanimlar-yeni-ekle" onClick={yeniEkle}>
+            <span aria-hidden>+</span>
+            {ekleEtiketi}
+          </button>
+        ) : null}
       </div>
 
       {gridIcerik}

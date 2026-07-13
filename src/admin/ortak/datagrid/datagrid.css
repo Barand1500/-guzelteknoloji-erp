@@ -2310,6 +2310,63 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 
+/* Tam genişlik alt bar — kenardan kenara iki eşit buton (Tanımlar paneli stili) */
+.dg-duzenle-alt--genis {
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  background: var(--ap-surface);
+}
+
+.dg-duzenle-alt--genis .dg-duzenle-btn {
+  min-width: 0;
+  width: 100%;
+  border-radius: 0;
+  padding: 0.85rem 1.2rem 0.95rem;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  line-height: 1.2;
+}
+
+.dg-duzenle-alt--genis .dg-duzenle-btn--kaydet .ap-modal-tus-kisayol {
+  opacity: 0.82;
+}
+
+.dg-duzenle-alt--genis .dg-duzenle-btn--iptal {
+  border: none;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+.dg-duzenle-alt--genis .dg-duzenle-btn--iptal:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-hover) 62%, transparent);
+}
+
+.dg-duzenle-alt--genis .dg-duzenle-btn--kaydet {
+  border: none;
+  background: var(--ap-accent);
+  color: #fff;
+  box-shadow: -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.dg-duzenle-alt--genis .dg-duzenle-btn--kaydet:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.dg-duzenle-alt--genis .dg-duzenle-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .dg-duzenle-alt .dg-duzenle-btn {
   display: flex;
   flex-direction: column;
