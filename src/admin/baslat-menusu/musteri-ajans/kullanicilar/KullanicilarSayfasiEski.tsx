@@ -20,7 +20,7 @@ import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
 import { panelRolYoneticisiMi } from '@/admin/ortak/panelRolYardimci';
 
-import { kullaniciModuluErisimVar, useYetkiler } from '@/kancalar/useYetkiler';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 
 import { adminRolleriGetir } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
@@ -149,7 +149,7 @@ export function KullanicilarSayfasiEski() {
 
   const { kullanici: oturum } = useAuth();
 
-  const { yetkiler } = useYetkiler();
+  const { kullaniciModuluErisimiVar } = useYetkiler();
 
   const [kullanicilar, setKullanicilar] = useState<AdminKullanici[]>([]);
 
@@ -175,7 +175,7 @@ export function KullanicilarSayfasiEski() {
 
 
 
-  const yetkili = kullaniciModuluErisimVar(yetkiler);
+  const yetkili = kullaniciModuluErisimiVar;
 
 
 
@@ -425,7 +425,7 @@ export function KullanicilarSayfasiEski() {
 
   if (!yetkili) {
     return (
-      <YetkisizErisim aciklama="Kullanıcı listesini görmek için Görüntüleme veya Kullanıcı Yönetimi yetkisi gerekir." />
+      <YetkisizErisim aciklama="Kullanıcı yönetimine yalnızca Süper Admin veya Kullanıcı Yönetimi yetkisine sahip kullanıcılar erişebilir." />
     );
   }
 

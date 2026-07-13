@@ -9,9 +9,14 @@ const PANEL_MODULLERI = [
   { modulAdi: 'Ayarlar', prefix: 'ayarlar' },
   { modulAdi: 'Sekme Yonetimi', prefix: 'sekme_yonetimi' },
   { modulAdi: 'Kisayol Ayarlari', prefix: 'kisayol_ayarlari' },
+  { modulAdi: 'Siparis Tablosu', prefix: 'datagrid_demo' },
   { modulAdi: 'Loglar', prefix: 'loglar' },
   { modulAdi: 'Veri Yedekleme', prefix: 'veri_yedekleme' },
   { modulAdi: 'Tanimlar', prefix: 'tanimlar' },
+  { modulAdi: 'Cari Kartlar', prefix: 'cari' },
+  { modulAdi: 'Urunler', prefix: 'urunler' },
+  { modulAdi: 'Birimler', prefix: 'birimler' },
+  { modulAdi: 'Maliyetler', prefix: 'maliyetler' },
 ];
 
 const SISTEM_ROLLERI = [
@@ -271,61 +276,35 @@ async function main() {
     update: { durum: true },
   });
 
-  const birimHizmet = await prisma.f001Birim.upsert({
-    where: { id: 1 },
-    create: {
-      urunId: urunHizmet.id,
-      fiyatAdi: 'PERAKENDE',
-      birimAdi: 'ADET',
-      carpan: 1,
-      alisKdv: 20,
-      satisKdv: 20,
-      kdvDahil: true,
-    },
-    update: { durum: true },
-  }).catch(async () => {
-    const mevcut = await prisma.f001Birim.findFirst({ where: { urunId: urunHizmet.id } });
-    if (mevcut) return mevcut;
-    return prisma.f001Birim.create({
-      data: {
-        urunId: urunHizmet.id,
-        fiyatAdi: 'PERAKENDE',
-        birimAdi: 'ADET',
-        carpan: 1,
-        alisKdv: 20,
-        satisKdv: 20,
-        kdvDahil: true,
-      },
-    });
+  const mevcutHizmetBirimi = await prisma.f001Birim.findFirst({
+    where: { urunId: urunHizmet.id, fiyatAdi: 'PERAKENDE', birimAdi: 'ADET' },
   });
+  const birimHizmet = mevcutHizmetBirimi
+    ? await prisma.f001Birim.update({
+        where: { id: mevcutHizmetBirimi.id },
+        data: { carpan: 1, alisKdv: 20, satisKdv: 20, kdvDahil: true, durum: true },
+      })
+    : await prisma.f001Birim.create({
+        data: {
+          urunId: urunHizmet.id, fiyatAdi: 'PERAKENDE', birimAdi: 'ADET',
+          carpan: 1, alisKdv: 20, satisKdv: 20, kdvDahil: true,
+        },
+      });
 
-  const birimEmtea = await prisma.f001Birim.upsert({
-    where: { id: 2 },
-    create: {
-      urunId: urunEmtea.id,
-      fiyatAdi: 'PERAKENDE',
-      birimAdi: 'ADET',
-      carpan: 1,
-      alisKdv: 10,
-      satisKdv: 10,
-      kdvDahil: false,
-    },
-    update: { durum: true },
-  }).catch(async () => {
-    const mevcut = await prisma.f001Birim.findFirst({ where: { urunId: urunEmtea.id } });
-    if (mevcut) return mevcut;
-    return prisma.f001Birim.create({
-      data: {
-        urunId: urunEmtea.id,
-        fiyatAdi: 'PERAKENDE',
-        birimAdi: 'ADET',
-        carpan: 1,
-        alisKdv: 10,
-        satisKdv: 10,
-        kdvDahil: false,
-      },
-    });
+  const mevcutEmteaBirimi = await prisma.f001Birim.findFirst({
+    where: { urunId: urunEmtea.id, fiyatAdi: 'PERAKENDE', birimAdi: 'ADET' },
   });
+  const birimEmtea = mevcutEmteaBirimi
+    ? await prisma.f001Birim.update({
+        where: { id: mevcutEmteaBirimi.id },
+        data: { carpan: 1, alisKdv: 10, satisKdv: 10, kdvDahil: false, durum: true },
+      })
+    : await prisma.f001Birim.create({
+        data: {
+          urunId: urunEmtea.id, fiyatAdi: 'PERAKENDE', birimAdi: 'ADET',
+          carpan: 1, alisKdv: 10, satisKdv: 10, kdvDahil: false,
+        },
+      });
 
   await prisma.f001Maliyet.upsert({
     where: { birimId: birimHizmet.id },

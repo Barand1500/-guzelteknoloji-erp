@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { modulAra, adminKategoriler, adminModulleri, modulleriMenuyeGoreFiltrele } from '@/admin/veri/adminMenuYapisi';
 import { useModulKatalog } from '@/baglamlar/ModulKatalogContext';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import {
   baslatMenuKapaliKategorileriKaydet,
   baslatMenuKapaliKategorileriOku,
@@ -10,6 +11,7 @@ export const KATEGORI_IKON: Record<string, string> = {
   'Müşteri / Ajans': '👥',
   Sistem: '⚙️',
   Tanımlar: '🗃️',
+  ERP: '🧩',
   Datagrid: '📊',
 };
 
@@ -21,8 +23,13 @@ export function useBaslatMenuDurumu() {
     baslatMenuKapaliKategorileriOku()
   );
   const { aktifPrefixler } = useModulKatalog();
-  const sonuclar = modulAra(arama, aktifPrefixler);
-  const gorunurModuller = modulleriMenuyeGoreFiltrele(adminModulleri, aktifPrefixler);
+  const { kullaniciModuluErisimiVar } = useYetkiler();
+  const sonuclar = modulAra(arama, aktifPrefixler, kullaniciModuluErisimiVar);
+  const gorunurModuller = modulleriMenuyeGoreFiltrele(
+    adminModulleri,
+    aktifPrefixler,
+    kullaniciModuluErisimiVar
+  );
 
   const kategoriToggle = useCallback((kategori: string) => {
     setKapaliKategoriler((onceki) => {

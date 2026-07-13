@@ -13,6 +13,14 @@ import {
   offlineDatagridDemoGetir,
   offlineDatagridDemoKaydet,
 } from '@/admin/ortak/api/offlineDatagridDemo';
+import {
+  offlineCarilerGetir,
+  offlineCarilerYaz,
+} from '@/admin/baslat-menusu/erp/cari/offlineCariler';
+import {
+  offlineUrunYonetimiGetir,
+  offlineUrunYonetimiYaz,
+} from '@/admin/baslat-menusu/erp/urun-yonetimi/offlineUrunYonetimi';
 
 const OFFLINE_SISTEM_ANAHTAR = 'erp-offline-sistem-ayarlari';
 const OFFLINE_MODUL_ANAHTAR = 'erp-offline-moduller';
@@ -49,6 +57,10 @@ const VARSAYILAN_OFFLINE_MODULLER: OfflineModul[] = [
   { id: 6, ad: 'Loglar', prefix: 'loglar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 7, ad: 'Veri Yedekleme', prefix: 'veri_yedekleme', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 8, ad: 'Tanimlar', prefix: 'tanimlar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 9, ad: 'Cari Kartlar', prefix: 'cari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 10, ad: 'Ürünler', prefix: 'urunler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 11, ad: 'Birimler', prefix: 'birimler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 12, ad: 'Maliyetler', prefix: 'maliyetler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
 ];
 
 const OFFLINE_YETKILER = [
@@ -106,6 +118,8 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
     if (p.includes('/moduller')) return offlineModulYaz(body, m, p);
     if (p.includes('/loglar')) return offlineLogYaz(body, m, p);
     if (p.includes('/tanimlar')) return offlineTanimlarYaz(p, m, body);
+    if (p.includes('/cariler')) return offlineCarilerYaz(p, m, body);
+    if (p.includes('/urun-yonetimi')) return offlineUrunYonetimiYaz(p, m, body);
     if (p.includes('/datagrid-demo')) return offlineDatagridDemoKaydet(body);
     if (p.includes('/eklentiler')) return offlineEklentiYaz(m, p);
     return { mesaj: 'Kayit (offline mod)' };
@@ -124,6 +138,8 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
   if (p.includes('/bildirim')) return { bildirimler: [], okunmamisSayi: 0 };
   if (p.includes('/eklentiler')) return offlineEklentiListe();
   if (p.includes('/tanimlar')) return offlineTanimlarGetir(p);
+  if (p.includes('/cariler')) return offlineCarilerGetir(p);
+  if (p.includes('/urun-yonetimi')) return offlineUrunYonetimiGetir(p);
   if (p.includes('/datagrid-demo')) return offlineDatagridDemoGetir();
 
   return {};

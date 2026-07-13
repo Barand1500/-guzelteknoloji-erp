@@ -16,6 +16,7 @@ interface TanimKayitTablosuProps<T extends { id: string }> {
   aramaMetni?: (satir: T) => string;
   pasifMi?: (satir: T) => boolean;
   onSatirTikla: (satir: T) => void;
+  onDuzenle?: (satir: T) => void;
   onSil?: (satir: T) => void;
   filtre?: ReactNode;
   bosMesaj?: string;
@@ -38,11 +39,13 @@ export function TanimKayitTablosu<T extends { id: string }>({
   aramaMetni,
   pasifMi,
   onSatirTikla,
+  onDuzenle,
   onSil,
   filtre,
   bosMesaj = 'Henüz kayıt yok',
 }: TanimKayitTablosuProps<T>) {
-  const kolonSayisi = kolonlar.length + (onSil ? 1 : 0);
+  const islemVar = Boolean(onDuzenle || onSil);
+  const kolonSayisi = kolonlar.length + (islemVar ? 1 : 0);
   const [arama, setArama] = useState('');
 
   const filtrelenmis = useMemo(() => {
@@ -83,9 +86,9 @@ export function TanimKayitTablosu<T extends { id: string }>({
                   {k.baslik}
                 </th>
               ))}
-              {onSil && (
+              {islemVar && (
                 <th className="ap-tanimlar-tablo-islem" aria-label="İşlemler">
-                  <span className="ap-tanimlar-tablo-islem-baslik">İşlem</span>
+                  <span className="ap-tanimlar-tablo-islem-baslik">İşlemler</span>
                 </th>
               )}
             </tr>
@@ -107,6 +110,7 @@ export function TanimKayitTablosu<T extends { id: string }>({
                     onClick={() => onSatirTikla(satir)}
                     tabIndex={0}
                     onKeyDown={(e) => {
+                      if (e.target !== e.currentTarget) return;
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         onSatirTikla(satir);
@@ -118,20 +122,35 @@ export function TanimKayitTablosu<T extends { id: string }>({
                         {k.hucre(satir)}
                       </td>
                     ))}
-                    {onSil && (
+                    {islemVar && (
                       <td
                         className="ap-tanimlar-tablo-islem"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <button
-                          type="button"
-                          className="ap-tanimlar-tablo-sil-tus"
-                          title="Kaydı sil"
-                          aria-label="Kaydı sil"
-                          onClick={() => onSil(satir)}
-                        >
-                          <DgIkon ad="sil" />
-                        </button>
+                        <div className="ap-tanimlar-tablo-islem-tuslar">
+                          {onDuzenle && (
+                            <button
+                              type="button"
+                              className="ap-tanimlar-tablo-duzenle-tus"
+                              title="Kaydı düzenle"
+                              aria-label="Kaydı düzenle"
+                              onClick={() => onDuzenle(satir)}
+                            >
+                              <DgIkon ad="duzenle" />
+                            </button>
+                          )}
+                          {onSil && (
+                            <button
+                              type="button"
+                              className="ap-tanimlar-tablo-sil-tus"
+                              title="Kaydı sil"
+                              aria-label="Kaydı sil"
+                              onClick={() => onSil(satir)}
+                            >
+                              <DgIkon ad="sil" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     )}
                   </tr>

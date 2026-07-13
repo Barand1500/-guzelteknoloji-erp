@@ -127,6 +127,7 @@ export function GirisSayfasi() {
   const [gelismisAcik, setGelismisAcik] = useState(false);
   const [kullaniciKodu, setKullaniciKodu] = useState('ADMIN');
   const [sifre, setSifre] = useState('');
+  const [sifreGorunur, setSifreGorunur] = useState(false);
   const [firmaKodu, setFirmaKodu] = useState('');
   const [donemKodu, setDonemKodu] = useState('');
   const [subeKodu, setSubeKodu] = useState('');
@@ -281,13 +282,35 @@ export function GirisSayfasi() {
                   </div>
                   <div>
                     <label className={etiketSinif}>Şifre</label>
-                    <input
-                      type="password"
-                      value={sifre}
-                      onChange={(e) => setSifre(e.target.value)}
-                      required
-                      className={inputSinif}
-                    />
+                    <div className="erp-giris-sifre-alani">
+                      <input
+                        type={sifreGorunur ? 'text' : 'password'}
+                        value={sifre}
+                        onChange={(e) => setSifre(e.target.value)}
+                        required
+                        autoComplete="current-password"
+                        className={`${inputSinif} erp-giris-sifre-input`}
+                      />
+                      <button
+                        type="button"
+                        className="erp-giris-sifre-goster"
+                        onClick={() => setSifreGorunur((gorunur) => !gorunur)}
+                        aria-label={sifreGorunur ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                        aria-pressed={sifreGorunur}
+                        title={sifreGorunur ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                      >
+                        {sifreGorunur ? (
+                          <svg viewBox="0 0 24 24" aria-hidden>
+                            <path d="M3 3l18 18M10.6 10.7a2 2 0 0 0 2.7 2.7M9.9 4.2A10.8 10.8 0 0 1 12 4c5 0 8.5 4.2 9.5 6.2a4 4 0 0 1 0 3.6c-.4.8-1 1.7-1.8 2.6M6.2 6.3a16.8 16.8 0 0 0-3.7 3.9 4 4 0 0 0 0 3.6C3.5 15.8 7 20 12 20c1.3 0 2.5-.3 3.6-.7" />
+                          </svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24" aria-hidden>
+                            <path d="M2.5 10.2a4 4 0 0 0 0 3.6C3.5 15.8 7 20 12 20s8.5-4.2 9.5-6.2a4 4 0 0 0 0-3.6C20.5 8.2 17 4 12 4s-8.5 4.2-9.5 6.2Z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="erp-giris-oturum-ozet ap-input flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm">

@@ -5,6 +5,7 @@ import { usePanelDil } from '@/baglamlar/PanelDilContext';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
 import { tooltipMetni } from '@/araclar/tooltipMetni';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 
 interface CubukModulAramaProps {
   onModulSec: (modul: AdminModul) => void;
@@ -18,7 +19,8 @@ export function CubukModulArama({ onModulSec }: CubukModulAramaProps) {
   const panelAnimRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { aktifPrefixler } = useModulKatalog();
-  const sonuclar = modulAra(arama, aktifPrefixler).slice(0, 8);
+  const { kullaniciModuluErisimiVar } = useYetkiler();
+  const sonuclar = modulAra(arama, aktifPrefixler, kullaniciModuluErisimiVar).slice(0, 8);
   const oneriAcik = acik && arama.trim().length > 0;
   useAksiyonCubuguPanelSync(oneriAcik, panelAnimRef);
 

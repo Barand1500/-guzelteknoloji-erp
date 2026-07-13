@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
 import { modulMenuGorunurMu as panelModulMenuGorunurMu } from '@/admin/veri/adminMenuYapisi';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 
 export const MODUL_KATALOG_YENILE_OLAY = 'ap-modul-katalog-yenile';
 
@@ -20,6 +21,7 @@ const ModulKatalogContext = createContext<ModulKatalogDeger | null>(null);
 export function ModulKatalogProvider({ children }: { children: ReactNode }) {
   const [aktifPrefixler, setAktifPrefixler] = useState<Set<string> | null>(null);
   const [yukleniyor, setYukleniyor] = useState(true);
+  const { kullaniciModuluErisimiVar } = useYetkiler();
 
   const yenile = useCallback(async () => {
     setYukleniyor(true);
@@ -43,8 +45,9 @@ export function ModulKatalogProvider({ children }: { children: ReactNode }) {
   }, [yenile]);
 
   const modulMenuGorunurMu = useCallback(
-    (modulId: string) => panelModulMenuGorunurMu(modulId, aktifPrefixler),
-    [aktifPrefixler]
+    (modulId: string) =>
+      panelModulMenuGorunurMu(modulId, aktifPrefixler, kullaniciModuluErisimiVar),
+    [aktifPrefixler, kullaniciModuluErisimiVar]
   );
 
   const deger = useMemo(

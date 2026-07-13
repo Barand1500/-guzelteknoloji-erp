@@ -12,7 +12,7 @@ import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiy
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 import { korunmusRolMu } from '@/admin/ortak/panelRolYardimci';
 import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
-import { kullaniciModuluErisimVar, useYetkiler } from '@/kancalar/useYetkiler';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import {
   adminRolleriGetir,
   adminRolleriKaydet,
@@ -49,9 +49,9 @@ export function RollerSayfasiEski() {
   const [seciliRolKod, setSeciliRolKod] = useState<string | null>(null);
   const kayitliRef = useRef<RolTanimi[]>([]);
 
-  const { yetkiler: oturumYetkileri, kullaniciYonetimiVar } = useYetkiler();
-  const yetkili = kullaniciModuluErisimVar(oturumYetkileri);
-  const duzenlenebilir = kullaniciYonetimiVar;
+  const { kullaniciModuluErisimiVar } = useYetkiler();
+  const yetkili = kullaniciModuluErisimiVar;
+  const duzenlenebilir = kullaniciModuluErisimiVar;
   const degisti = !rollerEsitMi(taslakRoller, kayitliRoller);
 
   useKaydedilmemisBildirim(
@@ -175,7 +175,7 @@ export function RollerSayfasiEski() {
 
   if (!yetkili) {
     return (
-      <YetkisizErisim aciklama="Rol ve yetki bilgilerini görmek için Görüntüleme veya Kullanıcı Yönetimi yetkisi gerekir." />
+      <YetkisizErisim aciklama="Rol ve yetki yönetimine yalnızca Süper Admin veya Kullanıcı Yönetimi yetkisine sahip kullanıcılar erişebilir." />
     );
   }
 

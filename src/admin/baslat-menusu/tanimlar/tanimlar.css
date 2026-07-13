@@ -581,7 +581,7 @@
 }
 
 .ap-tanimlar-tablo-islem {
-  width: 3rem;
+  width: 5rem;
   text-align: center;
   vertical-align: middle;
 }
@@ -592,6 +592,14 @@
   color: var(--ap-muted);
 }
 
+.ap-tanimlar-tablo-islem-tuslar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.ap-tanimlar-tablo-duzenle-tus,
 .ap-tanimlar-tablo-sil-tus {
   width: 1.625rem;
   height: 1.625rem;
@@ -606,9 +614,15 @@
   transition: background 0.12s, color 0.12s;
 }
 
+.ap-tanimlar-tablo-duzenle-tus .dg-svg-ikon,
 .ap-tanimlar-tablo-sil-tus .dg-svg-ikon {
   width: 0.85rem;
   height: 0.85rem;
+}
+
+.ap-tanimlar-tablo-duzenle-tus:hover {
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  color: var(--ap-accent);
 }
 
 .ap-tanimlar-tablo-sil-tus:hover {

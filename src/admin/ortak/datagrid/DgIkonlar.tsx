@@ -8,6 +8,7 @@ interface DgIkonProps {
     | 'sutun'
     | 'indir'
     | 'tablo'
+    | 'duzenle'
     | 'sil'
     | 'igne';
   className?: string;
@@ -78,6 +79,19 @@ export function DgIkon({ ad, className = '' }: DgIkonProps) {
         <svg {...ortak}>
           <rect x="2" y="2.5" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
           <path d="M2 6h12" stroke="currentColor" strokeWidth="1.1" />
+        </svg>
+      );
+    case 'duzenle':
+      return (
+        <svg {...ortak}>
+          <path
+            d="m3 11.75.45-2.25 6.7-6.7a1.15 1.15 0 0 1 1.63 0l1.42 1.42a1.15 1.15 0 0 1 0 1.63l-6.7 6.7-2.25.45L3 11.75Z"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path d="m9.25 3.7 3.05 3.05M3.45 9.5l3.05 3.05" stroke="currentColor" strokeWidth="1.1" />
         </svg>
       );
     case 'sil':

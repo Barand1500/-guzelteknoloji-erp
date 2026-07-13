@@ -50,6 +50,34 @@ export const adminModulleri: AdminModul[] = [
     kategori: 'Tanımlar',
     yol: '/gt-admin/tanimlar',
   },
+  {
+    id: 'cari',
+    baslik: 'Cari Kartlar',
+    ikon: '📇',
+    kategori: 'ERP',
+    yol: '/gt-admin/cari',
+  },
+  {
+    id: 'urunler',
+    baslik: 'Ürünler',
+    ikon: '📦',
+    kategori: 'ERP',
+    yol: '/gt-admin/urunler',
+  },
+  {
+    id: 'birimler',
+    baslik: 'Birimler',
+    ikon: '🧮',
+    kategori: 'ERP',
+    yol: '/gt-admin/birimler',
+  },
+  {
+    id: 'maliyetler',
+    baslik: 'Maliyetler',
+    ikon: '📈',
+    kategori: 'ERP',
+    yol: '/gt-admin/maliyetler',
+  },
 ];
 
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
@@ -72,7 +100,7 @@ export const adminGizliModuller: AdminModul[] = [
   },
 ];
 
-export const adminKategoriler = ['Müşteri / Ajans', 'Sistem', 'Tanımlar', 'Datagrid'] as const;
+export const adminKategoriler = ['Müşteri / Ajans', 'Sistem', 'Tanımlar', 'ERP', 'Datagrid'] as const;
 
 export function modulBul(id: string): AdminModul | undefined {
   return adminModulleri.find((m) => m.id === id) ?? adminGizliModuller.find((m) => m.id === id);
@@ -96,9 +124,24 @@ export function modulIdDenPrefix(modulId: string): string {
   return modulId.replace(/-/g, '_');
 }
 
-const PANEL_ALTYAPI_MODUL_IDLERI = new Set(['ayarlar', 'sekme-yonetimi', 'kisayol-ayarlari']);
+const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
+  'ayarlar',
+  'sekme-yonetimi',
+  'kisayol-ayarlari',
+  'datagrid-demo',
+  'cari',
+  'urunler',
+  'birimler',
+  'maliyetler',
+]);
+const TAM_YETKI_GEREKTIREN_MODULLER = new Set(['kullanicilar', 'roller']);
 
-export function modulMenuGorunurMu(modulId: string, aktifPrefixler: Set<string> | null | undefined): boolean {
+export function modulMenuGorunurMu(
+  modulId: string,
+  aktifPrefixler: Set<string> | null | undefined,
+  kullaniciYonetimiErisimiVar = true
+): boolean {
+  if (TAM_YETKI_GEREKTIREN_MODULLER.has(modulId) && !kullaniciYonetimiErisimiVar) return false;
   if (PANEL_ALTYAPI_MODUL_IDLERI.has(modulId)) return true;
   if (!aktifPrefixler) return true;
   return aktifPrefixler.has(modulIdDenPrefix(modulId));
@@ -106,14 +149,25 @@ export function modulMenuGorunurMu(modulId: string, aktifPrefixler: Set<string> 
 
 export function modulleriMenuyeGoreFiltrele(
   moduller: AdminModul[],
-  aktifPrefixler: Set<string> | null | undefined
+  aktifPrefixler: Set<string> | null | undefined,
+  kullaniciYonetimiErisimiVar = true
 ): AdminModul[] {
-  return moduller.filter((m) => modulMenuGorunurMu(m.id, aktifPrefixler));
+  return moduller.filter((m) =>
+    modulMenuGorunurMu(m.id, aktifPrefixler, kullaniciYonetimiErisimiVar)
+  );
 }
 
-export function modulAra(terim: string, aktifPrefixler?: Set<string> | null): AdminModul[] {
+export function modulAra(
+  terim: string,
+  aktifPrefixler?: Set<string> | null,
+  kullaniciYonetimiErisimiVar = true
+): AdminModul[] {
   const q = terim.toLowerCase().trim();
-  const kaynak = modulleriMenuyeGoreFiltrele(adminModulleri, aktifPrefixler);
+  const kaynak = modulleriMenuyeGoreFiltrele(
+    adminModulleri,
+    aktifPrefixler,
+    kullaniciYonetimiErisimiVar
+  );
   if (!q) return kaynak;
   return kaynak.filter(
     (m) =>

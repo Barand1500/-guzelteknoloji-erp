@@ -1,4 +1,4 @@
-import type { Depo, Donem, Firma, Kasa, Kullanici, Rol, Sube } from '@prisma/client';
+import type { Depo, Donem, F001Cari, Firma, Kasa, Kullanici, Rol, Sube } from '@prisma/client';
 import { tumAyarlarOku } from './ayarlar.js';
 import { prisma } from './prisma.js';
 
@@ -304,5 +304,33 @@ export function adminKasaYanit(k: Kasa & { sube?: { subeKodu: string; subeAdi: s
     aktif: k.durum,
     olusturma: tarihIso(k.kayitTarihi),
     guncelleme: tarihIso(k.guncellemeTarihi),
+  };
+}
+
+export function adminCariYanit(c: F001Cari) {
+  return {
+    id: String(c.id),
+    firmaId: String(c.firmaId),
+    ustId: c.ustId != null ? String(c.ustId) : '',
+    cariTipi: c.cariTipi,
+    isletmeTuru: c.isletmeTuru ?? '',
+    cariKodu: c.cariKodu,
+    cariAdi: c.cariAdi,
+    unvan: c.unvan ?? '',
+    yetkili: c.yetkili ?? '',
+    vergiDairesi: c.vergiDairesi ?? '',
+    vergiNo: c.vergiNo ?? '',
+    il: c.il ?? '',
+    ilce: c.ilce ?? '',
+    adres: c.adres ?? '',
+    telefon: c.telefon ?? '',
+    eposta: c.eposta ?? '',
+    web: c.web ?? '',
+    efatura: c.efatura,
+    efaturaTipi: c.efaturaTipi ?? '',
+    alias: c.alias ?? '',
+    aktif: c.durum,
+    olusturma: tarihIso(c.kayitTarihi),
+    guncelleme: tarihIso(c.guncellemeTarihi),
   };
 }

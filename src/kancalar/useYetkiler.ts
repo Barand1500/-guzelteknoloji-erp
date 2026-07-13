@@ -14,7 +14,6 @@ const VARSAYILAN_ROL_YETKILERI: Record<string, YetkiKodu[]> = {
 
 /** Matriste yanlislikla bos birakilmis sistem yonetici rolleri kilitlemesin */
 const BOS_YETKI_VARSAYILAN_ROLLER = new Set(['YONETICI', 'SUPER_ADMIN', 'AJANS_ADMIN']);
-
 export function cozumleKullaniciYetkileri(rol: string, yetkiler?: YetkiKodu[]): YetkiKodu[] {
   const varsayilan = VARSAYILAN_ROL_YETKILERI[rol] ?? ['goruntuleme'];
 
@@ -37,9 +36,12 @@ function cozumleYetkiler(rol: string, yetkiler?: YetkiKodu[]): YetkiKodu[] {
   return cozumleKullaniciYetkileri(rol, yetkiler);
 }
 
-/** Kullanici / rol modulleri: goruntuleme veya kullanici_yonetimi ile acilir */
-export function kullaniciModuluErisimVar(yetkiler: YetkiKodu[]): boolean {
-  return yetkiler.includes('goruntuleme') || yetkiler.includes('kullanici_yonetimi');
+/** Kullanıcılar ve Roller: SUPER_ADMIN veya kullanıcı yönetimi yetkisi gerekir. */
+export function kullaniciModuluErisimVar(rol: string, yetkiler: YetkiKodu[]): boolean {
+  return (
+    rol.trim().toUpperCase() === 'SUPER_ADMIN' ||
+    yetkiler.includes('kullanici_yonetimi')
+  );
 }
 
 export function useYetkiler() {
@@ -51,6 +53,7 @@ export function useYetkiler() {
   );
 
   const yetkiVar = (kod: YetkiKodu) => yetkiler.includes(kod);
+  const kullaniciModuluErisimiVar = kullaniciModuluErisimVar(kullanici?.rol ?? '', yetkiler);
 
   return {
     yetkiler,
@@ -60,6 +63,7 @@ export function useYetkiler() {
     duzenlemeVar: yetkiVar('duzenleme'),
     silmeVar: yetkiVar('silme'),
     kullaniciYonetimiVar: yetkiVar('kullanici_yonetimi'),
+    kullaniciModuluErisimiVar,
     saltOkunur: !yetkiVar('duzenleme') && !yetkiVar('ekleme'),
   };
 }

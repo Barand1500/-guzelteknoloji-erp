@@ -25,8 +25,14 @@ export const PANEL_MODULLERI = [
   { modulAdi: 'Ayarlar', prefix: 'ayarlar' },
   { modulAdi: 'Sekme Yonetimi', prefix: 'sekme_yonetimi' },
   { modulAdi: 'Kisayol Ayarlari', prefix: 'kisayol_ayarlari' },
+  { modulAdi: 'Siparis Tablosu', prefix: 'datagrid_demo' },
   { modulAdi: 'Loglar', prefix: 'loglar' },
   { modulAdi: 'Veri Yedekleme', prefix: 'veri_yedekleme' },
+  { modulAdi: 'Tanimlar', prefix: 'tanimlar' },
+  { modulAdi: 'Cari Kartlar', prefix: 'cari' },
+  { modulAdi: 'Urunler', prefix: 'urunler' },
+  { modulAdi: 'Birimler', prefix: 'birimler' },
+  { modulAdi: 'Maliyetler', prefix: 'maliyetler' },
 ] as const;
 
 export function sanalModulListesi() {

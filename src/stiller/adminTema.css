@@ -386,6 +386,53 @@ html:has(.admin-panel[data-tema='acik']) body {
   outline: none !important;
 }
 
+.erp-giris-sifre-alani {
+  position: relative;
+}
+
+.admin-panel.erp-giris .erp-giris-sifre-input {
+  padding-right: 3rem;
+}
+
+.erp-giris-sifre-goster {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 0.5rem;
+  color: #64748b;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.erp-giris-sifre-goster:hover {
+  color: #1d4ed8;
+  background: rgba(29, 78, 216, 0.08);
+}
+
+.erp-giris-sifre-goster:focus-visible {
+  color: #1e40af;
+  outline: 2px solid #60a5fa;
+  outline-offset: 1px;
+}
+
+.erp-giris-sifre-goster svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* Sol panel ERP ikonu */
 .erp-giris-sol-erp-logo {
   --erp-giris-logo-boyut: 14rem;

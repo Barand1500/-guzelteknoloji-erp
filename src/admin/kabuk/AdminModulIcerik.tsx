@@ -7,6 +7,10 @@ import { SekmeYonetimiSayfasi } from '@/admin/baslat-menusu/sistem/sekme-yonetim
 import { KisayolAyarlariSayfasi } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/sayfa';
 import { DatagridDemoSayfasi } from '@/admin/baslat-menusu/datagrid/demo/sayfa';
 import { TanimlarSayfasi } from '@/admin/baslat-menusu/tanimlar/sayfa';
+import { CariSayfasi } from '@/admin/baslat-menusu/erp/cari/sayfa';
+import { UrunlerSayfasi } from '@/admin/baslat-menusu/erp/urun-yonetimi/UrunlerSayfasi';
+import { BirimlerSayfasi } from '@/admin/baslat-menusu/erp/urun-yonetimi/BirimlerSayfasi';
+import { MaliyetlerSayfasi } from '@/admin/baslat-menusu/erp/urun-yonetimi/MaliyetlerSayfasi';
 import { ModulKabuk } from '@/baglamlar/ModulKabukContext';
 
 interface AdminModulIcerikProps {
@@ -42,6 +46,14 @@ function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
       return <DatagridDemoSayfasi />;
     case 'tanimlar':
       return <TanimlarSayfasi />;
+    case 'cari':
+      return <CariSayfasi />;
+    case 'urunler':
+      return <UrunlerSayfasi />;
+    case 'birimler':
+      return <BirimlerSayfasi />;
+    case 'maliyetler':
+      return <MaliyetlerSayfasi />;
     default:
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center">

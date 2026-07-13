@@ -12,11 +12,14 @@ export function yetkiZorunlu(...gerekliYetkiler: string[]) {
   };
 }
 
-/** Kullanici / rol yonetimi ekranlari */
+/** Kullanici / rol yonetimi: SUPER_ADMIN veya kullanici_yonetimi yetkisi gerekli. */
 export function kullaniciYonetimiErisimi(req: AuthRequest, res: Response, next: NextFunction) {
-  return yetkiZorunlu('goruntuleme', 'kullanici_yonetimi')(req, res, next);
+  const superAdmin = req.kullanici?.rol.trim().toUpperCase() === 'SUPER_ADMIN';
+  const kullaniciYonetimiVar = req.yetkiler?.includes('kullanici_yonetimi');
+  if (superAdmin || kullaniciYonetimiVar) return next();
+  return res.status(403).json({ mesaj: 'Kullanici ve rol yonetimi yetkisi gerekli' });
 }
 
 export function kullaniciYonetimiYazma(req: AuthRequest, res: Response, next: NextFunction) {
-  return yetkiZorunlu('kullanici_yonetimi')(req, res, next);
+  return kullaniciYonetimiErisimi(req, res, next);
 }

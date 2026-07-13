@@ -13,6 +13,8 @@ import yedekRouter from './routes/yedek.js';
 import legacyStubsRouter from './routes/legacy-stubs.js';
 import referansRouter from './routes/referans.js';
 import tanimlarRouter from './routes/tanimlar.js';
+import carilerRouter from './routes/cariler.js';
+import urunYonetimiRouter from './routes/urun-yonetimi.js';
 import datagridDemoRouter from './routes/datagrid-demo.js';
 import kullaniciAyarlariRouter from './routes/kullanici-ayarlari.js';
 
@@ -51,6 +53,8 @@ export function appOlustur() {
   admin.use('/eklentiler', eklentilerRouter);
   admin.use('/referans', referansRouter);
   admin.use('/tanimlar', tanimlarRouter);
+  admin.use('/cariler', carilerRouter);
+  admin.use('/urun-yonetimi', urunYonetimiRouter);
   admin.use('/datagrid-demo', datagridDemoRouter);
   admin.use('/kullanici-ayarlari', kullaniciAyarlariRouter);
   admin.use('/', legacyStubsRouter);
