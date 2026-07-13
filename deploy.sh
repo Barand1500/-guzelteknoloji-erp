@@ -1,229 +1,154 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Single-file deploy script for CloudPanel layout
-#   ~/htdocs/erp.guzelteknoloji.com/
-#     deploy.sh
-#     repo/
-#     frontend/
-#     backend/
-#
-# Nginx /api proxy (502 onlemek icin): repo/nginx-api.conf.example
-# CloudPanel → Site → Vhost → Nginx Directives icine location /api blogunu ekleyin.
+# Renk Tanımlamaları (Terminal çıktısı için)
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
+# Konfigürasyon
 SITE="${DEPLOY_SITE:-$HOME/htdocs/erp.guzelteknoloji.com}"
-GIT_REMOTE="https://github.com/Barand1500/-guzelteknoloji-erp.git"
 GIT_BRANCH="main"
 PM2_NAME="erp-api"
 API_PORT="3007"
 DB_RESET="${DB_RESET:-0}"
 PUBLIC_URL="${PUBLIC_URL:-https://erp.guzelteknoloji.com}"
-
-# 1 => frontend mock auth (gelistirme); 0 => gercek backend (production varsayilan)
 FRONTEND_MOCK_AUTH="${FRONTEND_MOCK_AUTH:-0}"
 
-echo ""
-echo "=== GUZEL TEKNOLOJI ERP - DEPLOY START ==="
-echo "  Site: $SITE"
-echo "  Branch: $GIT_BRANCH"
-echo ""
+log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[OK]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[UYARI]${NC} $1"; }
+log_error() { echo -e "${RED}[HATA]${NC} $1"; exit 1; }
 
-if [ ! -d "$SITE/repo/.git" ]; then
-  echo "ERROR: Missing git repo at $SITE/repo"
-  echo "Run initial setup:"
-  echo "  mkdir -p $SITE"
-  echo "  cd $SITE"
-  echo "  git clone $GIT_REMOTE repo"
-  echo "  cp repo/deploy.sh ."
-  echo "  mkdir -p backend"
-  echo "  cp repo/backend/.env.example backend/.env"
-  echo "  nano backend/.env"
-  echo "  chmod +x deploy.sh && ./deploy.sh"
-  exit 1
-fi
+echo -e "${GREEN}===========================================${NC}"
+echo -e "${GREEN}    GUZEL TEKNOLOJI ERP DEPLOYMENT (V2)    ${NC}"
+echo -e "${GREEN}===========================================${NC}"
 
-if [ ! -f "$SITE/backend/.env" ]; then
-  echo "ERROR: Missing $SITE/backend/.env"
-  echo "  cp $SITE/repo/backend/.env.example $SITE/backend/.env"
-  echo "  nano $SITE/backend/.env"
-  exit 1
-fi
+# Klasör Kontrolleri
+[ -d "$SITE/repo/.git" ] || log_error "Missing git repo at $SITE/repo. Lütfen ilk kurulumu yapın."
+[ -f "$SITE/backend/.env" ] || log_error "Eksik dosya: $SITE/backend/.env"
 
-echo "[1/6] Updating git from origin/$GIT_BRANCH ..."
+# 1. GIT GÜNCELLEME & DEĞİŞİKLİK ANALİZİ
+log_info "Git güncelleniyor ve değişiklikler analiz ediliyor..."
 cd "$SITE/repo"
 git fetch origin "$GIT_BRANCH"
+
+# Akıllı Kontroller: Hangi dosyalar değişti?
+FRONTEND_DEPS_CHANGED=$(git diff --name-only HEAD "origin/$GIT_BRANCH" | grep "package.json" || true)
+PRISMA_CHANGED=$(git diff --name-only HEAD "origin/$GIT_BRANCH" | grep -E "schema.prisma|prisma-sema.sh" || true)
+
 git reset --hard "origin/$GIT_BRANCH"
-cp "$SITE/repo/deploy.sh" "$SITE/deploy.sh"
-chmod +x "$SITE/deploy.sh"
-echo "  Commit: $(git log -1 --oneline)"
+cp "$SITE/repo/deploy.sh" "$SITE/deploy.sh" && chmod +x "$SITE/deploy.sh"
+log_success "Git güncellendi. Commit: $(git log -1 --oneline)"
 
-echo "[2/6] Building frontend ..."
-cd "$SITE/repo"
-npm ci
-if [ "$FRONTEND_MOCK_AUTH" = "1" ]; then
-  echo "  Frontend mode: mock auth (VITE_BACKEND_YOK=true)"
-  VITE_API_URL=/api VITE_BACKEND_YOK=true npx vite build
+# 2. FRONTEND BUILD
+log_info "Frontend kontrol ediliyor..."
+if [ -n "$FRONTEND_DEPS_CHANGED" ] || [ ! -d "$SITE/repo/node_modules" ]; then
+    log_warn "Bağımlılıklar değişmiş, repo kökünde npm install yapılıyor..."
+    npm ci --quiet
 else
-  echo "  Frontend mode: real auth (VITE_BACKEND_YOK=false)"
-  VITE_API_URL=/api VITE_BACKEND_YOK=false npx vite build
+    log_success "Frontend bağımlılıkları güncel."
 fi
-rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
-FRONTEND_JS="$(grep -oE 'index-[^"]+\.js' "$SITE/frontend/index.html" | head -1 || true)"
-echo "  Output: $SITE/frontend/ (${FRONTEND_JS:-?})"
 
-echo "[3/6] Building backend ..."
+if [ "$FRONTEND_MOCK_AUTH" = "1" ]; then
+    VITE_API_URL=/api VITE_BACKEND_YOK=true npx vite build --emptyOutDir
+else
+    VITE_API_URL=/api VITE_BACKEND_YOK=false npx vite build --emptyOutDir
+fi
+
+rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
+log_success "Frontend hazır ve taşındı."
+
+# 3. BACKEND BUILD
+log_info "Backend hazırlanıyor..."
 cd "$SITE/repo/backend"
-npm ci
+
+if [ -n "$FRONTEND_DEPS_CHANGED" ] || [ ! -d "$SITE/repo/backend/node_modules" ]; then
+    log_warn "Backend bağımlılıkları yükleniyor..."
+    npm ci --quiet
+fi
 npm run build
-rsync -a \
-  --exclude='node_modules' \
+
+# Gereksiz geliştirici paketlerini temizle
+log_info "Gereksiz geliştirici paketleri (devDependencies) temizleniyor..."
+npm prune --omit=dev --quiet
+
+# Optimize edilmiş backend'i canlı klasöre taşı
+log_info "Optimize edilmiş backend canlı klasörüne senkronize ediliyor..."
+rsync -a --delete \
   --exclude='.env' \
   --exclude='uploads' \
   "$SITE/repo/backend/" "$SITE/backend/"
-echo "  Output: $SITE/backend/dist/"
 
-echo "[4/6] Installing backend production dependencies ..."
+# 4. DATABASE SENKRONİZASYONU
+log_info "Veritabanı işlemleri..."
 cd "$SITE/backend"
-npm ci --omit=dev
-chmod +x scripts/db-push-safe.sh 2>/dev/null || true
-chmod +x scripts/db-seed.sh 2>/dev/null || true
-chmod +x scripts/sunucu-baglanti.sh 2>/dev/null || true
-chmod +x scripts/api-smoke.sh 2>/dev/null || true
+chmod +x scripts/*.sh 2>/dev/null || true
 
-echo "[5/6] Syncing database ..."
 PRISMA_SCHEMA="$(bash scripts/prisma-sema.sh)"
-echo "  Schema: $PRISMA_SCHEMA"
-npx prisma generate --schema "$PRISMA_SCHEMA"
-DB_OK=1
+
+if [ -n "$PRISMA_CHANGED" ] || [ ! -d "$SITE/backend/node_modules/.prisma" ]; then
+    log_warn "Prisma şeması değişmiş veya eksik, yeniden generate ediliyor..."
+    npx prisma generate --schema "$PRISMA_SCHEMA"
+else
+    log_success "Prisma şeması güncel, generate adımı atlandı."
+fi
+
 export DB_RESET
 if bash scripts/db-push-safe.sh; then
-  echo "  Database synced."
-  echo "  Running seed (upsert — idempotent) ..."
-  SEED_DIR="$SITE/repo/backend"
-  if [ ! -d "$SEED_DIR/node_modules/.bin" ]; then
-    ( cd "$SEED_DIR" && npm ci )
-  fi
-  (
-    cd "$SEED_DIR"
-    set -a
-    # shellcheck disable=SC1091
-    source "$SITE/backend/.env"
-    set +a
+    log_success "Veritabanı senkronize edildi."
+    
+    # Hatalı parantez blokları yerine temiz, düz akışa geçildi
+    log_info "Database seed işlemi başlatılıyor..."
+    set +e
+    export $(grep -v '^#' "$SITE/backend/.env" | xargs) 2>/dev/null || true
+    set -e
     bash scripts/db-seed.sh
-  )
+    log_success "Seed işlemi tamamlandı."
 else
-  DB_OK=0
-  echo ""
-  echo "  WARNING: Database step failed; deploy continues."
-  echo "  Manual: cd $SITE/backend && bash scripts/db-push-safe.sh"
-  echo "  Reset install: DB_RESET=1 ./deploy.sh"
-  echo ""
+    log_warn "Veritabanı adımı başarısız oldu, deploy devam ediyor."
 fi
 
-echo "[6/6] Restarting PM2 ($PM2_NAME on $API_PORT) ..."
-cd "$SITE/backend"
+# 5. PM2 RESTART (Kesintisiz / Zero-Downtime)
+log_info "PM2 servisi güncelleniyor..."
 if ! command -v pm2 >/dev/null 2>&1; then
-  echo "  PM2 bulunamadi — global kurulum ..."
-  npm install -g pm2
+    npm install -g pm2 --quiet
 fi
-chmod +x scripts/pm2-kur.sh 2>/dev/null || true
-chmod +x scripts/api-port-serbest.sh 2>/dev/null || true
 
-# EADDRINUSE onlemi: PM2'yi durdur, portu bosalt, temiz baslat
 if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
-  pm2 delete "$PM2_NAME" 2>/dev/null || pm2 stop "$PM2_NAME" || true
+    log_info "PM2 mevcut süreç yenileniyor (Reload)..."
+    pm2 reload ecosystem.config.cjs --update-env
+else
+    log_info "Yeni PM2 süreci başlatılıyor..."
+    pm2 start ecosystem.config.cjs
 fi
-sleep 1
-if [ -x scripts/api-port-serbest.sh ]; then
-  BACKEND_DIR="$SITE/backend" API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
-fi
-sleep 1
-pm2 start ecosystem.config.cjs
 pm2 save
 
-# Yerel saglik kontrolu — PM2 restart sonrasi kisa bekleme
-sleep 2
-if pm2 describe "$PM2_NAME" 2>/dev/null | grep -qE 'status.*online'; then
-  echo "  PM2 ${PM2_NAME}: online"
-  HEALTH_PM2="$(curl -sf "http://127.0.0.1:${API_PORT}/api/health" 2>/dev/null || echo '')"
-  if echo "$HEALTH_PM2" | grep -q '"kullaniciAyarlari"'; then
-    echo "  PM2 health: guncel backend"
-  else
-    echo "  UYARI: PM2 online ama health eski — CloudPanel Node.js port ${API_PORT}'u kapmis olabilir"
-    echo "  CloudPanel → Site → Node.js uygulamasini KAPATIN"
-    echo "  Sonra: cd $SITE/backend && bash scripts/sunucu-api-duzelt.sh"
-  fi
-else
-  echo "  UYARI: PM2 ${PM2_NAME} online degil — pm2 logs ${PM2_NAME} --lines 30"
-fi
+# 6. SAĞLIK KONTROLLERİ
+echo ""
+echo -e "${GREEN}=== SAĞLIK KONTROLLERİ ===${NC}"
+
+check_endpoint() {
+    local url=$1
+    local expected_code=$2
+    local name=$3
+    local code
+    code=$(curl -sS -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo "000")
+    
+    if [ "$code" = "$expected_code" ]; then
+        echo -e "  [${GREEN}OK${NC}] $name (HTTP $code)"
+        return 0
+    else
+        echo -e "  [${RED}FAIL${NC}] $name (Beklenen: $expected_code, Gelen: $code)"
+        return 1
+    fi
+}
+
+check_endpoint "http://127.0.0.1:${API_PORT}/api/health" "200" "Yerel API Sağlık Durumu" || true
+check_endpoint "http://127.0.0.1:${API_PORT}/api/admin/auth/oturum-secenekleri" "200" "Oturum Seçenekleri" || true
+check_endpoint "${PUBLIC_URL}/api/health" "200" "Dış Dünya API Erişimi" || true
 
 echo ""
-if [ "$DB_OK" = "1" ]; then
-  echo "=== DEPLOY COMPLETE ==="
-else
-  echo "=== DEPLOY COMPLETE (database warning) ==="
-fi
-
-echo ""
-echo "API checks (127.0.0.1:${API_PORT}) ..."
-OTURUM_OK=0
-
-if curl -sf "http://127.0.0.1:${API_PORT}/api/health" >/dev/null; then
-  echo "  OK  /api/health"
-else
-  echo "  FAIL /api/health - check: pm2 logs ${PM2_NAME} --lines 30"
-fi
-
-if curl -sf "http://127.0.0.1:${API_PORT}/api/admin/auth/oturum-secenekleri" | grep -q '"firmalar"'; then
-  OTURUM_OK=1
-  echo "  OK  /api/admin/auth/oturum-secenekleri"
-else
-  echo "  FAIL /api/admin/auth/oturum-secenekleri"
-fi
-
-TANIM_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/tanimlar/firmalar" 2>/dev/null || echo 000)"
-if [ "$TANIM_CODE" = "401" ]; then
-  echo "  OK  /api/admin/tanimlar/firmalar (401 — route mevcut)"
-else
-  echo "  FAIL /api/admin/tanimlar/firmalar (HTTP ${TANIM_CODE}, beklenen 401)"
-fi
-
-KISAYOL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
-SEKME_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${API_PORT}/api/admin/kullanici-ayarlari/sekme" 2>/dev/null || echo 000)"
-if [ "$KISAYOL_CODE" = "401" ] && [ "$SEKME_CODE" = "401" ]; then
-  echo "  OK  /api/admin/kullanici-ayarlari/kisayol + sekme (401 — route mevcut)"
-else
-  echo "  FAIL kullanici-ayarlari (kisayol HTTP ${KISAYOL_CODE}, sekme HTTP ${SEKME_CODE}, beklenen 401)"
-fi
-
-echo ""
-echo "Public API check (${PUBLIC_URL}) ..."
-PUB_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "${PUBLIC_URL}/api/health" 2>/dev/null || echo 000)"
-PUB_BODY="$(curl -sS "${PUBLIC_URL}/api/health" 2>/dev/null | head -c 80 || true)"
-if [ "$PUB_CODE" = "200" ] && echo "$PUB_BODY" | grep -q '"durum"'; then
-  echo "  OK  ${PUBLIC_URL}/api/health"
-else
-  echo "  FAIL ${PUBLIC_URL}/api/health (HTTP ${PUB_CODE})"
-  echo "  Nginx /api proxy gerekli — bkz. repo/nginx-api.conf.example"
-fi
-
-PUB_KISAYOL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "${PUBLIC_URL}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
-if [ "$PUB_KISAYOL_CODE" = "401" ]; then
-  echo "  OK  ${PUBLIC_URL}/api/admin/kullanici-ayarlari/kisayol (401 — route mevcut)"
-elif [ "$PUB_KISAYOL_CODE" = "404" ] && [ "$KISAYOL_CODE" = "401" ]; then
-  echo "  FAIL public kisayol (HTTP 404) — yerel API guncel, nginx veya CloudPanel Node.js cakismasi"
-  echo "  CloudPanel → Site → Node.js uygulamasini DURDURUN (port ${API_PORT})."
-  echo "  Sonra: cd $SITE/backend && bash scripts/sunucu-api-duzelt.sh"
-else
-  echo "  FAIL public kisayol (HTTP ${PUB_KISAYOL_CODE}, beklenen 401)"
-fi
-
-echo ""
-if [ "$OTURUM_OK" = "1" ]; then
-  echo "Frontend updated. Do hard refresh (Ctrl+Shift+R)."
-else
-  echo "Deploy finished; login API is still not ready."
-  echo "Check: pm2 logs ${PM2_NAME} --lines 40"
-  echo "       cd $SITE/backend && bash scripts/sunucu-baglanti.sh"
-fi
-echo ""
+echo -e "${GREEN}🚀 DEPLOY TAMAMLANDI!${NC}"

@@ -21,11 +21,3 @@ export function offlinePanelDeposuTemizle() {
     /* storage yok */
   }
 }
-
-export function offlinePanelDeposuDoluMu(): boolean {
-  try {
-    return OFFLINE_ANAHTARLAR.some((k) => localStorage.getItem(k) != null);
-  } catch {
-    return false;
-  }
-}

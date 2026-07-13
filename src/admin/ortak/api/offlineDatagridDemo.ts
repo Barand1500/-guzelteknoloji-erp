@@ -47,5 +47,3 @@ export function offlineDatagridDemoKaydet(body: BodyInit | null | undefined): Of
     return oku();
   }
 }
-
-export { OFFLINE_ANAHTAR as OFFLINE_DATAGRID_ANAHTAR };

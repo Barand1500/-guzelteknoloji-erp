@@ -3,8 +3,6 @@ import { hucrePanoyaMetni as genelHucrePanoyaMetni } from '@/admin/ortak/datagri
 import { birimEtiketi } from './birimVeri';
 import type { SiparisSatiri } from './demoVeri';
 
-export { secimMetnindenKopya } from '@/admin/ortak/datagrid/sagTikYardimci';
-
 export function hucrePanoyaMetni(
   satir: SiparisSatiri,
   kolonId: string | null,

@@ -10,21 +10,6 @@ export interface FormulaOrnekGrubu {
   ornekler: FormulaOrnek[];
 }
 
-/** Sayı alanlarında (fiyat, miktar, KDV vb.) kullanılabilecek örnekler */
-export const SAYI_FORMUL_ORNEKLERI: FormulaOrnek[] = [
-  { girdi: '1000+%10', sonuc: '1100', aciklama: 'Tutara %10 Ekle' },
-  { girdi: '1000-%10', sonuc: '900', aciklama: 'Tutardan %10 Düş' },
-  { girdi: '1000+10%', sonuc: '1100', aciklama: '+%10 ile Aynı' },
-  { girdi: '500*2', sonuc: '1000', aciklama: 'Çarpma İşlemi' },
-  { girdi: '1000/4', sonuc: '250', aciklama: 'Bölme İşlemi' },
-  { girdi: '10+10', sonuc: '20', aciklama: 'Toplama İşlemi' },
-  { girdi: '100-25', sonuc: '75', aciklama: 'Çıkarma İşlemi' },
-  { girdi: '(100+50)*2', sonuc: '300', aciklama: 'Parantez ile Sıra' },
-  { girdi: '(500+500)+%10', sonuc: '1100', aciklama: 'Parantez + yüzde' },
-  { girdi: '1000+%10+50', sonuc: '1150', aciklama: 'Birden Fazla İşlem' },
-  { girdi: '%20', sonuc: '20', aciklama: 'Yüzde Oranı (KDV)' },
-];
-
 export const SAYI_FORMUL_GRUPLARI: FormulaOrnekGrubu[] = [
   {
     id: 'yuzde',
