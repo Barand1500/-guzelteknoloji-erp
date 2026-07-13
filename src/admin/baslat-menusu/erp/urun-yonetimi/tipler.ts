@@ -20,7 +20,7 @@ export interface AdminUrun extends OrtakKayit {
 export type UrunForm = Omit<AdminUrun, keyof OrtakKayit>;
 export const bosUrunForm: UrunForm = {
   ustId: '', urunTipi: 'EMTIA', urunNevi: 'RESMI', urunKodu: '', marka: '',
-  urunAdi: '', anaBirim: 'ADET', varsayilanBirim: 'ADET', mensei: '',
+  urunAdi: '', anaBirim: '', varsayilanBirim: '', mensei: '',
 };
 
 export interface AdminBirim extends OrtakKayit {

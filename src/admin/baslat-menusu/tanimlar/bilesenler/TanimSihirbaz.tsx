@@ -172,7 +172,7 @@ export function TanimSihirbaz({
           <h4>{adim.baslik}</h4>
           {adim.aciklama ? <p>{adim.aciklama}</p> : null}
         </div>
-        <div className="ap-tanimlar-sihirbaz-adim-icerik">{adim.icerik}</div>
+        <div className="ap-tanimlar-sihirbaz-adim-icerik ap-scroll">{adim.icerik}</div>
       </div>
 
       <div className="ap-tanimlar-sihirbaz-tuslar">

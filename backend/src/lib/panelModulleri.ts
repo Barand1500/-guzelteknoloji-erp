@@ -33,6 +33,7 @@ export const PANEL_MODULLERI = [
   { modulAdi: 'Urunler', prefix: 'urunler' },
   { modulAdi: 'Birimler', prefix: 'birimler' },
   { modulAdi: 'Maliyetler', prefix: 'maliyetler' },
+  { modulAdi: 'Stoklar', prefix: 'stoklar' },
 ] as const;
 
 export function sanalModulListesi() {

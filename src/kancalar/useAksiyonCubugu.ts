@@ -12,7 +12,7 @@ type StandartAksiyonId = (typeof STANDART_AKSIYON_SIRASI)[number];
 type AksiyonVarsayilan = { aktif?: boolean; birincil?: boolean };
 
 const A = (
-  id: StandartAksiyonId,
+  id: string,
   etiket: string,
   aktif: boolean,
   birincil?: boolean
@@ -52,6 +52,22 @@ const MODUL_VARSAYILAN: Record<string, Partial<Record<StandartAksiyonId, Aksiyon
   loglar: { sil: a() },
 };
 
+const STOK_CUBUK: AksiyonButonu[] = [
+  A('kaydet', 'Kaydet', false),
+  A('ekle', 'Yeni', false),
+  A('guncelle', 'Düzenle', false),
+  A('onizle', 'İncele', false),
+  A('stokAra', 'Ara', false),
+  A('stokFiyatAnaliz', 'Fiyat Analiz', false),
+  A('stokEnvanterAnaliz', 'Envanter Analiz', false),
+  A('stokBirimListesi', 'Birim Listesi', false),
+  A('stokFiyatDuzenle', 'Fiyat Düzenle', false),
+];
+
+const MODUL_OZEL_CUBUK: Record<string, AksiyonButonu[]> = {
+  stoklar: STOK_CUBUK,
+};
+
 const varsayilanAksiyonlar = standartCubuk({ kaydet: { aktif: true } });
 
 const MODUL_AKSIYON_YETKI: Partial<Record<string, Partial<Record<AksiyonId, YetkiKodu>>>> = {
@@ -75,13 +91,25 @@ const MODUL_AKSIYON_YETKI: Partial<Record<string, Partial<Record<AksiyonId, Yetk
     ekle: 'ekleme',
     sil: 'silme',
   },
+  stoklar: {
+    kaydet: 'duzenleme',
+    ekle: 'ekleme',
+    guncelle: 'duzenleme',
+    onizle: 'goruntuleme',
+    stokAra: 'goruntuleme',
+    stokFiyatAnaliz: 'goruntuleme',
+    stokEnvanterAnaliz: 'goruntuleme',
+    stokBirimListesi: 'goruntuleme',
+    stokFiyatDuzenle: 'duzenleme',
+  },
 };
 
-const AKSIYON_YETKI: Partial<Record<StandartAksiyonId, YetkiKodu>> = {
+const AKSIYON_YETKI: Partial<Record<string, YetkiKodu>> = {
   kaydet: 'duzenleme',
   ekle: 'ekleme',
   sil: 'silme',
-  guncelle: 'goruntuleme',
+  guncelle: 'duzenleme',
+  onizle: 'goruntuleme',
 };
 
 export function useAksiyonCubugu(modulId: string) {
@@ -90,9 +118,9 @@ export function useAksiyonCubugu(modulId: string) {
   const { yetkiler } = useYetkiler(modulId);
 
   return useMemo(() => {
-    const temel = MODUL_VARSAYILAN[modulId]
-      ? standartCubuk(MODUL_VARSAYILAN[modulId])
-      : varsayilanAksiyonlar;
+    const temel =
+      MODUL_OZEL_CUBUK[modulId] ??
+      (MODUL_VARSAYILAN[modulId] ? standartCubuk(MODUL_VARSAYILAN[modulId]) : varsayilanAksiyonlar);
     const modulYetki = MODUL_AKSIYON_YETKI[modulId] ?? {};
     const yetkiVar = (kod: YetkiKodu) => yetkiler.includes(kod);
 
@@ -101,8 +129,7 @@ export function useAksiyonCubugu(modulId: string) {
       const etiket = t(`aksiyon.${aksiyon.id}`, aksiyon.etiket);
       const guncel = { ...aksiyon, etiket };
 
-      const yetkiKodu =
-        modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id as StandartAksiyonId];
+      const yetkiKodu = modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id];
       const yetkiUygun = !yetkiKodu || yetkiVar(yetkiKodu);
       const temelAktif = dinamik !== undefined ? dinamik : aksiyon.aktif;
 

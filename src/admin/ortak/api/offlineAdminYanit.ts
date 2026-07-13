@@ -61,6 +61,7 @@ const VARSAYILAN_OFFLINE_MODULLER: OfflineModul[] = [
   { id: 10, ad: 'Ürünler', prefix: 'urunler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 11, ad: 'Birimler', prefix: 'birimler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 12, ad: 'Maliyetler', prefix: 'maliyetler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 13, ad: 'Stoklar', prefix: 'stoklar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
 ];
 
 const OFFLINE_YETKILER = [

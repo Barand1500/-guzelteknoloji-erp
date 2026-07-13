@@ -19,7 +19,12 @@ export type AksiyonId =
   | 'onizle'
   | 'yayinla'
   | 'oncekiKayit'
-  | 'sonrakiKayit';
+  | 'sonrakiKayit'
+  | 'stokAra'
+  | 'stokFiyatAnaliz'
+  | 'stokEnvanterAnaliz'
+  | 'stokBirimListesi'
+  | 'stokFiyatDuzenle';
 
 export interface AksiyonHandlerlar {
   kaydet?: () => Promise<void> | void;
@@ -32,6 +37,11 @@ export interface AksiyonHandlerlar {
   yayinla?: () => Promise<void> | void;
   oncekiKayit?: () => void;
   sonrakiKayit?: () => void;
+  stokAra?: () => void;
+  stokFiyatAnaliz?: () => void;
+  stokEnvanterAnaliz?: () => void;
+  stokBirimListesi?: () => void;
+  stokFiyatDuzenle?: () => void;
 }
 
 export type AksiyonDurumlari = Partial<Record<AksiyonId, boolean>>;
@@ -198,6 +208,11 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
         else if (id === 'yayinla' && handlers.yayinla) await handlers.yayinla();
         else if (id === 'oncekiKayit' && handlers.oncekiKayit) handlers.oncekiKayit();
         else if (id === 'sonrakiKayit' && handlers.sonrakiKayit) handlers.sonrakiKayit();
+        else if (id === 'stokAra' && handlers.stokAra) handlers.stokAra();
+        else if (id === 'stokFiyatAnaliz' && handlers.stokFiyatAnaliz) handlers.stokFiyatAnaliz();
+        else if (id === 'stokEnvanterAnaliz' && handlers.stokEnvanterAnaliz) handlers.stokEnvanterAnaliz();
+        else if (id === 'stokBirimListesi' && handlers.stokBirimListesi) handlers.stokBirimListesi();
+        else if (id === 'stokFiyatDuzenle' && handlers.stokFiyatDuzenle) handlers.stokFiyatDuzenle();
         else return false;
 
         if (bildirimGoster && AKSİYON_BASARI[aksiyonId]) {

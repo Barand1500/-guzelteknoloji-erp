@@ -78,6 +78,13 @@ export const adminModulleri: AdminModul[] = [
     kategori: 'ERP',
     yol: '/gt-admin/maliyetler',
   },
+  {
+    id: 'stoklar',
+    baslik: 'Stoklar',
+    ikon: '🏷️',
+    kategori: 'ERP',
+    yol: '/gt-admin/stoklar',
+  },
 ];
 
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
@@ -133,6 +140,7 @@ const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'urunler',
   'birimler',
   'maliyetler',
+  'stoklar',
 ]);
 const TAM_YETKI_GEREKTIREN_MODULLER = new Set(['kullanicilar', 'roller']);
 

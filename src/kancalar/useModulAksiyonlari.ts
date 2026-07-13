@@ -67,6 +67,11 @@ export function useModulAksiyonlari(
     handlers.yayinla,
     handlers.oncekiKayit,
     handlers.sonrakiKayit,
+    handlers.stokAra,
+    handlers.stokFiyatAnaliz,
+    handlers.stokEnvanterAnaliz,
+    handlers.stokBirimListesi,
+    handlers.stokFiyatDuzenle,
   ]);
 
   const durumKeys = useMemo(() => durumAnahtarlari(durumlar ?? {}), [
@@ -101,5 +106,10 @@ export function useModulAksiyonlari(
     durumlar?.yayinla,
     durumlar?.oncekiKayit,
     durumlar?.sonrakiKayit,
+    durumlar?.stokAra,
+    durumlar?.stokFiyatAnaliz,
+    durumlar?.stokEnvanterAnaliz,
+    durumlar?.stokBirimListesi,
+    durumlar?.stokFiyatDuzenle,
   ]);
 }

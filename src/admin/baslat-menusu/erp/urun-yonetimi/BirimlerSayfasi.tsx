@@ -1,154 +1,362 @@
-import { useCallback, useEffect, useState } from 'react';
-import { birimGuncelle, birimOlustur, birimSil, birimleriGetir, urunleriGetir } from './api';
-import { bosBirimForm, type AdminBirim, type AdminUrun, type BirimForm } from './tipler';
-import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
-import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
-import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
-import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
-import { TanimDurumRozeti, TanimKayitTablosu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
-import { TanimListeEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimListeEkrani';
-import { TanimSihirbaz } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimSihirbaz';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
+import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
-import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
-import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
-import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
-import { formInputSinifi } from '@/formlar/FormAlani';
+import type { GomuluDuzenleSecenek } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
+import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
+import '@/admin/ortak/datagrid/datagrid.css';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
-import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
+import { birimSil, birimleriGetir, urunleriGetir } from './api';
+import { birimHizliGirisKaydet, birimHizliGirisKolonlari } from './birimKayitHizliGiris';
+import { BirimSekme } from './BirimSekme';
+import type { AdminBirim, AdminUrun } from './tipler';
 
-type Gorunum = 'liste' | 'ekle' | 'duzenle';
-const birimdenForm = (b: AdminBirim): BirimForm => ({
-  urunId: b.urunId, fiyatAdi: b.fiyatAdi, birimAdi: b.birimAdi, carpan: b.carpan,
-  barkod: b.barkod, alisKdv: b.alisKdv, satisKdv: b.satisKdv, alisFiyati: b.alisFiyati,
-  satisFiyati: b.satisFiyati, kdvDahil: b.kdvDahil, aktif: b.aktif,
-});
+type BirimSayfaModu = 'kurulum' | 'kayitlar';
 
-function SayiAlani({ etiket, deger, onChange, adim = '0.01' }: { etiket: string; deger: number; onChange: (v: number) => void; adim?: string }) {
-  const [metin, setMetin] = useState(String(deger));
-  const ondalikBasamak = adim === '0.0001' ? 4 : 2;
+const MOD_SEKMELER = [
+  { id: 'kurulum', ad: 'Kurulum Sihirbazı', ikon: '✨' },
+  { id: 'kayitlar', ad: 'Kayıtlar', ikon: '📋' },
+] as const;
 
-  useEffect(() => {
-    setMetin(String(deger));
-  }, [deger]);
-
-  return <label className="ap-tanim-girdi block"><span className="ap-tanim-girdi-etiket">{etiket}</span>
-    <input
-      className={formInputSinifi}
-      type="text"
-      inputMode="decimal"
-      value={metin}
-      onFocus={(e) => e.currentTarget.select()}
-      onChange={(e) => {
-        const sonraki = e.target.value;
-        const desen = new RegExp(`^\\d*(?:[.,]\\d{0,${ondalikBasamak}})?$`);
-        if (!desen.test(sonraki)) return;
-        setMetin(sonraki);
-        if (sonraki !== '' && sonraki !== ',' && sonraki !== '.') {
-          onChange(Number(sonraki.replace(',', '.')));
-        }
-      }}
-      onBlur={() => {
-        if (metin.trim() === '' || metin === ',' || metin === '.') {
-          setMetin('0');
-          onChange(0);
-          return;
-        }
-        const sayi = Number(metin.replace(',', '.'));
-        const normal = Number.isFinite(sayi) ? sayi : 0;
-        setMetin(String(normal));
-        onChange(normal);
-      }}
-    /></label>;
+function secimKolonu(): KolonTanimi<AdminBirim> {
+  return {
+    id: 'secim',
+    baslik: '',
+    tip: 'salt-okunur',
+    genislik: 40,
+    zorunlu: true,
+    siralama: false,
+    degerAl: () => null,
+  };
 }
+
+function islemlerKolonu(): KolonTanimi<AdminBirim> {
+  return {
+    id: 'islemler',
+    baslik: '',
+    tip: 'salt-okunur',
+    genislik: 68,
+    sabitSag: true,
+    siralama: false,
+    degerAl: () => null,
+  };
+}
+
+const para = (n: number) => n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 
 export function BirimlerSayfasi() {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('birimler');
+  const gorunurSekmeler = useMemo(
+    () => (eklemeVar ? MOD_SEKMELER : MOD_SEKMELER.filter((s) => s.id !== 'kurulum')),
+    [eklemeVar]
+  );
+  const [mod, setMod] = useState<BirimSayfaModu>('kayitlar');
+  const [modYonu, setModYonu] = useState<'ileri' | 'geri'>('ileri');
   const [kayitlar, setKayitlar] = useState<AdminBirim[]>([]);
   const [urunler, setUrunler] = useState<AdminUrun[]>([]);
-  const [form, setForm] = useState<BirimForm>(bosBirimForm);
-  const [gorunum, setGorunum] = useState<Gorunum>('liste');
-  const [secili, setSecili] = useState<AdminBirim | null>(null);
-  const [adim, setAdim] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
-  const [silAcik, setSilAcik] = useState(false);
+  const [silme, setSilme] = useState<AdminBirim | null>(null);
+  const [kayitlarAnahtar, setKayitlarAnahtar] = useState(0);
+  const gridApiRef = useRef<DataGridApi | null>(null);
+
   const yukle = useCallback(async () => {
     setYukleniyor(true);
-    try { const [b, u] = await Promise.all([birimleriGetir(), urunleriGetir()]); setKayitlar(b); setUrunler(u); }
-    catch (e) { hataBildir(e instanceof Error ? e.message : 'Birimler alınamadı'); }
-    finally { setYukleniyor(false); }
+    try {
+      const [birimKayitlari, urunKayitlari] = await Promise.all([birimleriGetir(), urunleriGetir()]);
+      setKayitlar(birimKayitlari);
+      setUrunler(urunKayitlari);
+    } catch (e) {
+      hataBildir(e instanceof Error ? e.message : 'Birimler alınamadı');
+    } finally {
+      setYukleniyor(false);
+    }
   }, [hataBildir]);
-  useEffect(() => { void yukle(); }, [yukle]);
-  const listeyeDon = useCallback(() => { setGorunum('liste'); setSecili(null); setForm(bosBirimForm); setAdim(0); }, []);
-  const yeni = useCallback(() => { setForm({ ...bosBirimForm, urunId: urunler[0]?.id ?? '' }); setSecili(null); setGorunum('ekle'); }, [urunler]);
-  const duzenle = useCallback((b: AdminBirim) => { setSecili(b); setForm(birimdenForm(b)); setGorunum('duzenle'); }, []);
-  const dogrula = () => !form.urunId ? 'Ürün seçimi zorunludur' : !form.fiyatAdi.trim()
-    ? 'Fiyat adı zorunludur' : !form.birimAdi.trim() ? 'Birim adı zorunludur' : form.carpan <= 0 ? 'Çarpan sıfırdan büyük olmalıdır' : null;
-  const kaydet = useCallback(async () => {
-    const hata = dogrula(); if (hata) return hataBildir(hata);
-    try { if (secili) await birimGuncelle(secili.id, form); else await birimOlustur(form);
-      basariBildir(secili ? 'Birim güncellendi.' : 'Birim eklendi.'); listeyeDon(); await yukle();
-    } catch (e) { hataBildir(e instanceof Error ? e.message : 'Kayıt başarısız'); }
-  }, [basariBildir, form, hataBildir, listeyeDon, secili, yukle]);
+
+  useEffect(() => {
+    void yukle();
+  }, [yukle]);
+
+  const modDegistir = useCallback(
+    (yeni: BirimSayfaModu) => {
+      if (yeni === mod) return;
+      const eskiIdx = MOD_SEKMELER.findIndex((s) => s.id === mod);
+      const yeniIdx = MOD_SEKMELER.findIndex((s) => s.id === yeni);
+      if (eskiIdx >= 0 && yeniIdx >= 0) {
+        setModYonu(yeniIdx > eskiIdx ? 'ileri' : 'geri');
+      }
+      setMod(yeni);
+    },
+    [mod]
+  );
+
+  const kurulumTamamlandi = useCallback(() => {
+    setModYonu('ileri');
+    setMod('kayitlar');
+    setKayitlarAnahtar((k) => k + 1);
+    void yukle();
+  }, [yukle]);
+
+  const hizliGirisKaydet = useCallback(
+    async (degerler: Record<string, string>) => {
+      try {
+        const sonuc = await birimHizliGirisKaydet(degerler);
+        if (!sonuc.ok) {
+          hataBildir(sonuc.mesaj);
+          return false;
+        }
+        basariBildir(sonuc.mesaj);
+        await yukle();
+        return true;
+      } catch (e) {
+        hataBildir(e instanceof Error ? e.message : 'Kayıt eklenemedi');
+        return false;
+      }
+    },
+    [basariBildir, hataBildir, yukle]
+  );
+
+  const yeniEkle = useCallback(() => {
+    gridApiRef.current?.hizliGirisOdakla();
+  }, []);
+
+  useEffect(() => {
+    if (mod === 'kayitlar') return;
+    gridApiRef.current?.hizliGirisKapat();
+  }, [mod]);
+
+  const panelKapat = useCallback(
+    (onKapat: () => void) => {
+      void yukle();
+      onKapat();
+    },
+    [yukle]
+  );
+
+  const satirDuzenlePaneli = useCallback(
+    (satir: AdminBirim, _onKaydet: (s: AdminBirim) => void, onKapat: () => void) => {
+      const opts: GomuluDuzenleSecenek = {
+        id: satir.id,
+        onKapat: () => panelKapat(onKapat),
+        panel: true,
+      };
+      return <BirimSekme key={`birim-${satir.id}`} gomuluDuzenle={opts} />;
+    },
+    [panelKapat]
+  );
+
+  const satirDuzenleAc = useCallback(
+    (id: string) => {
+      if (!duzenlemeVar) return;
+      gridApiRef.current?.satirDuzenleAc(id);
+    },
+    [duzenlemeVar]
+  );
+
   const silOnayla = useCallback(async () => {
-    if (!secili) return; try { await birimSil(secili.id); basariBildir('Birim silindi.'); setSilAcik(false); listeyeDon(); await yukle(); }
-    catch (e) { hataBildir(e instanceof Error ? e.message : 'Silme başarısız'); }
-  }, [basariBildir, hataBildir, listeyeDon, secili, yukle]);
-  useModulAksiyonlari({ kaydet, ekle: yeni, sil: () => setSilAcik(true) }, {
-    kaydet: gorunum === 'duzenle' && duzenlemeVar, ekle: gorunum === 'liste' && eklemeVar,
-    sil: gorunum === 'duzenle' && silmeVar,
-  }, gorunum !== 'liste');
+    if (!silme) return;
+    try {
+      await birimSil(silme.id);
+      basariBildir('Birim silindi.');
+      setSilme(null);
+      await yukle();
+    } catch (e) {
+      hataBildir(e instanceof Error ? e.message : 'Silme başarısız');
+    }
+  }, [basariBildir, hataBildir, silme, yukle]);
 
-  const temel = <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-    <label className="ap-tanimlar-secim-alan block"><span className="ap-tanim-girdi-etiket">Ürün *</span>
-      <FormAcilirSecim value={form.urunId} onChange={(urunId) => setForm((f) => ({ ...f, urunId }))}
-        secenekler={urunler.map((u) => ({ value: u.id, label: `${u.urunKodu} — ${u.urunAdi}` }))} /></label>
-    <TanimGirdi etiket="Fiyat Adı" deger={form.fiyatAdi} maxLength={50} zorunlu onChange={(fiyatAdi) => setForm((f) => ({ ...f, fiyatAdi }))} />
-    <TanimGirdi etiket="Birim Adı" deger={form.birimAdi} maxLength={20} zorunlu onChange={(birimAdi) => setForm((f) => ({ ...f, birimAdi }))} />
-    <TanimGirdi etiket="Barkod" deger={form.barkod} maxLength={50} onChange={(barkod) => setForm((f) => ({ ...f, barkod }))} />
-    <SayiAlani etiket="Çarpan" deger={form.carpan} adim="0.0001" onChange={(carpan) => setForm((f) => ({ ...f, carpan }))} />
-  </div>;
-  const fiyat = <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-    <SayiAlani etiket="Alış KDV (%)" deger={form.alisKdv} onChange={(alisKdv) => setForm((f) => ({ ...f, alisKdv }))} />
-    <SayiAlani etiket="Satış KDV (%)" deger={form.satisKdv} onChange={(satisKdv) => setForm((f) => ({ ...f, satisKdv }))} />
-    <SayiAlani etiket="Alış Fiyatı" deger={form.alisFiyati} adim="0.0001" onChange={(alisFiyati) => setForm((f) => ({ ...f, alisFiyati }))} />
-    <SayiAlani etiket="Satış Fiyatı" deger={form.satisFiyati} adim="0.0001" onChange={(satisFiyati) => setForm((f) => ({ ...f, satisFiyati }))} />
-    <OrtakDurumAlani aktif={form.kdvDahil} onChange={(kdvDahil) => setForm((f) => ({ ...f, kdvDahil }))} />
-  </div>;
+  const kolonlar = useMemo((): KolonTanimi<AdminBirim>[] => {
+    return [
+      secimKolonu(),
+      {
+        id: 'urun',
+        baslik: 'Ürün',
+        tip: 'metin',
+        genislik: 200,
+        minGenislik: 140,
+        zorunlu: true,
+        siralama: true,
+        degerAl: (b) => `${b.urunKodu} ${b.urunAdi}`,
+        goster: (b) => (
+          <span className="dg-urun-adi-ust">
+            {b.urunKodu} — {b.urunAdi}
+          </span>
+        ),
+      },
+      {
+        id: 'fiyatAdi',
+        baslik: 'Fiyat Adı',
+        tip: 'metin',
+        genislik: 120,
+        siralama: true,
+        degerAl: (b) => b.fiyatAdi,
+      },
+      {
+        id: 'birimAdi',
+        baslik: 'Birim',
+        tip: 'metin',
+        genislik: 90,
+        siralama: true,
+        degerAl: (b) => b.birimAdi,
+      },
+      {
+        id: 'carpan',
+        baslik: 'Çarpan',
+        tip: 'sayi',
+        genislik: 80,
+        siralama: true,
+        degerAl: (b) => b.carpan,
+      },
+      {
+        id: 'alisFiyati',
+        baslik: 'Alış',
+        tip: 'sayi',
+        genislik: 100,
+        siralama: true,
+        degerAl: (b) => b.alisFiyati,
+        goster: (b) => para(b.alisFiyati),
+      },
+      {
+        id: 'satisFiyati',
+        baslik: 'Satış',
+        tip: 'sayi',
+        genislik: 100,
+        siralama: true,
+        degerAl: (b) => b.satisFiyati,
+        goster: (b) => para(b.satisFiyati),
+      },
+      {
+        id: 'durum',
+        baslik: 'Durum',
+        tip: 'salt-okunur',
+        genislik: 88,
+        siralama: true,
+        degerAl: (b) => b.aktif,
+        siralamaDegeri: (b) => (b.aktif ? 1 : 0),
+        goster: (b) => <TanimDurumRozeti aktif={b.aktif} />,
+      },
+      {
+        id: 'guncelleme',
+        baslik: 'Güncelleme',
+        tip: 'tarih',
+        genislik: 130,
+        siralama: true,
+        degerAl: (b) => b.guncelleme,
+        goster: (b) => tarihSaatFormatla(b.guncelleme),
+      },
+      islemlerKolonu(),
+    ];
+  }, []);
 
-  let icerik;
-  if (yukleniyor) icerik = <TanimYukleniyor />;
-  else if (gorunum === 'ekle') icerik = <TanimSihirbaz baslik="Yeni Birim / Fiyat" aktifAdim={adim}
-    onAdimDegistir={setAdim} onIptal={listeyeDon} onTamamla={() => void kaydet()} onHata={hataBildir}
-    adimDogrula={() => dogrula()} adimlar={[
-      { baslik: 'Birim Bilgileri', aciklama: 'Ürün, fiyat ve birim tanımı', icerik: temel },
-      { baslik: 'Fiyat ve Vergi', aciklama: 'KDV ve fiyat alanları', icerik: fiyat },
-      { baslik: 'Durum', aciklama: 'Kaydın durumunu belirleyin', icerik: <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} /> },
-    ]} />;
-  else if (gorunum === 'duzenle' && secili) icerik = <TanimDuzenleEkrani ustEtiket="Birim Düzenle"
-    baslik={`${secili.urunKodu} — ${secili.birimAdi}`} onGeri={listeyeDon} onKaydet={duzenlemeVar ? () => void kaydet() : undefined} saltOkunur={!duzenlemeVar}>
-    <TanimFormBolum baslik="Birim Bilgileri">{temel}</TanimFormBolum>
-    <TanimFormBolum baslik="Fiyat ve Vergi">{fiyat}</TanimFormBolum>
-    <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} />
-  </TanimDuzenleEkrani>;
-  else icerik = <TanimListeEkrani onYeniEkle={eklemeVar ? yeni : undefined} yeniEkleMetin="Yeni Birim">
-    <TanimKayitTablosu baslik="Birimler ve Fiyatlar" kayitlar={kayitlar} onSatirTikla={duzenle} onDuzenle={duzenlemeVar ? duzenle : undefined}
-      onSil={silmeVar ? (b) => { setSecili(b); setSilAcik(true); } : undefined}
-      aramaMetni={(b) => `${b.urunKodu} ${b.urunAdi} ${b.fiyatAdi} ${b.birimAdi} ${b.barkod}`} pasifMi={(b) => !b.aktif}
-      kolonlar={[
-        { id: 'urun', baslik: 'Ürün', hucre: (b) => `${b.urunKodu} — ${b.urunAdi}` },
-        { id: 'fiyat', baslik: 'Fiyat Adı', hucre: (b) => b.fiyatAdi }, { id: 'birim', baslik: 'Birim', hucre: (b) => b.birimAdi },
-        { id: 'carpan', baslik: 'Çarpan', hucre: (b) => b.carpan }, { id: 'alis', baslik: 'Alış', hucre: (b) => b.alisFiyati.toLocaleString('tr-TR') },
-        { id: 'satis', baslik: 'Satış', hucre: (b) => b.satisFiyati.toLocaleString('tr-TR') },
-        { id: 'durum', baslik: 'Durum', hucre: (b) => <TanimDurumRozeti aktif={b.aktif} /> },
-        { id: 'guncelleme', baslik: 'Güncelleme', hucre: (b) => tarihSaatFormatla(b.guncelleme) },
-      ]} />
-  </TanimListeEkrani>;
-  return <AdminModulKabuk baslik="Birimler" aciklama="Ürün birimleri, fiyatları ve KDV oranları">
-    {icerik}<SilmeOnayModal acik={silAcik} onKapat={() => setSilAcik(false)} onOnayla={() => void silOnayla()}
-      baslik="Bu birimi silmek istiyor musunuz?" hedefMetin={secili ? `${secili.urunAdi} — ${secili.birimAdi}` : ''} ariaLabel="Birim silme onayı" />
-  </AdminModulKabuk>;
+  const hizliGirisKolonlari = useMemo(
+    () => (urunler.length > 0 ? birimHizliGirisKolonlari(urunler) : undefined),
+    [urunler]
+  );
+
+  const gridOrtak = useMemo(
+    () => ({
+      tabloAltBaslik: 'Görünür sütunlar ve sırası',
+      yukleniyor,
+      gridApiRef,
+      satirDuzenlePaneli: duzenlemeVar ? satirDuzenlePaneli : undefined,
+      satirPanelModu: 'cubuk' as const,
+      formulMenuGoster: false,
+      hizliGirisIstegeBagli: true,
+      hizliGirisVarsayilanAlan: true,
+      hizliGirisKolonlari: eklemeVar ? hizliGirisKolonlari : undefined,
+      onHizliGiris: eklemeVar && hizliGirisKolonlari ? hizliGirisKaydet : undefined,
+    }),
+    [yukleniyor, satirDuzenlePaneli, duzenlemeVar, eklemeVar, hizliGirisKaydet, hizliGirisKolonlari]
+  );
+
+  if (yukleniyor && kayitlar.length === 0 && mod === 'kayitlar') {
+    return (
+      <AdminModulKabuk
+        baslik="Birimler"
+        aciklama="Ürün birimleri, fiyatları ve KDV oranlarını buradan yönetirsiniz."
+        ustAksiyon={
+          <TanimModCubugu
+            sekmeler={gorunurSekmeler}
+            aktif={mod}
+            onDegistir={(id) => modDegistir(id as BirimSayfaModu)}
+            ariaLabel="Birimler görünümü"
+          />
+        }
+      >
+        <TanimYukleniyor />
+      </AdminModulKabuk>
+    );
+  }
+
+  return (
+    <AdminModulKabuk
+      baslik="Birimler"
+      aciklama="Ürün birimleri, fiyatları ve KDV oranlarını buradan yönetirsiniz."
+      ustAksiyon={
+        <TanimModCubugu
+          sekmeler={gorunurSekmeler}
+          aktif={mod}
+          onDegistir={(id) => modDegistir(id as BirimSayfaModu)}
+          ariaLabel="Birimler görünümü"
+        />
+      }
+    >
+      <div className="ap-tanimlar-sayfa">
+        <div
+          className={`ap-tanimlar-icerik ap-tanimlar-icerik--${modYonu}`}
+          key={mod === 'kurulum' ? 'kurulum' : `kayitlar-${kayitlarAnahtar}`}
+        >
+          {mod === 'kurulum' && eklemeVar ? (
+            <BirimSekme baslangicGorunum="ekle" onListeyeDon={kurulumTamamlandi} />
+          ) : (
+            <div className="dg-demo-sayfa">
+              <div className="dg-tanimlar-kayit-ust">
+                <nav className="ap-tanimlar-gezgin-yol" aria-label="Kayıt konumu">
+                  <ol className="ap-tanimlar-gezgin-yol-liste">
+                    <li className="ap-tanimlar-gezgin-yol-oge">
+                      <span className="ap-tanimlar-gezgin-yol-metin">Birimler</span>
+                    </li>
+                  </ol>
+                </nav>
+                {eklemeVar && urunler.length > 0 ? (
+                  <button type="button" className="ap-tanimlar-yeni-ekle" onClick={yeniEkle}>
+                    <span aria-hidden>+</span>
+                    Birim Ekle
+                  </button>
+                ) : null}
+              </div>
+
+              <DataGrid
+                key="birimler_kayitlar_v1"
+                {...gridOrtak}
+                tabloBaslik="Birimler ve Fiyatlar"
+                kolonlar={kolonlar}
+                satirlar={kayitlar}
+                depolamaAnahtari="birimler_kayitlar_v1"
+                bosMesaj="Henüz birim tanımı yok"
+                satirSinifAdi={(b) => (!b.aktif ? 'dg-satir--pasif' : undefined)}
+                onSatirTikla={(b) => satirDuzenleAc(b.id)}
+                onSatirSil={silmeVar ? (b) => setSilme(b) : undefined}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <SilmeOnayModal
+        acik={!!silme}
+        onKapat={() => setSilme(null)}
+        onOnayla={() => void silOnayla()}
+        baslik="Bu birimi silmek istiyor musunuz?"
+        hedefMetin={silme ? `${silme.urunAdi} — ${silme.birimAdi}` : ''}
+        ariaLabel="Birim silme onayı"
+      />
+    </AdminModulKabuk>
+  );
 }
