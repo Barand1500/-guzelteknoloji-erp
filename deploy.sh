@@ -36,7 +36,7 @@ cd "$SITE/repo"
 git fetch origin "$GIT_BRANCH"
 
 # Akıllı Kontroller: Hangi dosyalar değişti?
-FRONTEND_DEPS_CHANGED=$(git diff --name-only HEAD "origin/$GIT_BRANCH" | grep "package.json" || true)
+DEPS_CHANGED=$(git diff --name-only HEAD "origin/$GIT_BRANCH" | grep -E '(^|/)package(-lock)?\.json$' || true)
 PRISMA_CHANGED=$(git diff --name-only HEAD "origin/$GIT_BRANCH" | grep -E "schema.prisma|prisma-sema.sh" || true)
 
 git reset --hard "origin/$GIT_BRANCH"
@@ -45,8 +45,8 @@ log_success "Git güncellendi. Commit: $(git log -1 --oneline)"
 
 # 2. FRONTEND BUILD
 log_info "Frontend kontrol ediliyor..."
-if [ -n "$FRONTEND_DEPS_CHANGED" ] || [ ! -d "$SITE/repo/node_modules" ]; then
-    log_warn "Bağımlılıklar değişmiş, repo kökünde npm install yapılıyor..."
+if [ -n "$DEPS_CHANGED" ] || [ ! -d "$SITE/repo/node_modules" ]; then
+    log_warn "Bağımlılıklar değişmiş, repo kökünde npm ci yapılıyor..."
     npm ci --quiet
 else
     log_success "Frontend bağımlılıkları güncel."
@@ -65,9 +65,12 @@ log_success "Frontend hazır ve taşındı."
 log_info "Backend hazırlanıyor..."
 cd "$SITE/repo/backend"
 
-if [ -n "$FRONTEND_DEPS_CHANGED" ] || [ ! -d "$SITE/repo/backend/node_modules" ]; then
-    log_warn "Backend bağımlılıkları yükleniyor..."
+# tsc build devDependencies ister; önceki deploy'da prune edilmiş olabilir
+if [ -n "$DEPS_CHANGED" ] || [ ! -f "node_modules/typescript/bin/tsc" ]; then
+    log_warn "Backend bağımlılıkları yükleniyor (build için dev paketler dahil)..."
     npm ci --quiet
+else
+    log_success "Backend bağımlılıkları güncel."
 fi
 npm run build
 
