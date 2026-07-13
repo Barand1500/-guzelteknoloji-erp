@@ -64,8 +64,9 @@ interface AdminAksiyonContextType {
   rehberModulId: string | null;
   setRehberModulId: (id: string | null) => void;
   registerHandlers: (modulId: string, handlers: AksiyonHandlerlar) => void;
-  clearHandlers: (modulId: string) => void;
+  clearHandlers: (modulId: string, keys?: (keyof AksiyonHandlerlar)[]) => void;
   setAksiyonDurumlari: (modulId: string, durumlar: AksiyonDurumlari) => void;
+  clearAksiyonDurumlari: (modulId: string, keys?: AksiyonId[]) => void;
   aksiyonDurumlari: AksiyonDurumlari;
   aksiyonGeriBildirim: AksiyonGeriBildirim | null;
   aksiyonGeriBildirimiGoster: (
@@ -131,23 +132,51 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
 
   const registerHandlers = useCallback((modulId: string, handlers: AksiyonHandlerlar) => {
     const mevcut = kayitlarRef.current.get(modulId) ?? { handlers: {}, durumlar: {} };
-    kayitlarRef.current.set(modulId, { ...mevcut, handlers });
+    kayitlarRef.current.set(modulId, {
+      ...mevcut,
+      handlers: { ...mevcut.handlers, ...handlers },
+    });
   }, []);
 
-  const clearHandlers = useCallback((modulId: string) => {
+  const clearHandlers = useCallback((modulId: string, keys?: (keyof AksiyonHandlerlar)[]) => {
     const mevcut = kayitlarRef.current.get(modulId);
-    if (mevcut) {
-      kayitlarRef.current.set(modulId, { handlers: {}, durumlar: mevcut.durumlar });
+    if (!mevcut) return;
+    if (!keys?.length) {
+      kayitlarRef.current.set(modulId, { ...mevcut, handlers: {} });
+      return;
     }
+    const handlers = { ...mevcut.handlers };
+    for (const key of keys) delete handlers[key];
+    kayitlarRef.current.set(modulId, { ...mevcut, handlers });
   }, []);
 
   const setAksiyonDurumlari = useCallback(
     (modulId: string, durumlar: AksiyonDurumlari) => {
       const mevcut = kayitlarRef.current.get(modulId) ?? { handlers: {}, durumlar: {} };
-      kayitlarRef.current.set(modulId, { ...mevcut, durumlar });
+      const birlesik = { ...mevcut.durumlar, ...durumlar };
+      kayitlarRef.current.set(modulId, { ...mevcut, durumlar: birlesik });
       setAksiyonDurumlariState((onceki) => {
         if (modulId !== focusModulId) return onceki;
-        return durumlar;
+        return birlesik;
+      });
+    },
+    [focusModulId]
+  );
+
+  const clearAksiyonDurumlari = useCallback(
+    (modulId: string, keys?: AksiyonId[]) => {
+      const mevcut = kayitlarRef.current.get(modulId);
+      if (!mevcut) return;
+      if (!keys?.length) {
+        kayitlarRef.current.set(modulId, { ...mevcut, durumlar: {} });
+      } else {
+        const durumlar = { ...mevcut.durumlar };
+        for (const key of keys) delete durumlar[key];
+        kayitlarRef.current.set(modulId, { ...mevcut, durumlar });
+      }
+      setAksiyonDurumlariState((onceki) => {
+        if (modulId !== focusModulId) return onceki;
+        return kayitlarRef.current.get(modulId)?.durumlar ?? {};
       });
     },
     [focusModulId]
@@ -213,6 +242,7 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
         registerHandlers,
         clearHandlers,
         setAksiyonDurumlari,
+        clearAksiyonDurumlari,
         aksiyonDurumlari,
         aksiyonGeriBildirim,
         aksiyonGeriBildirimiGoster,

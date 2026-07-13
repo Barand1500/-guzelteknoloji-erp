@@ -714,11 +714,22 @@
 }
 
 /* Kurulum sihirbazı */
+.ap-tanimlar-icerik:has(.ap-tanimlar-sihirbaz) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .ap-tanimlar-sihirbaz {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
   animation: ap-tanimlar-sihirbaz-gir 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -726,6 +737,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .ap-tanimlar-sihirbaz-iptal,
@@ -767,6 +779,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  flex-shrink: 0;
 }
 
 .ap-tanimlar-sihirbaz-adim {
@@ -809,7 +822,10 @@
   border-radius: 0.85rem;
   border: 1px solid var(--ap-border);
   background: var(--ap-surface);
-  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   animation: ap-tanimlar-sihirbaz-adim-gir 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -844,6 +860,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .ap-tanimlar-sihirbaz-adim-sayac {

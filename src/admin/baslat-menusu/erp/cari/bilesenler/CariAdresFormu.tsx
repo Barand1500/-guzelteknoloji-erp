@@ -11,6 +11,7 @@ import {
   turkiyeIlceOnbellekYukle,
   turkiyeIlKayitliMi,
 } from '@/veri/turkiyeIlIlce';
+import './cariAdres.css';
 
 interface CariAdresFormuProps {
   deger: CariAdresDegeri;
@@ -34,52 +35,77 @@ export function CariAdresFormu({ deger, onChange, bolumsuz = false }: CariAdresF
   const ilSecildi = turkiyeIlKayitliMi(deger.il);
 
   const icerik = (
-    <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-      <label className="ap-tanimlar-secim-alan block">
-        <span className="ap-tanim-girdi-etiket">İl</span>
-        <FormAramaSecim
-          value={deger.il}
-          onChange={(il) => {
-            const mevcut = degerRef.current;
-            const kanonik = turkiyeIlKayitliMi(il) ? turkiyeIlAdiniDuzelt(il) : il;
-            if (kanonik !== mevcut.il) void turkiyeIlceOnbellekYukle(kanonik);
-            adresGuncelle({
-              il: kanonik,
-              ilce: kanonik !== mevcut.il ? '' : mevcut.ilce,
-            });
-          }}
-          secenekAra={turkiyeIlAra}
-          minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
-          placeholder="İl seçin…"
-          aria-label="İl"
-        />
-      </label>
-      <label className="ap-tanimlar-secim-alan block">
-        <span className="ap-tanim-girdi-etiket">İlçe</span>
-        <FormAramaSecim
-          value={deger.ilce}
-          onChange={(ilce) => adresGuncelle({ ilce })}
-          secenekAra={ilceAra}
-          minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
-          placeholder={ilSecildi ? 'İlçe seçin…' : 'Önce il seçin'}
-          disabled={!ilSecildi}
-          aria-label="İlçe"
-        />
-      </label>
-      <label className="ap-tanimlar-secim-alan block ap-tanimlar-alan-grid--tam">
-        <span className="ap-tanim-girdi-etiket">Adres</span>
+    <div className="ap-cari-adres-kart">
+      <div className="ap-cari-adres-konum-satir">
+        <label className="ap-cari-adres-alan">
+          <span className="ap-cari-adres-alan-etiket">İl</span>
+          <FormAramaSecim
+            value={deger.il}
+            onChange={(il) => {
+              const mevcut = degerRef.current;
+              const kanonik = turkiyeIlKayitliMi(il) ? turkiyeIlAdiniDuzelt(il) : il;
+              if (kanonik !== mevcut.il) void turkiyeIlceOnbellekYukle(kanonik);
+              adresGuncelle({
+                il: kanonik,
+                ilce: kanonik !== mevcut.il ? '' : mevcut.ilce,
+              });
+            }}
+            onSecildi={(il) => {
+              const duzeltilmis = turkiyeIlAdiniDuzelt(il);
+              void turkiyeIlceOnbellekYukle(duzeltilmis);
+              if (duzeltilmis !== il) {
+                adresGuncelle({ il: duzeltilmis, ilce: '' });
+              }
+            }}
+            secenekAra={turkiyeIlAra}
+            minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
+            placeholder="En az 2 harf yazın…"
+            aria-label="İl"
+          />
+        </label>
+
+        <span className="ap-cari-adres-ok" aria-hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </span>
+
+        <label className="ap-cari-adres-alan">
+          <span className="ap-cari-adres-alan-etiket">İlçe</span>
+          <FormAramaSecim
+            value={deger.ilce}
+            onChange={(ilce) => adresGuncelle({ ilce })}
+            secenekAra={ilSecildi ? ilceAra : undefined}
+            minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
+            placeholder={ilSecildi ? 'En az 2 harf yazın…' : 'Önce il seçin'}
+            disabled={!ilSecildi}
+            aria-label="İlçe"
+          />
+        </label>
+      </div>
+
+      <label className="ap-cari-adres-metin-alan">
+        <span className="ap-cari-adres-alan-etiket">Açık Adres</span>
         <textarea
-          className={`${formInputSinifi} ap-tanimlar-adres-metin`}
+          className={`${formInputSinifi} ap-cari-adres-metin`}
           value={deger.adres}
           onChange={(e) => adresGuncelle({ adres: e.target.value.slice(0, 500) })}
-          rows={3}
+          maxLength={500}
+          rows={2}
           placeholder="Cadde, sokak, bina no…"
-          aria-label="Adres"
+          aria-label="Açık adres"
         />
+        <div className="ap-cari-adres-alt-satir">
+          <span className="ap-cari-adres-sayac">{deger.adres.length}/500</span>
+        </div>
       </label>
     </div>
   );
 
   if (bolumsuz) return icerik;
-  return <TanimFormBolum baslik="Adres">{icerik}</TanimFormBolum>;
+  return (
+    <TanimFormBolum baslik="Adres" className="ap-cari-adres-bolum">
+      {icerik}
+    </TanimFormBolum>
+  );
 }
