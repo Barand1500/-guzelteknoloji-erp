@@ -13,9 +13,11 @@ import {
   type KisayolHaritasi,
   type KisayolIslemId,
 } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
+import { useAuth } from '@/baglamlar/AuthContext';
 
 export function KisayolAyarlariSayfasi() {
   const logMesajiAyarla = useAdminLogMesaji();
+  const { kullanici, yukleniyor: authYukleniyor } = useAuth();
   const [harita, setHarita] = useState<KisayolHaritasi>(() => kisayolAyarlariOku());
   const [sonKayitli, setSonKayitli] = useState<KisayolHaritasi>(() => kisayolAyarlariOku());
   const [dinlenen, setDinlenen] = useState<KisayolIslemId | null>(null);
@@ -26,27 +28,35 @@ export function KisayolAyarlariSayfasi() {
 
   const kirli = useMemo(() => JSON.stringify(harita) !== JSON.stringify(sonKayitli), [harita, sonKayitli]);
 
-  useEffect(() => {
-    let iptal = false;
+  const sunucudanYukle = useCallback(async () => {
     setYukleniyor(true);
-    kisayolAyarlariGetir()
-      .then((veri) => {
-        if (iptal) return;
-        kisayolAyarlariBellegeYaz(veri.harita ?? {});
-        const guncel = kisayolAyarlariOku();
-        setHarita(guncel);
-        setSonKayitli(guncel);
-      })
-      .catch((err) => {
-        if (iptal) return;
-        setHata(err instanceof Error ? err.message : 'Kısayol ayarları yüklenemedi');
-      })
-      .finally(() => {
-        if (!iptal) setYukleniyor(false);
-      });
-    return () => {
-      iptal = true;
-    };
+    setHata('');
+    try {
+      const veri = await kisayolAyarlariGetir();
+      kisayolAyarlariBellegeYaz(veri.harita ?? {});
+      const guncel = kisayolAyarlariOku();
+      setHarita(guncel);
+      setSonKayitli(guncel);
+    } catch (err) {
+      setHata(err instanceof Error ? err.message : 'Kısayol ayarları yüklenemedi');
+    } finally {
+      setYukleniyor(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authYukleniyor || !kullanici) return;
+    void sunucudanYukle();
+  }, [authYukleniyor, kullanici, sunucudanYukle]);
+
+  useEffect(() => {
+    function bellekGuncellendi() {
+      const guncel = kisayolAyarlariOku();
+      setHarita(guncel);
+      setSonKayitli(guncel);
+    }
+    window.addEventListener('ap-kisayol-ayarlari-guncellendi', bellekGuncellendi);
+    return () => window.removeEventListener('ap-kisayol-ayarlari-guncellendi', bellekGuncellendi);
   }, []);
 
   const kaydet = useCallback(async () => {
@@ -107,7 +117,7 @@ export function KisayolAyarlariSayfasi() {
     return () => window.removeEventListener('keydown', tusDinle, true);
   }, [dinlenen, harita]);
 
-  if (yukleniyor) {
+  if (yukleniyor || authYukleniyor) {
     return (
       <AdminModulKabuk baslik="Kısayol Ayarları" aciklama="Panel kısayollarını özelleştirin." onizleGoster={false}>
         <YukleniyorDurumu />
@@ -121,6 +131,11 @@ export function KisayolAyarlariSayfasi() {
       {basari && <BildirimKutusu mesaj={basari} tur="basari" />}
 
       <AdminPanelKarti baslik="Klavye Kısayolları" altBaslik="Tuş dinle ile yeni kombinasyon atayın">
+        <p className="ap-muted mb-3 text-xs">
+          {kullaniciAyarlariVeritabaniModuMu()
+            ? 'Ayarlar oturum açtığınız kullanıcı için veritabanına kaydedilir.'
+            : 'Geliştirme modu: ayarlar yalnızca oturum belleğinde tutulur (sayfa yenilenince sıfırlanır).'}
+        </p>
         <div className="space-y-3">
           {KISAYOL_ISLEMLERI.map((islem) => (
             <div

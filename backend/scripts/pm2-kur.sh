@@ -44,13 +44,19 @@ if [ ! -f dist/index.js ]; then
   exit 1
 fi
 
+chmod +x scripts/api-port-serbest.sh 2>/dev/null || true
+
 echo ""
 echo "[2/4] PM2 uygulama baslatiliyor ($PM2_NAME) ..."
 if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
-  pm2 restart "$PM2_NAME" --update-env
-else
-  pm2 start ecosystem.config.cjs
+  pm2 delete "$PM2_NAME" 2>/dev/null || pm2 stop "$PM2_NAME" || true
 fi
+sleep 1
+if [ -x scripts/api-port-serbest.sh ]; then
+  API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
+fi
+sleep 1
+pm2 start ecosystem.config.cjs
 
 echo ""
 echo "[3/4] PM2 kayit ..."

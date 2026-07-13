@@ -127,15 +127,35 @@ if ! command -v pm2 >/dev/null 2>&1; then
   npm install -g pm2
 fi
 chmod +x scripts/pm2-kur.sh 2>/dev/null || true
+chmod +x scripts/api-port-serbest.sh 2>/dev/null || true
+
+# EADDRINUSE onlemi: PM2'yi durdur, portu bosalt, temiz baslat
 if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
-  pm2 restart "$PM2_NAME" --update-env
-else
-  pm2 start ecosystem.config.cjs
+  pm2 delete "$PM2_NAME" 2>/dev/null || pm2 stop "$PM2_NAME" || true
 fi
+sleep 1
+if [ -x scripts/api-port-serbest.sh ]; then
+  BACKEND_DIR="$SITE/backend" API_PORT="$API_PORT" bash scripts/api-port-serbest.sh || true
+fi
+sleep 1
+pm2 start ecosystem.config.cjs
 pm2 save
 
 # Yerel saglik kontrolu — PM2 restart sonrasi kisa bekleme
 sleep 2
+if pm2 describe "$PM2_NAME" 2>/dev/null | grep -qE 'status.*online'; then
+  echo "  PM2 ${PM2_NAME}: online"
+  HEALTH_PM2="$(curl -sf "http://127.0.0.1:${API_PORT}/api/health" 2>/dev/null || echo '')"
+  if echo "$HEALTH_PM2" | grep -q '"kullaniciAyarlari"'; then
+    echo "  PM2 health: guncel backend"
+  else
+    echo "  UYARI: PM2 online ama health eski — CloudPanel Node.js port ${API_PORT}'u kapmis olabilir"
+    echo "  CloudPanel → Site → Node.js uygulamasini KAPATIN"
+    echo "  Sonra: cd $SITE/backend && bash scripts/sunucu-api-duzelt.sh"
+  fi
+else
+  echo "  UYARI: PM2 ${PM2_NAME} online degil — pm2 logs ${PM2_NAME} --lines 30"
+fi
 
 echo ""
 if [ "$DB_OK" = "1" ]; then
@@ -185,6 +205,17 @@ if [ "$PUB_CODE" = "200" ] && echo "$PUB_BODY" | grep -q '"durum"'; then
 else
   echo "  FAIL ${PUBLIC_URL}/api/health (HTTP ${PUB_CODE})"
   echo "  Nginx /api proxy gerekli — bkz. repo/nginx-api.conf.example"
+fi
+
+PUB_KISAYOL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "${PUBLIC_URL}/api/admin/kullanici-ayarlari/kisayol" 2>/dev/null || echo 000)"
+if [ "$PUB_KISAYOL_CODE" = "401" ]; then
+  echo "  OK  ${PUBLIC_URL}/api/admin/kullanici-ayarlari/kisayol (401 — route mevcut)"
+elif [ "$PUB_KISAYOL_CODE" = "404" ] && [ "$KISAYOL_CODE" = "401" ]; then
+  echo "  FAIL public kisayol (HTTP 404) — yerel API guncel, nginx veya CloudPanel Node.js cakismasi"
+  echo "  CloudPanel → Site → Node.js uygulamasini DURDURUN (port ${API_PORT})."
+  echo "  Sonra: cd $SITE/backend && bash scripts/sunucu-api-duzelt.sh"
+else
+  echo "  FAIL public kisayol (HTTP ${PUB_KISAYOL_CODE}, beklenen 401)"
 fi
 
 echo ""

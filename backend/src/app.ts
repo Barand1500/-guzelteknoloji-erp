@@ -29,7 +29,12 @@ export function appOlustur() {
   app.use(express.urlencoded({ extended: true }));
 
   const saglikYaniti = (_req: Request, res: Response) => {
-    res.json({ durum: 'ok', surum: config.surum, dbTuru: config.dbTuru });
+    res.json({
+      durum: 'ok',
+      surum: config.surum,
+      dbTuru: config.dbTuru,
+      ozellikler: { kullaniciAyarlari: true },
+    });
   };
   app.get('/api/health', saglikYaniti);
   // Nginx proxy_pass /api on ekini dusururse (proxy_pass ...:3006/;) health yine calissin
