@@ -32,38 +32,60 @@ const VARSAYILAN_ROL_YETKILERI: Record<string, string[]> = {
 
 const BOS_YETKI_VARSAYILAN_ROLLER = new Set(['YONETICI', 'SUPER_ADMIN', 'AJANS_ADMIN']);
 
-export async function kullaniciYetkileriAl(kullanici: Kullanici): Promise<string[]> {
+export async function kullaniciYetkileriAl(kullanici: Kullanici): Promise<{
+  birlesik: string[];
+  modul: Record<string, string[]>;
+}> {
   const satirlar = await prisma.rol.findMany({
     where: { rolAdi: kullanici.rol, durum: true },
   });
 
+  const varsayilan = VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme'];
+
   if (satirlar.length === 0) {
-    return VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme'];
+    return { birlesik: varsayilan, modul: {} };
   }
 
   const birlesik = new Set<string>();
+  const modul: Record<string, string[]> = {};
+
   if (BOS_YETKI_VARSAYILAN_ROLLER.has(kullanici.rol)) {
-    for (const y of VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme']) {
-      birlesik.add(y);
-    }
+    for (const y of varsayilan) birlesik.add(y);
   }
+
   for (const satir of satirlar) {
-    const liste = Array.isArray(satir.yetki) ? (satir.yetki as string[]) : [];
+    const prefix = await modulPrefixAl(satir.modulId);
+    const liste = (Array.isArray(satir.yetki) ? (satir.yetki as string[]) : []).filter((y) =>
+      GECERLI_YETKILER.includes(y)
+    );
+    modul[prefix] = liste;
     for (const y of liste) birlesik.add(y);
   }
 
-  const sonuc = [...birlesik].filter((y) => GECERLI_YETKILER.includes(y));
+  const sonuc = [...birlesik];
   if (sonuc.length === 0) {
-    return VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme'];
+    return { birlesik: varsayilan, modul };
   }
-  return sonuc;
+  return { birlesik: sonuc, modul };
+}
+
+const modulPrefixOnbellek = new Map<number, string>();
+
+async function modulPrefixAl(modulId: number): Promise<string> {
+  const onbellek = modulPrefixOnbellek.get(modulId);
+  if (onbellek) return onbellek;
+
+  const modul = await prisma.modul.findUnique({ where: { id: modulId } });
+  const prefix = modul?.prefix ?? String(modulId);
+  modulPrefixOnbellek.set(modulId, prefix);
+  return prefix;
 }
 
 export function tarihIso(d: Date): string {
   return d.toISOString();
 }
 
-export async function kullaniciYanit(k: Kullanici, yetkiler: string[]) {
+export async function kullaniciYanit(k: Kullanici, yetkiPaket: { birlesik: string[]; modul: Record<string, string[]> }) {
   const tam = await prisma.kullanici.findUnique({
     where: { id: k.id },
     include: {
@@ -86,7 +108,8 @@ export async function kullaniciYanit(k: Kullanici, yetkiler: string[]) {
     kullaniciKodu: kayit.kullaniciKodu,
     ad: kayit.adSoyad,
     rol: kayit.rol,
-    yetkiler,
+    yetkiler: yetkiPaket.birlesik,
+    yetkilerModul: yetkiPaket.modul,
     oturum: firma
       ? {
           firmaKodu: firma.firmaKodu,
@@ -185,17 +208,28 @@ export async function sistemAyarlariYanitOlustur(surum: string) {
   };
 }
 
-export function rolSatirlarindanOzet(satirlar: Rol[]) {
-  const gruplar = new Map<string, { kod: string; baslik: string; yetkiler: Set<string> }>();
+export function rolSatirlarindanOzet(
+  satirlar: Rol[],
+  moduller: { id: number; prefix: string }[]
+) {
+  const prefixById = new Map(moduller.map((m) => [m.id, m.prefix]));
+  const gruplar = new Map<
+    string,
+    { kod: string; baslik: string; modulYetkileri: Record<string, Set<string>> }
+  >();
 
   for (const satir of satirlar) {
+    const prefix = prefixById.get(satir.modulId) ?? String(satir.modulId);
     const mevcut = gruplar.get(satir.rolAdi) ?? {
       kod: satir.rolAdi,
       baslik: satir.rolAdi,
-      yetkiler: new Set<string>(),
+      modulYetkileri: {},
     };
+    if (!mevcut.modulYetkileri[prefix]) mevcut.modulYetkileri[prefix] = new Set<string>();
     const liste = Array.isArray(satir.yetki) ? (satir.yetki as string[]) : [];
-    for (const y of liste) mevcut.yetkiler.add(y);
+    for (const y of liste) {
+      if (GECERLI_YETKILER.includes(y)) mevcut.modulYetkileri[prefix].add(y);
+    }
     gruplar.set(satir.rolAdi, mevcut);
   }
 
@@ -205,7 +239,9 @@ export function rolSatirlarindanOzet(satirlar: Rol[]) {
       kod: g.kod,
       baslik: g.baslik,
       aciklama: '',
-      yetkiler: [...g.yetkiler].filter((y) => GECERLI_YETKILER.includes(y)),
+      modulYetkileri: Object.fromEntries(
+        Object.entries(g.modulYetkileri).map(([prefix, set]) => [prefix, [...set]])
+      ),
       sistemRolu: true,
     }));
 }

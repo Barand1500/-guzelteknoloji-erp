@@ -71,26 +71,46 @@ const OFFLINE_YETKILER = [
   { kod: 'kullanici_yonetimi', etiket: 'Kullanıcı Yönetimi' },
 ] as const;
 
+function offlineModulYetkileri(yetkiler: string[]) {
+  const modulYetkileri: Record<string, string[]> = {};
+  for (const m of VARSAYILAN_OFFLINE_MODULLER) {
+    modulYetkileri[m.prefix] = [...yetkiler];
+  }
+  return modulYetkileri;
+}
+
 const OFFLINE_ROLLER = [
   {
     kod: 'YONETICI',
     baslik: 'Yönetici',
     aciklama: 'Firma yöneticisi — tam ERP erişimi',
-    yetkiler: ['goruntuleme', 'ekleme', 'duzenleme', 'silme', 'kullanici_yonetimi'],
+    modulYetkileri: offlineModulYetkileri([
+      'goruntuleme',
+      'ekleme',
+      'duzenleme',
+      'silme',
+      'kullanici_yonetimi',
+    ]),
     sistemRolu: true,
   },
   {
     kod: 'SUPER_ADMIN',
     baslik: 'Super Admin',
     aciklama: 'Tam panel erişimi',
-    yetkiler: ['goruntuleme', 'ekleme', 'duzenleme', 'silme', 'kullanici_yonetimi'],
+    modulYetkileri: offlineModulYetkileri([
+      'goruntuleme',
+      'ekleme',
+      'duzenleme',
+      'silme',
+      'kullanici_yonetimi',
+    ]),
     sistemRolu: true,
   },
   {
     kod: 'EDITOR',
     baslik: 'Editör',
     aciklama: 'Düzenleme yetkisi',
-    yetkiler: ['goruntuleme', 'ekleme', 'duzenleme'],
+    modulYetkileri: offlineModulYetkileri(['goruntuleme', 'ekleme', 'duzenleme']),
     sistemRolu: true,
   },
 ];
@@ -130,7 +150,17 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
   if (p.includes('/kullanicilar')) return { kullanicilar: offlineKullanicilariOku().map(offlineKullaniciPanelYanit) };
   if (p.includes('/sayfalar') || p.endsWith('/menu')) return { sayfalar: [] };
   if (p.includes('/roller/yetkiler')) return { yetkiler: [...OFFLINE_YETKILER] };
-  if (p.includes('/roller')) return { roller: OFFLINE_ROLLER, yetkiler: [...OFFLINE_YETKILER], moduller: offlineModulOku() };
+  if (p.includes('/roller')) {
+    return {
+      roller: OFFLINE_ROLLER,
+      yetkiler: [...OFFLINE_YETKILER],
+      moduller: offlineModulOku().map((m) => ({
+        id: m.prefix.replace(/_/g, '-'),
+        ad: m.ad,
+        prefix: m.prefix,
+      })),
+    };
+  }
   if (p.includes('/loglar')) return offlineLogListe();
   if (p.includes('/yedek/varsayilan-dosya-adi')) return { dosyaAdi: 'erp-yedek.json' };
   if (p.includes('/yedek/gecmis')) return { kayitlar: [], sonKayit: null };

@@ -50,7 +50,7 @@ export function DonemSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { firmaBagliPasifMi } = useTanimFirmaDurumu();
-  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
   const [kayitlar, setKayitlar] = useState<AdminDonem[]>([]);
   const [form, setForm] = useState<DonemFormDegeri>(bosDonemForm);
   const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');

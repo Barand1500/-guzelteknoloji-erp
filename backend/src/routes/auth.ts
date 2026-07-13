@@ -172,8 +172,12 @@ router.get('/ben', authZorunlu, async (req: AuthRequest, res: Response) => {
   }
 
   const k = req.kullanici!;
+  const yetkiPaket =
+    req.yetkilerModul !== undefined
+      ? { birlesik: req.yetkiler ?? [], modul: req.yetkilerModul }
+      : await kullaniciYetkileriAl(k);
   return res.json({
-    kullanici: await kullaniciYanit(k, req.yetkiler ?? []),
+    kullanici: await kullaniciYanit(k, yetkiPaket),
   });
 });
 

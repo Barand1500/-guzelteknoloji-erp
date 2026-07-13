@@ -3,6 +3,7 @@ import multer from 'multer';
 import type { Response } from 'express';
 import { PANEL_FIRMA_ID, tumAyarlarOku } from '../lib/ayarlar.js';
 import { rolSatirlarindanOzet, tarihIso } from '../lib/mappers.js';
+import { modulListesi } from '../lib/panelModulleri.js';
 import { prisma } from '../lib/prisma.js';
 import type { AuthRequest } from '../middleware/auth.js';
 import { authZorunlu } from '../middleware/auth.js';
@@ -55,12 +56,15 @@ router.get('/gecmis', async (_req: AuthRequest, res: Response) => {
 
 async function yedekVerisiAl() {
   const ayarlar = await tumAyarlarOku(PANEL_FIRMA_ID);
-  const satirlar = await prisma.rol.findMany({ where: { durum: true } });
+  const [satirlar, moduller] = await Promise.all([
+    prisma.rol.findMany({ where: { durum: true } }),
+    modulListesi(),
+  ]);
   return {
     surum: '3.0',
     olusturma: new Date().toISOString(),
     ayarlar,
-    roller: rolSatirlarindanOzet(satirlar),
+    roller: rolSatirlarindanOzet(satirlar, moduller),
     eklentiler: [],
   };
 }

@@ -12,25 +12,27 @@ router.use(authZorunlu);
 router.use(kullaniciYonetimiErisimi);
 
 async function rolleriGetir() {
-  const [satirlar, moduller] = await Promise.all([
+  const moduller = await modulListesi();
+  const [satirlar] = await Promise.all([
     prisma.rol.findMany({
       where: { durum: true },
       orderBy: [{ rolAdi: 'asc' }, { modulId: 'asc' }],
     }),
-    modulListesi(),
   ]);
 
+  const prefixById = new Map(moduller.map((m) => [m.id, m.prefix]));
+
   return {
-    roller: rolSatirlarindanOzet(satirlar),
+    roller: rolSatirlarindanOzet(satirlar, moduller),
     yetkiler: yetkiListesiYanit(),
     moduller: moduller.map((m) => ({
-      id: m.id,
+      id: m.prefix.replace(/_/g, '-'),
       ad: m.modulAdi,
       prefix: m.prefix,
     })),
     matris: satirlar.map((s) => ({
       rolKodu: s.rolAdi,
-      modulId: s.modulId,
+      modulPrefix: prefixById.get(s.modulId) ?? String(s.modulId),
       yetkiler: Array.isArray(s.yetki) ? s.yetki : [],
     })),
   };
@@ -42,7 +44,13 @@ router.get('/', async (_req: AuthRequest, res: Response) => {
 
 router.put('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response) => {
   const { roller } = req.body as {
-    roller?: { kod: string; baslik: string; yetkiler: string[] }[];
+    roller?: {
+      kod: string;
+      baslik: string;
+      aciklama?: string;
+      modulYetkileri?: Record<string, string[]>;
+      yetkiler?: string[];
+    }[];
   };
 
   if (!Array.isArray(roller)) {
@@ -64,7 +72,14 @@ router.put('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response) 
 
   for (const rol of roller) {
     const rolAdi = rol.kod;
+    const modulYetkileri = rol.modulYetkileri ?? {};
+    const eskiDuz = rol.yetkiler ?? [];
+
     for (const modul of moduller) {
+      const yetki =
+        modulYetkileri[modul.prefix] ??
+        (Object.keys(modulYetkileri).length === 0 ? eskiDuz : []);
+
       await prisma.rol.upsert({
         where: {
           modulId_rolAdi: {
@@ -75,10 +90,10 @@ router.put('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response) 
         create: {
           rolAdi,
           modulId: modul.id,
-          yetki: rol.yetkiler ?? [],
+          yetki,
         },
         update: {
-          yetki: rol.yetkiler ?? [],
+          yetki,
           durum: true,
         },
       });

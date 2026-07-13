@@ -536,7 +536,7 @@ export function DatagridDemoSayfasi() {
   const gridApiRef = useRef<DataGridApi | null>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
   const logMesajiAyarla = useAdminLogMesaji();
-  const { goruntulemeVar } = useYetkiler();
+  const { goruntulemeVar } = useYetkiler('datagrid-demo');
 
   const kolonlar = useMemo(() => siparisKolonlari(kdvDahil), [kdvDahil]);
 

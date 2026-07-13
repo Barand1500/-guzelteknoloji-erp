@@ -66,7 +66,7 @@ function SayiAlani({ etiket, deger, onChange, adim = '0.01' }: { etiket: string;
 
 export function BirimlerSayfasi() {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler();
+  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('birimler');
   const [kayitlar, setKayitlar] = useState<AdminBirim[]>([]);
   const [urunler, setUrunler] = useState<AdminUrun[]>([]);
   const [form, setForm] = useState<BirimForm>(bosBirimForm);

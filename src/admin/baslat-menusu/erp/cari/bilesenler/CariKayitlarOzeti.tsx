@@ -25,7 +25,7 @@ import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 
 export function CariKayitlarOzeti() {
-  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler();
+  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('cari');
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const sayfaRef = useRef<HTMLDivElement>(null);
   const gridApiRef = useRef<DataGridApi | null>(null);

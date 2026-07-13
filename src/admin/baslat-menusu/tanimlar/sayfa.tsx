@@ -18,7 +18,7 @@ const MOD_SEKMELER = [
 ] as const;
 
 export function TanimlarSayfasi() {
-  const { goruntulemeVar, eklemeVar } = useYetkiler();
+  const { goruntulemeVar, eklemeVar } = useYetkiler('tanimlar');
   const gorunurSekmeler = useMemo(
     () => (eklemeVar ? MOD_SEKMELER : MOD_SEKMELER.filter((s) => s.id !== 'kurulum')),
     [eklemeVar]

@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { modulAra, adminKategoriler, adminModulleri, modulleriMenuyeGoreFiltrele } from '@/admin/veri/adminMenuYapisi';
 import { useModulKatalog } from '@/baglamlar/ModulKatalogContext';
-import { useYetkiler } from '@/kancalar/useYetkiler';
+import { useAuth } from '@/baglamlar/AuthContext';
+import { kullaniciModuluErisimVar } from '@/kancalar/useYetkiler';
 import {
   baslatMenuKapaliKategorileriKaydet,
   baslatMenuKapaliKategorileriOku,
@@ -23,12 +24,25 @@ export function useBaslatMenuDurumu() {
     baslatMenuKapaliKategorileriOku()
   );
   const { aktifPrefixler } = useModulKatalog();
-  const { kullaniciModuluErisimiVar } = useYetkiler();
-  const sonuclar = modulAra(arama, aktifPrefixler, kullaniciModuluErisimiVar);
+  const { kullanici } = useAuth();
+  const kullaniciModuluErisimiVar = kullaniciModuluErisimVar(
+    kullanici?.rol ?? '',
+    kullanici?.yetkiler ?? [],
+    kullanici?.yetkilerModul
+  );
+  const sonuclar = modulAra(
+    arama,
+    aktifPrefixler,
+    kullaniciModuluErisimiVar,
+    kullanici?.yetkilerModul ?? null,
+    kullanici?.rol ?? ''
+  );
   const gorunurModuller = modulleriMenuyeGoreFiltrele(
     adminModulleri,
     aktifPrefixler,
-    kullaniciModuluErisimiVar
+    kullaniciModuluErisimiVar,
+    kullanici?.yetkilerModul ?? null,
+    kullanici?.rol ?? ''
   );
 
   const kategoriToggle = useCallback((kategori: string) => {

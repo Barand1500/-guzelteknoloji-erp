@@ -1,4 +1,5 @@
 import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
+import { rolModulYetkileriNormalize } from '@/admin/baslat-menusu/musteri-ajans/roller/rolYardimci';
 
 export type YetkiKodu =
   | 'goruntuleme'
@@ -36,24 +37,34 @@ export const GECERLI_YETKI_LISTESI: YetkiTanimi[] = GECERLI_YETKI_KODLARI.map((k
   etiket: YETKI_ETIKETLERI[kod],
 }));
 
+/** Kullanıcı yönetimi yalnızca bu sayfalarda anlamlıdır */
+export const KULLANICI_YONETIMI_MODUL_PREFIXLERI = new Set(['kullanicilar', 'roller']);
+
+export function modulYetkiListesi(modulPrefix: string): YetkiTanimi[] {
+  if (KULLANICI_YONETIMI_MODUL_PREFIXLERI.has(modulPrefix)) {
+    return GECERLI_YETKI_LISTESI;
+  }
+  return GECERLI_YETKI_LISTESI.filter((y) => y.kod !== 'kullanici_yonetimi');
+}
+
 export function gecerliYetkiMi(kod: string): kod is YetkiKodu {
   return GECERLI_YETKI_KODLARI.includes(kod as YetkiKodu);
 }
 
-export function rollerTemizle(roller: RolTanimi[]): RolTanimi[] {
-  return roller.map((rol) => ({
-    ...rol,
-    yetkiler: rol.yetkiler.filter(
-      (y) => !KALDIRILAN_YETKILER.has(y) && gecerliYetkiMi(y)
-    ),
-  }));
+export interface ModulTanimi {
+  id: string;
+  ad: string;
+  prefix: string;
+  ikon?: string;
+  kategori?: string;
+  sira?: number;
 }
 
 export interface RolTanimi {
   kod: string;
   baslik: string;
   aciklama: string;
-  yetkiler: YetkiKodu[];
+  modulYetkileri: Record<string, YetkiKodu[]>;
   sistemRolu?: boolean;
 }
 
@@ -62,24 +73,89 @@ export interface YetkiTanimi {
   etiket: string;
 }
 
-export async function adminRolleriGetir(): Promise<{ roller: RolTanimi[]; yetkiler: YetkiTanimi[] }> {
-  const veri = await adminJsonFetch<{ roller?: RolTanimi[]; yetkiler?: YetkiTanimi[] }>('/roller', {
+export interface RolMatrisSatir {
+  rolKodu: string;
+  modulPrefix: string;
+  yetkiler: YetkiKodu[];
+}
+
+export interface RolleriGetirYanit {
+  roller: RolTanimi[];
+  yetkiler: YetkiTanimi[];
+  moduller: ModulTanimi[];
+  matris?: RolMatrisSatir[];
+}
+
+export function rollerTemizle(roller: RolTanimi[], modulPrefixler: string[] = []): RolTanimi[] {
+  return roller.map((rol) => {
+    const normalize = rolModulYetkileriNormalize(rol, modulPrefixler);
+    const modulYetkileri: Record<string, YetkiKodu[]> = {};
+    for (const [prefix, liste] of Object.entries(normalize.modulYetkileri)) {
+      const temiz = liste.filter((y) => !KALDIRILAN_YETKILER.has(y) && gecerliYetkiMi(y));
+      if (temiz.length) modulYetkileri[prefix] = temiz;
+    }
+    return { ...normalize, modulYetkileri };
+  });
+}
+
+function apiModulNormalize(moduller: ModulTanimi[]): ModulTanimi[] {
+  return moduller.map((m) => ({
+    ...m,
+    id: m.id || m.prefix.replace(/_/g, '-'),
+    prefix: m.prefix,
+  }));
+}
+
+function apiRolNormalize(
+  roller: Array<Partial<RolTanimi> & { kod: string; baslik: string; yetkiler?: YetkiKodu[] }>,
+  modulPrefixler: string[]
+): RolTanimi[] {
+  return rollerTemizle(
+    roller.map((rol) => rolModulYetkileriNormalize(rol, modulPrefixler)),
+    modulPrefixler
+  );
+}
+
+export async function adminRolleriGetir(): Promise<RolleriGetirYanit> {
+  const veri = await adminJsonFetch<{
+    roller?: Array<Partial<RolTanimi> & { kod: string; baslik: string; yetkiler?: YetkiKodu[] }>;
+    yetkiler?: YetkiTanimi[];
+    moduller?: ModulTanimi[];
+    matris?: RolMatrisSatir[];
+  }>('/roller', {
     headers: adminHeaders(),
   });
+
+  const moduller = apiModulNormalize(veri.moduller ?? []);
+  const prefixler = moduller.map((m) => m.prefix);
+
   return {
-    roller: veri.roller ?? [],
+    roller: apiRolNormalize(veri.roller ?? [], prefixler),
     yetkiler: veri.yetkiler ?? GECERLI_YETKI_LISTESI,
+    moduller,
+    matris: veri.matris,
   };
 }
 
-export async function adminRolleriKaydet(
-  roller: RolTanimi[]
-): Promise<{ roller: RolTanimi[]; yetkiler: YetkiTanimi[] }> {
-  return adminJsonFetch('/roller', {
+export async function adminRolleriKaydet(roller: RolTanimi[]): Promise<RolleriGetirYanit> {
+  const veri = await adminJsonFetch<{
+    roller?: Array<Partial<RolTanimi> & { kod: string; baslik: string }>;
+    yetkiler?: YetkiTanimi[];
+    moduller?: ModulTanimi[];
+  }>('/roller', {
     method: 'PUT',
     headers: adminHeaders(),
     body: JSON.stringify({ roller }),
   });
+
+  const moduller = apiModulNormalize(veri.moduller ?? []);
+  const prefixler = moduller.map((m) => m.prefix);
+
+  return {
+    roller: apiRolNormalize(veri.roller ?? [], prefixler),
+    yetkiler: veri.yetkiler ?? GECERLI_YETKI_LISTESI,
+    moduller,
+  };
 }
 
 export function baslikdanKodUret(baslik: string, mevcutKodlar: string[]): string {

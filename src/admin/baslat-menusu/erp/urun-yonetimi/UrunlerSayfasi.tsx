@@ -27,7 +27,7 @@ const urundenForm = (u: AdminUrun): UrunForm => ({
 
 export function UrunlerSayfasi() {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler();
+  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('urunler');
   const [kayitlar, setKayitlar] = useState<AdminUrun[]>([]);
   const [form, setForm] = useState<UrunForm>(bosUrunForm);
   const [aktif, setAktif] = useState(true);

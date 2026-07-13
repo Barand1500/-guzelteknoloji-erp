@@ -87,7 +87,7 @@ const AKSIYON_YETKI: Partial<Record<StandartAksiyonId, YetkiKodu>> = {
 export function useAksiyonCubugu(modulId: string) {
   const { aksiyonDurumlari } = useAdminAksiyon();
   const { t } = usePanelDil();
-  const { yetkiler } = useYetkiler();
+  const { yetkiler } = useYetkiler(modulId);
 
   return useMemo(() => {
     const temel = MODUL_VARSAYILAN[modulId]

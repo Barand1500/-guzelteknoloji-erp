@@ -67,7 +67,7 @@ interface KurulumSihirbaziProps {
 export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProps) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar } = useYetkiler();
+  const { eklemeVar } = useYetkiler('tanimlar');
 
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);

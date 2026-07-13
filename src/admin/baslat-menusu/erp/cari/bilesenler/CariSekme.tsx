@@ -31,7 +31,7 @@ export function CariSekme({
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { duzenlemeVar, silmeVar } = useYetkiler();
+  const { duzenlemeVar, silmeVar } = useYetkiler('cari');
   const [kayitlar, setKayitlar] = useState<AdminCari[]>([]);
   const [form, setForm] = useState<CariFormDegeri>(bosCariForm);
   const [yukleniyor, setYukleniyor] = useState(true);

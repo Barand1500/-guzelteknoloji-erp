@@ -153,7 +153,7 @@ function GezginSekmeler({
 }
 
 export function TanimKayitlarOzeti() {
-  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler();
+  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('tanimlar');
   const { firmaBagliPasifMi, subeBagliPasifMi } = useTanimFirmaDurumu();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const sayfaRef = useRef<HTMLDivElement>(null);

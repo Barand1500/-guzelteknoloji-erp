@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
+import { useAuth } from '@/baglamlar/AuthContext';
 import { modulMenuGorunurMu as panelModulMenuGorunurMu } from '@/admin/veri/adminMenuYapisi';
-import { useYetkiler } from '@/kancalar/useYetkiler';
+import { kullaniciModuluErisimVar } from '@/kancalar/useYetkiler';
 
 export const MODUL_KATALOG_YENILE_OLAY = 'ap-modul-katalog-yenile';
 
@@ -21,7 +22,12 @@ const ModulKatalogContext = createContext<ModulKatalogDeger | null>(null);
 export function ModulKatalogProvider({ children }: { children: ReactNode }) {
   const [aktifPrefixler, setAktifPrefixler] = useState<Set<string> | null>(null);
   const [yukleniyor, setYukleniyor] = useState(true);
-  const { kullaniciModuluErisimiVar } = useYetkiler();
+  const { kullanici } = useAuth();
+  const kullaniciModuluErisimiVar = kullaniciModuluErisimVar(
+    kullanici?.rol ?? '',
+    kullanici?.yetkiler ?? [],
+    kullanici?.yetkilerModul
+  );
 
   const yenile = useCallback(async () => {
     setYukleniyor(true);
@@ -46,8 +52,14 @@ export function ModulKatalogProvider({ children }: { children: ReactNode }) {
 
   const modulMenuGorunurMu = useCallback(
     (modulId: string) =>
-      panelModulMenuGorunurMu(modulId, aktifPrefixler, kullaniciModuluErisimiVar),
-    [aktifPrefixler, kullaniciModuluErisimiVar]
+      panelModulMenuGorunurMu(
+        modulId,
+        aktifPrefixler,
+        kullaniciModuluErisimiVar,
+        kullanici?.yetkilerModul ?? null,
+        kullanici?.rol ?? ''
+      ),
+    [aktifPrefixler, kullaniciModuluErisimiVar, kullanici?.yetkilerModul, kullanici?.rol]
   );
 
   const deger = useMemo(

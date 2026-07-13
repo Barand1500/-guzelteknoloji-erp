@@ -15,6 +15,7 @@ import {
 import { RolDuzenleModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolDuzenleModal';
 
 import { RolGorunumCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolGorunumCubugu';
+import { RolModulCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolModulCubugu';
 
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 
@@ -38,15 +39,23 @@ import {
 
   baslikdanKodUret,
 
-  GECERLI_YETKI_LISTESI,
+  modulYetkiListesi,
 
   rollerTemizle,
+
+  type ModulTanimi,
 
   type RolTanimi,
 
   type YetkiKodu,
 
 } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
+import {
+  bosRolSablonu,
+  rolModulListesi,
+  rolModulYetkiToggle,
+  rollerEsitMi,
+} from '@/admin/baslat-menusu/musteri-ajans/roller/rolYardimci';
 
 import './roller.css';
 
@@ -63,32 +72,6 @@ const GORUNUM_SEKMELER = [
 
 
 type RolGorunumId = (typeof GORUNUM_SEKMELER)[number]['id'];
-
-
-
-function rollerEsitMi(a: RolTanimi[], b: RolTanimi[]): boolean {
-
-  if (a.length !== b.length) return false;
-
-  return a.every((rol, i) => {
-
-    const diger = b[i];
-
-    if (rol.kod !== diger.kod || rol.baslik !== diger.baslik || rol.aciklama !== diger.aciklama) {
-
-      return false;
-
-    }
-
-    if (rol.yetkiler.length !== diger.yetkiler.length) return false;
-
-    return rol.yetkiler.every((y, j) => y === diger.yetkiler[j]);
-
-  });
-
-}
-
-
 
 function kaydaHazirRoller(roller: RolTanimi[]): RolTanimi[] {
 
@@ -130,7 +113,9 @@ export function RollerSayfasiYeni() {
 
   const [kayitliRoller, setKayitliRoller] = useState<RolTanimi[]>([]);
 
-  const yetkiTanimlari = GECERLI_YETKI_LISTESI;
+  const [moduller, setModuller] = useState<ModulTanimi[]>([]);
+
+  const [aktifModulPrefix, setAktifModulPrefix] = useState('');
 
   const [yukleniyor, setYukleniyor] = useState(true);
 
@@ -158,6 +143,9 @@ export function RollerSayfasiYeni() {
 
   const yetkili = kullaniciModuluErisimiVar;
   const duzenlenebilir = kullaniciModuluErisimiVar;
+  const aktifModul =
+    moduller.find((m) => m.prefix === aktifModulPrefix) ?? moduller[0] ?? null;
+  const yetkiTanimlari = aktifModul ? modulYetkiListesi(aktifModul.prefix) : [];
 
   const degisti = !rollerEsitMi(taslakRoller, kayitliRoller);
 
@@ -233,7 +221,15 @@ export function RollerSayfasiYeni() {
 
       const veri = await adminRolleriGetir();
 
-      const temiz = rollerTemizle(veri.roller);
+      const liste = rolModulListesi(veri.moduller);
+
+      const prefixler = liste.map((m) => m.prefix);
+
+      const temiz = rollerTemizle(veri.roller, prefixler);
+
+      setModuller(liste);
+
+      setAktifModulPrefix((onceki) => onceki || liste[0]?.prefix || '');
 
       setTaslakRoller(temiz);
 
@@ -313,7 +309,7 @@ export function RollerSayfasiYeni() {
 
 
 
-  const yetkiToggle = useCallback((rolKod: string, yetkiKod: YetkiKodu) => {
+  const yetkiToggle = useCallback((rolKod: string, modulPrefix: string, yetkiKod: YetkiKodu) => {
 
     setTaslakRoller((onceki) =>
 
@@ -321,15 +317,7 @@ export function RollerSayfasiYeni() {
 
         if (rol.kod !== rolKod || korunmusRolMu(rol.kod)) return rol;
 
-        const varMi = rol.yetkiler.includes(yetkiKod);
-
-        const yeniYetkiler = varMi
-
-          ? rol.yetkiler.filter((y) => y !== yetkiKod)
-
-          : [...rol.yetkiler, yetkiKod];
-
-        return { ...rol, yetkiler: yeniYetkiler };
+        return rolModulYetkiToggle(rol, modulPrefix, yetkiKod);
 
       })
 
@@ -447,15 +435,7 @@ export function RollerSayfasiYeni() {
 
       {
 
-        kod,
-
-        baslik: '',
-
-        aciklama: '',
-
-        yetkiler: ['goruntuleme'] as YetkiKodu[],
-
-        sistemRolu: false,
+        ...bosRolSablonu(kod),
 
       },
 
@@ -531,9 +511,9 @@ export function RollerSayfasiYeni() {
 
     try {
 
-      const veri = await adminRolleriKaydet(rollerTemizle(hazir));
+      const veri = await adminRolleriKaydet(rollerTemizle(hazir, moduller.map((m) => m.prefix)));
 
-      const temiz = rollerTemizle(veri.roller);
+      const temiz = rollerTemizle(veri.roller, moduller.map((m) => m.prefix));
 
       logMesajiAyarla(
 
@@ -559,7 +539,7 @@ export function RollerSayfasiYeni() {
 
     }
 
-  }, [taslakRoller, logMesajiAyarla]);
+  }, [taslakRoller, logMesajiAyarla, moduller]);
 
 
 
@@ -597,7 +577,7 @@ export function RollerSayfasiYeni() {
 
       baslik="Roller ve Yetkiler"
 
-      aciklama="Sistemdeki roller ve her role ait yetki matrisi. Kullanıcılara rol atamak için Kullanıcılar modülünü kullanın."
+      aciklama="Her rol için sayfa bazlı yetki matrisi. Önce sayfayı seçin, ardından rollere yetki verin."
 
       onizleGoster={false}
 
@@ -653,31 +633,41 @@ export function RollerSayfasiYeni() {
 
                 baslik="Yetki Matrisi"
 
-                altBaslik="Ekle ile tablonun altına satır açılır. Yetkileri hücrelere tıklayarak işaretleyin."
+                altBaslik="Sayfa seçin; ekle ile tablonun altına satır açılır. Yetkileri hücrelere tıklayarak işaretleyin."
 
               >
 
-                <RolMatrisi
-
-                  roller={matrisRoller}
-
-                  yetkiler={yetkiTanimlari}
-
-                  duzenlenebilir={duzenlenebilir}
-
-                  yeniRolKodlari={yeniMatrisKodlari}
-
-                  sarmalRef={matrisSarmalRef}
-
-                  onYetkiToggle={yetkiToggle}
-
-                  onRolAlanDegis={rolAlanDegis}
-
-                  onRolBaslikBlur={rolBaslikBlur}
-
-                  onYeniRolIptal={yeniRolIptal}
-
+                <RolModulCubugu
+                  moduller={moduller}
+                  aktif={aktifModul?.prefix ?? ''}
+                  onDegistir={setAktifModulPrefix}
                 />
+
+                {aktifModul ? (
+                  <RolMatrisi
+
+                    roller={matrisRoller}
+
+                    yetkiler={yetkiTanimlari}
+
+                    aktifModul={aktifModul}
+
+                    duzenlenebilir={duzenlenebilir}
+
+                    yeniRolKodlari={yeniMatrisKodlari}
+
+                    sarmalRef={matrisSarmalRef}
+
+                    onYetkiToggle={yetkiToggle}
+
+                    onRolAlanDegis={rolAlanDegis}
+
+                    onRolBaslikBlur={rolBaslikBlur}
+
+                    onYeniRolIptal={yeniRolIptal}
+
+                  />
+                ) : null}
 
               </AdminPanelKarti>
 
@@ -694,6 +684,8 @@ export function RollerSayfasiYeni() {
                 <RolKartlari
 
                   roller={kartRoller}
+
+                  moduller={moduller}
 
                   seciliKod={seciliRolKod}
 

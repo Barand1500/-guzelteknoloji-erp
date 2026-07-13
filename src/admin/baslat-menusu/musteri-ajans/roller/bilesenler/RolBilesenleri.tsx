@@ -3,10 +3,16 @@ import { korunmusRolMu } from '@/admin/ortak/panelRolYardimci';
 import { tooltipMetni } from '@/araclar/tooltipMetni';
 import {
   YETKI_ETIKETLERI,
+  type ModulTanimi,
   type RolTanimi,
   type YetkiKodu,
   type YetkiTanimi,
 } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
+import {
+  rolModulErisimSayisi,
+  rolModulYetkiSayisi,
+  rolModulYetkileri,
+} from '@/admin/baslat-menusu/musteri-ajans/roller/rolYardimci';
 
 const SISTEM_ROL_KODLARI = new Set([
   'YONETICI',
@@ -42,10 +48,11 @@ export function rolTaslakMi(kod: string): boolean {
 interface RolMatrisiProps {
   roller: RolTanimi[];
   yetkiler: YetkiTanimi[];
+  aktifModul: ModulTanimi;
   duzenlenebilir?: boolean;
   yeniRolKodlari?: ReadonlySet<string>;
   sarmalRef?: RefObject<HTMLDivElement | null>;
-  onYetkiToggle?: (rolKod: string, yetkiKod: YetkiKodu) => void;
+  onYetkiToggle?: (rolKod: string, modulPrefix: string, yetkiKod: YetkiKodu) => void;
   onRolAlanDegis?: (rolKod: string, alan: 'baslik' | 'aciklama', deger: string) => void;
   onRolBaslikBlur?: (rolKod: string, baslik: string) => void;
   onYeniRolIptal?: (rolKod: string) => void;
@@ -54,6 +61,7 @@ interface RolMatrisiProps {
 export function RolMatrisi({
   roller,
   yetkiler,
+  aktifModul,
   duzenlenebilir,
   yeniRolKodlari,
   sarmalRef,
@@ -66,6 +74,18 @@ export function RolMatrisi({
 
   return (
     <div className="ap-roller-matris-sarmal" ref={sarmalRef}>
+      <div className="ap-roller-modul-baslik-kapsul">
+        <span className="ap-roller-modul-baslik-ikon" aria-hidden>
+          {aktifModul.ikon ?? '📄'}
+        </span>
+        <div>
+          <div className="ap-roller-modul-baslik-ad">{aktifModul.ad}</div>
+          {aktifModul.kategori ? (
+            <div className="ap-roller-modul-baslik-kategori">{aktifModul.kategori}</div>
+          ) : null}
+        </div>
+      </div>
+
       <table className="ap-roller-matris">
         <thead>
           <tr>
@@ -88,6 +108,8 @@ export function RolMatrisi({
             const sistemRolu = rolSistemRoluMu(rol);
             const yeniSatir = yeniRolKodlari?.has(rol.kod) ?? false;
             const hucreDuzenlenebilir = duzenlenebilir && !superAdmin;
+            const modulYetkiler = rolModulYetkileri(rol, aktifModul.prefix);
+
             return (
               <tr
                 key={rol.kod}
@@ -144,7 +166,7 @@ export function RolMatrisi({
                   )}
                 </td>
                 {yetkiler.map((y) => {
-                  const varMi = rol.yetkiler.includes(y.kod);
+                  const varMi = modulYetkiler.includes(y.kod);
                   const sinif = `ap-roller-yetki-hucre ap-roller-yetki--${y.kod}${varMi ? ' ap-roller-yetki-hucre--aktif' : ''}${!hucreDuzenlenebilir ? ' ap-roller-yetki-hucre--salt' : ''}`;
 
                   if (hucreDuzenlenebilir) {
@@ -152,11 +174,11 @@ export function RolMatrisi({
                       <td key={y.kod}>
                         <button
                           type="button"
-                          onClick={() => onYetkiToggle?.(rol.kod, y.kod)}
+                          onClick={() => onYetkiToggle?.(rol.kod, aktifModul.prefix, y.kod)}
                           className={sinif}
                           title={tooltipMetni(varMi ? 'Yetkiyi kaldır' : 'Yetki ver')}
                           aria-pressed={varMi}
-                          aria-label={`${rol.baslik} — ${y.etiket}`}
+                          aria-label={`${rol.baslik} — ${aktifModul.ad} — ${y.etiket}`}
                         >
                           {varMi ? '✓' : '·'}
                         </button>
@@ -183,6 +205,7 @@ export function RolMatrisi({
 
 interface RolKartlariProps {
   roller: RolTanimi[];
+  moduller: ModulTanimi[];
   seciliKod: string | null;
   duzenlenebilir?: boolean;
   yeniKartKodlari?: ReadonlySet<string>;
@@ -193,8 +216,18 @@ interface RolKartlariProps {
   onYeniRolIptal?: (rolKod: string) => void;
 }
 
+function modulYetkiOzeti(rol: RolTanimi, moduller: ModulTanimi[]) {
+  return moduller
+    .map((modul) => ({
+      modul,
+      yetkiler: rolModulYetkileri(rol, modul.prefix),
+    }))
+    .filter((o) => o.yetkiler.length > 0);
+}
+
 export function RolKartlari({
   roller,
+  moduller,
   seciliKod,
   duzenlenebilir,
   yeniKartKodlari,
@@ -212,6 +245,7 @@ export function RolKartlari({
         const secili = seciliKod === rol.kod;
         const sistemRolu = rolSistemRoluMu(rol);
         const yeniKart = yeniKartKodlari?.has(rol.kod) ?? false;
+        const ozet = modulYetkiOzeti(rol, moduller);
 
         if (yeniKart && duzenlenebilir) {
           return (
@@ -255,12 +289,9 @@ export function RolKartlari({
                     : rol.kod}
                 </div>
                 <div className="ap-roller-kart-alt">
-                  {rol.yetkiler.map((y) => (
-                    <span key={y} className={`ap-roller-yetki-etiket ap-roller-yetki-etiket--${y}`}>
-                      {YETKI_IKONLARI[y]} {YETKI_ETIKETLERI[y] ?? y.replace(/_/g, ' ')}
-                    </span>
-                  ))}
-                  <span className="ap-roller-kart-sayi">Yetkileri matristen işaretleyin</span>
+                  <span className="ap-roller-kart-sayi">
+                    Matristen sayfa bazlı yetkileri işaretleyin
+                  </span>
                 </div>
               </div>
             </article>
@@ -302,12 +333,28 @@ export function RolKartlari({
                     <span aria-hidden>🔒</span> Sistem
                   </span>
                 )}
-                {rol.yetkiler.map((y) => (
-                  <span key={y} className={`ap-roller-yetki-etiket ap-roller-yetki-etiket--${y}`}>
-                    {YETKI_IKONLARI[y]} {YETKI_ETIKETLERI[y] ?? y.replace(/_/g, ' ')}
+                {ozet.length === 0 ? (
+                  <span className="ap-roller-kart-sayi ap-roller-kart-sayi--uyari">
+                    Henüz sayfa yetkisi yok
                   </span>
-                ))}
-                <span className="ap-roller-kart-sayi">{rol.yetkiler.length} yetki</span>
+                ) : (
+                  <div className="ap-roller-modul-ozet-liste">
+                    {ozet.map(({ modul, yetkiler: yListe }) => (
+                      <div key={modul.prefix} className="ap-roller-modul-ozet-satir">
+                        <span className="ap-roller-modul-ozet-ad">
+                          {modul.ikon ? `${modul.ikon} ` : ''}
+                          {modul.ad}
+                        </span>
+                        <span className="ap-roller-modul-ozet-yetkiler">
+                          {yListe.map((y) => YETKI_ETIKETLERI[y]).join(' · ')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <span className="ap-roller-kart-sayi">
+                  {rolModulErisimSayisi(rol)} sayfa · {rolModulYetkiSayisi(rol)} yetki
+                </span>
               </div>
             </button>
           </article>

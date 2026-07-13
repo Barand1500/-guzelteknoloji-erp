@@ -17,29 +17,26 @@ import {
   adminRolleriGetir,
   adminRolleriKaydet,
   baslikdanKodUret,
-  GECERLI_YETKI_LISTESI,
+  modulYetkiListesi,
   rollerTemizle,
+  type ModulTanimi,
   type RolTanimi,
   type YetkiKodu,
 } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
-
-function rollerEsitMi(a: RolTanimi[], b: RolTanimi[]): boolean {
-  if (a.length !== b.length) return false;
-  return a.every((rol, i) => {
-    const diger = b[i];
-    if (rol.kod !== diger.kod || rol.baslik !== diger.baslik || rol.aciklama !== diger.aciklama) {
-      return false;
-    }
-    if (rol.yetkiler.length !== diger.yetkiler.length) return false;
-    return rol.yetkiler.every((y, j) => y === diger.yetkiler[j]);
-  });
-}
+import { RolModulCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolModulCubugu';
+import {
+  bosRolSablonu,
+  rolModulListesi,
+  rolModulYetkiToggle,
+  rollerEsitMi,
+} from '@/admin/baslat-menusu/musteri-ajans/roller/rolYardimci';
 
 export function RollerSayfasiEski() {
   const logMesajiAyarla = useAdminLogMesaji();
   const [taslakRoller, setTaslakRoller] = useState<RolTanimi[]>([]);
   const [kayitliRoller, setKayitliRoller] = useState<RolTanimi[]>([]);
-  const yetkiTanimlari = GECERLI_YETKI_LISTESI;
+  const [moduller, setModuller] = useState<ModulTanimi[]>([]);
+  const [aktifModulPrefix, setAktifModulPrefix] = useState('');
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState('');
@@ -52,6 +49,9 @@ export function RollerSayfasiEski() {
   const { kullaniciModuluErisimiVar } = useYetkiler();
   const yetkili = kullaniciModuluErisimiVar;
   const duzenlenebilir = kullaniciModuluErisimiVar;
+  const aktifModul =
+    moduller.find((m) => m.prefix === aktifModulPrefix) ?? moduller[0] ?? null;
+  const yetkiTanimlari = aktifModul ? modulYetkiListesi(aktifModul.prefix) : [];
   const degisti = !rollerEsitMi(taslakRoller, kayitliRoller);
 
   useKaydedilmemisBildirim(
@@ -69,7 +69,11 @@ export function RollerSayfasiEski() {
     setHata('');
     try {
       const veri = await adminRolleriGetir();
-      const temiz = rollerTemizle(veri.roller);
+      const liste = rolModulListesi(veri.moduller);
+      const prefixler = liste.map((m) => m.prefix);
+      const temiz = rollerTemizle(veri.roller, prefixler);
+      setModuller(liste);
+      setAktifModulPrefix((onceki) => onceki || liste[0]?.prefix || '');
       setTaslakRoller(temiz);
       setKayitliRoller(temiz);
       kayitliRef.current = temiz;
@@ -88,15 +92,11 @@ export function RollerSayfasiEski() {
     void yukle();
   }, [yetkili]);
 
-  const yetkiToggle = useCallback((rolKod: string, yetkiKod: YetkiKodu) => {
+  const yetkiToggle = useCallback((rolKod: string, modulPrefix: string, yetkiKod: YetkiKodu) => {
     setTaslakRoller((onceki) =>
       onceki.map((rol) => {
         if (rol.kod !== rolKod || korunmusRolMu(rol.kod)) return rol;
-        const varMi = rol.yetkiler.includes(yetkiKod);
-        const yeniYetkiler = varMi
-          ? rol.yetkiler.filter((y) => y !== yetkiKod)
-          : [...rol.yetkiler, yetkiKod];
-        return { ...rol, yetkiler: yeniYetkiler };
+        return rolModulYetkiToggle(rol, modulPrefix, yetkiKod);
       })
     );
   }, []);
@@ -117,11 +117,9 @@ export function RollerSayfasiEski() {
       return [
         ...onceki,
         {
-          kod,
+          ...bosRolSablonu(kod),
           baslik: deger.baslik,
           aciklama: deger.aciklama,
-          yetkiler: ['goruntuleme'] as YetkiKodu[],
-          sistemRolu: false,
         },
       ];
     });
@@ -146,8 +144,8 @@ export function RollerSayfasiEski() {
     setKaydediliyor(true);
     setHata('');
     try {
-      const veri = await adminRolleriKaydet(rollerTemizle(taslakRoller));
-      const temiz = rollerTemizle(veri.roller);
+      const veri = await adminRolleriKaydet(rollerTemizle(taslakRoller, moduller.map((m) => m.prefix)));
+      const temiz = rollerTemizle(veri.roller, moduller.map((m) => m.prefix));
       logMesajiAyarla(
         logMesaj.kaydetti('Roller ve Yetkiler', `${temiz.length} rol ve yetki matrisini`)
       );
@@ -195,15 +193,29 @@ export function RollerSayfasiEski() {
         <div className="mt-6 space-y-8">
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
-              Yetki Matrisi
+              Sayfa Seçimi
             </h2>
-            <RolMatrisi
-              roller={taslakRoller}
-              yetkiler={yetkiTanimlari}
-              duzenlenebilir={duzenlenebilir}
-              onYetkiToggle={yetkiToggle}
+            <RolModulCubugu
+              moduller={moduller}
+              aktif={aktifModul?.prefix ?? ''}
+              onDegistir={setAktifModulPrefix}
             />
           </section>
+
+          {aktifModul ? (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+                Yetki Matrisi — {aktifModul.ad}
+              </h2>
+              <RolMatrisi
+                roller={taslakRoller}
+                yetkiler={yetkiTanimlari}
+                aktifModul={aktifModul}
+                duzenlenebilir={duzenlenebilir}
+                onYetkiToggle={yetkiToggle}
+              />
+            </section>
+          ) : null}
 
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -211,6 +223,7 @@ export function RollerSayfasiEski() {
             </h2>
             <RolKartlari
               roller={taslakRoller}
+              moduller={moduller}
               seciliKod={seciliRolKod}
               duzenlenebilir={duzenlenebilir}
               onSec={rolSec}

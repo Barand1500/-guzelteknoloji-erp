@@ -88,7 +88,7 @@ export function DepoSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
-  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
   const [kayitlar, setKayitlar] = useState<AdminDepo[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');

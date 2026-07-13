@@ -629,6 +629,153 @@ button.ap-roller-yetki-hucre:hover {
   color: var(--ap-muted);
 }
 
+/* Sayfa (modül) seçici */
+.ap-roller-modul-sarmal {
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 1rem;
+}
+
+.ap-roller-modul-sarmal::-webkit-scrollbar {
+  display: none;
+}
+
+.ap-roller-modul-cubugu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.3rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 12%, var(--ap-border));
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--ap-surface-2) 70%, var(--ap-surface)) 0%,
+      color-mix(in srgb, var(--ap-surface-2) 40%, var(--ap-surface)) 100%
+    );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent);
+  isolation: isolate;
+  min-width: min(100%, max-content);
+}
+
+.ap-roller-modul-gosterge {
+  position: absolute;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  left: 0;
+  border-radius: 0.6rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ap-accent) 72%, #1e293b) 0%,
+    color-mix(in srgb, var(--ap-accent) 58%, #0f172a) 100%
+  );
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--ap-accent) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent);
+  transition:
+    transform 0.44s cubic-bezier(0.34, 1.45, 0.64, 1),
+    width 0.4s cubic-bezier(0.34, 1.25, 0.64, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ap-roller-modul-sekme {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.42rem 0.75rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.ap-roller-modul-sekme:hover {
+  transform: translateY(-1px);
+}
+
+.ap-roller-modul-sekme--aktif {
+  color: #fff;
+}
+
+.ap-roller-modul-ikon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.ap-roller-modul-metin {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-roller-modul-baslik-kapsul {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 14%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 5%, var(--ap-surface));
+}
+
+.ap-roller-modul-baslik-ikon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.ap-roller-modul-baslik-ad {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.ap-roller-modul-baslik-kategori {
+  font-size: 0.7rem;
+  color: var(--ap-muted);
+  margin-top: 0.1rem;
+}
+
+.ap-roller-modul-ozet-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.ap-roller-modul-ozet-satir {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.ap-roller-modul-ozet-ad {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.ap-roller-modul-ozet-yetkiler {
+  font-size: 0.62rem;
+  color: var(--ap-muted);
+  line-height: 1.35;
+}
+
+.ap-roller-kart-sayi--uyari {
+  color: color-mix(in srgb, #f59e0b 80%, var(--ap-text));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ap-roller-icerik,
   .ap-roller-kirli-banner,

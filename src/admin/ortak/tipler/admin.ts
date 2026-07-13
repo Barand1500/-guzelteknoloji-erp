@@ -21,6 +21,7 @@ export interface AuthKullanici {
   rol: string;
   tercihler?: KullaniciTercihleri;
   yetkiler?: import('@/admin/baslat-menusu/musteri-ajans/roller/api').YetkiKodu[];
+  yetkilerModul?: Record<string, import('@/admin/baslat-menusu/musteri-ajans/roller/api').YetkiKodu[]>;
   oturum?: OturumBilgisi;
 }
 

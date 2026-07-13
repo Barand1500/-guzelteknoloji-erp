@@ -72,7 +72,7 @@ export function FirmaSekme({
 } = {}) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
   const [kayitlar, setKayitlar] = useState<AdminFirma[]>([]);
   const [form, setForm] = useState<FirmaFormDegeri>(bosFirmaForm);
   const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');

@@ -139,34 +139,60 @@ const TAM_YETKI_GEREKTIREN_MODULLER = new Set(['kullanicilar', 'roller']);
 export function modulMenuGorunurMu(
   modulId: string,
   aktifPrefixler: Set<string> | null | undefined,
-  kullaniciYonetimiErisimiVar = true
+  kullaniciYonetimiErisimiVar = true,
+  kullaniciModulYetkileri?: Record<string, string[]> | null,
+  kullaniciRol = ''
 ): boolean {
   if (TAM_YETKI_GEREKTIREN_MODULLER.has(modulId) && !kullaniciYonetimiErisimiVar) return false;
+
+  const prefix = modulIdDenPrefix(modulId);
+  if (kullaniciModulYetkileri && Object.keys(kullaniciModulYetkileri).length > 0) {
+    if (kullaniciRol.trim().toUpperCase() !== 'SUPER_ADMIN') {
+      const modulYetkiler = kullaniciModulYetkileri[prefix];
+      if (!modulYetkiler?.includes('goruntuleme')) return false;
+    }
+  } else if (!PANEL_ALTYAPI_MODUL_IDLERI.has(modulId)) {
+    if (!aktifPrefixler) return true;
+    if (!aktifPrefixler.has(prefix)) return false;
+  }
+
   if (PANEL_ALTYAPI_MODUL_IDLERI.has(modulId)) return true;
   if (!aktifPrefixler) return true;
-  return aktifPrefixler.has(modulIdDenPrefix(modulId));
+  return aktifPrefixler.has(prefix);
 }
 
 export function modulleriMenuyeGoreFiltrele(
   moduller: AdminModul[],
   aktifPrefixler: Set<string> | null | undefined,
-  kullaniciYonetimiErisimiVar = true
+  kullaniciYonetimiErisimiVar = true,
+  kullaniciModulYetkileri?: Record<string, string[]> | null,
+  kullaniciRol = ''
 ): AdminModul[] {
   return moduller.filter((m) =>
-    modulMenuGorunurMu(m.id, aktifPrefixler, kullaniciYonetimiErisimiVar)
+    modulMenuGorunurMu(
+      m.id,
+      aktifPrefixler,
+      kullaniciYonetimiErisimiVar,
+      kullaniciModulYetkileri,
+      kullaniciRol
+    )
   );
 }
 
 export function modulAra(
   terim: string,
   aktifPrefixler?: Set<string> | null,
-  kullaniciYonetimiErisimiVar = true
+  kullaniciYonetimiErisimiVar = true,
+  kullaniciModulYetkileri?: Record<string, string[]> | null,
+  kullaniciRol = ''
 ): AdminModul[] {
   const q = terim.toLowerCase().trim();
   const kaynak = modulleriMenuyeGoreFiltrele(
     adminModulleri,
     aktifPrefixler,
-    kullaniciYonetimiErisimiVar
+    kullaniciYonetimiErisimiVar,
+    kullaniciModulYetkileri,
+    kullaniciRol
   );
   if (!q) return kaynak;
   return kaynak.filter(

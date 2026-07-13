@@ -8,6 +8,7 @@ import { prisma } from '../lib/prisma.js';
 export interface AuthRequest extends Request {
   kullanici?: Kullanici;
   yetkiler?: string[];
+  yetkilerModul?: Record<string, string[]>;
   mockOturum?: { kullaniciKodu: string };
 }
 
@@ -35,7 +36,9 @@ export async function authZorunlu(req: AuthRequest, res: Response, next: NextFun
     }
 
     req.kullanici = kullanici;
-    req.yetkiler = await kullaniciYetkileriAl(kullanici);
+    const yetkiPaket = await kullaniciYetkileriAl(kullanici);
+    req.yetkiler = yetkiPaket.birlesik;
+    req.yetkilerModul = yetkiPaket.modul;
     next();
   } catch {
     return res.status(401).json({ mesaj: 'Oturum gecersiz' });

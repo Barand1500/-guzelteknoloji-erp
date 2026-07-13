@@ -105,7 +105,7 @@ export function SubeSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { firmaBagliPasifMi } = useTanimFirmaDurumu();
-  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler();
+  const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
   const [kayitlar, setKayitlar] = useState<AdminSube[]>([]);
   const [firmalar, setFirmalar] = useState<AdminFirma[]>([]);
   const [seciliFirmaId, setSeciliFirmaId] = useState('');

@@ -64,7 +64,7 @@ function SayiAlani({ etiket, deger, onChange }: { etiket: string; deger: number;
 
 export function MaliyetlerSayfasi() {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler();
+  const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('maliyetler');
   const [kayitlar, setKayitlar] = useState<AdminMaliyet[]>([]);
   const [birimler, setBirimler] = useState<AdminBirim[]>([]);
   const [form, setForm] = useState<MaliyetForm>(bosMaliyetForm);
