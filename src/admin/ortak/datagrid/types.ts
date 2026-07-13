@@ -69,6 +69,8 @@ export interface HizliGirisKolonu {
   birlesik?: { kolonId: string; placeholder?: string }[];
   /** Birleşik hücrede kaç sütun kaplanır (stokKodu+urun gibi) */
   colspan?: number;
+  /** true ise birleşik alanlar yatay değil dikey dizilir */
+  birlesikDikey?: boolean;
   /** colspan kullanıldığında ana metin alanının kolonId'si */
   anaAlan?: string;
   /** Yanında + butonu ile modal açılır */

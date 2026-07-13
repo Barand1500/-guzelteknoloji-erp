@@ -1280,7 +1280,7 @@ export function DataGrid<TRow extends { id: string }>({
       const birlesikAktif = Boolean(birlesikAlanlar?.length) && !kolonSabit;
 
       if (birlesikAktif && birlesikAlanlar && girisAyar) {
-        const yatayYigin = birlesikAlanlar.length <= 2;
+        const yatayYigin = !girisAyar.birlesikDikey && birlesikAlanlar.length <= 2;
         return [
           <td
             key={kolon.id}

@@ -1195,7 +1195,6 @@ button.ap-tanimlar-sihirbaz-faz {
 }
 
 .ap-tanimlar-mod-sekme:hover {
-  color: var(--ap-heading);
   transform: translateY(-1px);
 }
 
@@ -1209,6 +1208,10 @@ button.ap-tanimlar-sihirbaz-faz {
 }
 
 .ap-tanimlar-mod-sekme--aktif {
+  color: #fff;
+}
+
+.ap-tanimlar-mod-sekme--aktif:hover {
   color: #fff;
 }
 

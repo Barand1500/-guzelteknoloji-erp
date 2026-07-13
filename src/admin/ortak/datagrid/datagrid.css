@@ -2353,13 +2353,16 @@
 
 .dg-duzenle-alt--genis .dg-duzenle-btn--kaydet {
   border: none;
-  background: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 82%, #000);
   color: #fff;
-  box-shadow: -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent);
+  box-shadow:
+    -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent);
 }
 
 .dg-duzenle-alt--genis .dg-duzenle-btn--kaydet:hover:not(:disabled) {
-  filter: brightness(1.05);
+  background: color-mix(in srgb, var(--ap-accent) 72%, #000);
+  filter: none;
 }
 
 .dg-duzenle-alt--genis .dg-duzenle-btn:disabled {
@@ -2394,15 +2397,17 @@
 }
 
 .dg-duzenle-btn--kaydet {
-  border: 1px solid var(--ap-accent);
-  background: var(--ap-accent);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 82%, #000);
+  background: color-mix(in srgb, var(--ap-accent) 82%, #000);
   color: #fff;
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ap-accent) 28%, transparent);
 }
 
 .dg-duzenle-btn--kaydet:hover {
-  filter: brightness(1.05);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--ap-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--ap-accent) 72%, #000);
+  border-color: color-mix(in srgb, var(--ap-accent) 72%, #000);
+  filter: none;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--ap-accent) 32%, transparent);
 }
 
 .admin-panel[data-tema='koyu'] .dg-duzenle-btn--kaydet {

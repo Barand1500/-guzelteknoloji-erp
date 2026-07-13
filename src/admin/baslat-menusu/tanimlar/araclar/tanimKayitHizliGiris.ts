@@ -48,8 +48,14 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
   switch (tip) {
     case 'firma':
       return [
-        { kolonId: 'firmaKodu', placeholder: 'Firma kodu' },
-        { kolonId: 'firmaAdi', placeholder: 'Firma adı' },
+        {
+          kolonId: 'firmaKoduAdi',
+          birlesikDikey: true,
+          birlesik: [
+            { kolonId: 'firmaKodu', placeholder: 'Firma kodu' },
+            { kolonId: 'firmaAdi', placeholder: 'Firma adı' },
+          ],
+        },
         { kolonId: 'vergiDairesi', placeholder: 'Vergi dairesi' },
         { kolonId: 'vergiNo', placeholder: 'Vergi no', ipucu: '10 haneli vergi no' },
         DURUM_GIRIS,

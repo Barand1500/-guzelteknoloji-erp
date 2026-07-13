@@ -430,26 +430,34 @@ export function TanimKayitlarOzeti() {
     return [
       secimKolonu<AdminFirma>(),
       {
-        id: 'firmaKodu',
-        baslik: 'Firma Kodu',
+        id: 'firmaKoduAdi',
+        baslik: 'Firma Kodu/Adı',
         tip: 'metin',
-        genislik: 110,
-        minGenislik: 90,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (f) => f.firmaKodu,
-        goster: (f) => <span className="dg-urun-kodu-alt">{f.firmaKodu || '—'}</span>,
-      },
-      {
-        id: 'firmaAdi',
-        baslik: 'Firma Adı',
-        tip: 'metin',
-        genislik: 200,
+        genislik: 240,
         minGenislik: 140,
         zorunlu: true,
         siralama: true,
-        degerAl: (f) => f.firmaAdi,
-        goster: (f) => <span className="dg-urun-adi-ust">{f.firmaAdi || '—'}</span>,
+        degerAl: (f) => `${f.firmaKodu} ${f.firmaAdi}`,
+        siralamaDegeri: (f) => `${f.firmaKodu} ${f.firmaAdi}`,
+        goster: (f) => {
+          const ad = f.firmaAdi?.trim() ?? '';
+          const kod = f.firmaKodu?.trim() ?? '';
+          const ikili = Boolean(ad && kod && ad.toLowerCase() !== kod.toLowerCase());
+
+          if (!ad && !kod) return <>—</>;
+
+          if (ikili) {
+            return (
+              <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
+                <span className="dg-urun-kodu-alt">{kod}</span>
+                <span className="dg-urun-adi-ust">{ad}</span>
+              </div>
+            );
+          }
+
+          if (kod && !ad) return <span className="dg-urun-kodu-alt">{kod}</span>;
+          return <span className="dg-urun-adi-ust">{ad || kod}</span>;
+        },
       },
       {
         id: 'vergiDairesi',
@@ -738,12 +746,12 @@ export function TanimKayitlarOzeti() {
     if (konum.seviye === 'firmalar') {
       return (
         <DataGrid
-          key="tanimlar_kayitlar_firmalar_v5"
+          key="tanimlar_kayitlar_firmalar_v6"
           {...gridOrtak}
           tabloBaslik="Tanım Kayıtları"
           kolonlar={firmaKolonlari}
           satirlar={firmalar}
-          depolamaAnahtari="tanimlar_kayitlar_firmalar_v5"
+          depolamaAnahtari="tanimlar_kayitlar_firmalar_v6"
           bosMesaj="Henüz firma tanımı yok"
           satirSinifAdi={(f) => (!f.aktif ? 'dg-satir--pasif' : undefined)}
           onSatirTikla={(f) => setKonum({ seviye: 'firma', firmaId: f.id, sekme: 'subeler' })}

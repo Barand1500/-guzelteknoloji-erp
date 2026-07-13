@@ -6,6 +6,8 @@ interface AnimasyonluKenarlikProps {
   ustYaricap?: number;
 }
 
+const OLCUM_MAX_DENEME = 20;
+
 function sekmeKenarlikYoluOlustur(genislik: number, yukseklik: number, ustYaricap: number) {
   const r = Math.min(ustYaricap, genislik / 2 - 1, yukseklik * 0.45);
   const p = 1;
@@ -43,9 +45,20 @@ export function AnimasyonluKenarlik({
     const el = kapsayiciRef.current;
     if (!el) return;
 
+    let iptal = false;
+    let denemeRaf: number | null = null;
+
+    const animasyonuSabitle = () => {
+      if (iptal) return;
+      ilkAnimRef.current = false;
+      setAnimBitti(true);
+    };
+
     const guncelle = () => {
+      if (iptal) return false;
+
       const { width, height } = el.getBoundingClientRect();
-      if (width < 2 || height < 2) return;
+      if (width < 2 || height < 2) return false;
 
       const yeniYol = sekmeKenarlikYoluOlustur(width, height, ustYaricap);
       setBoyut({ w: width, h: height });
@@ -55,19 +68,44 @@ export function AnimasyonluKenarlik({
       } else {
         setYol(yeniYol);
       }
+      return true;
     };
 
-    guncelle();
-    const raf = requestAnimationFrame(() => requestAnimationFrame(guncelle));
-    const ro = new ResizeObserver(guncelle);
+    const guncelleTekrarla = (deneme = 0) => {
+      if (iptal) return;
+      if (guncelle()) return;
+      if (deneme >= OLCUM_MAX_DENEME) return;
+      denemeRaf = requestAnimationFrame(() => guncelleTekrarla(deneme + 1));
+    };
+
+    const olcumTetikle = () => guncelleTekrarla();
+
+    guncelleTekrarla();
+
+    const ro = new ResizeObserver(olcumTetikle);
     ro.observe(el);
-    window.addEventListener('resize', guncelle);
+    window.addEventListener('resize', olcumTetikle);
+
+    const animZamanlayici = window.setTimeout(() => {
+      if (!iptal) animasyonuSabitle();
+    }, 800);
+
     return () => {
-      cancelAnimationFrame(raf);
+      iptal = true;
+      if (denemeRaf !== null) cancelAnimationFrame(denemeRaf);
+      window.clearTimeout(animZamanlayici);
       ro.disconnect();
-      window.removeEventListener('resize', guncelle);
+      window.removeEventListener('resize', olcumTetikle);
     };
   }, [kapsayiciRef, animasyonAnahtar, ustYaricap]);
+
+  useLayoutEffect(() => {
+    if (!yol) return;
+    if (typeof window === 'undefined') return;
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    ilkAnimRef.current = false;
+    setAnimBitti(true);
+  }, [yol]);
 
   if (!yol || boyut.w < 2) return null;
 

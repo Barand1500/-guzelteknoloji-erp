@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback, type DragEvent, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback, type DragEvent, type MouseEvent } from 'react';
 import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 import { modulBul } from '@/admin/veri/adminMenuYapisi';
 import {
@@ -372,6 +372,23 @@ export function UstSekmeCubugu({
     () => sekmeler.map((s) => `${s.id}:${s.grupId ?? ''}:${s.kaydedilmedi ? 1 : 0}`).join('|'),
     [sekmeler]
   );
+
+  // Hard refresh sonrası sekme ölçümü gecikebilir; kenarlık animasyonunu yeniden tetikle
+  useLayoutEffect(() => {
+    if (!aktifSekmeId || baslatMenuAcik || sekmeler.length === 0) return;
+
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setKenarlikAnimKey((n) => n + 1));
+    });
+    const zamanlayici = window.setTimeout(() => setKenarlikAnimKey((n) => n + 1), 80);
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+      window.clearTimeout(zamanlayici);
+    };
+  }, [baslatMenuAcik, sekmeListeAnahtari, sekmeler.length]);
 
   const kaydirmaGuncelle = useCallback(() => {
     const el = scrollRef.current;

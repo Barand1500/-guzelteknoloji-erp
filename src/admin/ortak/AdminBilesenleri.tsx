@@ -15,7 +15,7 @@ export function AdminModulKabuk({
   baslik,
   aciklama,
   children,
-  onizleGoster = true,
+  onizleGoster = false,
   ustAksiyon,
 }: AdminModulKabukProps) {
   return (
