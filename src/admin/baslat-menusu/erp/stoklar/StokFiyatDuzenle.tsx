@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { sayiFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { useYetkiler } from '@/kancalar/useYetkiler';
 import {
   digerFiyatlariHesapla,
   fiyatDuzenleCarpanYaz,
@@ -23,6 +24,7 @@ import {
   type StokFiyatDuzenleSatir,
 } from './fiyatDuzenleTipler';
 import { stokFiyatBarkodUret, stokFiyatDuzenleOrnekVeri } from './fiyatDuzenleVeri';
+import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import type { AdminStok } from './tipler';
 
 function fiyatPbKolon(
@@ -152,11 +154,23 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
 export function StokFiyatDuzenle({
   stok,
   onGeri,
+  onYeni,
+  onDuzenle,
+  onIncele,
+  onGorunumDuzenle,
+  onGorunumKaydet,
 }: {
   stok: AdminStok;
   onGeri: () => void;
+  onYeni: () => void;
+  onDuzenle: () => void;
+  onIncele: () => void;
+  onGorunumDuzenle?: () => void;
+  onGorunumKaydet?: () => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { eklemeVar, duzenlemeVar } = useYetkiler('stoklar');
+  const tabloRef = useRef<HTMLDivElement | null>(null);
   const [satirlar, setSatirlar] = useState(() => stokFiyatDuzenleOrnekVeri(stok));
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [isaretliAlan, setIsaretliAlan] = useState<IsaretliFiyatAlani>('satisFiyati1');
@@ -207,7 +221,18 @@ export function StokFiyatDuzenle({
           <div className="stok-fiyat-duzenle-icerik">
             <p className="stok-fiyat-duzenle-bolum-baslik">Fiyat Listesi</p>
 
-            <div className="stok-fiyat-duzenle-tablo stok-fiyat-duzenle-tablo--sayfa">
+            <div ref={tabloRef} className="stok-fiyat-duzenle-tablo stok-fiyat-duzenle-tablo--sayfa dg-demo-sag-tik-alan">
+              <StoklarSagTikMenu
+                konteynerRef={tabloRef}
+                eklemeVar={eklemeVar}
+                duzenlemeVar={duzenlemeVar}
+                onYeni={onYeni}
+                onDuzenle={() => onDuzenle()}
+                onIncele={() => onIncele()}
+                onSatirSec={(id) => setSeciliIdler([id])}
+                onGorunumDuzenle={onGorunumDuzenle ?? (() => undefined)}
+                onGorunumKaydet={onGorunumKaydet ?? (() => undefined)}
+              />
               <DataGrid
                 key={`stok_fiyat_duzenle_${stok.id}`}
                 tabloBaslik="Fiyat Listesi"
@@ -253,11 +278,6 @@ export function StokFiyatDuzenle({
                   />
                   <span>Yeni fiyatlara barkodu otomatik yaz</span>
                 </label>
-              </div>
-              <div className="stok-fiyat-duzenle-alt-sag">
-                <button type="button" className="ap-tanimlar-duzenle-geri" onClick={onGeri}>
-                  Kapat
-                </button>
               </div>
             </div>
           </div>

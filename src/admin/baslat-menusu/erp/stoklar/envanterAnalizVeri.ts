@@ -8,7 +8,12 @@ import type {
 export function stokEnvanterAnalizOrnekVeri(stok: AdminStok): StokEnvanterAnalizSatir[] {
   const kod = stok.urunKodu || 'STOK';
   const seed = kod.split('').reduce((n, c) => n + c.charCodeAt(0), 0);
-  const envanterMerkez = 8 + (seed % 12);
+  const envanterMerkez = 18 + (seed % 20);
+  const envanterIst = 6 + (seed % 9);
+  const envanterAnk = 3 + (seed % 7);
+  const envanterIzmir = seed % 5;
+  const envanterDepo2 = 4 + (seed % 6);
+  const envanterServis = 1 + (seed % 3);
 
   return [
     {
@@ -16,24 +21,68 @@ export function stokEnvanterAnalizOrnekVeri(stok: AdminStok): StokEnvanterAnaliz
       depoInd: 1,
       depoKodu: 'MERKEZ',
       envanter: envanterMerkez,
-      siparisMiktari: seed % 5,
-      kullanilabilir: Math.max(0, envanterMerkez - (seed % 3)),
-      altSeviye: 2,
-      ustSeviye: 50,
-      optimumSeviye: 15,
+      siparisMiktari: 2 + (seed % 5),
+      kullanilabilir: Math.max(0, envanterMerkez - (seed % 4)),
+      altSeviye: 5,
+      ustSeviye: 80,
+      optimumSeviye: 25,
     },
     {
       id: `${stok.id}-depo-2`,
       depoInd: 2,
       depoKodu: 'DEPO-2',
-      envanter: seed % 4,
-      siparisMiktari: 0,
-      kullanilabilir: seed % 4,
-      altSeviye: 0,
-      ustSeviye: 20,
-      optimumSeviye: 5,
+      envanter: envanterDepo2,
+      siparisMiktari: seed % 3,
+      kullanilabilir: Math.max(0, envanterDepo2 - (seed % 2)),
+      altSeviye: 2,
+      ustSeviye: 30,
+      optimumSeviye: 10,
     },
-  ].filter((s) => s.envanter > 0 || s.depoInd === 1);
+    {
+      id: `${stok.id}-depo-3`,
+      depoInd: 3,
+      depoKodu: 'ŞUBE-İST',
+      envanter: envanterIst,
+      siparisMiktari: 1,
+      kullanilabilir: Math.max(0, envanterIst - 1),
+      altSeviye: 3,
+      ustSeviye: 40,
+      optimumSeviye: 12,
+    },
+    {
+      id: `${stok.id}-depo-4`,
+      depoInd: 4,
+      depoKodu: 'ŞUBE-ANK',
+      envanter: envanterAnk,
+      siparisMiktari: 0,
+      kullanilabilir: envanterAnk,
+      altSeviye: 2,
+      ustSeviye: 25,
+      optimumSeviye: 8,
+    },
+    {
+      id: `${stok.id}-depo-5`,
+      depoInd: 5,
+      depoKodu: 'ŞUBE-İZMİR',
+      envanter: envanterIzmir,
+      siparisMiktari: envanterIzmir === 0 ? 4 : 0,
+      kullanilabilir: envanterIzmir,
+      altSeviye: 1,
+      ustSeviye: 20,
+      optimumSeviye: 6,
+    },
+    {
+      id: `${stok.id}-depo-6`,
+      depoInd: 6,
+      depoKodu: 'SERVİS',
+      envanter: envanterServis,
+      siparisMiktari: 0,
+      kullanilabilir: envanterServis,
+      altSeviye: 0,
+      ustSeviye: 10,
+      optimumSeviye: 2,
+    },
+  ];
 }
 
 export function stokEnvanterFiyatBilgisiOrnek(stok: AdminStok): StokEnvanterFiyatBilgisi {
