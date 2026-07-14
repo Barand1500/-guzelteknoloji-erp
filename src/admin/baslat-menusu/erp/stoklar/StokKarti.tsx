@@ -15,10 +15,6 @@ import {
 } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
 import { birimleriGetir, stokGuncelle, stokOlustur, stoklariGetir } from './api';
 import {
-  STOK_SON_EKLENENLER_MOCK,
-  type StokSonEklenen,
-} from './stokSonEklenenlerMock';
-import {
   STOK_KART_SEKMELERI,
   bosStokForm,
   type AdminStok,
@@ -26,6 +22,16 @@ import {
   type StokKartModu,
   type StokKartSekmeId,
 } from './tipler';
+
+const SON_EKLENEN_LIMIT = 10;
+
+/** En son eklenen kayıtlardan son 10'u (en yeni en üstte). */
+function sonEklenenleriHazirla(kayitlar: AdminStok[]): AdminStok[] {
+  const tarihMs = (t?: string) => (t ? Date.parse(t) || 0 : 0);
+  return [...kayitlar]
+    .sort((a, b) => tarihMs(b.olusturma) - tarihMs(a.olusturma))
+    .slice(0, SON_EKLENEN_LIMIT);
+}
 
 const stoktenForm = (s: AdminStok): StokForm => ({
   ustId: s.ustId,
@@ -81,9 +87,9 @@ export function StokKarti({
   const [aktifSekme, setAktifSekme] = useState<StokKartSekmeId>('stok-bilgileri');
   const [sonEklenenSeciliId, setSonEklenenSeciliId] = useState<string | null>(null);
 
-  const sonEklenenler = STOK_SON_EKLENENLER_MOCK;
+  const sonEklenenler = useMemo(() => sonEklenenleriHazirla(kayitlar), [kayitlar]);
 
-  const sonEklenenFormaAktar = useCallback((oge: StokSonEklenen) => {
+  const sonEklenenFormaAktar = useCallback((oge: AdminStok) => {
     setSonEklenenSeciliId(oge.id);
     setForm({
       ustId: '',
@@ -280,35 +286,70 @@ export function StokKarti({
     </TanimFormBolum>
   );
 
+  const stokTipiAlan = (
+    <label className="ap-tanimlar-secim-alan block">
+      <span className="ap-tanim-girdi-etiket">
+        Stok Tipi <span>*</span>
+      </span>
+      <FormAcilirSecim
+        value={form.urunTipi}
+        onChange={(urunTipi) => setForm((f) => ({ ...f, urunTipi }))}
+        secenekler={URUN_TIPLERI.map((x) => ({ ...x }))}
+      />
+    </label>
+  );
+
+  const stokNeviAlan = (
+    <label className="ap-tanimlar-secim-alan block">
+      <span className="ap-tanim-girdi-etiket">Stok Nevi</span>
+      <FormAcilirSecim
+        value={form.urunNevi}
+        onChange={(urunNevi) => setForm((f) => ({ ...f, urunNevi }))}
+        secenekler={[{ value: '', label: 'Seçilmedi' }, ...URUN_NEVILERI.map((x) => ({ ...x }))]}
+      />
+    </label>
+  );
+
+  const ustUrunAlan = (
+    <label className="ap-tanimlar-secim-alan block">
+      <span className="ap-tanim-girdi-etiket">Üst Ürün</span>
+      <FormAcilirSecim
+        value={form.ustId}
+        onChange={(ustId) => setForm((f) => ({ ...f, ustId }))}
+        secenekler={ustUrunSecenekleri}
+      />
+    </label>
+  );
+
+  /** Yeni ekleme ekranında en üstte, diğer bölümlerle aynı tasarım */
+  const ustUrunBolum = (
+    <TanimFormBolum baslik="Üst Ürün">
+      <label className="ap-tanimlar-secim-alan block">
+        <span className="ap-tanim-girdi-etiket">Bağlı olduğu üst ürün</span>
+        <FormAcilirSecim
+          value={form.ustId}
+          onChange={(ustId) => setForm((f) => ({ ...f, ustId }))}
+          secenekler={ustUrunSecenekleri}
+        />
+      </label>
+    </TanimFormBolum>
+  );
+
   const siniflandirma = (
     <TanimFormBolum baslik="Sınıflandırma">
       <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-        <label className="ap-tanimlar-secim-alan block">
-          <span className="ap-tanim-girdi-etiket">
-            Stok Tipi <span>*</span>
-          </span>
-          <FormAcilirSecim
-            value={form.urunTipi}
-            onChange={(urunTipi) => setForm((f) => ({ ...f, urunTipi }))}
-            secenekler={URUN_TIPLERI.map((x) => ({ ...x }))}
-          />
-        </label>
-        <label className="ap-tanimlar-secim-alan block">
-          <span className="ap-tanim-girdi-etiket">Stok Nevi</span>
-          <FormAcilirSecim
-            value={form.urunNevi}
-            onChange={(urunNevi) => setForm((f) => ({ ...f, urunNevi }))}
-            secenekler={[{ value: '', label: 'Seçilmedi' }, ...URUN_NEVILERI.map((x) => ({ ...x }))]}
-          />
-        </label>
-        <label className="ap-tanimlar-secim-alan block">
-          <span className="ap-tanim-girdi-etiket">Üst Ürün</span>
-          <FormAcilirSecim
-            value={form.ustId}
-            onChange={(ustId) => setForm((f) => ({ ...f, ustId }))}
-            secenekler={ustUrunSecenekleri}
-          />
-        </label>
+        {stokTipiAlan}
+        {stokNeviAlan}
+        {ustUrunAlan}
+      </div>
+    </TanimFormBolum>
+  );
+
+  const siniflandirmaSade = (
+    <TanimFormBolum baslik="Sınıflandırma">
+      <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+        {stokTipiAlan}
+        {stokNeviAlan}
       </div>
     </TanimFormBolum>
   );
@@ -390,36 +431,56 @@ export function StokKarti({
             <div className="stok-yeni-duzen">
               <aside className="stok-yeni-sol" aria-label="En son eklenenler">
                 <div className="stok-yeni-sol-baslik">
-                  <h4>En Son Eklenenler</h4>
-                  <span>{sonEklenenler.length}</span>
+                  <div className="stok-yeni-sol-baslik-metin">
+                    <h4>En Son Eklenenler</h4>
+                    <p>Şablon olarak kullanmak için seçin</p>
+                  </div>
+                  <span className="stok-yeni-sol-sayac">{sonEklenenler.length}</span>
                 </div>
-                <ul className="stok-yeni-sol-liste">
-                  {sonEklenenler.map((oge) => {
-                    const secili = oge.id === sonEklenenSeciliId;
-                    return (
-                      <li key={oge.id}>
-                        <button
-                          type="button"
-                          className={`stok-yeni-sol-oge${secili ? ' stok-yeni-sol-oge--secili' : ''}`}
-                          onClick={() => sonEklenenFormaAktar(oge)}
-                        >
-                          <span className="stok-yeni-sol-kod">{oge.urunKodu}</span>
-                          <span className="stok-yeni-sol-ad">{oge.urunAdi}</span>
-                          <span className="stok-yeni-sol-meta">
-                            {oge.urunTipi}
-                            {oge.olusturma ? ` · ${tarihSaatFormatla(oge.olusturma)}` : ''}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+                {sonEklenenler.length === 0 ? (
+                  <div className="stok-yeni-sol-bos">
+                    <span className="stok-yeni-sol-bos-ikon" aria-hidden>📦</span>
+                    <p>Henüz stok kartı eklenmemiş.</p>
+                    <span>Kaydettiğiniz kartlar burada listelenir.</span>
+                  </div>
+                ) : (
+                  <ul className="stok-yeni-sol-liste">
+                    {sonEklenenler.map((oge) => {
+                      const secili = oge.id === sonEklenenSeciliId;
+                      return (
+                        <li key={oge.id}>
+                          <button
+                            type="button"
+                            className={`stok-yeni-sol-oge${secili ? ' stok-yeni-sol-oge--secili' : ''}`}
+                            onClick={() => sonEklenenFormaAktar(oge)}
+                          >
+                            <span className="stok-yeni-sol-kod">{oge.urunKodu}</span>
+                            <span className="stok-yeni-sol-ad">{oge.urunAdi}</span>
+                            <span className="stok-yeni-sol-meta">
+                              <span className="stok-yeni-sol-tip">{oge.urunTipi}</span>
+                              {oge.olusturma ? (
+                                <span className="stok-yeni-sol-tarih">{tarihSaatFormatla(oge.olusturma)}</span>
+                              ) : null}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </aside>
 
-              <div className="stok-yeni-sag">
+              <div className="stok-yeni-sag ap-scroll">
+                <div className="stok-yeni-sag-baslik">
+                  <div>
+                    <h3>Stok Kartı Bilgileri</h3>
+                    <p>Zorunlu alanları doldurun; soldaki listeden bir kaydı şablon olarak seçebilirsiniz.</p>
+                  </div>
+                </div>
                 <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
+                  {ustUrunBolum}
                   {anaTanimlar}
-                  {siniflandirma}
+                  {siniflandirmaSade}
                   {birimlerBolum}
                   {ekstraBolum}
                 </fieldset>
