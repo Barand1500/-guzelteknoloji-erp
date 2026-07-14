@@ -85,6 +85,12 @@
   min-height: 0;
 }
 
+/* overflow:hidden + border-radius ust kose kesmesin */
+.dg-urun-slayt-tablo > .dg-demo-sayfa:has(.stoklar-liste-ara-cubugu) {
+  padding: 0.625rem 0.625rem 0;
+  box-sizing: border-box;
+}
+
 .dg-urun-slayt-sonuc {
   position: absolute;
   inset: 0;
