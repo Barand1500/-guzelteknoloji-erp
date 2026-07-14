@@ -62,28 +62,24 @@ rsync -a --delete "$SITE/repo/frontend/" "$SITE/frontend/"
 log_success "Frontend hazır ve taşındı."
 
 # 3. BACKEND BUILD
-log_info "Backend hazırlanıyor..."
+log_info "Backend hazirlaniyor..."
 cd "$SITE/repo/backend"
 
-# Build icin devDependencies gerekli; onceki deploy prune sonrasi eksik kalabilir
-if [ -n "$DEPS_CHANGED" ] || [ ! -f "node_modules/typescript/bin/tsc" ]; then
-    log_warn "Backend bagimliliklari yukleniyor, dev paketler dahil"
-    npm ci --quiet
-else
-    log_success "Backend bağımlılıkları güncel."
-fi
+# Build her zaman tam devDependencies ile yapilir; repo build alani prune edilmez
+npm ci --quiet
 npm run build
 
-# Gereksiz geliştirici paketlerini temizle
-log_info "Gereksiz geliştirici paketleri (devDependencies) temizleniyor..."
-npm prune --omit=dev --quiet
-
-# Optimize edilmiş backend'i canlı klasöre taşı
-log_info "Optimize edilmiş backend canlı klasörüne senkronize ediliyor..."
+# Canli klasore kod ve dist tasinir; node_modules ayri kurulur
+log_info "Backend canli klasore senkronize ediliyor..."
 rsync -a --delete \
   --exclude='.env' \
   --exclude='uploads' \
+  --exclude='node_modules' \
   "$SITE/repo/backend/" "$SITE/backend/"
+
+cd "$SITE/backend"
+log_info "Canli backend production bagimliliklari kuruluyor..."
+npm ci --omit=dev --quiet
 
 # 4. DATABASE SENKRONİZASYONU
 log_info "Veritabanı işlemleri..."
