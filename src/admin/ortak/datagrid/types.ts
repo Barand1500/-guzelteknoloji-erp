@@ -100,6 +100,7 @@ export interface DataGridApi {
   hizliGirisOdakla: () => void;
   hizliGirisKapat: () => void;
   seciliIdler: () => string[];
+  secimAyarla: (idler: string[]) => void;
 }
 
 export interface DataGridProps<TRow extends { id: string }> {

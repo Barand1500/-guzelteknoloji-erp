@@ -56,7 +56,6 @@ const STOK_CUBUK: AksiyonButonu[] = [
   A('kaydet', 'Kaydet', false),
   A('ekle', 'Yeni', false),
   A('guncelle', 'Düzenle', false),
-  A('onizle', 'İncele', false),
   A('stokAra', 'Ara', false),
   A('stokFiyatAnaliz', 'Fiyat Analiz', false),
   A('stokEnvanterAnaliz', 'Envanter Analiz', false),
@@ -95,7 +94,6 @@ const MODUL_AKSIYON_YETKI: Partial<Record<string, Partial<Record<AksiyonId, Yetk
     kaydet: 'duzenleme',
     ekle: 'ekleme',
     guncelle: 'duzenleme',
-    onizle: 'goruntuleme',
     stokAra: 'goruntuleme',
     stokFiyatAnaliz: 'goruntuleme',
     stokEnvanterAnaliz: 'goruntuleme',
@@ -126,7 +124,11 @@ export function useAksiyonCubugu(modulId: string) {
 
     return temel.map((aksiyon) => {
       const dinamik = aksiyonDurumlari[aksiyon.id as AksiyonId];
-      const etiket = t(`aksiyon.${aksiyon.id}`, aksiyon.etiket);
+      const modulEtiket = t(`aksiyon.${aksiyon.id}.${modulId}`, '');
+      const etiket =
+        modulEtiket && modulEtiket !== `aksiyon.${aksiyon.id}.${modulId}`
+          ? modulEtiket
+          : t(`aksiyon.${aksiyon.id}`, aksiyon.etiket);
       const guncel = { ...aksiyon, etiket };
 
       const yetkiKodu = modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id];

@@ -9,6 +9,7 @@ interface TanimDuzenleEkraniProps {
   altBaslik?: string;
   kod?: string;
   ustEtiket?: string;
+  rozet?: string;
   olusturma?: string;
   guncelleme?: string;
   onGeri: () => void;
@@ -23,6 +24,7 @@ export function TanimDuzenleEkrani({
   baslik,
   altBaslik,
   ustEtiket = 'Kayıt düzenle',
+  rozet = 'Düzenle',
   olusturma,
   guncelleme,
   onGeri,
@@ -71,7 +73,7 @@ export function TanimDuzenleEkrani({
             </div>
           ) : null}
         </div>
-        <span className="ap-tanimlar-duzenle-rozet">Düzenle</span>
+        <span className="ap-tanimlar-duzenle-rozet">{rozet}</span>
       </header>
       <div className="ap-tanimlar-duzenle-govde">{children}</div>
     </div>

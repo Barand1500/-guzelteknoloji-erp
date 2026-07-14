@@ -776,11 +776,12 @@ export function DataGrid<TRow extends { id: string }>({
         hizliGirisSifirla();
       },
       seciliIdler: () => [...dg.seciliIdler],
+      secimAyarla: (idler) => dg.tumunuSec(idler, idler.length > 0),
     };
     return () => {
       gridApiRef.current = null;
     };
-  }, [gridApiRef, satirlar, dg.seciliIdler, satirDuzenlePaneli, hizliGirisIstegeBagli, hizliGirisSifirla]);
+  }, [gridApiRef, satirlar, dg.seciliIdler, dg.tumunuSec, satirDuzenlePaneli, hizliGirisIstegeBagli, hizliGirisSifirla]);
 
   const topluDurum = (aktif: boolean) => {
     if (!onSatirlarDegistir) return;
