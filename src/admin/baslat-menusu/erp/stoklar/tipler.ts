@@ -10,6 +10,8 @@ export interface StokGelismisFiltre {
   urunKodu: string;
   sinifGrup: string;
   urunAdi: string;
+  /** '' = tümü, 'aktif' = yalnız aktif, 'pasif' = yalnız pasif */
+  durum: string;
 }
 
 export const bosStokGelismisFiltre = (): StokGelismisFiltre => ({
@@ -17,6 +19,7 @@ export const bosStokGelismisFiltre = (): StokGelismisFiltre => ({
   urunKodu: '',
   sinifGrup: '',
   urunAdi: '',
+  durum: '',
 });
 
 export type StokKartModu = 'yeni' | 'duzenle' | 'incele';

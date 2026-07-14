@@ -331,23 +331,26 @@ export function StoklarSayfasi() {
     return [
       secimKolonu(),
       {
-        id: 'urunTipi',
-        baslik: 'Stok Tipi',
+        id: 'stokTipiKodu',
+        baslik: 'Stok Kodu/Tipi',
         tip: 'metin',
-        genislik: 100,
-        siralama: true,
-        degerAl: (s) => s.urunTipi,
-      },
-      {
-        id: 'urunKodu',
-        baslik: 'Stok Kodu',
-        tip: 'metin',
-        genislik: 120,
-        minGenislik: 90,
+        genislik: 150,
+        minGenislik: 110,
         zorunlu: true,
         siralama: true,
-        degerAl: (s) => s.urunKodu,
-        goster: (s) => <span className="dg-urun-kodu-alt">{s.urunKodu || '—'}</span>,
+        degerAl: (s) => `${s.urunKodu} ${s.urunTipi}`,
+        siralamaDegeri: (s) => `${s.urunKodu} ${s.urunTipi}`,
+        goster: (s) => {
+          const kod = s.urunKodu?.trim() ?? '';
+          const tip = s.urunTipi?.trim() ?? '';
+          if (!kod && !tip) return <>—</>;
+          return (
+            <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
+              {kod ? <span className="dg-urun-kodu-alt">{kod}</span> : null}
+              {tip ? <span className="dg-urun-adi-ust">{tip}</span> : null}
+            </div>
+          );
+        },
       },
       {
         id: 'sinifGrup',
@@ -483,14 +486,14 @@ export function StoklarSayfasi() {
                       onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
                     />
                     <DataGrid
-                      key="stoklar_kayitlar_v1"
+                      key="stoklar_kayitlar_v2"
                       tabloBaslik="Stoklar"
                       tabloAltBaslik="Arama sonuçları"
                       yukleniyor={false}
                       gridApiRef={gridApiRef}
                       kolonlar={kolonlar}
                       satirlar={filtrelenmis}
-                      depolamaAnahtari="stoklar_kayitlar_v1"
+                      depolamaAnahtari="stoklar_kayitlar_v2"
                       bosMesaj="Aramanızla eşleşen stok bulunamadı. Yeni ile stok kartı ekleyebilirsiniz."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => stokSatirSec(s.id)}

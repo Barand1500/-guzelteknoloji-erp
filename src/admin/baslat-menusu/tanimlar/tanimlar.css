@@ -2672,11 +2672,216 @@ button.ap-tanimlar-panel-arka {
   letter-spacing: 0.04em;
 }
 
+/* Gelişmiş Stok Arama — site geneli modal diliyle uyumlu */
+.stok-gelismis-arama {
+  position: fixed;
+  inset: 0;
+  z-index: 10040;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.stok-gelismis-arama-perde {
+  position: absolute;
+  inset: 0;
+  border: none;
+  cursor: default;
+  background: color-mix(in srgb, #0f172a 52%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: stok-gelismis-belir 0.2s ease;
+}
+
+@keyframes stok-gelismis-belir {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.stok-gelismis-arama .ap-accent-donen-cerceve--stok-arama {
+  --cerceve-yaricap: 1rem;
+  width: min(33rem, calc(100vw - 2rem));
+}
+
+.ap-accent-donen-cerceve--stok-arama .erp-donen-cerceve-icerik {
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+.stok-gelismis-arama-kart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: min(90vh, 44rem);
+  background: var(--ap-surface);
+  overflow: hidden;
+  animation: stok-gelismis-giris 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes stok-gelismis-giris {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.stok-gelismis-arama-kart-baslik {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-shrink: 0;
+  padding: 0.9rem 1.1rem 0.8rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ap-accent) 11%, var(--ap-surface)),
+    var(--ap-surface)
+  );
+}
+
+.stok-gelismis-arama-ikon {
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  color: color-mix(in srgb, var(--ap-accent) 84%, #ffffff);
+  background: color-mix(in srgb, var(--ap-accent) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 55%, transparent);
+}
+
+.stok-gelismis-arama-kart-baslik-metin {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.stok-gelismis-arama-kart-etiket {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ap-heading);
+}
+
+.stok-gelismis-arama-kart-alt {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--ap-text-muted);
+}
+
+.stok-gelismis-arama-kart-alt strong {
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.stok-gelismis-arama-temizle {
+  flex-shrink: 0;
+  align-self: center;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.5rem;
+  background: var(--ap-surface);
+  color: var(--ap-text-muted);
+  padding: 0.32rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    color 0.14s ease,
+    background 0.14s ease;
+}
+
+.stok-gelismis-arama-temizle:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
+}
+
+.stok-gelismis-arama-govde {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.05rem 1.1rem;
+}
+
+.stok-gelismis-arama-tam {
+  grid-column: 1 / -1;
+}
+
+.stok-gelismis-arama-aksiyonlar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex-shrink: 0;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  background: var(--ap-surface);
+}
+
+.stok-gelismis-arama-tus {
+  appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ap-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.7rem 1.2rem 0.78rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  line-height: 1.2;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.stok-gelismis-arama-tus + .stok-gelismis-arama-tus {
+  box-shadow: -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.stok-gelismis-arama-tus--iptal:hover {
+  background: color-mix(in srgb, var(--ap-hover) 62%, transparent);
+}
+
+.stok-gelismis-arama-tus--onay {
+  color: #ffffff;
+  background: color-mix(in srgb, var(--ap-accent) 84%, #000000);
+}
+
+.stok-gelismis-arama-tus--onay:hover {
+  background: var(--ap-accent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ap-tanimlar-liste-ekran,
   .ap-tanimlar-sihirbaz,
   .ap-tanimlar-sihirbaz-govde,
   .ap-tanimlar-duzenle {
+    animation: none !important;
+  }
+
+  .stok-gelismis-arama-perde,
+  .stok-gelismis-arama-kart {
     animation: none !important;
   }
 }

@@ -1,6 +1,9 @@
 import { useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
+import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { URUN_TIPLERI } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
 import type { StokGelismisFiltre } from './tipler';
 
@@ -13,6 +16,12 @@ interface StokGelismisAramaProps {
   sonucSayisi: number;
 }
 
+const DURUM_SECENEKLERI = [
+  { value: '', label: 'Tümü' },
+  { value: 'aktif', label: 'Aktif' },
+  { value: 'pasif', label: 'Pasif' },
+];
+
 export function StokGelismisArama({
   acik,
   filtre,
@@ -24,80 +33,134 @@ export function StokGelismisArama({
   const klavyeIsle = useCallback(
     (e: KeyboardEvent) => {
       if (!acik) return;
+      // Bir açılır liste (combobox) açıkken Esc/Enter'ı ona bırak
+      const acilirListeVar = Boolean(document.querySelector('.ap-form-acilir-secim-liste'));
       if (e.key === 'Escape') {
+        if (acilirListeVar) return;
         e.preventDefault();
         onKapat();
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const hedef = e.target as HTMLElement | null;
+        if (acilirListeVar || hedef?.closest('.ap-form-acilir-secim')) return;
+        e.preventDefault();
+        onUygula();
       }
     },
-    [acik, onKapat]
+    [acik, onKapat, onUygula]
   );
 
   useEffect(() => {
     if (!acik) return;
     window.addEventListener('keydown', klavyeIsle);
-    return () => window.removeEventListener('keydown', klavyeIsle);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', klavyeIsle);
+      document.body.style.overflow = '';
+    };
   }, [acik, klavyeIsle]);
 
   if (!acik) return null;
 
-  return (
-    <div className="dg-urun-slayt-sonuc dg-urun-slayt-sonuc--acik" role="dialog" aria-label="Gelişmiş stok arama">
-      <div className="dg-urun-arama">
-        <header className="dg-urun-arama-baslik">
-          <div className="dg-urun-arama-baslik-sol">
-            <p className="dg-urun-arama-etiket">Gelişmiş Stok Arama</p>
-            <p className="dg-urun-arama-adet">{sonucSayisi} sonuç</p>
-          </div>
-          <button type="button" className="dg-urun-arama-geri" onClick={onKapat} aria-label="Kapat">
-            ESC
-          </button>
-        </header>
+  const portalKok = document.querySelector('.admin-panel') ?? document.body;
 
-        <div className="ap-tanimlar-bolum-icerik p-4">
-          <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-            <label className="ap-tanimlar-secim-alan block">
-              <span className="ap-tanim-girdi-etiket">Stok Tipi</span>
-              <FormAcilirSecim
-                value={filtre.urunTipi}
-                onChange={(urunTipi) => onFiltreDegistir({ ...filtre, urunTipi })}
-                secenekler={[{ value: '', label: 'Tümü' }, ...URUN_TIPLERI.map((x) => ({ ...x }))]}
-              />
-            </label>
-            <TanimGirdi
-              etiket="Stok Kodu"
-              deger={filtre.urunKodu}
-              maxLength={30}
-              onChange={(urunKodu) => onFiltreDegistir({ ...filtre, urunKodu })}
-            />
-            <TanimGirdi
-              etiket="Sınıf Grup"
-              deger={filtre.sinifGrup}
-              maxLength={50}
-              onChange={(sinifGrup) => onFiltreDegistir({ ...filtre, sinifGrup })}
-            />
-            <TanimGirdi
-              etiket="Stok Adı"
-              deger={filtre.urunAdi}
-              maxLength={255}
-              onChange={(urunAdi) => onFiltreDegistir({ ...filtre, urunAdi })}
-            />
-          </div>
-          <div className="mt-4 flex gap-2 justify-end">
+  return createPortal(
+    <div
+      className="stok-gelismis-arama"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Gelişmiş stok arama"
+    >
+      <div className="stok-gelismis-arama-perde" aria-hidden="true" />
+      <DonenAccentCerceve className="ap-accent-donen-cerceve--stok-arama">
+        <div className="stok-gelismis-arama-kart">
+          <header className="stok-gelismis-arama-kart-baslik">
+            <span className="stok-gelismis-arama-ikon" aria-hidden>
+              ⌕
+            </span>
+            <div className="stok-gelismis-arama-kart-baslik-metin">
+              <h3 className="stok-gelismis-arama-kart-etiket">Gelişmiş Stok Arama</h3>
+              <p className="stok-gelismis-arama-kart-alt">
+                <strong>{sonucSayisi}</strong> sonuç eşleşiyor
+              </p>
+            </div>
             <button
               type="button"
-              className="ap-tanimlar-duzenle-geri"
+              className="stok-gelismis-arama-temizle"
               onClick={() =>
-                onFiltreDegistir({ urunTipi: '', urunKodu: '', sinifGrup: '', urunAdi: '' })
+                onFiltreDegistir({
+                  urunTipi: '',
+                  urunKodu: '',
+                  sinifGrup: '',
+                  urunAdi: '',
+                  durum: '',
+                })
               }
             >
               Temizle
             </button>
-            <button type="button" className="ap-tanimlar-yeni-ekle" onClick={onUygula}>
-              Uygula
+          </header>
+
+          <div className="stok-gelismis-arama-govde">
+            <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
+              <label className="ap-tanimlar-secim-alan block">
+                <span className="ap-tanim-girdi-etiket">Stok Tipi</span>
+                <FormAcilirSecim
+                  value={filtre.urunTipi}
+                  onChange={(urunTipi) => onFiltreDegistir({ ...filtre, urunTipi })}
+                  secenekler={[{ value: '', label: 'Tümü' }, ...URUN_TIPLERI.map((x) => ({ ...x }))]}
+                />
+              </label>
+              <label className="ap-tanimlar-secim-alan block">
+                <span className="ap-tanim-girdi-etiket">Durum</span>
+                <FormAcilirSecim
+                  value={filtre.durum}
+                  onChange={(durum) => onFiltreDegistir({ ...filtre, durum })}
+                  secenekler={DURUM_SECENEKLERI}
+                />
+              </label>
+              <TanimGirdi
+                etiket="Stok Kodu"
+                deger={filtre.urunKodu}
+                maxLength={30}
+                onChange={(urunKodu) => onFiltreDegistir({ ...filtre, urunKodu })}
+              />
+              <TanimGirdi
+                etiket="Sınıf Grup"
+                deger={filtre.sinifGrup}
+                maxLength={50}
+                onChange={(sinifGrup) => onFiltreDegistir({ ...filtre, sinifGrup })}
+              />
+              <TanimGirdi
+                etiket="Stok Adı"
+                deger={filtre.urunAdi}
+                maxLength={255}
+                onChange={(urunAdi) => onFiltreDegistir({ ...filtre, urunAdi })}
+                className="stok-gelismis-arama-tam"
+              />
+            </div>
+          </div>
+
+          <div className="stok-gelismis-arama-aksiyonlar">
+            <button
+              type="button"
+              className="stok-gelismis-arama-tus stok-gelismis-arama-tus--iptal"
+              onClick={onKapat}
+            >
+              <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
+            </button>
+            <button
+              type="button"
+              className="stok-gelismis-arama-tus stok-gelismis-arama-tus--onay"
+              onClick={onUygula}
+            >
+              <ModalTusIcerik metin="Uygula" kisayol="Enter" />
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </DonenAccentCerceve>
+    </div>,
+    portalKok
   );
 }

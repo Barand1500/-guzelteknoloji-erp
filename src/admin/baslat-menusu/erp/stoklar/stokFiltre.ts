@@ -18,13 +18,15 @@ export function stoklariFiltrele(
     if (gelismis.urunAdi.trim()) {
       if (!s.urunAdi.toLowerCase().includes(gelismis.urunAdi.trim().toLowerCase())) return false;
     }
+    if (gelismis.durum === 'aktif' && !s.aktif) return false;
+    if (gelismis.durum === 'pasif' && s.aktif) return false;
     // sinifGrup: placeholder — DB alanı yok, filtre şimdilik yok sayılır
     return true;
   });
 }
 
 export function gelismisFiltreAktifMi(f: StokGelismisFiltre): boolean {
-  return Boolean(f.urunTipi || f.urunKodu.trim() || f.sinifGrup.trim() || f.urunAdi.trim());
+  return Boolean(f.urunTipi || f.urunKodu.trim() || f.sinifGrup.trim() || f.urunAdi.trim() || f.durum);
 }
 
 export function stokAramaKriteriVarMi(metin: string, gelismis: StokGelismisFiltre): boolean {

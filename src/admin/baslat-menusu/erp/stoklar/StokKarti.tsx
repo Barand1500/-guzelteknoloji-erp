@@ -6,6 +6,8 @@ import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimM
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
+import { FormAramaSecim } from '@/formlar/FormAramaSecim';
+import { MIN_ULKE_ARAMA_UZUNLUGU, ulkeAra } from '@/veri/ulkeler';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import {
@@ -386,12 +388,17 @@ export function StokKarti({
           maxLength={100}
           onChange={(marka) => setForm((f) => ({ ...f, marka }))}
         />
-        <TanimGirdi
-          etiket="Menşei"
-          deger={form.mensei}
-          maxLength={50}
-          onChange={(mensei) => setForm((f) => ({ ...f, mensei }))}
-        />
+        <label className="ap-tanim-girdi block">
+          <span className="ap-tanim-girdi-etiket">Menşei</span>
+          <FormAramaSecim
+            value={form.mensei}
+            onChange={(mensei) => setForm((f) => ({ ...f, mensei }))}
+            secenekAra={ulkeAra}
+            minAramaUzunlugu={MIN_ULKE_ARAMA_UZUNLUGU}
+            placeholder="Ülke yazın…"
+            aria-label="Menşei"
+          />
+        </label>
       </div>
     </TanimFormBolum>
   );
