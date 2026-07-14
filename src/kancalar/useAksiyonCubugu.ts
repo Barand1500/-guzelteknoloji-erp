@@ -91,7 +91,7 @@ const MODUL_AKSIYON_YETKI: Partial<Record<string, Partial<Record<AksiyonId, Yetk
     sil: 'silme',
   },
   stoklar: {
-    kaydet: 'duzenleme',
+    // kaydet yetkisi durumlar icinde (yeni=ekleme, duzenle=duzenleme) kontrol edilir
     ekle: 'ekleme',
     guncelle: 'duzenleme',
     stokAra: 'goruntuleme',
@@ -131,7 +131,11 @@ export function useAksiyonCubugu(modulId: string) {
           : t(`aksiyon.${aksiyon.id}`, aksiyon.etiket);
       const guncel = { ...aksiyon, etiket };
 
-      const yetkiKodu = modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id];
+      // Stok Kaydet: modulYetki'de yoksa global duzenleme zorunlulugu uygulama (durumlar yeter)
+      const yetkiKodu =
+        aksiyon.id === 'kaydet' && modulId === 'stoklar'
+          ? undefined
+          : (modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id]);
       const yetkiUygun = !yetkiKodu || yetkiVar(yetkiKodu);
       const temelAktif = dinamik !== undefined ? dinamik : aksiyon.aktif;
 

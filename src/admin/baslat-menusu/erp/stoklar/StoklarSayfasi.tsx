@@ -104,6 +104,22 @@ export function StoklarSayfasi() {
 
   const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
 
+  /** Liste secimi veya alt ekrandaki stok — aksiyon cubugu baglami */
+  const baglamStokId =
+    tekSeciliId ??
+    aktifStokId ??
+    fiyatAnalizStok?.id ??
+    envanterAnalizStok?.id ??
+    birimListesiStok?.id ??
+    fiyatDuzenleStok?.id ??
+    null;
+
+  const stokBul = useCallback(
+    (id: string) =>
+      kayitlar.find((k) => k.id === id) ?? filtrelenmis.find((k) => k.id === id) ?? null,
+    [filtrelenmis, kayitlar]
+  );
+
   const stokSatirSec = useCallback((satirId: string) => {
     gridApiRef.current?.secimAyarla([satirId]);
   }, []);
@@ -128,7 +144,7 @@ export function StoklarSayfasi() {
 
   const duzenleAc = useCallback(
     (satirId?: string) => {
-      const hedefId = satirId ?? tekSeciliId;
+      const hedefId = satirId ?? baglamStokId;
       if (!duzenlemeVar) return;
       if (!hedefId) {
         hataBildir('Düzenlemek için bir stok satırı seçin.');
@@ -139,14 +155,14 @@ export function StoklarSayfasi() {
       setAktifStokId(hedefId);
       setGorunum('kart');
     },
-    [duzenlemeVar, hataBildir, tekSeciliId]
+    [baglamStokId, duzenlemeVar, hataBildir]
   );
 
   const sagTikDuzenle = useCallback(
     (satirId: string) => {
-      stokSatirSec(satirId);
+      duzenleAc(satirId);
     },
-    [stokSatirSec]
+    [duzenleAc]
   );
 
   const placeholderBildir = useCallback(
@@ -157,74 +173,94 @@ export function StoklarSayfasi() {
   );
 
   const fiyatAnalizAc = useCallback(() => {
-    if (!tekSeciliId) {
+    const hedefId = baglamStokId;
+    if (!hedefId) {
       hataBildir('Fiyat analizi için bir stok satırı seçin.');
       return;
     }
-    const stok =
-      kayitlar.find((k) => k.id === tekSeciliId) ?? filtrelenmis.find((k) => k.id === tekSeciliId);
-    if (!stok) {
+    if (gorunum === 'fiyatAnaliz' && fiyatAnalizStok?.id === hedefId) return;
+    const stok = stokBul(hedefId) ?? fiyatAnalizStok;
+    if (!stok || stok.id !== hedefId) {
       hataBildir('Seçili stok bulunamadı.');
       return;
     }
+    setSeciliIdler([hedefId]);
     setFiyatAnalizStok(stok);
     setGorunum('fiyatAnaliz');
-  }, [filtrelenmis, hataBildir, kayitlar, tekSeciliId]);
+  }, [baglamStokId, fiyatAnalizStok, gorunum, hataBildir, stokBul]);
 
   const envanterAnalizAc = useCallback(() => {
-    if (!tekSeciliId) {
+    const hedefId = baglamStokId;
+    if (!hedefId) {
       hataBildir('Envanter analizi için bir stok satırı seçin.');
       return;
     }
-    const stok =
-      kayitlar.find((k) => k.id === tekSeciliId) ?? filtrelenmis.find((k) => k.id === tekSeciliId);
-    if (!stok) {
+    if (gorunum === 'envanterAnaliz' && envanterAnalizStok?.id === hedefId) return;
+    const stok = stokBul(hedefId) ?? envanterAnalizStok;
+    if (!stok || stok.id !== hedefId) {
       hataBildir('Seçili stok bulunamadı.');
       return;
     }
+    setSeciliIdler([hedefId]);
     setEnvanterAnalizStok(stok);
     setGorunum('envanterAnaliz');
-  }, [filtrelenmis, hataBildir, kayitlar, tekSeciliId]);
+  }, [baglamStokId, envanterAnalizStok, gorunum, hataBildir, stokBul]);
 
   const birimListesiAc = useCallback(() => {
-    if (!tekSeciliId) {
+    const hedefId = baglamStokId;
+    if (!hedefId) {
       hataBildir('Birim listesi için bir stok satırı seçin.');
       return;
     }
-    const stok =
-      kayitlar.find((k) => k.id === tekSeciliId) ?? filtrelenmis.find((k) => k.id === tekSeciliId);
-    if (!stok) {
+    if (gorunum === 'birimListesi' && birimListesiStok?.id === hedefId) return;
+    const stok = stokBul(hedefId) ?? birimListesiStok;
+    if (!stok || stok.id !== hedefId) {
       hataBildir('Seçili stok bulunamadı.');
       return;
     }
+    setSeciliIdler([hedefId]);
     setBirimListesiStok(stok);
     setGorunum('birimListesi');
-  }, [filtrelenmis, hataBildir, kayitlar, tekSeciliId]);
+  }, [baglamStokId, birimListesiStok, gorunum, hataBildir, stokBul]);
 
   const fiyatDuzenleAc = useCallback(() => {
     if (!duzenlemeVar) return;
-    if (!tekSeciliId) {
+    const hedefId = baglamStokId;
+    if (!hedefId) {
       hataBildir('Fiyat düzenlemek için bir stok satırı seçin.');
       return;
     }
-    const stok =
-      kayitlar.find((k) => k.id === tekSeciliId) ?? filtrelenmis.find((k) => k.id === tekSeciliId);
-    if (!stok) {
+    if (gorunum === 'fiyatDuzenle' && fiyatDuzenleStok?.id === hedefId) return;
+    const stok = stokBul(hedefId) ?? fiyatDuzenleStok;
+    if (!stok || stok.id !== hedefId) {
       hataBildir('Seçili stok bulunamadı.');
       return;
     }
+    setSeciliIdler([hedefId]);
     setFiyatDuzenleStok(stok);
     setGorunum('fiyatDuzenle');
-  }, [duzenlemeVar, filtrelenmis, hataBildir, kayitlar, tekSeciliId]);
+  }, [baglamStokId, duzenlemeVar, fiyatDuzenleStok, gorunum, hataBildir, stokBul]);
 
   const kaydet = useCallback(async () => {
-    await kaydetRef.current?.();
-  }, []);
+    if (!kaydetRef.current) {
+      hataBildir('Kayıt formu henüz hazır değil.');
+      throw new Error('Kayıt formu henüz hazır değil.');
+    }
+    await kaydetRef.current();
+  }, [hataBildir]);
 
   const gelismisAraAc = useCallback(() => {
     setGelismisTaslak(gelismisFiltre);
     setGelismisAcik(true);
   }, [gelismisFiltre]);
+
+  const araAksiyon = useCallback(() => {
+    if (gorunum !== 'liste') {
+      listeyeDon();
+      return;
+    }
+    gelismisAraAc();
+  }, [gelismisAraAc, gorunum, listeyeDon]);
 
   const aramaSonuclariniGoster = useCallback(() => {
     setSeciliIdler([]);
@@ -252,32 +288,31 @@ export function StoklarSayfasi() {
     aramaSonuclariniGoster();
   }, [aramaSonuclariniGoster, filtreMetni, gelismisTaslak]);
 
+  const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
+  const stokSecili = Boolean(baglamStokId);
+
   useModulAksiyonlari(
     {
-      kaydet: gorunum === 'kart' && kartModu !== 'incele' ? () => void kaydet() : undefined,
-      ekle: gorunum === 'liste' ? yeniAc : undefined,
-      guncelle: gorunum === 'liste' ? () => duzenleAc() : undefined,
-      stokAra: gorunum === 'liste' ? gelismisAraAc : undefined,
-      stokFiyatAnaliz: gorunum === 'liste' ? fiyatAnalizAc : undefined,
-      stokEnvanterAnaliz: gorunum === 'liste' ? envanterAnalizAc : undefined,
-      stokBirimListesi: gorunum === 'liste' ? birimListesiAc : undefined,
-      stokFiyatDuzenle: gorunum === 'liste' ? fiyatDuzenleAc : undefined,
+      kaydet: kartFormu ? () => kaydet() : undefined,
+      ekle: eklemeVar ? yeniAc : undefined,
+      guncelle: duzenlemeVar ? () => duzenleAc(baglamStokId ?? undefined) : undefined,
+      stokAra: araAksiyon,
+      stokFiyatAnaliz: fiyatAnalizAc,
+      stokEnvanterAnaliz: envanterAnalizAc,
+      stokBirimListesi: birimListesiAc,
+      stokFiyatDuzenle: fiyatDuzenleAc,
     },
     {
-      kaydet:
-        gorunum === 'kart' &&
-        kartModu !== 'incele' &&
-        kartKirli &&
-        (kartModu === 'yeni' ? eklemeVar : duzenlemeVar),
-      ekle: gorunum === 'liste' && eklemeVar,
-      guncelle: gorunum === 'liste' && duzenlemeVar,
-      stokAra: gorunum === 'liste',
-      stokFiyatAnaliz: gorunum === 'liste',
-      stokEnvanterAnaliz: gorunum === 'liste',
-      stokBirimListesi: gorunum === 'liste',
-      stokFiyatDuzenle: gorunum === 'liste' && duzenlemeVar,
+      kaydet: kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar),
+      ekle: eklemeVar,
+      guncelle: duzenlemeVar && stokSecili,
+      stokAra: true,
+      stokFiyatAnaliz: stokSecili,
+      stokEnvanterAnaliz: stokSecili,
+      stokBirimListesi: stokSecili,
+      stokFiyatDuzenle: duzenlemeVar && stokSecili,
     },
-    gorunum === 'kart' ? kartKirli : false
+    kartFormu ? kartKirli : false
   );
 
   const silOnayla = useCallback(async () => {
