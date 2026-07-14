@@ -54,7 +54,12 @@ import {
   bosRolSablonu,
   rolModulListesi,
   rolModulYetkiToggle,
+  rolModulYetkiTopluToggle,
   rollerEsitMi,
+  TUM_SAYFALAR_MODUL,
+  TUM_SAYFALAR_PREFIX,
+  tumSayfalarMi,
+  yetkiUygunPrefixler,
 } from '@/admin/baslat-menusu/musteri-ajans/roller/rolYardimci';
 
 import './roller.css';
@@ -143,8 +148,14 @@ export function RollerSayfasiYeni() {
 
   const yetkili = kullaniciModuluErisimiVar;
   const duzenlenebilir = kullaniciModuluErisimiVar;
+  const matrisModuller = useMemo(
+    () => (moduller.length ? [TUM_SAYFALAR_MODUL, ...moduller] : []),
+    [moduller]
+  );
   const aktifModul =
-    moduller.find((m) => m.prefix === aktifModulPrefix) ?? moduller[0] ?? null;
+    matrisModuller.find((m) => m.prefix === aktifModulPrefix) ??
+    matrisModuller[0] ??
+    null;
   const yetkiTanimlari = aktifModul ? modulYetkiListesi(aktifModul.prefix) : [];
 
   const degisti = !rollerEsitMi(taslakRoller, kayitliRoller);
@@ -229,7 +240,7 @@ export function RollerSayfasiYeni() {
 
       setModuller(liste);
 
-      setAktifModulPrefix((onceki) => onceki || liste[0]?.prefix || '');
+      setAktifModulPrefix((onceki) => onceki || TUM_SAYFALAR_PREFIX);
 
       setTaslakRoller(temiz);
 
@@ -309,21 +320,24 @@ export function RollerSayfasiYeni() {
 
 
 
-  const yetkiToggle = useCallback((rolKod: string, modulPrefix: string, yetkiKod: YetkiKodu) => {
-
-    setTaslakRoller((onceki) =>
-
-      onceki.map((rol) => {
-
-        if (rol.kod !== rolKod || korunmusRolMu(rol.kod)) return rol;
-
-        return rolModulYetkiToggle(rol, modulPrefix, yetkiKod);
-
-      })
-
-    );
-
-  }, []);
+  const yetkiToggle = useCallback(
+    (rolKod: string, modulPrefix: string, yetkiKod: YetkiKodu) => {
+      setTaslakRoller((onceki) =>
+        onceki.map((rol) => {
+          if (rol.kod !== rolKod || korunmusRolMu(rol.kod)) return rol;
+          if (tumSayfalarMi(modulPrefix)) {
+            return rolModulYetkiTopluToggle(
+              rol,
+              yetkiUygunPrefixler(yetkiKod, moduller),
+              yetkiKod
+            );
+          }
+          return rolModulYetkiToggle(rol, modulPrefix, yetkiKod);
+        })
+      );
+    },
+    [moduller]
+  );
 
 
 
@@ -633,12 +647,12 @@ export function RollerSayfasiYeni() {
 
                 baslik="Yetki Matrisi"
 
-                altBaslik="Sayfa seçin; ekle ile tablonun altına satır açılır. Yetkileri hücrelere tıklayarak işaretleyin."
+                altBaslik="Sayfa seçin veya Tüm sayfalar ile toplu yetki verin. Ekle ile tablonun altına satır açılır."
 
               >
 
                 <RolModulCubugu
-                  moduller={moduller}
+                  moduller={matrisModuller}
                   aktif={aktifModul?.prefix ?? ''}
                   onDegistir={setAktifModulPrefix}
                 />
@@ -651,6 +665,8 @@ export function RollerSayfasiYeni() {
                     yetkiler={yetkiTanimlari}
 
                     aktifModul={aktifModul}
+
+                    topluModuller={moduller}
 
                     duzenlenebilir={duzenlenebilir}
 

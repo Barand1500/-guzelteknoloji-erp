@@ -28,7 +28,12 @@ import {
   bosRolSablonu,
   rolModulListesi,
   rolModulYetkiToggle,
+  rolModulYetkiTopluToggle,
   rollerEsitMi,
+  TUM_SAYFALAR_MODUL,
+  TUM_SAYFALAR_PREFIX,
+  tumSayfalarMi,
+  yetkiUygunPrefixler,
 } from '@/admin/baslat-menusu/musteri-ajans/roller/rolYardimci';
 
 export function RollerSayfasiEski() {
@@ -49,8 +54,9 @@ export function RollerSayfasiEski() {
   const { kullaniciModuluErisimiVar } = useYetkiler();
   const yetkili = kullaniciModuluErisimiVar;
   const duzenlenebilir = kullaniciModuluErisimiVar;
+  const matrisModuller = moduller.length ? [TUM_SAYFALAR_MODUL, ...moduller] : [];
   const aktifModul =
-    moduller.find((m) => m.prefix === aktifModulPrefix) ?? moduller[0] ?? null;
+    matrisModuller.find((m) => m.prefix === aktifModulPrefix) ?? matrisModuller[0] ?? null;
   const yetkiTanimlari = aktifModul ? modulYetkiListesi(aktifModul.prefix) : [];
   const degisti = !rollerEsitMi(taslakRoller, kayitliRoller);
 
@@ -73,7 +79,7 @@ export function RollerSayfasiEski() {
       const prefixler = liste.map((m) => m.prefix);
       const temiz = rollerTemizle(veri.roller, prefixler);
       setModuller(liste);
-      setAktifModulPrefix((onceki) => onceki || liste[0]?.prefix || '');
+      setAktifModulPrefix((onceki) => onceki || TUM_SAYFALAR_PREFIX);
       setTaslakRoller(temiz);
       setKayitliRoller(temiz);
       kayitliRef.current = temiz;
@@ -92,14 +98,24 @@ export function RollerSayfasiEski() {
     void yukle();
   }, [yetkili]);
 
-  const yetkiToggle = useCallback((rolKod: string, modulPrefix: string, yetkiKod: YetkiKodu) => {
-    setTaslakRoller((onceki) =>
-      onceki.map((rol) => {
-        if (rol.kod !== rolKod || korunmusRolMu(rol.kod)) return rol;
-        return rolModulYetkiToggle(rol, modulPrefix, yetkiKod);
-      })
-    );
-  }, []);
+  const yetkiToggle = useCallback(
+    (rolKod: string, modulPrefix: string, yetkiKod: YetkiKodu) => {
+      setTaslakRoller((onceki) =>
+        onceki.map((rol) => {
+          if (rol.kod !== rolKod || korunmusRolMu(rol.kod)) return rol;
+          if (tumSayfalarMi(modulPrefix)) {
+            return rolModulYetkiTopluToggle(
+              rol,
+              yetkiUygunPrefixler(yetkiKod, moduller),
+              yetkiKod
+            );
+          }
+          return rolModulYetkiToggle(rol, modulPrefix, yetkiKod);
+        })
+      );
+    },
+    [moduller]
+  );
 
   const rolDuzenle = useCallback((kod: string, deger: { baslik: string; aciklama: string }) => {
     setTaslakRoller((onceki) =>
@@ -196,7 +212,7 @@ export function RollerSayfasiEski() {
               Sayfa Seçimi
             </h2>
             <RolModulCubugu
-              moduller={moduller}
+              moduller={matrisModuller}
               aktif={aktifModul?.prefix ?? ''}
               onDegistir={setAktifModulPrefix}
             />
@@ -211,6 +227,7 @@ export function RollerSayfasiEski() {
                 roller={taslakRoller}
                 yetkiler={yetkiTanimlari}
                 aktifModul={aktifModul}
+                topluModuller={moduller}
                 duzenlenebilir={duzenlenebilir}
                 onYetkiToggle={yetkiToggle}
               />

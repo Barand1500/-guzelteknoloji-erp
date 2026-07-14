@@ -40,8 +40,24 @@ export const GECERLI_YETKI_LISTESI: YetkiTanimi[] = GECERLI_YETKI_KODLARI.map((k
 /** Kullanıcı yönetimi yalnızca bu sayfalarda anlamlıdır */
 export const KULLANICI_YONETIMI_MODUL_PREFIXLERI = new Set(['kullanicilar', 'roller']);
 
+/** Yetki Matrisi — tüm sayfalara toplu uygulama sekmesi */
+export const TUM_SAYFALAR_PREFIX = '__tum_sayfalar__';
+
+export const TUM_SAYFALAR_MODUL: ModulTanimi = {
+  id: 'tum-sayfalar',
+  ad: 'Tüm sayfalar',
+  prefix: TUM_SAYFALAR_PREFIX,
+  ikon: '▦',
+  kategori: 'Toplu uygulama',
+  sira: -1,
+};
+
+export function tumSayfalarMi(prefix: string): boolean {
+  return prefix === TUM_SAYFALAR_PREFIX;
+}
+
 export function modulYetkiListesi(modulPrefix: string): YetkiTanimi[] {
-  if (KULLANICI_YONETIMI_MODUL_PREFIXLERI.has(modulPrefix)) {
+  if (tumSayfalarMi(modulPrefix) || KULLANICI_YONETIMI_MODUL_PREFIXLERI.has(modulPrefix)) {
     return GECERLI_YETKI_LISTESI;
   }
   return GECERLI_YETKI_LISTESI.filter((y) => y.kod !== 'kullanici_yonetimi');

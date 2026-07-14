@@ -1,10 +1,75 @@
 import { adminGizliModuller, adminModulleri, modulIdDenPrefix } from '@/admin/veri/adminMenuYapisi';
 import {
   gecerliYetkiMi,
+  KULLANICI_YONETIMI_MODUL_PREFIXLERI,
+  tumSayfalarMi,
   type ModulTanimi,
   type RolTanimi,
   type YetkiKodu,
 } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
+
+export { TUM_SAYFALAR_MODUL, TUM_SAYFALAR_PREFIX, tumSayfalarMi } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
+
+export type TopluYetkiDurumu = 'hepsi' | 'hicbiri' | 'karisik';
+
+/** Yetkinin uygulanabileceği sayfa prefix'leri (kullanıcı yönetimi yalnızca uygun sayfalar) */
+export function yetkiUygunPrefixler(yetkiKod: YetkiKodu, moduller: readonly ModulTanimi[]): string[] {
+  const gercek = moduller.filter((m) => !tumSayfalarMi(m.prefix));
+  if (yetkiKod === 'kullanici_yonetimi') {
+    return gercek
+      .filter((m) => KULLANICI_YONETIMI_MODUL_PREFIXLERI.has(m.prefix))
+      .map((m) => m.prefix);
+  }
+  return gercek.map((m) => m.prefix);
+}
+
+export function rolTopluYetkiDurumu(
+  rol: RolTanimi,
+  prefixes: readonly string[],
+  yetkiKod: YetkiKodu
+): TopluYetkiDurumu {
+  if (!prefixes.length) return 'hicbiri';
+  let varSayisi = 0;
+  for (const prefix of prefixes) {
+    if (rolModulYetkileri(rol, prefix).includes(yetkiKod)) varSayisi += 1;
+  }
+  if (varSayisi === 0) return 'hicbiri';
+  if (varSayisi === prefixes.length) return 'hepsi';
+  return 'karisik';
+}
+
+export function rolModulYetkiTopluAyarla(
+  rol: RolTanimi,
+  prefixes: readonly string[],
+  yetkiKod: YetkiKodu,
+  acik: boolean
+): RolTanimi {
+  const modulYetkileri: Record<string, YetkiKodu[]> = { ...(rol.modulYetkileri ?? {}) };
+
+  for (const prefix of prefixes) {
+    const mevcut = (modulYetkileri[prefix] ?? []).filter(gecerliYetkiMi);
+    const varMi = mevcut.includes(yetkiKod);
+    if (acik && !varMi) {
+      modulYetkileri[prefix] = [...mevcut, yetkiKod];
+    } else if (!acik && varMi) {
+      const yeni = mevcut.filter((y) => y !== yetkiKod);
+      if (yeni.length) modulYetkileri[prefix] = yeni;
+      else delete modulYetkileri[prefix];
+    }
+  }
+
+  return { ...rol, modulYetkileri };
+}
+
+/** Karışık / hiç → aç; hepsi → kapat — çakışmada tutarlı tek tık davranışı */
+export function rolModulYetkiTopluToggle(
+  rol: RolTanimi,
+  prefixes: readonly string[],
+  yetkiKod: YetkiKodu
+): RolTanimi {
+  const durum = rolTopluYetkiDurumu(rol, prefixes, yetkiKod);
+  return rolModulYetkiTopluAyarla(rol, prefixes, yetkiKod, durum !== 'hepsi');
+}
 
 export function rolModulListesi(moduller?: ModulTanimi[]): ModulTanimi[] {
   if (moduller?.length) {

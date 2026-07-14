@@ -330,6 +330,13 @@ button.ap-roller-yetki-hucre:hover {
   background: linear-gradient(135deg, #a855f7, #7c3aed);
 }
 
+.ap-roller-yetki-hucre--karisik {
+  border-color: color-mix(in srgb, #f59e0b 45%, var(--ap-border));
+  background: color-mix(in srgb, #f59e0b 16%, var(--ap-surface));
+  color: color-mix(in srgb, #d97706 75%, var(--ap-heading));
+  font-weight: 700;
+}
+
 .ap-roller-yetki-hucre--salt {
   opacity: 0.85;
 }
@@ -431,16 +438,17 @@ button.ap-roller-yetki-hucre:hover {
 /* Rol kartları */
 .ap-roller-kart-grid {
   display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(18.5rem, 1fr));
 }
 
 .ap-roller-kart {
   position: relative;
-  border-radius: 0.9rem;
+  border-radius: 1rem;
   border: 1px solid var(--ap-border);
   background: var(--ap-surface);
   overflow: hidden;
+  min-height: 11.5rem;
   transition:
     border-color 0.22s ease,
     box-shadow 0.22s ease,
@@ -516,9 +524,11 @@ button.ap-roller-yetki-hucre:hover {
 }
 
 .ap-roller-kart-icerik {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  padding: 1rem 2.5rem 0.9rem 1rem;
+  min-height: 100%;
+  padding: 1.15rem 2.6rem 1.05rem 1.15rem;
   text-align: left;
   border: none;
   background: transparent;
@@ -529,6 +539,12 @@ button.ap-roller-yetki-hucre:hover {
   cursor: default;
 }
 
+.ap-roller-kart-ust-blok {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
 .ap-roller-kart-ust {
   display: flex;
   align-items: flex-start;
@@ -537,8 +553,9 @@ button.ap-roller-yetki-hucre:hover {
 }
 
 .ap-roller-kart-baslik {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--ap-heading);
 }
 
@@ -563,68 +580,156 @@ button.ap-roller-yetki-hucre:hover {
 }
 
 .ap-roller-kart-aciklama {
-  margin-top: 0.45rem;
+  margin-top: 0.55rem;
   font-size: 0.8125rem;
   color: var(--ap-muted);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .ap-roller-kart-alt {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.75rem;
-  padding-top: 0.65rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: auto;
+  padding-top: 0.9rem;
   border-top: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
 }
 
-.ap-roller-yetki-etiket {
+.ap-roller-kart-yetki-satir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.ap-roller-kart-sayfa-satir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.ap-roller-kart-sayfa-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 999px;
-  font-size: 0.625rem;
-  font-weight: 600;
+  max-width: 100%;
+  padding: 0.28rem 0.55rem;
+  border-radius: 0.4rem;
   border: 1px solid var(--ap-border);
-  background: color-mix(in srgb, var(--ap-surface-2) 45%, var(--ap-surface));
-  color: var(--ap-muted);
+  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.ap-roller-kart-sayfa-chip--daha {
+  border-style: dashed;
+  color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-heading));
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
+}
+
+.ap-roller-yetki-etiket {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.3rem 0.65rem !important;
+  border-radius: 0.45rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2;
+  border: 1px solid var(--ap-border);
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Açık tema: koyu yazı + pastel zemin */
+.admin-panel[data-tema='acik'] .ap-roller-yetki-etiket--goruntuleme,
 .ap-roller-yetki-etiket--goruntuleme {
-  border-color: color-mix(in srgb, #3b82f6 30%, var(--ap-border));
-  color: #60a5fa;
-  background: color-mix(in srgb, #3b82f6 10%, var(--ap-surface));
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+  background: #dbeafe !important;
 }
 
+.admin-panel[data-tema='acik'] .ap-roller-yetki-etiket--ekleme,
 .ap-roller-yetki-etiket--ekleme {
-  border-color: color-mix(in srgb, #22c55e 30%, var(--ap-border));
-  color: #4ade80;
-  background: color-mix(in srgb, #22c55e 10%, var(--ap-surface));
+  border-color: #86efac !important;
+  color: #14532d !important;
+  background: #dcfce7 !important;
 }
 
+.admin-panel[data-tema='acik'] .ap-roller-yetki-etiket--duzenleme,
 .ap-roller-yetki-etiket--duzenleme {
-  border-color: color-mix(in srgb, #f59e0b 30%, var(--ap-border));
-  color: #fbbf24;
-  background: color-mix(in srgb, #f59e0b 10%, var(--ap-surface));
+  border-color: #fdba74 !important;
+  color: #9a3412 !important;
+  background: #ffedd5 !important;
 }
 
+.admin-panel[data-tema='acik'] .ap-roller-yetki-etiket--silme,
 .ap-roller-yetki-etiket--silme {
-  border-color: color-mix(in srgb, #ef4444 30%, var(--ap-border));
-  color: #f87171;
-  background: color-mix(in srgb, #ef4444 10%, var(--ap-surface));
+  border-color: #fca5a5 !important;
+  color: #7f1d1d !important;
+  background: #fee2e2 !important;
 }
 
+.admin-panel[data-tema='acik'] .ap-roller-yetki-etiket--kullanici_yonetimi,
 .ap-roller-yetki-etiket--kullanici_yonetimi {
-  border-color: color-mix(in srgb, #a855f7 30%, var(--ap-border));
-  color: #c084fc;
-  background: color-mix(in srgb, #a855f7 10%, var(--ap-surface));
+  border-color: #d8b4fe !important;
+  color: #581c87 !important;
+  background: #f3e8ff !important;
+}
+
+.admin-panel[data-tema='acik'] .ap-roller-kart-sayfa-chip {
+  color: #334155 !important;
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Koyu tema: açık yazı + koyu pastel zemin */
+.admin-panel[data-tema='koyu'] .ap-roller-yetki-etiket {
+  background: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+.admin-panel[data-tema='koyu'] .ap-roller-yetki-etiket--goruntuleme {
+  color: #93c5fd !important;
+  background: color-mix(in srgb, #3b82f6 28%, #1e293b) !important;
+  border-color: color-mix(in srgb, #60a5fa 50%, #475569) !important;
+}
+
+.admin-panel[data-tema='koyu'] .ap-roller-yetki-etiket--ekleme {
+  color: #86efac !important;
+  background: color-mix(in srgb, #22c55e 28%, #1e293b) !important;
+  border-color: color-mix(in srgb, #4ade80 50%, #475569) !important;
+}
+
+.admin-panel[data-tema='koyu'] .ap-roller-yetki-etiket--duzenleme {
+  color: #fcd34d !important;
+  background: color-mix(in srgb, #f59e0b 28%, #1e293b) !important;
+  border-color: color-mix(in srgb, #fbbf24 50%, #475569) !important;
+}
+
+.admin-panel[data-tema='koyu'] .ap-roller-yetki-etiket--silme {
+  color: #fca5a5 !important;
+  background: color-mix(in srgb, #ef4444 28%, #1e293b) !important;
+  border-color: color-mix(in srgb, #f87171 50%, #475569) !important;
+}
+
+.admin-panel[data-tema='koyu'] .ap-roller-yetki-etiket--kullanici_yonetimi {
+  color: #d8b4fe !important;
+  background: color-mix(in srgb, #a855f7 28%, #1e293b) !important;
+  border-color: color-mix(in srgb, #c084fc 50%, #475569) !important;
+}
+
+.admin-panel[data-tema='koyu'] .ap-roller-kart-sayfa-chip {
+  color: #e2e8f0 !important;
+  background: #334155 !important;
+  border-color: #475569 !important;
 }
 
 .ap-roller-kart-sayi {
-  margin-left: auto;
-  font-size: 0.6875rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--ap-muted);
 }
@@ -706,6 +811,11 @@ button.ap-roller-yetki-hucre:hover {
   color: #fff;
 }
 
+.ap-roller-modul-sekme--toplu .ap-roller-modul-metin {
+  max-width: none;
+  font-weight: 700;
+}
+
 .ap-roller-modul-ikon {
   font-size: 0.85rem;
   line-height: 1;
@@ -743,6 +853,11 @@ button.ap-roller-yetki-hucre:hover {
   font-size: 0.7rem;
   color: var(--ap-muted);
   margin-top: 0.1rem;
+}
+
+.ap-roller-modul-baslik-kapsul--toplu {
+  border-color: color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 9%, var(--ap-surface));
 }
 
 .ap-roller-modul-ozet-liste {

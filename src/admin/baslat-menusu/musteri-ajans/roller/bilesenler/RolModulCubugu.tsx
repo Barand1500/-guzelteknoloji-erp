@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import type { ModulTanimi } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
+import { tumSayfalarMi, type ModulTanimi } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
 
 interface RolModulCubuguProps {
   moduller: readonly ModulTanimi[];
@@ -58,6 +58,7 @@ export function RolModulCubugu({
         />
         {moduller.map((m) => {
           const secili = aktif === m.prefix;
+          const toplu = tumSayfalarMi(m.prefix);
           return (
             <button
               key={m.prefix}
@@ -67,8 +68,14 @@ export function RolModulCubugu({
               aria-selected={secili}
               tabIndex={secili ? 0 : -1}
               onClick={() => onDegistir(m.prefix)}
-              className={`ap-roller-modul-sekme ${secili ? 'ap-roller-modul-sekme--aktif' : ''}`}
-              title={m.kategori ? `${m.ad} · ${m.kategori}` : m.ad}
+              className={`ap-roller-modul-sekme${secili ? ' ap-roller-modul-sekme--aktif' : ''}${toplu ? ' ap-roller-modul-sekme--toplu' : ''}`}
+              title={
+                toplu
+                  ? 'Tüm sayfalara toplu yetki uygula'
+                  : m.kategori
+                    ? `${m.ad} · ${m.kategori}`
+                    : m.ad
+              }
             >
               {m.ikon && (
                 <span className="ap-roller-modul-ikon" aria-hidden>
