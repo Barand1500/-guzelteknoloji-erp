@@ -165,6 +165,21 @@ export function StoklarSayfasi() {
     [duzenleAc]
   );
 
+  const inceleAc = useCallback(
+    (satirId?: string) => {
+      const hedefId = satirId ?? baglamStokId;
+      if (!hedefId) {
+        hataBildir('İncelemek için bir stok satırı seçin.');
+        return;
+      }
+      setSeciliIdler([hedefId]);
+      setKartModu('incele');
+      setAktifStokId(hedefId);
+      setGorunum('kart');
+    },
+    [baglamStokId, hataBildir]
+  );
+
   const placeholderBildir = useCallback(
     (baslik: string) => {
       basariBildir(`${baslik} ekranı yakında eklenecek.`, baslik);
@@ -417,13 +432,45 @@ export function StoklarSayfasi() {
             onKirliDegistir={setKartKirli}
           />
         ) : gorunum === 'fiyatAnaliz' && fiyatAnalizStok ? (
-          <StokFiyatAnaliz stok={fiyatAnalizStok} onGeri={listeyeDon} />
+          <StokFiyatAnaliz
+            stok={fiyatAnalizStok}
+            onGeri={listeyeDon}
+            onYeni={yeniAc}
+            onDuzenle={() => duzenleAc(fiyatAnalizStok.id)}
+            onIncele={() => inceleAc(fiyatAnalizStok.id)}
+            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
+            onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
+          />
         ) : gorunum === 'envanterAnaliz' && envanterAnalizStok ? (
-          <StokEnvanterAnaliz stok={envanterAnalizStok} onGeri={listeyeDon} />
+          <StokEnvanterAnaliz
+            stok={envanterAnalizStok}
+            onGeri={listeyeDon}
+            onYeni={yeniAc}
+            onDuzenle={() => duzenleAc(envanterAnalizStok.id)}
+            onIncele={() => inceleAc(envanterAnalizStok.id)}
+            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
+            onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
+          />
         ) : gorunum === 'birimListesi' && birimListesiStok ? (
-          <StokBirimListesi stok={birimListesiStok} onGeri={listeyeDon} />
+          <StokBirimListesi
+            stok={birimListesiStok}
+            onGeri={listeyeDon}
+            onYeni={yeniAc}
+            onDuzenle={() => duzenleAc(birimListesiStok.id)}
+            onIncele={() => inceleAc(birimListesiStok.id)}
+            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
+            onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
+          />
         ) : gorunum === 'fiyatDuzenle' && fiyatDuzenleStok ? (
-          <StokFiyatDuzenle stok={fiyatDuzenleStok} onGeri={listeyeDon} />
+          <StokFiyatDuzenle
+            stok={fiyatDuzenleStok}
+            onGeri={listeyeDon}
+            onYeni={yeniAc}
+            onDuzenle={() => duzenleAc(fiyatDuzenleStok.id)}
+            onIncele={() => inceleAc(fiyatDuzenleStok.id)}
+            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
+            onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
+          />
         ) : (
           <div className={`dg-urun-slayt-kabuk${gelismisAcik ? ' dg-urun-slayt-kabuk--arama' : ''}`}>
             <div className="dg-urun-slayt-tablo">

@@ -2,7 +2,8 @@ import type { AdminStok } from './tipler';
 import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
 
 function bosFiyatSatiri(
-  ek: Pick<StokFiyatDuzenleSatir, 'id' | 'birim' | 'carpan' | 'barkod'>
+  ek: Pick<StokFiyatDuzenleSatir, 'id' | 'birim' | 'carpan' | 'barkod'> &
+    Partial<Pick<StokFiyatDuzenleSatir, 'fiyatAdi' | 'kdv' | 'kdvTipi'>>
 ): StokFiyatDuzenleSatir {
   return {
     fiyatAdi: 'FİYAT',
@@ -29,34 +30,66 @@ export function stokFiyatDuzenleOrnekVeri(stok: AdminStok): StokFiyatDuzenleSati
   const fiyatTaban = 4000 + (seed % 1800);
   const barkodTaban = kod.replace(/\W/g, '').toUpperCase();
 
-  const satirlar: StokFiyatDuzenleSatir[] = [
-    bosFiyatSatiri({
-      id: `${stok.id}-fiyat-adet`,
-      birim: 'ADET',
-      carpan: 1,
-      barkod: `${barkodTaban}001`,
-    }),
-  ];
-
-  satirlar[0] = {
-    ...satirlar[0],
-    satisFiyati1: fiyatTaban + 420,
-    satisFiyati2: fiyatTaban + 680,
-    satisFiyati3: fiyatTaban + 920,
-  };
-
-  if (seed % 3 === 0) {
-    satirlar.push(
-      bosFiyatSatiri({
+  return [
+    {
+      ...bosFiyatSatiri({
+        id: `${stok.id}-fiyat-adet`,
+        birim: 'ADET',
+        carpan: 1,
+        barkod: `${barkodTaban}001`,
+        fiyatAdi: 'FİYAT',
+      }),
+      satisFiyati1: fiyatTaban + 420,
+      satisFiyati2: fiyatTaban + 680,
+      satisFiyati3: fiyatTaban + 920,
+      satisFiyati4: fiyatTaban + 1100,
+      satisFiyati5: null,
+    },
+    {
+      ...bosFiyatSatiri({
         id: `${stok.id}-fiyat-paket`,
         birim: 'PAKET',
         carpan: 6,
         barkod: `${barkodTaban}006`,
-      })
-    );
-  }
-
-  return satirlar;
+        fiyatAdi: 'PERAKENDE',
+      }),
+      satisFiyati1: (fiyatTaban + 400) * 6,
+      satisFiyati2: (fiyatTaban + 650) * 6,
+      satisFiyati3: (fiyatTaban + 880) * 6,
+      satisFiyati4: null,
+      satisFiyati5: null,
+    },
+    {
+      ...bosFiyatSatiri({
+        id: `${stok.id}-fiyat-koli`,
+        birim: 'KOLİ',
+        carpan: 24,
+        barkod: `${barkodTaban}024`,
+        fiyatAdi: 'TOPTAN',
+        kdv: 20,
+        kdvTipi: 'haric',
+      }),
+      satisFiyati1: (fiyatTaban + 360) * 24,
+      satisFiyati2: (fiyatTaban + 580) * 24,
+      satisFiyati3: null,
+      satisFiyati4: null,
+      satisFiyati5: null,
+    },
+    {
+      ...bosFiyatSatiri({
+        id: `${stok.id}-fiyat-set`,
+        birim: 'SET',
+        carpan: 2,
+        barkod: `${barkodTaban}002`,
+        fiyatAdi: 'FİYAT',
+      }),
+      satisFiyati1: (fiyatTaban + 420) * 2 - 80,
+      satisFiyati2: (fiyatTaban + 680) * 2 - 120,
+      satisFiyati3: (fiyatTaban + 920) * 2,
+      satisFiyati4: (fiyatTaban + 1050) * 2,
+      satisFiyati5: (fiyatTaban + 1200) * 2,
+    },
+  ];
 }
 
 export function stokFiyatBarkodUret(stok: AdminStok, carpan: number, sira = 1): string {
