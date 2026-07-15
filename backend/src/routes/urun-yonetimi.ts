@@ -94,8 +94,15 @@ router.delete('/urunler/:id', yetkiZorunlu('silme'), async (req: AuthRequest, re
   return res.json({ mesaj: 'Urun silindi' });
 });
 
-router.get('/birimler', yetkiZorunlu('goruntuleme'), async (_req: AuthRequest, res: Response) => {
-  const birimler = await prisma.f001Birim.findMany({ include: { f001Urun: true }, orderBy: { id: 'asc' } });
+router.get('/birimler', yetkiZorunlu('goruntuleme'), async (req: AuthRequest, res: Response) => {
+  const urunIdHam = req.query.urunId;
+  const urunId =
+    urunIdHam !== undefined && urunIdHam !== '' ? Number(urunIdHam) : Number.NaN;
+  const birimler = await prisma.f001Birim.findMany({
+    where: Number.isFinite(urunId) && urunId > 0 ? { urunId } : undefined,
+    include: { f001Urun: true },
+    orderBy: { id: 'asc' },
+  });
   return res.json({ birimler: birimler.map(birimYanit) });
 });
 

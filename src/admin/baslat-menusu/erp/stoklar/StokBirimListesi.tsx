@@ -1,16 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { sayiFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
+import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
+import { birimGuncelle, stokBirimleriGetir } from './api';
 import {
   BIRIM_ACIKLAMA_GORUNUMLERI,
   type BirimAciklamaGorunumu,
   type StokBirimListeSatir,
 } from './birimListeTipler';
-import { stokBirimListeOrnekVeri } from './birimListeVeri';
+import { birimdenListeSatir, listeSatirdanBirimForm } from './birimMap';
 import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import type { AdminStok } from './tipler';
 
@@ -58,18 +60,6 @@ function KdvHucre({ satir }: { satir: StokBirimListeSatir }) {
   );
 }
 
-function fiyatYaz(
-  satir: StokBirimListeSatir,
-  alan: 'satisFiyati1' | 'satisFiyati2' | 'satisFiyati3',
-  deger: unknown
-): StokBirimListeSatir {
-  let n: number | null;
-  if (deger === '' || deger === null || deger === undefined) n = null;
-  else if (typeof deger === 'number') n = Number.isFinite(deger) ? deger : null;
-  else n = sayiOku(String(deger));
-  return { ...satir, [alan]: n };
-}
-
 export function StokBirimListesi({
   stok,
   onGeri,
@@ -87,16 +77,55 @@ export function StokBirimListesi({
   onGorunumDuzenle?: () => void;
   onGorunumKaydet?: () => void;
 }) {
+  const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { eklemeVar, duzenlemeVar } = useYetkiler('stoklar');
   const tabloRef = useRef<HTMLDivElement | null>(null);
-  const [satirlar, setSatirlar] = useState<StokBirimListeSatir[]>(() => stokBirimListeOrnekVeri(stok));
+  const [satirlar, setSatirlar] = useState<StokBirimListeSatir[]>([]);
+  const [yukleniyor, setYukleniyor] = useState(true);
+  const [kaydediliyor, setKaydediliyor] = useState(false);
+  const [kirli, setKirli] = useState(false);
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aciklamaGorunumu, setAciklamaGorunumu] = useState<BirimAciklamaGorunumu>('hicbiri');
 
+  const yukle = useCallback(async () => {
+    setYukleniyor(true);
+    try {
+      const birimler = await stokBirimleriGetir(stok.id);
+      setSatirlar(birimler.map(birimdenListeSatir));
+      setKirli(false);
+      setSeciliIdler([]);
+    } catch (e) {
+      hataBildir(e instanceof Error ? e.message : 'Birimler alınamadı');
+      setSatirlar([]);
+    } finally {
+      setYukleniyor(false);
+    }
+  }, [hataBildir, stok.id]);
+
   useEffect(() => {
-    setSatirlar(stokBirimListeOrnekVeri(stok));
-    setSeciliIdler([]);
-  }, [stok]);
+    void yukle();
+  }, [yukle]);
+
+  const satirlarAyarla = useCallback((yeni: StokBirimListeSatir[]) => {
+    setSatirlar(yeni);
+    setKirli(true);
+  }, []);
+
+  const kaydet = useCallback(async () => {
+    if (!duzenlemeVar) return;
+    setKaydediliyor(true);
+    try {
+      for (const satir of satirlar) {
+        await birimGuncelle(satir.id, listeSatirdanBirimForm(satir, stok.id));
+      }
+      basariBildir('Birim listesi kaydedildi.', 'Birimler');
+      await yukle();
+    } catch (e) {
+      hataBildir(e instanceof Error ? e.message : 'Birim kaydı başarısız');
+    } finally {
+      setKaydediliyor(false);
+    }
+  }, [basariBildir, duzenlemeVar, hataBildir, satirlar, stok.id, yukle]);
 
   const kolonlar = useMemo((): KolonTanimi<StokBirimListeSatir>[] => {
     const duzenlenebilir = duzenlemeVar;
@@ -143,7 +172,7 @@ export function StokBirimListesi({
       },
       {
         id: 'satisFiyati1',
-        baslik: '1. Satış Fiyatı',
+        baslik: 'Satış Fiyatı',
         tip: 'metin',
         genislik: 120,
         siralama: true,
@@ -151,37 +180,15 @@ export function StokBirimListesi({
         formulaTip: 'sayi',
         paraSembolu: false,
         degerAl: (s) => s.satisFiyati1,
-        degerYaz: (s, d) => fiyatYaz(s, 'satisFiyati1', d),
+        degerYaz: (s, d) => {
+          let n: number | null;
+          if (d === '' || d === null || d === undefined) n = null;
+          else if (typeof d === 'number') n = Number.isFinite(d) ? d : null;
+          else n = sayiOku(String(d));
+          return { ...s, satisFiyati1: n };
+        },
         siralamaDegeri: (s) => s.satisFiyati1 ?? -1,
         goster: (s) => <FiyatGosterim deger={s.satisFiyati1} />,
-      },
-      {
-        id: 'satisFiyati2',
-        baslik: '2. Satış Fiyatı',
-        tip: 'metin',
-        genislik: 120,
-        siralama: true,
-        duzenlenebilir,
-        formulaTip: 'sayi',
-        paraSembolu: false,
-        degerAl: (s) => s.satisFiyati2,
-        degerYaz: (s, d) => fiyatYaz(s, 'satisFiyati2', d),
-        siralamaDegeri: (s) => s.satisFiyati2 ?? -1,
-        goster: (s) => <FiyatGosterim deger={s.satisFiyati2} />,
-      },
-      {
-        id: 'satisFiyati3',
-        baslik: '3. Satış Fiyatı',
-        tip: 'metin',
-        genislik: 120,
-        siralama: true,
-        duzenlenebilir,
-        formulaTip: 'sayi',
-        paraSembolu: false,
-        degerAl: (s) => s.satisFiyati3,
-        degerYaz: (s, d) => fiyatYaz(s, 'satisFiyati3', d),
-        siralamaDegeri: (s) => s.satisFiyati3 ?? -1,
-        goster: (s) => <FiyatGosterim deger={s.satisFiyati3} />,
       },
       {
         id: 'kdv',
@@ -189,9 +196,31 @@ export function StokBirimListesi({
         tip: 'metin',
         genislik: 88,
         siralama: true,
-        degerAl: (s) => s.kdvYuzde,
+        duzenlenebilir,
+        secenekler: [
+          { deger: 'dahil', etiket: 'Dahil (D)' },
+          { deger: 'haric', etiket: 'Hariç (H)' },
+        ],
+        degerAl: (s) => (s.kdvDahil ? 'dahil' : 'haric'),
+        degerYaz: (s, d) => ({ ...s, kdvDahil: String(d) === 'dahil' }),
         siralamaDegeri: (s) => s.kdvYuzde,
         goster: (s) => <KdvHucre satir={s} />,
+      },
+      {
+        id: 'kdvYuzde',
+        baslik: 'KDV %',
+        tip: 'metin',
+        genislik: 72,
+        siralama: true,
+        duzenlenebilir,
+        formulaTip: 'sayi',
+        degerAl: (s) => s.kdvYuzde,
+        degerYaz: (s, d) => {
+          const n = typeof d === 'number' ? d : sayiOku(String(d ?? '')) ?? s.kdvYuzde;
+          return { ...s, kdvYuzde: n };
+        },
+        siralamaDegeri: (s) => s.kdvYuzde,
+        goster: (s) => `%${Number.isInteger(s.kdvYuzde) ? s.kdvYuzde : sayiFormatla(s.kdvYuzde)}`,
       },
     ];
   }, [duzenlemeVar]);
@@ -201,10 +230,12 @@ export function StokBirimListesi({
       <TanimDuzenleEkrani
         ustEtiket="Birimler"
         baslik={`${stok.urunKodu} — ${stok.urunAdi}`}
-        altBaslik={`Aşağıda ${stok.urunKodu} - ${stok.urunAdi} stoğunun birim tanımlarını görmektesiniz. Hücreleri çift tıklayarak düzenleyebilirsiniz. Yeni / Düzenle için aksiyon çubuğu veya sağ tık menüsünü kullanınız.`}
+        altBaslik={`Aşağıda ${stok.urunKodu} - ${stok.urunAdi} stoğunun birim tanımlarını görmektesiniz. Veriler f001birimler tablosundan gelir. Hücreleri çift tıklayarak düzenleyip Kaydet ile kaydediniz.`}
         rozet="Birim"
         onGeri={onGeri}
-        saltOkunur
+        onKaydet={duzenlemeVar && kirli ? () => void kaydet() : undefined}
+        kaydediliyor={kaydediliyor}
+        saltOkunur={!duzenlemeVar}
       >
         <div className="stok-karti-icerik stok-birim-liste-sayfa-icerik">
           <div className="stok-birim-liste-icerik">
@@ -226,12 +257,13 @@ export function StokBirimListesi({
               <DataGrid
                 key={`stok_birim_liste_${stok.id}`}
                 tabloBaslik="Birim Listesi"
-                tabloAltBaslik="Çift tıklayarak hücre düzenleyin"
+                tabloAltBaslik="f001birimler — çift tıklayarak düzenleyin"
                 kolonlar={kolonlar}
                 satirlar={satirlar}
-                onSatirlarDegistir={setSatirlar}
-                depolamaAnahtari={`stok_birim_liste_${stok.id}`}
-                bosMesaj="Bu stok için birim tanımı bulunamadı."
+                yukleniyor={yukleniyor}
+                onSatirlarDegistir={satirlarAyarla}
+                depolamaAnahtari={`stok_birim_liste_api_${stok.id}`}
+                bosMesaj="Bu stok için birim kaydı yok. Önce Fiyat Düzenle ile birim ekleyin."
                 onSatirTikla={(s) => setSeciliIdler([s.id])}
                 satirSinifAdi={(s) =>
                   seciliIdler.includes(s.id) ? 'dg-satir--secili-manuel' : undefined

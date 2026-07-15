@@ -418,8 +418,6 @@ export function StokKarti({
       <p className="ap-tanimlar-duzenle-alt">Bu sekme yakında eklenecek.</p>
     );
 
-  const sekmeGoster = mod !== 'yeni';
-
   return (
     <div className={`stok-karti-kabuk${mod === 'yeni' ? ' stok-karti-kabuk--yeni' : ''}`}>
       <TanimDuzenleEkrani

@@ -2,12 +2,8 @@ export type StokFiyatPb = 'TL' | 'USD' | 'EUR';
 
 export type StokFiyatKdvTipi = 'dahil' | 'haric';
 
-export type IsaretliFiyatAlani =
-  | 'satisFiyati1'
-  | 'satisFiyati2'
-  | 'satisFiyati3'
-  | 'satisFiyati4'
-  | 'satisFiyati5';
+/** Mevcut şemada kalıcı alanlar: satış + alış */
+export type IsaretliFiyatAlani = 'satisFiyati1' | 'alisFiyati';
 
 export interface StokFiyatDuzenleSatir {
   id: string;
@@ -17,8 +13,10 @@ export interface StokFiyatDuzenleSatir {
   barkod: string;
   kdv: number;
   kdvTipi: StokFiyatKdvTipi;
+  alisFiyati: number | null;
   satisFiyati1: number | null;
   pb1: StokFiyatPb;
+  /** Şemada yok — kaydedilmez */
   satisFiyati2: number | null;
   pb2: StokFiyatPb;
   satisFiyati3: number | null;
@@ -27,6 +25,8 @@ export interface StokFiyatDuzenleSatir {
   pb4: StokFiyatPb;
   satisFiyati5: number | null;
   pb5: StokFiyatPb;
+  alisKdv?: number;
+  aktif?: boolean;
 }
 
 export const STOK_FIYAT_PB_SECENEKLERI: { deger: StokFiyatPb; etiket: string }[] = [
@@ -41,17 +41,6 @@ export const STOK_FIYAT_KDV_TIPI_SECENEKLERI: { deger: StokFiyatKdvTipi; etiket:
 ];
 
 export const ISARETLI_FIYAT_ALANLARI: { value: IsaretliFiyatAlani; label: string }[] = [
-  { value: 'satisFiyati1', label: '1. Satış Fiyatı' },
-  { value: 'satisFiyati2', label: '2. Satış Fiyatı' },
-  { value: 'satisFiyati3', label: '3. Satış Fiyatı' },
-  { value: 'satisFiyati4', label: '4. Satış Fiyatı' },
-  { value: 'satisFiyati5', label: '5. Satış Fiyatı' },
+  { value: 'satisFiyati1', label: 'Satış Fiyatı' },
+  { value: 'alisFiyati', label: 'Alış Fiyatı' },
 ];
-
-export const FIYAT_ALAN_CARPANLARI: Record<IsaretliFiyatAlani, number> = {
-  satisFiyati1: 1,
-  satisFiyati2: 1.05,
-  satisFiyati3: 1.1,
-  satisFiyati4: 1.15,
-  satisFiyati5: 1.2,
-};

@@ -26,7 +26,11 @@ export const urunOlustur = (form: UrunForm & { aktif: boolean }) => kaydet<Admin
 export const urunGuncelle = (id: string, form: UrunForm & { aktif: boolean }) => kaydet<AdminUrun>('urunler', 'urun', form, id);
 export const urunSil = (id: string) => sil('urunler', id);
 
-export const birimleriGetir = () => liste<AdminBirim>('birimler', 'birimler');
+export const birimleriGetir = (urunId?: string) =>
+  liste<AdminBirim>(
+    urunId ? `birimler?urunId=${encodeURIComponent(urunId)}` : 'birimler',
+    'birimler'
+  );
 export const birimOlustur = (form: BirimForm) => kaydet<AdminBirim>('birimler', 'birim', form);
 export const birimGuncelle = (id: string, form: BirimForm) => kaydet<AdminBirim>('birimler', 'birim', form, id);
 export const birimSil = (id: string) => sil('birimler', id);

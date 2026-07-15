@@ -5,15 +5,6 @@ import type {
   StokFiyatKdvTipi,
   StokFiyatPb,
 } from './fiyatDuzenleTipler';
-import { FIYAT_ALAN_CARPANLARI } from './fiyatDuzenleTipler';
-
-const FIYAT_ALANLARI: IsaretliFiyatAlani[] = [
-  'satisFiyati1',
-  'satisFiyati2',
-  'satisFiyati3',
-  'satisFiyati4',
-  'satisFiyati5',
-];
 
 function sayiYaz(deger: unknown, mevcut: number | null): number | null {
   if (deger === '' || deger === null || deger === undefined) return null;
@@ -39,7 +30,7 @@ export function fiyatDuzenleKdvTipiYaz(
 
 export function fiyatDuzenlePbYaz(
   satir: StokFiyatDuzenleSatir,
-  alan: 'pb1' | 'pb2' | 'pb3' | 'pb4' | 'pb5',
+  alan: 'pb1',
   deger: unknown
 ): StokFiyatDuzenleSatir {
   const pb = String(deger) as StokFiyatPb;
@@ -70,26 +61,21 @@ export function fiyatDuzenleCarpanYaz(
   return fiyatDuzenleSatirGuncelle(satir, { carpan: carpan ?? satir.carpan });
 }
 
+/** İşaretli alanı baz alıp diğer alana kopyala (%0 — aynı tutar) */
 export function digerFiyatlariHesapla(
   satirlar: StokFiyatDuzenleSatir[],
   isaretliAlan: IsaretliFiyatAlani,
   hedefIdler?: string[]
 ): StokFiyatDuzenleSatir[] {
   const hedefSet = hedefIdler?.length ? new Set(hedefIdler) : null;
-  const bazCarpan = FIYAT_ALAN_CARPANLARI[isaretliAlan];
+  const hedefAlan: IsaretliFiyatAlani =
+    isaretliAlan === 'satisFiyati1' ? 'alisFiyati' : 'satisFiyati1';
 
   return satirlar.map((satir) => {
     if (hedefSet && !hedefSet.has(satir.id)) return satir;
     const baz = satir[isaretliAlan];
     if (baz === null || !Number.isFinite(baz)) return satir;
-
-    const guncel = { ...satir };
-    for (const alan of FIYAT_ALANLARI) {
-      if (alan === isaretliAlan) continue;
-      const oran = FIYAT_ALAN_CARPANLARI[alan] / bazCarpan;
-      guncel[alan] = Math.round(baz * oran * 100) / 100;
-    }
-    return guncel;
+    return { ...satir, [hedefAlan]: baz };
   });
 }
 

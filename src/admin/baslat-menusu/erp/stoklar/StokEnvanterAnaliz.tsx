@@ -3,26 +3,15 @@ import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/Ta
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { paraFormatla, sayiFormatla, yuzdeFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
+import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
-import {
-  stokEnvanterAnalizOrnekVeri,
-  stokEnvanterFiyatBilgisiOrnek,
-} from './envanterAnalizVeri';
-import type { StokEnvanterAnalizOzet, StokEnvanterAnalizSatir } from './envanterAnalizTipler';
+import { stokBirimleriGetir, stokMaliyetleriGetir } from './api';
+import { envanterFiyatBilgisiBirimden } from './birimMap';
+import type { StokEnvanterAnalizOzet, StokEnvanterAnalizSatir, StokEnvanterFiyatBilgisi } from './envanterAnalizTipler';
 import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import type { AdminStok } from './tipler';
 
-function sayiOku(ham: unknown, yedek = 0): number {
-  if (typeof ham === 'number' && Number.isFinite(ham)) return ham;
-  const t = String(ham ?? '').trim();
-  if (!t) return yedek;
-  const n = Number(t.replace(/\./g, '').replace(',', '.'));
-  return Number.isFinite(n) ? n : yedek;
-}
-
-function envanterAnalizKolonlari(
-  duzenlenebilir: boolean
-): KolonTanimi<StokEnvanterAnalizSatir>[] {
+function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
   return [
     {
       id: 'depoInd',
@@ -31,11 +20,8 @@ function envanterAnalizKolonlari(
       genislik: 72,
       minGenislik: 56,
       siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
       degerAl: (s) => s.depoInd,
       siralamaDegeri: (s) => s.depoInd,
-      degerYaz: (s, d) => ({ ...s, depoInd: Math.max(0, Math.round(sayiOku(d, s.depoInd))) }),
       goster: (s) => String(s.depoInd),
     },
     {
@@ -46,9 +32,7 @@ function envanterAnalizKolonlari(
       minGenislik: 90,
       zorunlu: true,
       siralama: true,
-      duzenlenebilir,
       degerAl: (s) => s.depoKodu,
-      degerYaz: (s, d) => ({ ...s, depoKodu: String(d ?? '').trim() || s.depoKodu }),
     },
     {
       id: 'envanter',
@@ -56,11 +40,8 @@ function envanterAnalizKolonlari(
       tip: 'sayi',
       genislik: 96,
       siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
       degerAl: (s) => s.envanter,
       siralamaDegeri: (s) => s.envanter,
-      degerYaz: (s, d) => ({ ...s, envanter: sayiOku(d, s.envanter) }),
       goster: (s) => sayiFormatla(s.envanter),
     },
     {
@@ -69,11 +50,8 @@ function envanterAnalizKolonlari(
       tip: 'sayi',
       genislik: 88,
       siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
       degerAl: (s) => s.siparisMiktari,
       siralamaDegeri: (s) => s.siparisMiktari,
-      degerYaz: (s, d) => ({ ...s, siparisMiktari: sayiOku(d, s.siparisMiktari) }),
       goster: (s) => sayiFormatla(s.siparisMiktari),
     },
     {
@@ -82,11 +60,8 @@ function envanterAnalizKolonlari(
       tip: 'sayi',
       genislik: 104,
       siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
       degerAl: (s) => s.kullanilabilir,
       siralamaDegeri: (s) => s.kullanilabilir,
-      degerYaz: (s, d) => ({ ...s, kullanilabilir: sayiOku(d, s.kullanilabilir) }),
       goster: (s) => sayiFormatla(s.kullanilabilir),
     },
     {
@@ -95,11 +70,8 @@ function envanterAnalizKolonlari(
       tip: 'sayi',
       genislik: 96,
       siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
       degerAl: (s) => s.altSeviye,
       siralamaDegeri: (s) => s.altSeviye,
-      degerYaz: (s, d) => ({ ...s, altSeviye: sayiOku(d, s.altSeviye) }),
       goster: (s) => sayiFormatla(s.altSeviye),
     },
     {
@@ -108,11 +80,8 @@ function envanterAnalizKolonlari(
       tip: 'sayi',
       genislik: 96,
       siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
       degerAl: (s) => s.ustSeviye,
       siralamaDegeri: (s) => s.ustSeviye,
-      degerYaz: (s, d) => ({ ...s, ustSeviye: sayiOku(d, s.ustSeviye) }),
       goster: (s) => sayiFormatla(s.ustSeviye),
     },
     {
@@ -121,11 +90,8 @@ function envanterAnalizKolonlari(
       tip: 'sayi',
       genislik: 112,
       siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
       degerAl: (s) => s.optimumSeviye,
       siralamaDegeri: (s) => s.optimumSeviye,
-      degerYaz: (s, d) => ({ ...s, optimumSeviye: sayiOku(d, s.optimumSeviye) }),
       goster: (s) => sayiFormatla(s.optimumSeviye),
     },
   ];
@@ -151,6 +117,16 @@ function FiyatAlani({ etiket, deger }: { etiket: string; deger: string }) {
   );
 }
 
+const BOS_FIYAT: StokEnvanterFiyatBilgisi = {
+  alisFiyati: 0,
+  dovizAlisFiyati: 0,
+  maliyet: 0,
+  satisFiyati1: 0,
+  satisFiyati2: 0,
+  satisFiyati3: 0,
+  satisFiyati3Yuzde: 0,
+};
+
 export function StokEnvanterAnaliz({
   stok,
   onGeri,
@@ -168,23 +144,51 @@ export function StokEnvanterAnaliz({
   onGorunumDuzenle?: () => void;
   onGorunumKaydet?: () => void;
 }) {
+  const { hataBildir } = useAdminSayfaBildirimi();
   const { eklemeVar, duzenlemeVar } = useYetkiler('stoklar');
   const tabloRef = useRef<HTMLDivElement | null>(null);
-  const [satirlar, setSatirlar] = useState(() => stokEnvanterAnalizOrnekVeri(stok));
-  const fiyat = useMemo(() => stokEnvanterFiyatBilgisiOrnek(stok), [stok]);
-  const kolonlar = useMemo(() => envanterAnalizKolonlari(duzenlemeVar), [duzenlemeVar]);
+  const [satirlar] = useState<StokEnvanterAnalizSatir[]>([]);
+  const [fiyat, setFiyat] = useState<StokEnvanterFiyatBilgisi>(BOS_FIYAT);
+  const [yukleniyor, setYukleniyor] = useState(true);
+  const kolonlar = useMemo(() => envanterAnalizKolonlari(), []);
   const ozet = useMemo(() => envanterOzetHesapla(satirlar), [satirlar]);
 
   useEffect(() => {
-    setSatirlar(stokEnvanterAnalizOrnekVeri(stok));
-  }, [stok]);
+    let iptal = false;
+    setYukleniyor(true);
+    void (async () => {
+      try {
+        const birimler = await stokBirimleriGetir(stok.id);
+        const anaBirim =
+          birimler.find((b) => b.birimAdi === stok.varsayilanBirim) ??
+          birimler.find((b) => b.birimAdi === stok.anaBirim) ??
+          birimler[0] ??
+          null;
+        const maliyetler = anaBirim
+          ? await stokMaliyetleriGetir([anaBirim.id])
+          : [];
+        if (iptal) return;
+        setFiyat(envanterFiyatBilgisiBirimden(anaBirim, maliyetler[0] ?? null));
+      } catch (e) {
+        if (!iptal) {
+          hataBildir(e instanceof Error ? e.message : 'Fiyat bilgileri alınamadı');
+          setFiyat(BOS_FIYAT);
+        }
+      } finally {
+        if (!iptal) setYukleniyor(false);
+      }
+    })();
+    return () => {
+      iptal = true;
+    };
+  }, [hataBildir, stok.anaBirim, stok.id, stok.varsayilanBirim]);
 
   return (
     <div className="stok-karti-kabuk stok-envanter-analiz-sayfa">
       <TanimDuzenleEkrani
         ustEtiket="Envanter"
         baslik={`${stok.urunKodu} — ${stok.urunAdi}`}
-        altBaslik={`Aşağıda ${stok.urunKodu} stoğunun envanterinin depolara dağılımını görmektesiniz. Hücreleri çift tıklayarak düzenleyebilirsiniz.`}
+        altBaslik={`Fiyat bilgileri f001birimler + f001maliyetler tablolarından gelir. Depo envanter miktarı için henüz tablo yok — aşağıdaki liste boş kalır.`}
         rozet="Analiz"
         onGeri={onGeri}
         saltOkunur
@@ -208,12 +212,12 @@ export function StokEnvanterAnaliz({
               <DataGrid
                 key={`stok_envanter_analiz_${stok.id}`}
                 tabloBaslik="Stok Envanter Listesi"
-                tabloAltBaslik="Çift tıklayarak hücre düzenleyin"
+                tabloAltBaslik="Depo envanter tablosu yok"
                 kolonlar={kolonlar}
                 satirlar={satirlar}
-                onSatirlarDegistir={setSatirlar}
-                depolamaAnahtari={`stok_envanter_analiz_${stok.id}`}
-                bosMesaj="Bu stok için envanter kaydı bulunamadı."
+                yukleniyor={yukleniyor}
+                depolamaAnahtari={`stok_envanter_analiz_api_${stok.id}`}
+                bosMesaj="Depo envanter tablosu henüz tanımlı değil. Fiyat paneli birim/maliyet verisine bağlıdır."
                 formulMenuGoster={false}
               />
               <div className="stok-envanter-analiz-toplam" aria-label="Envanter toplamları">
@@ -247,12 +251,12 @@ export function StokEnvanterAnaliz({
                 <FiyatAlani etiket="Maliyet" deger={sayiFormatla(fiyat.maliyet)} />
               </div>
               <div className="stok-envanter-analiz-fiyat-satir">
-                <FiyatAlani etiket="1. S. Fiyatı" deger={sayiFormatla(fiyat.satisFiyati1)} />
-                <FiyatAlani etiket="2. S. Fiyatı" deger={sayiFormatla(fiyat.satisFiyati2)} />
+                <FiyatAlani etiket="Satış Fiyatı" deger={sayiFormatla(fiyat.satisFiyati1)} />
+                <FiyatAlani etiket="2. S. Fiyatı" deger="—" />
                 <label className="stok-envanter-analiz-fiyat-alan">
                   <span>3. S. Fiyatı</span>
                   <div className="stok-envanter-analiz-fiyat-deger stok-envanter-analiz-fiyat-deger--yuzde">
-                    <span>{sayiFormatla(fiyat.satisFiyati3)}</span>
+                    <span>—</span>
                     <span className="stok-envanter-analiz-yuzde">
                       ({yuzdeFormatla(fiyat.satisFiyati3Yuzde)})
                     </span>

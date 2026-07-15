@@ -49,7 +49,11 @@ function idAl(path: string) { const p = path.split('/').pop() ?? ''; return /^\d
 export function offlineUrunYonetimiGetir(path: string): unknown {
   const d = oku();
   if (path.includes('/urunler')) return { urunler: d.urunler };
-  if (path.includes('/birimler')) return { birimler: d.birimler };
+  if (path.includes('/birimler')) {
+    const urunId = new URL(path, 'http://local').searchParams.get('urunId');
+    const birimler = urunId ? d.birimler.filter((b) => b.urunId === urunId) : d.birimler;
+    return { birimler };
+  }
   if (path.includes('/maliyetler')) return { maliyetler: d.maliyetler };
   return {};
 }

@@ -9,6 +9,7 @@ function bosFiyatSatiri(
     fiyatAdi: 'FİYAT',
     kdv: 10,
     kdvTipi: 'dahil',
+    alisFiyati: null,
     satisFiyati1: null,
     pb1: 'TL',
     satisFiyati2: null,
