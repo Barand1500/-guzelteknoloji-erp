@@ -54,9 +54,10 @@ function KdvHucre({ satir }: { satir: StokBirimListeSatir }) {
     ? String(satir.kdvYuzde)
     : satir.kdvYuzde.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   return (
-    <span className="stok-birim-liste-kdv">
-      %{yuzde} {etiket}
-    </span>
+    <div className="stok-dg-etiket-deger">
+      <span className="dg-iskonto-yuzde">%{yuzde}</span>
+      <span className="dg-iskonto-tutar">{etiket}</span>
+    </div>
   );
 }
 
@@ -177,7 +178,7 @@ export function StokBirimListesi({
       {
         id: 'carpan',
         baslik: 'Çarpan',
-        tip: 'metin',
+        tip: 'sayi',
         genislik: 72,
         siralama: true,
         duzenlenebilir,
@@ -191,9 +192,41 @@ export function StokBirimListesi({
         goster: (s) => String(s.carpan),
       },
       {
+        id: 'kdv',
+        baslik: 'KDV',
+        tip: 'metin',
+        genislik: 72,
+        siralama: true,
+        duzenlenebilir,
+        secenekler: [
+          { deger: 'dahil', etiket: 'Dahil (D)' },
+          { deger: 'haric', etiket: 'Hariç (H)' },
+        ],
+        degerAl: (s) => (s.kdvDahil ? 'dahil' : 'haric'),
+        degerYaz: (s, d) => ({ ...s, kdvDahil: String(d) === 'dahil' }),
+        siralamaDegeri: (s) => s.kdvYuzde,
+        goster: (s) => <KdvHucre satir={s} />,
+      },
+      {
+        id: 'kdvYuzde',
+        baslik: 'KDV %',
+        tip: 'sayi',
+        genislik: 72,
+        siralama: true,
+        duzenlenebilir,
+        formulaTip: 'sayi',
+        degerAl: (s) => s.kdvYuzde,
+        degerYaz: (s, d) => {
+          const n = typeof d === 'number' ? d : sayiOku(String(d ?? '')) ?? s.kdvYuzde;
+          return { ...s, kdvYuzde: n };
+        },
+        siralamaDegeri: (s) => s.kdvYuzde,
+        goster: (s) => `%${Number.isInteger(s.kdvYuzde) ? s.kdvYuzde : sayiFormatla(s.kdvYuzde)}`,
+      },
+      {
         id: 'satisFiyati1',
         baslik: 'Satış Fiyatı',
-        tip: 'metin',
+        tip: 'para',
         genislik: 120,
         siralama: true,
         duzenlenebilir,
@@ -209,38 +242,6 @@ export function StokBirimListesi({
         },
         siralamaDegeri: (s) => s.satisFiyati1 ?? -1,
         goster: (s) => <FiyatGosterim deger={s.satisFiyati1} />,
-      },
-      {
-        id: 'kdv',
-        baslik: 'KDV',
-        tip: 'metin',
-        genislik: 88,
-        siralama: true,
-        duzenlenebilir,
-        secenekler: [
-          { deger: 'dahil', etiket: 'Dahil (D)' },
-          { deger: 'haric', etiket: 'Hariç (H)' },
-        ],
-        degerAl: (s) => (s.kdvDahil ? 'dahil' : 'haric'),
-        degerYaz: (s, d) => ({ ...s, kdvDahil: String(d) === 'dahil' }),
-        siralamaDegeri: (s) => s.kdvYuzde,
-        goster: (s) => <KdvHucre satir={s} />,
-      },
-      {
-        id: 'kdvYuzde',
-        baslik: 'KDV %',
-        tip: 'metin',
-        genislik: 72,
-        siralama: true,
-        duzenlenebilir,
-        formulaTip: 'sayi',
-        degerAl: (s) => s.kdvYuzde,
-        degerYaz: (s, d) => {
-          const n = typeof d === 'number' ? d : sayiOku(String(d ?? '')) ?? s.kdvYuzde;
-          return { ...s, kdvYuzde: n };
-        },
-        siralamaDegeri: (s) => s.kdvYuzde,
-        goster: (s) => `%${Number.isInteger(s.kdvYuzde) ? s.kdvYuzde : sayiFormatla(s.kdvYuzde)}`,
       },
     ];
   }, [duzenlemeVar]);

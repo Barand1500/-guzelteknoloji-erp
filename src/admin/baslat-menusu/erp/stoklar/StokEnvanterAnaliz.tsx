@@ -103,7 +103,7 @@ function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
     {
       id: 'karYuzde',
       baslik: 'Kar %',
-      tip: 'metin',
+      tip: 'sayi',
       genislik: 80,
       siralama: true,
       degerAl: (s) => s.karYuzde,
@@ -117,12 +117,17 @@ function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
     {
       id: 'kdv',
       baslik: 'KDV',
-      tip: 'metin',
+      tip: 'sayi',
       genislik: 72,
       siralama: true,
       degerAl: (s) => s.kdvYuzde,
       siralamaDegeri: (s) => s.kdvYuzde,
-      goster: (s) => `%${s.kdvYuzde} ${s.kdvDahil ? 'D' : 'H'}`,
+      goster: (s) => (
+        <div className="stok-dg-etiket-deger">
+          <span className="dg-iskonto-yuzde">%{s.kdvYuzde}</span>
+          <span className="dg-kdv-vurgu">{s.kdvDahil ? 'D' : 'H'}</span>
+        </div>
+      ),
     },
   ];
 }

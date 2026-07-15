@@ -60,7 +60,7 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
     {
       id: 'carpan',
       baslik: 'Çarpan',
-      tip: 'metin',
+      tip: 'sayi',
       genislik: 64,
       duzenlenebilir,
       formulaTip: 'sayi',
@@ -84,7 +84,7 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
     {
       id: 'kdv',
       baslik: 'Kdv',
-      tip: 'metin',
+      tip: 'sayi',
       genislik: 56,
       duzenlenebilir,
       formulaTip: 'sayi',

@@ -306,7 +306,8 @@ export function StoklarSayfasi() {
   }, [aramaSonuclariniGoster, filtreMetni, gelismisTaslak]);
 
   const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
-  const birimFiyatFormu = gorunum === 'birimListesi' || gorunum === 'fiyatDuzenle';
+  const birimFiyatFormu =
+    gorunum === 'birimListesi' || gorunum === 'fiyatDuzenle' || gorunum === 'fiyatAnaliz';
   const kaydedilebilirForm = kartFormu || birimFiyatFormu;
   const stokSecili = Boolean(baglamStokId);
 
@@ -444,6 +445,8 @@ export function StoklarSayfasi() {
             onYeni={yeniAc}
             onDuzenle={() => duzenleAc(fiyatAnalizStok.id)}
             onIncele={() => inceleAc(fiyatAnalizStok.id)}
+            kaydetRef={kaydetRef}
+            onKirliDegistir={setAltKirli}
             onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
             onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
           />

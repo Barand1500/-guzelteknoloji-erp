@@ -1775,6 +1775,145 @@ button.ap-tanimlar-panel-arka {
   box-shadow: none;
 }
 
+/*
+  Sipariş tablosu hiyerarşisi (stok ekranları):
+  - Kolon başlıkları / metin-kategori: sola
+  - Sayı / para / KDV tutarı: sağa
+  - Global miktar/birim center kurallarını burada kır
+*/
+.stok-fiyat-analiz-tablo .dg-baslik-hucre,
+.stok-envanter-analiz-tablo .dg-baslik-hucre,
+.stok-birim-liste-tablo .dg-baslik-hucre,
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre {
+  text-align: left;
+}
+
+.stok-fiyat-analiz-tablo .dg-baslik-hucre .dg-baslik-icerik,
+.stok-envanter-analiz-tablo .dg-baslik-hucre .dg-baslik-icerik,
+.stok-birim-liste-tablo .dg-baslik-hucre .dg-baslik-icerik,
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre .dg-baslik-icerik {
+  justify-content: flex-start;
+}
+
+.stok-fiyat-analiz-tablo .dg-baslik-hucre[data-kolon-id='birim'],
+.stok-envanter-analiz-tablo .dg-hucre[data-kolon-id='birim'],
+.stok-envanter-analiz-tablo .dg-baslik-hucre[data-kolon-id='birim'],
+.stok-envanter-analiz-tablo .dg-hucre[data-kolon-id='birimAdi'],
+.stok-envanter-analiz-tablo .dg-baslik-hucre[data-kolon-id='birimAdi'],
+.stok-birim-liste-tablo .dg-baslik-hucre[data-kolon-id='birim'],
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='birim'] {
+  text-align: left !important;
+}
+
+.stok-fiyat-analiz-tablo .dg-baslik-hucre[data-kolon-id='birim'] .dg-baslik-icerik,
+.stok-envanter-analiz-tablo .dg-baslik-hucre[data-kolon-id='birim'] .dg-baslik-icerik,
+.stok-envanter-analiz-tablo .dg-baslik-hucre[data-kolon-id='birimAdi'] .dg-baslik-icerik,
+.stok-birim-liste-tablo .dg-baslik-hucre[data-kolon-id='birim'] .dg-baslik-icerik,
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='birim'] .dg-baslik-icerik {
+  justify-content: flex-start !important;
+}
+
+/* Hücre değerleri: başlık sola, içerik sağa (birim / depo / tarih / fiyat adı / barkod / K.) */
+.stok-birim-liste-tablo .dg-hucre[data-kolon-id='birim'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='birim'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='barkod'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='kdvTipi'],
+.stok-fiyat-analiz-tablo .dg-hucre[data-kolon-id='depoAdi'],
+.stok-fiyat-analiz-tablo .dg-hucre[data-kolon-id='tarih'] {
+  text-align: right !important;
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='birim'] .dg-hucre-girdi,
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='barkod'] .dg-hucre-girdi,
+.stok-birim-liste-tablo .dg-hucre[data-kolon-id='birim'] .dg-hucre-girdi {
+  text-align: right;
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='fiyatAdi'] {
+  text-align: left !important;
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='fiyatAdi'] .dg-hucre-girdi {
+  text-align: left;
+}
+
+/* PB: başlık sola, para birimi değeri ortada */
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb1'] {
+  text-align: left !important;
+}
+
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb1'] .dg-baslik-icerik {
+  justify-content: flex-start !important;
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='pb1'] {
+  text-align: center !important;
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='pb1'] .stok-fiyat-duzenle-pb {
+  justify-content: center;
+  margin-inline: auto;
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='kdvTipi'] .stok-fiyat-duzenle-kdv-tip {
+  justify-content: flex-end;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.stok-fiyat-analiz-tablo .dg-hucre[data-kolon-id='miktar'],
+.stok-fiyat-analiz-tablo .dg-baslik-hucre[data-kolon-id='miktar'] {
+  text-align: left !important;
+}
+
+.stok-fiyat-analiz-tablo .dg-baslik-hucre[data-kolon-id='miktar'] .dg-baslik-icerik {
+  justify-content: flex-start !important;
+}
+
+.stok-fiyat-analiz-tablo .dg-hucre[data-kolon-id='miktar'].dg-hucre--sayi,
+.stok-fiyat-analiz-tablo .dg-hucre.dg-hucre--sayi,
+.stok-envanter-analiz-tablo .dg-hucre.dg-hucre--sayi,
+.stok-birim-liste-tablo .dg-hucre.dg-hucre--sayi,
+.stok-fiyat-duzenle-tablo .dg-hucre.dg-hucre--sayi {
+  text-align: right !important;
+}
+
+.stok-fiyat-analiz-tablo .dg-hucre[data-kolon-id='miktar'] .dg-hucre-girdi {
+  margin: 0 0 0 auto;
+  text-align: right;
+}
+
+.stok-fiyat-analiz-tablo .dg-iskonto-hucre:not(.dg-urun-kodu-adi-hucre),
+.stok-envanter-analiz-tablo .dg-iskonto-hucre:not(.dg-urun-kodu-adi-hucre),
+.stok-birim-liste-tablo .dg-iskonto-hucre:not(.dg-urun-kodu-adi-hucre),
+.stok-fiyat-duzenle-tablo .dg-iskonto-hucre:not(.dg-urun-kodu-adi-hucre) {
+  align-items: stretch;
+  width: 100%;
+}
+
+/* Üst etiket sola, alt değer sağa (sipariş hiyerarşisi + istenen yön) */
+.stok-dg-etiket-deger {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  line-height: 1;
+  gap: 0;
+}
+
+.stok-dg-etiket-deger .dg-iskonto-yuzde,
+.stok-dg-etiket-deger .stok-dg-etiket {
+  align-self: flex-start;
+  text-align: left;
+}
+
+.stok-dg-etiket-deger .dg-iskonto-tutar,
+.stok-dg-etiket-deger .dg-kdv-vurgu,
+.stok-dg-etiket-deger .stok-dg-deger {
+  align-self: flex-end;
+  text-align: right;
+}
+
 .stok-fiyat-analiz-islem {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -1956,12 +2095,14 @@ button.ap-tanimlar-panel-arka {
   font-weight: 600;
   color: var(--ap-muted);
   letter-spacing: 0.01em;
+  text-align: left;
 }
 
 .stok-envanter-analiz-fiyat-deger {
   min-height: 2.15rem;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   padding: 0.35rem 0.65rem;
   border: 1px solid var(--ap-border);
   border-radius: 0.5rem;
@@ -1970,6 +2111,7 @@ button.ap-tanimlar-panel-arka {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ap-heading);
+  text-align: right;
 }
 
 .stok-envanter-analiz-fiyat-deger--yuzde {
@@ -2043,21 +2185,34 @@ button.ap-tanimlar-panel-arka {
   background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
 }
 
-.stok-birim-liste-tablo .dg-hucre,
-.stok-birim-liste-tablo .dg-hucre--sayi,
-.stok-birim-liste-tablo thead th {
-  text-align: left !important;
+.stok-birim-liste-tablo .dg-hucre:not(.dg-hucre--sayi):not([data-kolon-id='birim']) {
+  text-align: left;
+}
+
+.stok-birim-liste-tablo .dg-hucre[data-kolon-id='kdv'],
+.stok-birim-liste-tablo .dg-hucre[data-kolon-id='kdvYuzde'],
+.stok-birim-liste-tablo .dg-hucre[data-kolon-id='satisFiyati1'],
+.stok-birim-liste-tablo .dg-hucre[data-kolon-id='carpan'],
+.stok-birim-liste-tablo .dg-hucre[data-kolon-id='birim'],
+.stok-envanter-analiz-tablo .dg-hucre[data-kolon-id='karYuzde'],
+.stok-envanter-analiz-tablo .dg-hucre[data-kolon-id='kdv'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='carpan'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='kdv'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='birim'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='barkod'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='kdvTipi'] {
+  text-align: right !important;
 }
 
 .stok-birim-liste-fiyat-metin {
   display: inline-flex;
   align-items: baseline;
-  justify-content: flex-start;
+  justify-content: flex-end;
+  width: 100%;
   gap: 0.3rem;
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   color: var(--ap-heading);
-  width: 100%;
 }
 
 .stok-birim-liste-fiyat-bos {
@@ -2229,6 +2384,10 @@ button.ap-tanimlar-panel-arka {
   font-size: 0.6875rem;
   font-weight: 700;
   color: var(--ap-heading);
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='kdvTipi'] .stok-fiyat-duzenle-kdv-tip {
+  justify-content: flex-end;
 }
 
 .stok-fiyat-duzenle-alt {
