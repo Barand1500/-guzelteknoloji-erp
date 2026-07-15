@@ -58,9 +58,6 @@ const VARSAYILAN_OFFLINE_MODULLER: OfflineModul[] = [
   { id: 7, ad: 'Veri Yedekleme', prefix: 'veri_yedekleme', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 8, ad: 'Tanimlar', prefix: 'tanimlar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 9, ad: 'Cari Kartlar', prefix: 'cari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
-  { id: 10, ad: 'Ürünler', prefix: 'urunler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
-  { id: 11, ad: 'Birimler', prefix: 'birimler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
-  { id: 12, ad: 'Maliyetler', prefix: 'maliyetler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 13, ad: 'Stoklar', prefix: 'stoklar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
 ];
 

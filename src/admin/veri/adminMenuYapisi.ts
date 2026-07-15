@@ -58,27 +58,6 @@ export const adminModulleri: AdminModul[] = [
     yol: '/gt-admin/cari',
   },
   {
-    id: 'urunler',
-    baslik: 'Ürünler',
-    ikon: '📦',
-    kategori: 'ERP',
-    yol: '/gt-admin/urunler',
-  },
-  {
-    id: 'birimler',
-    baslik: 'Birimler',
-    ikon: '🧮',
-    kategori: 'ERP',
-    yol: '/gt-admin/birimler',
-  },
-  {
-    id: 'maliyetler',
-    baslik: 'Maliyetler',
-    ikon: '📈',
-    kategori: 'ERP',
-    yol: '/gt-admin/maliyetler',
-  },
-  {
     id: 'stoklar',
     baslik: 'Stoklar',
     ikon: '🏷️',
@@ -137,9 +116,6 @@ const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'kisayol-ayarlari',
   'datagrid-demo',
   'cari',
-  'urunler',
-  'birimler',
-  'maliyetler',
   'stoklar',
 ]);
 const TAM_YETKI_GEREKTIREN_MODULLER = new Set(['kullanicilar', 'roller']);
