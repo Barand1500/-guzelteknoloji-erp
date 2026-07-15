@@ -74,6 +74,7 @@ export function StoklarSayfasi() {
   const [aktifStokId, setAktifStokId] = useState<string | null>(null);
   const [silme, setSilme] = useState<AdminStok | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
+  const [altKirli, setAltKirli] = useState(false);
   const [fiyatAnalizStok, setFiyatAnalizStok] = useState<AdminStok | null>(null);
   const [envanterAnalizStok, setEnvanterAnalizStok] = useState<AdminStok | null>(null);
   const [birimListesiStok, setBirimListesiStok] = useState<AdminStok | null>(null);
@@ -132,6 +133,7 @@ export function StoklarSayfasi() {
     setBirimListesiStok(null);
     setFiyatDuzenleStok(null);
     setKartKirli(false);
+    setAltKirli(false);
     void yukle();
   }, [yukle]);
 
@@ -304,11 +306,13 @@ export function StoklarSayfasi() {
   }, [aramaSonuclariniGoster, filtreMetni, gelismisTaslak]);
 
   const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
+  const birimFiyatFormu = gorunum === 'birimListesi' || gorunum === 'fiyatDuzenle';
+  const kaydedilebilirForm = kartFormu || birimFiyatFormu;
   const stokSecili = Boolean(baglamStokId);
 
   useModulAksiyonlari(
     {
-      kaydet: kartFormu ? () => kaydet() : undefined,
+      kaydet: kaydedilebilirForm ? () => kaydet() : undefined,
       ekle: eklemeVar ? yeniAc : undefined,
       guncelle: duzenlemeVar ? () => duzenleAc(baglamStokId ?? undefined) : undefined,
       stokAra: araAksiyon,
@@ -318,7 +322,9 @@ export function StoklarSayfasi() {
       stokFiyatDuzenle: fiyatDuzenleAc,
     },
     {
-      kaydet: kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar),
+      kaydet:
+        (kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar)) ||
+        (birimFiyatFormu && duzenlemeVar),
       ekle: eklemeVar,
       guncelle: duzenlemeVar && stokSecili,
       stokAra: true,
@@ -327,7 +333,7 @@ export function StoklarSayfasi() {
       stokBirimListesi: stokSecili,
       stokFiyatDuzenle: duzenlemeVar && stokSecili,
     },
-    kartFormu ? kartKirli : false
+    kaydedilebilirForm ? (kartFormu ? kartKirli : altKirli) : false
   );
 
   const silOnayla = useCallback(async () => {
@@ -458,6 +464,8 @@ export function StoklarSayfasi() {
             onYeni={yeniAc}
             onDuzenle={() => duzenleAc(birimListesiStok.id)}
             onIncele={() => inceleAc(birimListesiStok.id)}
+            kaydetRef={kaydetRef}
+            onKirliDegistir={setAltKirli}
             onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
             onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
           />
@@ -468,6 +476,8 @@ export function StoklarSayfasi() {
             onYeni={yeniAc}
             onDuzenle={() => duzenleAc(fiyatDuzenleStok.id)}
             onIncele={() => inceleAc(fiyatDuzenleStok.id)}
+            kaydetRef={kaydetRef}
+            onKirliDegistir={setAltKirli}
             onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
             onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
           />

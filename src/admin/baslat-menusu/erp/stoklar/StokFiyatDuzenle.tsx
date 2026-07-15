@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { sayiFormatla } from '@/admin/ortak/datagrid/formatYardimci';
@@ -11,7 +11,6 @@ import {
   birimdenFiyatDuzenleSatir,
   fiyatDuzenleSatirdanBirimForm,
   geciciIdMi,
-  yeniIdGecici,
 } from './birimMap';
 import {
   digerFiyatlariHesapla,
@@ -34,7 +33,7 @@ import { stokFiyatBarkodUret } from './fiyatDuzenleVeri';
 import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import type { AdminStok } from './tipler';
 
-function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
+function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDuzenleSatir>[] {
   return [
     {
       id: 'fiyatAdi',
@@ -43,7 +42,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       genislik: 100,
       minGenislik: 80,
       zorunlu: true,
-      duzenlenebilir: true,
+      duzenlenebilir,
       siralama: true,
       degerAl: (s) => s.fiyatAdi,
       degerYaz: (s, d) => fiyatDuzenleSatirGuncelle(s, { fiyatAdi: String(d).trim() || s.fiyatAdi }),
@@ -53,7 +52,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       baslik: 'Birim',
       tip: 'metin',
       genislik: 80,
-      duzenlenebilir: true,
+      duzenlenebilir,
       siralama: true,
       degerAl: (s) => s.birim,
       degerYaz: (s, d) => fiyatDuzenleSatirGuncelle(s, { birim: String(d).trim() || s.birim }),
@@ -63,7 +62,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       baslik: 'Çarpan',
       tip: 'metin',
       genislik: 64,
-      duzenlenebilir: true,
+      duzenlenebilir,
       formulaTip: 'sayi',
       siralama: true,
       degerAl: (s) => s.carpan,
@@ -77,7 +76,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       tip: 'metin',
       genislik: 120,
       minGenislik: 96,
-      duzenlenebilir: true,
+      duzenlenebilir,
       siralama: true,
       degerAl: (s) => s.barkod,
       degerYaz: (s, d) => fiyatDuzenleSatirGuncelle(s, { barkod: String(d).trim() }),
@@ -87,7 +86,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       baslik: 'Kdv',
       tip: 'metin',
       genislik: 56,
-      duzenlenebilir: true,
+      duzenlenebilir,
       formulaTip: 'sayi',
       siralama: true,
       degerAl: (s) => s.kdv,
@@ -102,7 +101,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       tip: 'badge',
       genislik: 52,
       minGenislik: 48,
-      duzenlenebilir: true,
+      duzenlenebilir,
       secenekler: STOK_FIYAT_KDV_TIPI_SECENEKLERI.map((x) => ({ deger: x.deger, etiket: x.etiket })),
       siralama: true,
       degerAl: (s) => s.kdvTipi,
@@ -118,7 +117,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       tip: 'para',
       genislik: 108,
       paraSembolu: false,
-      duzenlenebilir: true,
+      duzenlenebilir,
       formulaTip: 'sayi',
       siralama: true,
       degerAl: (s) => s.alisFiyati,
@@ -132,7 +131,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       tip: 'para',
       genislik: 108,
       paraSembolu: false,
-      duzenlenebilir: true,
+      duzenlenebilir,
       formulaTip: 'sayi',
       siralama: true,
       degerAl: (s) => s.satisFiyati1,
@@ -145,7 +144,7 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
       baslik: 'PB',
       tip: 'badge',
       genislik: 52,
-      duzenlenebilir: true,
+      duzenlenebilir,
       secenekler: STOK_FIYAT_PB_SECENEKLERI.map((x) => ({ deger: x.deger, etiket: x.etiket })),
       siralama: true,
       degerAl: (s) => s.pb1,
@@ -156,37 +155,14 @@ function fiyatDuzenleKolonlari(): KolonTanimi<StokFiyatDuzenleSatir>[] {
   ];
 }
 
-function bosSatir(stok: AdminStok): StokFiyatDuzenleSatir {
-  return {
-    id: yeniIdGecici(),
-    fiyatAdi: 'PERAKENDE',
-    birim: stok.anaBirim || 'ADET',
-    carpan: 1,
-    barkod: '',
-    kdv: 10,
-    kdvTipi: 'dahil',
-    alisFiyati: null,
-    satisFiyati1: null,
-    pb1: 'TL',
-    satisFiyati2: null,
-    pb2: 'TL',
-    satisFiyati3: null,
-    pb3: 'TL',
-    satisFiyati4: null,
-    pb4: 'TL',
-    satisFiyati5: null,
-    pb5: 'TL',
-    alisKdv: 10,
-    aktif: true,
-  };
-}
-
 export function StokFiyatDuzenle({
   stok,
   onGeri,
   onYeni,
   onDuzenle,
   onIncele,
+  kaydetRef,
+  onKirliDegistir,
   onGorunumDuzenle,
   onGorunumKaydet,
 }: {
@@ -195,21 +171,24 @@ export function StokFiyatDuzenle({
   onYeni: () => void;
   onDuzenle: () => void;
   onIncele: () => void;
+  kaydetRef?: MutableRefObject<(() => Promise<void>) | null>;
+  onKirliDegistir?: (kirli: boolean) => void;
   onGorunumDuzenle?: () => void;
   onGorunumKaydet?: () => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar } = useYetkiler('stoklar');
+  const { eklemeVar, duzenlemeVar } = useYetkiler();
   const tabloRef = useRef<HTMLDivElement | null>(null);
   const [satirlar, setSatirlar] = useState<StokFiyatDuzenleSatir[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
-  const [kaydediliyor, setKaydediliyor] = useState(false);
   const [kirli, setKirli] = useState(false);
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [isaretliAlan, setIsaretliAlan] = useState<IsaretliFiyatAlani>('satisFiyati1');
-  const [otomatikBarkod, setOtomatikBarkod] = useState(false);
 
-  const kolonlar = useMemo(() => fiyatDuzenleKolonlari(), []);
+  const kolonlar = useMemo(
+    () => fiyatDuzenleKolonlari(duzenlemeVar || eklemeVar),
+    [duzenlemeVar, eklemeVar]
+  );
 
   const yukle = useCallback(async () => {
     setYukleniyor(true);
@@ -217,6 +196,7 @@ export function StokFiyatDuzenle({
       const birimler = await stokBirimleriGetir(stok.id);
       setSatirlar(birimler.map(birimdenFiyatDuzenleSatir));
       setKirli(false);
+      onKirliDegistir?.(false);
       setSeciliIdler([]);
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Fiyat listesi alınamadı');
@@ -224,20 +204,30 @@ export function StokFiyatDuzenle({
     } finally {
       setYukleniyor(false);
     }
-  }, [hataBildir, stok.id]);
+  }, [hataBildir, onKirliDegistir, stok.id]);
 
   useEffect(() => {
     void yukle();
   }, [yukle]);
 
-  const satirlarAyarla = useCallback((yeni: StokFiyatDuzenleSatir[]) => {
-    setSatirlar(yeni);
-    setKirli(true);
-  }, []);
+  const satirlarAyarla = useCallback(
+    (yeni: StokFiyatDuzenleSatir[]) => {
+      setSatirlar(yeni);
+      setKirli(true);
+      onKirliDegistir?.(true);
+    },
+    [onKirliDegistir]
+  );
 
   const kaydet = useCallback(async () => {
-    if (!duzenlemeVar && !eklemeVar) return;
-    setKaydediliyor(true);
+    if (!duzenlemeVar && !eklemeVar) {
+      hataBildir('Kayıt için yetkiniz yok.');
+      return;
+    }
+    if (!kirli) {
+      basariBildir('Kaydedilecek değişiklik yok.', 'Stok Fiyat Düzenle');
+      return;
+    }
     try {
       for (const satir of satirlar) {
         const form = fiyatDuzenleSatirdanBirimForm(satir, stok.id);
@@ -253,21 +243,16 @@ export function StokFiyatDuzenle({
       await yukle();
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Fiyat kaydı başarısız');
-    } finally {
-      setKaydediliyor(false);
     }
-  }, [basariBildir, duzenlemeVar, eklemeVar, hataBildir, satirlar, stok.id, yukle]);
+  }, [basariBildir, duzenlemeVar, eklemeVar, hataBildir, kirli, satirlar, stok.id, yukle]);
 
-  const satirEkle = useCallback(() => {
-    if (!eklemeVar) return;
-    const yeni = bosSatir(stok);
-    if (otomatikBarkod) {
-      yeni.barkod = stokFiyatBarkodUret(stok, yeni.carpan, satirlar.length + 1);
-    }
-    setSatirlar((m) => [...m, yeni]);
-    setKirli(true);
-    setSeciliIdler([yeni.id]);
-  }, [eklemeVar, otomatikBarkod, satirlar.length, stok]);
+  useEffect(() => {
+    if (!kaydetRef) return;
+    kaydetRef.current = kaydet;
+    return () => {
+      kaydetRef.current = null;
+    };
+  }, [kaydet, kaydetRef]);
 
   const digerFiyatlariHesaplaTus = useCallback(() => {
     const hedefIdler = seciliIdler.length ? seciliIdler : undefined;
@@ -284,13 +269,14 @@ export function StokFiyatDuzenle({
     }
     setSatirlar(guncel);
     setKirli(true);
+    onKirliDegistir?.(true);
     basariBildir(
       isaretliAlan === 'satisFiyati1'
         ? 'Satış fiyatı alış fiyatına kopyalandı.'
         : 'Alış fiyatı satış fiyatına kopyalandı.',
       'Stok Fiyat Düzenle'
     );
-  }, [basariBildir, hataBildir, isaretliAlan, satirlar, seciliIdler]);
+  }, [basariBildir, hataBildir, isaretliAlan, onKirliDegistir, satirlar, seciliIdler]);
 
   const barkodUret = useCallback(() => {
     const hedefIdler = seciliIdler.length ? seciliIdler : satirlar.map((s) => s.id);
@@ -303,20 +289,19 @@ export function StokFiyatDuzenle({
       })
     );
     setKirli(true);
+    onKirliDegistir?.(true);
     basariBildir('Barkod üretildi. Kaydet ile veritabanına yazılır.', 'Stok Fiyat Düzenle');
-  }, [basariBildir, satirlar, seciliIdler, stok]);
+  }, [basariBildir, onKirliDegistir, satirlar, seciliIdler, stok]);
 
   return (
     <div className="stok-karti-kabuk stok-fiyat-duzenle-sayfa">
       <TanimDuzenleEkrani
         ustEtiket="Stok Fiyat Düzenle"
         baslik={`${stok.urunKodu} — ${stok.urunAdi}`}
-        altBaslik={`Aşağıda ${stok.urunKodu} stoğunun fiyatlarını girebilirsiniz. Veriler f001birimler tablosuna kaydedilir. PB alanının para birimi satır lokalidir (şemada PB kolonu yok).`}
+        altBaslik={`Hücreleri çift tıklayarak düzenleyin. Değişiklikleri üst aksiyon çubuğundan Kaydet ile kaydedin.`}
         rozet="Fiyat"
         onGeri={onGeri}
-        onKaydet={(duzenlemeVar || eklemeVar) && kirli ? () => void kaydet() : undefined}
-        kaydediliyor={kaydediliyor}
-        saltOkunur={!duzenlemeVar && !eklemeVar}
+        saltOkunur
       >
         <div className="stok-karti-icerik ap-scroll stok-fiyat-duzenle-sayfa-icerik">
           <div className="stok-fiyat-duzenle-icerik">
@@ -342,7 +327,7 @@ export function StokFiyatDuzenle({
                 satirlar={satirlar}
                 yukleniyor={yukleniyor}
                 depolamaAnahtari={`stok_fiyat_duzenle_api_${stok.id}`}
-                bosMesaj="Bu stok için fiyat satırı yok. Aşağıdan satır ekleyebilirsiniz."
+                bosMesaj="Bu stok için fiyat satırı yok. Ürün Yönetimi / birim kaydı ile ekleyebilirsiniz."
                 onSatirlarDegistir={satirlarAyarla}
                 onSatirTikla={(s) => setSeciliIdler([s.id])}
                 onSecimDegistir={setSeciliIdler}
@@ -355,11 +340,6 @@ export function StokFiyatDuzenle({
 
             <div className="stok-fiyat-duzenle-alt stok-fiyat-duzenle-alt--sayfa">
               <div className="stok-fiyat-duzenle-alt-sol">
-                {eklemeVar ? (
-                  <button type="button" className="ap-tanimlar-yeni-ekle" onClick={satirEkle}>
-                    Satır Ekle
-                  </button>
-                ) : null}
                 <button type="button" className="stoklar-hizli-ara-tus" onClick={digerFiyatlariHesaplaTus}>
                   Diğer Fiyatları Hesapla
                 </button>
@@ -376,14 +356,6 @@ export function StokFiyatDuzenle({
                     secenekler={ISARETLI_FIYAT_ALANLARI.map((x) => ({ ...x }))}
                     aria-label="İşaretli alan"
                   />
-                </label>
-                <label className="stok-fiyat-duzenle-otomatik-barkod">
-                  <input
-                    type="checkbox"
-                    checked={otomatikBarkod}
-                    onChange={(e) => setOtomatikBarkod(e.target.checked)}
-                  />
-                  <span>Yeni fiyatlara barkodu otomatik yaz</span>
                 </label>
               </div>
             </div>

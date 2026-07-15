@@ -1982,6 +1982,18 @@ button.ap-tanimlar-panel-arka {
   color: var(--ap-muted);
 }
 
+.stok-envanter-analiz-pozitif {
+  color: color-mix(in srgb, #15803d 85%, var(--ap-heading));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stok-envanter-analiz-negatif {
+  color: color-mix(in srgb, #b91c1c 85%, var(--ap-heading));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Stok birim listesi — tam sayfa */
 .stok-birim-liste-icerik {
   display: flex;

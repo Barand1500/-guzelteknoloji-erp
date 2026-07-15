@@ -1,6 +1,5 @@
-import type { AdminBirim, AdminMaliyet, BirimForm } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
+import type { AdminBirim, BirimForm } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
 import type { StokBirimListeSatir } from './birimListeTipler';
-import type { StokEnvanterFiyatBilgisi } from './envanterAnalizTipler';
 import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
 
 export function birimdenListeSatir(b: AdminBirim): StokBirimListeSatir {
@@ -49,7 +48,6 @@ export function birimdenFiyatDuzenleSatir(b: AdminBirim): StokFiyatDuzenleSatir 
     alisFiyati: b.alisFiyati,
     satisFiyati1: b.satisFiyati,
     pb1: 'TL',
-    // Şemada yok — UI'de gösterilmez / kaydedilmez
     satisFiyati2: null,
     pb2: 'TL',
     satisFiyati3: null,
@@ -79,24 +77,6 @@ export function fiyatDuzenleSatirdanBirimForm(
     satisFiyati: satir.satisFiyati1 ?? 0,
     kdvDahil: satir.kdvTipi === 'dahil',
     aktif: satir.aktif ?? true,
-  };
-}
-
-export function envanterFiyatBilgisiBirimden(
-  birim: AdminBirim | null,
-  maliyet: AdminMaliyet | null
-): StokEnvanterFiyatBilgisi {
-  const alis = birim?.alisFiyati ?? 0;
-  const maliyetDeger = maliyet?.sonAlisMaliyeti ?? maliyet?.yuruyenAgirlikliOrtalama ?? 0;
-  const satis = birim?.satisFiyati ?? 0;
-  return {
-    alisFiyati: alis,
-    dovizAlisFiyati: alis, // DB'de ayrı döviz alış yok
-    maliyet: maliyetDeger || alis,
-    satisFiyati1: satis,
-    satisFiyati2: 0,
-    satisFiyati3: 0,
-    satisFiyati3Yuzde: 0,
   };
 }
 

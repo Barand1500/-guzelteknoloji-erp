@@ -113,14 +113,19 @@ const AKSIYON_YETKI: Partial<Record<string, YetkiKodu>> = {
 export function useAksiyonCubugu(modulId: string) {
   const { aksiyonDurumlari } = useAdminAksiyon();
   const { t } = usePanelDil();
-  const { yetkiler } = useYetkiler(modulId);
+  const { yetkiler: modulYetkiler } = useYetkiler(modulId);
+  const { yetkiler: genelYetkiler } = useYetkiler();
 
   return useMemo(() => {
     const temel =
       MODUL_OZEL_CUBUK[modulId] ??
       (MODUL_VARSAYILAN[modulId] ? standartCubuk(MODUL_VARSAYILAN[modulId]) : varsayilanAksiyonlar);
     const modulYetki = MODUL_AKSIYON_YETKI[modulId] ?? {};
-    const yetkiVar = (kod: YetkiKodu) => yetkiler.includes(kod);
+    /** Stoklar: modul matrisi eksikse genel yetkiye de bak (Kaydet/Düzenle kilitlenmesin) */
+    const yetkiVar = (kod: YetkiKodu) =>
+      modulId === 'stoklar'
+        ? modulYetkiler.includes(kod) || genelYetkiler.includes(kod)
+        : modulYetkiler.includes(kod);
 
     return temel.map((aksiyon) => {
       const dinamik = aksiyonDurumlari[aksiyon.id as AksiyonId];
@@ -131,15 +136,11 @@ export function useAksiyonCubugu(modulId: string) {
           : t(`aksiyon.${aksiyon.id}`, aksiyon.etiket);
       const guncel = { ...aksiyon, etiket };
 
-      // Stok Kaydet: modulYetki'de yoksa global duzenleme zorunlulugu uygulama (durumlar yeter)
-      const yetkiKodu =
-        aksiyon.id === 'kaydet' && modulId === 'stoklar'
-          ? undefined
-          : (modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id]);
+      const yetkiKodu = modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id];
       const yetkiUygun = !yetkiKodu || yetkiVar(yetkiKodu);
       const temelAktif = dinamik !== undefined ? dinamik : aksiyon.aktif;
 
       return { ...guncel, aktif: temelAktif && yetkiUygun };
     });
-  }, [modulId, aksiyonDurumlari, t, yetkiler]);
+  }, [modulId, aksiyonDurumlari, t, modulYetkiler, genelYetkiler]);
 }

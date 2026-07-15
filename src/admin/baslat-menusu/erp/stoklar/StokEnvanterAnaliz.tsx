@@ -6,107 +6,13 @@ import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { stokBirimleriGetir, stokMaliyetleriGetir } from './api';
-import { envanterFiyatBilgisiBirimden } from './birimMap';
-import type { StokEnvanterAnalizOzet, StokEnvanterAnalizSatir, StokEnvanterFiyatBilgisi } from './envanterAnalizTipler';
+import {
+  envanterOzetHesapla,
+  envanterSatirHesapla,
+  type StokEnvanterAnalizSatir,
+} from './envanterAnalizTipler';
 import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import type { AdminStok } from './tipler';
-
-function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
-  return [
-    {
-      id: 'depoInd',
-      baslik: 'Depo Ind',
-      tip: 'sayi',
-      genislik: 72,
-      minGenislik: 56,
-      siralama: true,
-      degerAl: (s) => s.depoInd,
-      siralamaDegeri: (s) => s.depoInd,
-      goster: (s) => String(s.depoInd),
-    },
-    {
-      id: 'depoKodu',
-      baslik: 'Depo Kodu',
-      tip: 'metin',
-      genislik: 120,
-      minGenislik: 90,
-      zorunlu: true,
-      siralama: true,
-      degerAl: (s) => s.depoKodu,
-    },
-    {
-      id: 'envanter',
-      baslik: 'Envanter',
-      tip: 'sayi',
-      genislik: 96,
-      siralama: true,
-      degerAl: (s) => s.envanter,
-      siralamaDegeri: (s) => s.envanter,
-      goster: (s) => sayiFormatla(s.envanter),
-    },
-    {
-      id: 'siparisMiktari',
-      baslik: 'Sip. Mk.',
-      tip: 'sayi',
-      genislik: 88,
-      siralama: true,
-      degerAl: (s) => s.siparisMiktari,
-      siralamaDegeri: (s) => s.siparisMiktari,
-      goster: (s) => sayiFormatla(s.siparisMiktari),
-    },
-    {
-      id: 'kullanilabilir',
-      baslik: 'Kullanılabilir',
-      tip: 'sayi',
-      genislik: 104,
-      siralama: true,
-      degerAl: (s) => s.kullanilabilir,
-      siralamaDegeri: (s) => s.kullanilabilir,
-      goster: (s) => sayiFormatla(s.kullanilabilir),
-    },
-    {
-      id: 'altSeviye',
-      baslik: 'Alt Seviye',
-      tip: 'sayi',
-      genislik: 96,
-      siralama: true,
-      degerAl: (s) => s.altSeviye,
-      siralamaDegeri: (s) => s.altSeviye,
-      goster: (s) => sayiFormatla(s.altSeviye),
-    },
-    {
-      id: 'ustSeviye',
-      baslik: 'Üst Seviye',
-      tip: 'sayi',
-      genislik: 96,
-      siralama: true,
-      degerAl: (s) => s.ustSeviye,
-      siralamaDegeri: (s) => s.ustSeviye,
-      goster: (s) => sayiFormatla(s.ustSeviye),
-    },
-    {
-      id: 'optimumSeviye',
-      baslik: 'Optimum Seviye',
-      tip: 'sayi',
-      genislik: 112,
-      siralama: true,
-      degerAl: (s) => s.optimumSeviye,
-      siralamaDegeri: (s) => s.optimumSeviye,
-      goster: (s) => sayiFormatla(s.optimumSeviye),
-    },
-  ];
-}
-
-function envanterOzetHesapla(satirlar: StokEnvanterAnalizSatir[]): StokEnvanterAnalizOzet {
-  return satirlar.reduce(
-    (acc, s) => ({
-      envanter: acc.envanter + s.envanter,
-      siparisMiktari: acc.siparisMiktari + s.siparisMiktari,
-      kullanilabilir: acc.kullanilabilir + s.kullanilabilir,
-    }),
-    { envanter: 0, siparisMiktari: 0, kullanilabilir: 0 }
-  );
-}
 
 function FiyatAlani({ etiket, deger }: { etiket: string; deger: string }) {
   return (
@@ -117,15 +23,109 @@ function FiyatAlani({ etiket, deger }: { etiket: string; deger: string }) {
   );
 }
 
-const BOS_FIYAT: StokEnvanterFiyatBilgisi = {
-  alisFiyati: 0,
-  dovizAlisFiyati: 0,
-  maliyet: 0,
-  satisFiyati1: 0,
-  satisFiyati2: 0,
-  satisFiyati3: 0,
-  satisFiyati3Yuzde: 0,
-};
+function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
+  return [
+    {
+      id: 'fiyatAdi',
+      baslik: 'Fiyat Ad',
+      tip: 'metin',
+      genislik: 100,
+      zorunlu: true,
+      siralama: true,
+      degerAl: (s) => s.fiyatAdi,
+    },
+    {
+      id: 'birimAdi',
+      baslik: 'Birim',
+      tip: 'metin',
+      genislik: 80,
+      siralama: true,
+      degerAl: (s) => s.birimAdi,
+    },
+    {
+      id: 'carpan',
+      baslik: 'Çarpan',
+      tip: 'sayi',
+      genislik: 72,
+      siralama: true,
+      degerAl: (s) => s.carpan,
+      siralamaDegeri: (s) => s.carpan,
+      goster: (s) => String(s.carpan),
+    },
+    {
+      id: 'alisFiyati',
+      baslik: 'Alış',
+      tip: 'para',
+      genislik: 100,
+      paraSembolu: false,
+      siralama: true,
+      degerAl: (s) => s.alisFiyati,
+      siralamaDegeri: (s) => s.alisFiyati,
+      goster: (s) => sayiFormatla(s.alisFiyati),
+    },
+    {
+      id: 'maliyet',
+      baslik: 'Maliyet',
+      tip: 'para',
+      genislik: 100,
+      paraSembolu: false,
+      siralama: true,
+      degerAl: (s) => s.maliyet,
+      siralamaDegeri: (s) => s.maliyet,
+      goster: (s) => sayiFormatla(s.maliyet),
+    },
+    {
+      id: 'satisFiyati',
+      baslik: 'Satış',
+      tip: 'para',
+      genislik: 100,
+      paraSembolu: false,
+      siralama: true,
+      degerAl: (s) => s.satisFiyati,
+      siralamaDegeri: (s) => s.satisFiyati,
+      goster: (s) => sayiFormatla(s.satisFiyati),
+    },
+    {
+      id: 'fark',
+      baslik: 'Fark',
+      tip: 'para',
+      genislik: 100,
+      paraSembolu: false,
+      siralama: true,
+      degerAl: (s) => s.fark,
+      siralamaDegeri: (s) => s.fark,
+      goster: (s) => (
+        <span className={s.fark >= 0 ? 'stok-envanter-analiz-pozitif' : 'stok-envanter-analiz-negatif'}>
+          {sayiFormatla(s.fark)}
+        </span>
+      ),
+    },
+    {
+      id: 'karYuzde',
+      baslik: 'Kar %',
+      tip: 'metin',
+      genislik: 80,
+      siralama: true,
+      degerAl: (s) => s.karYuzde,
+      siralamaDegeri: (s) => s.karYuzde,
+      goster: (s) => (
+        <span className={s.karYuzde >= 0 ? 'stok-envanter-analiz-pozitif' : 'stok-envanter-analiz-negatif'}>
+          {yuzdeFormatla(s.karYuzde)}
+        </span>
+      ),
+    },
+    {
+      id: 'kdv',
+      baslik: 'KDV',
+      tip: 'metin',
+      genislik: 72,
+      siralama: true,
+      degerAl: (s) => s.kdvYuzde,
+      siralamaDegeri: (s) => s.kdvYuzde,
+      goster: (s) => `%${s.kdvYuzde} ${s.kdvDahil ? 'D' : 'H'}`,
+    },
+  ];
+}
 
 export function StokEnvanterAnaliz({
   stok,
@@ -145,10 +145,9 @@ export function StokEnvanterAnaliz({
   onGorunumKaydet?: () => void;
 }) {
   const { hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar } = useYetkiler('stoklar');
+  const { eklemeVar, duzenlemeVar } = useYetkiler();
   const tabloRef = useRef<HTMLDivElement | null>(null);
-  const [satirlar] = useState<StokEnvanterAnalizSatir[]>([]);
-  const [fiyat, setFiyat] = useState<StokEnvanterFiyatBilgisi>(BOS_FIYAT);
+  const [satirlar, setSatirlar] = useState<StokEnvanterAnalizSatir[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const kolonlar = useMemo(() => envanterAnalizKolonlari(), []);
   const ozet = useMemo(() => envanterOzetHesapla(satirlar), [satirlar]);
@@ -159,20 +158,34 @@ export function StokEnvanterAnaliz({
     void (async () => {
       try {
         const birimler = await stokBirimleriGetir(stok.id);
-        const anaBirim =
-          birimler.find((b) => b.birimAdi === stok.varsayilanBirim) ??
-          birimler.find((b) => b.birimAdi === stok.anaBirim) ??
-          birimler[0] ??
-          null;
-        const maliyetler = anaBirim
-          ? await stokMaliyetleriGetir([anaBirim.id])
-          : [];
-        if (iptal) return;
-        setFiyat(envanterFiyatBilgisiBirimden(anaBirim, maliyetler[0] ?? null));
+        const maliyetler = await stokMaliyetleriGetir(birimler.map((b) => b.id));
+        const maliyetMap = new Map(maliyetler.map((m) => [m.birimId, m]));
+
+        const hesapli = birimler.map((b) => {
+          const m = maliyetMap.get(b.id);
+          const maliyetDeger =
+            m?.sonAlisMaliyeti ||
+            m?.yuruyenAgirlikliOrtalama ||
+            b.alisFiyati ||
+            0;
+          return envanterSatirHesapla({
+            id: b.id,
+            fiyatAdi: b.fiyatAdi,
+            birimAdi: b.birimAdi,
+            carpan: b.carpan,
+            alisFiyati: b.alisFiyati,
+            maliyet: maliyetDeger,
+            satisFiyati: b.satisFiyati,
+            kdvYuzde: b.satisKdv,
+            kdvDahil: b.kdvDahil,
+          });
+        });
+
+        if (!iptal) setSatirlar(hesapli);
       } catch (e) {
         if (!iptal) {
-          hataBildir(e instanceof Error ? e.message : 'Fiyat bilgileri alınamadı');
-          setFiyat(BOS_FIYAT);
+          hataBildir(e instanceof Error ? e.message : 'Envanter analizi alınamadı');
+          setSatirlar([]);
         }
       } finally {
         if (!iptal) setYukleniyor(false);
@@ -181,14 +194,14 @@ export function StokEnvanterAnaliz({
     return () => {
       iptal = true;
     };
-  }, [hataBildir, stok.anaBirim, stok.id, stok.varsayilanBirim]);
+  }, [hataBildir, stok.id]);
 
   return (
     <div className="stok-karti-kabuk stok-envanter-analiz-sayfa">
       <TanimDuzenleEkrani
         ustEtiket="Envanter"
         baslik={`${stok.urunKodu} — ${stok.urunAdi}`}
-        altBaslik={`Fiyat bilgileri f001birimler + f001maliyetler tablolarından gelir. Depo envanter miktarı için henüz tablo yok — aşağıdaki liste boş kalır.`}
+        altBaslik={`Alış ve satış f001birimler / f001maliyetler tablolarından okunur. Fark ve kar % burada matematiksel hesaplanır (satış − alış). Depo miktarı kullanılmaz.`}
         rozet="Analiz"
         onGeri={onGeri}
         saltOkunur
@@ -211,57 +224,28 @@ export function StokEnvanterAnaliz({
               />
               <DataGrid
                 key={`stok_envanter_analiz_${stok.id}`}
-                tabloBaslik="Stok Envanter Listesi"
-                tabloAltBaslik="Depo envanter tablosu yok"
+                tabloBaslik="Alış / Satış Analizi"
+                tabloAltBaslik="Birim bazında hesaplanan fark ve kar %"
                 kolonlar={kolonlar}
                 satirlar={satirlar}
                 yukleniyor={yukleniyor}
-                depolamaAnahtari={`stok_envanter_analiz_api_${stok.id}`}
-                bosMesaj="Depo envanter tablosu henüz tanımlı değil. Fiyat paneli birim/maliyet verisine bağlıdır."
+                depolamaAnahtari={`stok_envanter_hesap_${stok.id}`}
+                bosMesaj="Bu stok için birim/fiyat kaydı yok. Önce Fiyat Düzenle ile alış ve satış girin."
                 formulMenuGoster={false}
               />
-              <div className="stok-envanter-analiz-toplam" aria-label="Envanter toplamları">
-                <span className="stok-envanter-analiz-toplam-oge">
-                  <span className="stok-envanter-analiz-toplam-etiket">Envanter</span>
-                  <span className="stok-envanter-analiz-toplam-deger">{sayiFormatla(ozet.envanter)}</span>
-                </span>
-                <span className="stok-envanter-analiz-toplam-oge">
-                  <span className="stok-envanter-analiz-toplam-etiket">Sip. Mk.</span>
-                  <span className="stok-envanter-analiz-toplam-deger">
-                    {sayiFormatla(ozet.siparisMiktari)}
-                  </span>
-                </span>
-                <span className="stok-envanter-analiz-toplam-oge">
-                  <span className="stok-envanter-analiz-toplam-etiket">Kullanılabilir</span>
-                  <span className="stok-envanter-analiz-toplam-deger">
-                    {sayiFormatla(ozet.kullanilabilir)}
-                  </span>
-                </span>
-              </div>
             </div>
 
             <div className="stok-envanter-analiz-fiyat-panel">
-              <p className="stok-envanter-analiz-fiyat-baslik">Fiyat Bilgileri</p>
+              <p className="stok-envanter-analiz-fiyat-baslik">Toplam / Özet (matematik)</p>
               <div className="stok-envanter-analiz-fiyat-satir">
-                <FiyatAlani etiket="Alış Fiyatı" deger={paraFormatla(fiyat.alisFiyati, 'TL')} />
-                <FiyatAlani
-                  etiket="D. Alış Fiyatı"
-                  deger={paraFormatla(fiyat.dovizAlisFiyati, 'TL')}
-                />
-                <FiyatAlani etiket="Maliyet" deger={sayiFormatla(fiyat.maliyet)} />
+                <FiyatAlani etiket="Birim sayısı" deger={String(ozet.birimSayisi)} />
+                <FiyatAlani etiket="Toplam Alış" deger={paraFormatla(ozet.toplamAlis, 'TL')} />
+                <FiyatAlani etiket="Toplam Satış" deger={paraFormatla(ozet.toplamSatis, 'TL')} />
               </div>
               <div className="stok-envanter-analiz-fiyat-satir">
-                <FiyatAlani etiket="Satış Fiyatı" deger={sayiFormatla(fiyat.satisFiyati1)} />
-                <FiyatAlani etiket="2. S. Fiyatı" deger="—" />
-                <label className="stok-envanter-analiz-fiyat-alan">
-                  <span>3. S. Fiyatı</span>
-                  <div className="stok-envanter-analiz-fiyat-deger stok-envanter-analiz-fiyat-deger--yuzde">
-                    <span>—</span>
-                    <span className="stok-envanter-analiz-yuzde">
-                      ({yuzdeFormatla(fiyat.satisFiyati3Yuzde)})
-                    </span>
-                  </div>
-                </label>
+                <FiyatAlani etiket="Toplam Fark" deger={paraFormatla(ozet.toplamFark, 'TL')} />
+                <FiyatAlani etiket="Ort. Maliyet" deger={sayiFormatla(ozet.ortalamaMaliyet)} />
+                <FiyatAlani etiket="Ort. Kar %" deger={yuzdeFormatla(ozet.ortalamaKarYuzde)} />
               </div>
             </div>
           </div>

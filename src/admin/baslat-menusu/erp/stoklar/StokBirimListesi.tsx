@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { sayiFormatla } from '@/admin/ortak/datagrid/formatYardimci';
@@ -66,6 +66,8 @@ export function StokBirimListesi({
   onYeni,
   onDuzenle,
   onIncele,
+  kaydetRef,
+  onKirliDegistir,
   onGorunumDuzenle,
   onGorunumKaydet,
 }: {
@@ -74,15 +76,16 @@ export function StokBirimListesi({
   onYeni: () => void;
   onDuzenle: () => void;
   onIncele: () => void;
+  kaydetRef?: MutableRefObject<(() => Promise<void>) | null>;
+  onKirliDegistir?: (kirli: boolean) => void;
   onGorunumDuzenle?: () => void;
   onGorunumKaydet?: () => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar } = useYetkiler('stoklar');
+  const { eklemeVar, duzenlemeVar } = useYetkiler();
   const tabloRef = useRef<HTMLDivElement | null>(null);
   const [satirlar, setSatirlar] = useState<StokBirimListeSatir[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
-  const [kaydediliyor, setKaydediliyor] = useState(false);
   const [kirli, setKirli] = useState(false);
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aciklamaGorunumu, setAciklamaGorunumu] = useState<BirimAciklamaGorunumu>('hicbiri');
@@ -93,6 +96,7 @@ export function StokBirimListesi({
       const birimler = await stokBirimleriGetir(stok.id);
       setSatirlar(birimler.map(birimdenListeSatir));
       setKirli(false);
+      onKirliDegistir?.(false);
       setSeciliIdler([]);
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Birimler alınamadı');
@@ -100,20 +104,30 @@ export function StokBirimListesi({
     } finally {
       setYukleniyor(false);
     }
-  }, [hataBildir, stok.id]);
+  }, [hataBildir, onKirliDegistir, stok.id]);
 
   useEffect(() => {
     void yukle();
   }, [yukle]);
 
-  const satirlarAyarla = useCallback((yeni: StokBirimListeSatir[]) => {
-    setSatirlar(yeni);
-    setKirli(true);
-  }, []);
+  const satirlarAyarla = useCallback(
+    (yeni: StokBirimListeSatir[]) => {
+      setSatirlar(yeni);
+      setKirli(true);
+      onKirliDegistir?.(true);
+    },
+    [onKirliDegistir]
+  );
 
   const kaydet = useCallback(async () => {
-    if (!duzenlemeVar) return;
-    setKaydediliyor(true);
+    if (!duzenlemeVar) {
+      hataBildir('Düzenleme yetkiniz yok.');
+      return;
+    }
+    if (!kirli) {
+      basariBildir('Kaydedilecek değişiklik yok.', 'Birimler');
+      return;
+    }
     try {
       for (const satir of satirlar) {
         await birimGuncelle(satir.id, listeSatirdanBirimForm(satir, stok.id));
@@ -122,10 +136,16 @@ export function StokBirimListesi({
       await yukle();
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Birim kaydı başarısız');
-    } finally {
-      setKaydediliyor(false);
     }
-  }, [basariBildir, duzenlemeVar, hataBildir, satirlar, stok.id, yukle]);
+  }, [basariBildir, duzenlemeVar, hataBildir, kirli, satirlar, stok.id, yukle]);
+
+  useEffect(() => {
+    if (!kaydetRef) return;
+    kaydetRef.current = kaydet;
+    return () => {
+      kaydetRef.current = null;
+    };
+  }, [kaydet, kaydetRef]);
 
   const kolonlar = useMemo((): KolonTanimi<StokBirimListeSatir>[] => {
     const duzenlenebilir = duzenlemeVar;
@@ -230,12 +250,10 @@ export function StokBirimListesi({
       <TanimDuzenleEkrani
         ustEtiket="Birimler"
         baslik={`${stok.urunKodu} — ${stok.urunAdi}`}
-        altBaslik={`Aşağıda ${stok.urunKodu} - ${stok.urunAdi} stoğunun birim tanımlarını görmektesiniz. Veriler f001birimler tablosundan gelir. Hücreleri çift tıklayarak düzenleyip Kaydet ile kaydediniz.`}
+        altBaslik={`Hücreleri çift tıklayarak düzenleyin. Değişiklikleri üst aksiyon çubuğundan Kaydet ile kaydedin.`}
         rozet="Birim"
         onGeri={onGeri}
-        onKaydet={duzenlemeVar && kirli ? () => void kaydet() : undefined}
-        kaydediliyor={kaydediliyor}
-        saltOkunur={!duzenlemeVar}
+        saltOkunur
       >
         <div className="stok-karti-icerik stok-birim-liste-sayfa-icerik">
           <div className="stok-birim-liste-icerik">
