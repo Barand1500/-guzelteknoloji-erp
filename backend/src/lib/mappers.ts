@@ -85,7 +85,16 @@ export function tarihIso(d: Date): string {
   return d.toISOString();
 }
 
-export async function kullaniciYanit(k: Kullanici, yetkiPaket: { birlesik: string[]; modul: Record<string, string[]> }) {
+export async function kullaniciYanit(
+  k: Kullanici,
+  yetkiPaket: { birlesik: string[]; modul: Record<string, string[]> },
+  oturumSecimi?: {
+    firma: Firma;
+    donem: Donem;
+    sube: Sube;
+    kasa: Kasa;
+  }
+) {
   const tam = await prisma.kullanici.findUnique({
     where: { id: k.id },
     include: {
@@ -98,10 +107,10 @@ export async function kullaniciYanit(k: Kullanici, yetkiPaket: { birlesik: strin
   });
 
   const kayit = tam ?? k;
-  const firma = tam?.firma;
-  const donem = tam?.donem;
-  const sube = tam?.sube;
-  const kasa = tam?.kasa;
+  const firma = oturumSecimi?.firma ?? tam?.firma;
+  const donem = oturumSecimi?.donem ?? tam?.donem;
+  const sube = oturumSecimi?.sube ?? tam?.sube;
+  const kasa = oturumSecimi?.kasa ?? tam?.kasa;
 
   return {
     id: kayit.id,
@@ -126,6 +135,11 @@ export async function kullaniciYanit(k: Kullanici, yetkiPaket: { birlesik: strin
 }
 
 export async function adminKullaniciYanit(k: Kullanici) {
+  const oturumYetkileri = Array.isArray(k.oturumYetkileri)
+    ? k.oturumYetkileri
+    : k.firmaId && k.donemId
+      ? [{ firmaId: k.firmaId, donemId: k.donemId }]
+      : [];
   return {
     id: String(k.id),
     kullaniciKodu: k.kullaniciKodu,
@@ -137,6 +151,7 @@ export async function adminKullaniciYanit(k: Kullanici) {
     subeId: k.subeId != null ? String(k.subeId) : '',
     depoId: k.depoId != null ? String(k.depoId) : '',
     kasaId: k.kasaId != null ? String(k.kasaId) : '',
+    oturumYetkileri,
     pin: k.pin ?? '',
     olusturma: tarihIso(k.kayitTarihi),
     guncelleme: tarihIso(k.guncellemeTarihi),

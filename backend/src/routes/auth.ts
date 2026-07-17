@@ -16,21 +16,61 @@ import { authZorunlu } from '../middleware/auth.js';
 
 const router = Router();
 
-router.get('/oturum-secenekleri', async (_req, res) => {
+interface OturumYetkisi {
+  firmaId: number;
+  donemId: number;
+}
+
+function kullaniciOturumYetkileri(kullanici: {
+  firmaId: number;
+  donemId: number | null;
+  oturumYetkileri: unknown;
+}): OturumYetkisi[] {
+  const ham = Array.isArray(kullanici.oturumYetkileri) ? kullanici.oturumYetkileri : [];
+  const yetkiler = ham
+    .filter((y): y is Record<string, unknown> => Boolean(y && typeof y === 'object'))
+    .map((y) => ({ firmaId: Number(y.firmaId), donemId: Number(y.donemId) }))
+    .filter((y) => Number.isFinite(y.firmaId) && Number.isFinite(y.donemId));
+  if (yetkiler.length > 0) return yetkiler;
+  return kullanici.donemId
+    ? [{ firmaId: kullanici.firmaId, donemId: kullanici.donemId }]
+    : [];
+}
+
+router.get('/oturum-secenekleri', async (req, res) => {
   try {
     if (mockAuthAktif()) {
       return res.json(MOCK_OTURUM_SECENEKLERI);
     }
 
-    const firmalar = await prisma.firma.findMany({
+    const kullanicilar = await prisma.kullanici.findMany({
       where: { durum: true },
+      orderBy: { kullaniciKodu: 'asc' },
+      select: {
+        kullaniciKodu: true,
+        firmaId: true,
+        donemId: true,
+        subeId: true,
+        kasaId: true,
+        oturumYetkileri: true,
+      },
+    });
+    const istenenKod = String(req.query.kullaniciKodu ?? '').trim().toUpperCase();
+    const seciliKullanici =
+      kullanicilar.find((k) => k.kullaniciKodu === istenenKod) ?? kullanicilar[0];
+    const yetkiler = seciliKullanici ? kullaniciOturumYetkileri(seciliKullanici) : [];
+    const firmaIdleri = [...new Set(yetkiler.map((y) => y.firmaId))];
+    const donemIdleri = [...new Set(yetkiler.map((y) => y.donemId))];
+
+    const firmalar = await prisma.firma.findMany({
+      where: { durum: true, id: { in: firmaIdleri } },
       orderBy: { firmaKodu: 'asc' },
       select: {
         id: true,
         firmaKodu: true,
         firmaAdi: true,
         donemler: {
-          where: { durum: true },
+          where: { durum: true, id: { in: donemIdleri } },
           orderBy: { donemKodu: 'asc' },
           select: { id: true, donemKodu: true, donemAdi: true },
         },
@@ -56,15 +96,27 @@ router.get('/oturum-secenekleri', async (_req, res) => {
       },
     });
 
+    const varsayilanFirma = firmalar.find((f) => f.id === seciliKullanici?.firmaId) ?? firmalar[0];
+    const varsayilanDonem =
+      varsayilanFirma?.donemler.find((d) => d.id === seciliKullanici?.donemId) ??
+      varsayilanFirma?.donemler[0];
+    const varsayilanSube =
+      varsayilanFirma?.subeler.find((s) => s.id === seciliKullanici?.subeId) ??
+      varsayilanFirma?.subeler[0];
+    const varsayilanKasa =
+      varsayilanSube?.kasalar.find((k) => k.id === seciliKullanici?.kasaId) ??
+      varsayilanSube?.kasalar[0];
+
     return res.json({
       firmalar,
-      kullaniciKodlari: (
-        await prisma.kullanici.findMany({
-          where: { durum: true },
-          orderBy: { kullaniciKodu: 'asc' },
-          select: { kullaniciKodu: true },
-        })
-      ).map((k) => k.kullaniciKodu),
+      kullaniciKodlari: kullanicilar.map((k) => k.kullaniciKodu),
+      seciliKullaniciKodu: seciliKullanici?.kullaniciKodu ?? '',
+      varsayilan: {
+        firmaKodu: varsayilanFirma?.firmaKodu ?? '',
+        donemKodu: varsayilanDonem?.donemKodu ?? '',
+        subeKodu: varsayilanSube?.subeKodu ?? '',
+        kasaKodu: varsayilanKasa?.kasaKodu ?? '',
+      },
     });
   } catch (err) {
     console.error('[auth/oturum-secenekleri]', err);
@@ -142,27 +194,23 @@ router.post('/giris', async (req, res) => {
       orderBy: { depoKodu: 'asc' },
     }));
 
-  if (kullanici.firmaId !== firma.id && kullanici.rol !== 'YONETICI' && kullanici.rol !== 'SUPER_ADMIN') {
-    return res.status(403).json({ mesaj: 'Bu firmaya erisim yetkiniz yok' });
+  const oturumYetkileri = kullaniciOturumYetkileri(kullanici);
+  if (!oturumYetkileri.some((y) => y.firmaId === firma.id && y.donemId === donem.id)) {
+    return res.status(403).json({ mesaj: 'Bu firma ve doneme erisim yetkiniz yok' });
   }
 
-  const guncel = await prisma.kullanici.update({
-    where: { id: kullanici.id },
-    data: {
-      firmaId: firma.id,
-      donemId: donem.id,
-      subeId: sube.id,
-      kasaId: kasa.id,
-      depoId: depo?.id ?? null,
-    },
+  const yetkiler = await kullaniciYetkileriAl(kullanici);
+  const token = tokenUret(kullanici.id, kullanici.kullaniciKodu, {
+    firmaId: firma.id,
+    donemId: donem.id,
+    subeId: sube.id,
+    kasaId: kasa.id,
+    depoId: depo?.id ?? null,
   });
-
-  const yetkiler = await kullaniciYetkileriAl(guncel);
-  const token = tokenUret(guncel.id, guncel.kullaniciKodu);
 
   return res.json({
     token,
-    kullanici: await kullaniciYanit(guncel, yetkiler),
+    kullanici: await kullaniciYanit(kullanici, yetkiler, { firma, donem, sube, kasa }),
   });
 });
 
@@ -176,8 +224,18 @@ router.get('/ben', authZorunlu, async (req: AuthRequest, res: Response) => {
     req.yetkilerModul !== undefined
       ? { birlesik: req.yetkiler ?? [], modul: req.yetkilerModul }
       : await kullaniciYetkileriAl(k);
+  const [firma, donem, sube, kasa] = await Promise.all([
+    prisma.firma.findUnique({ where: { id: k.firmaId } }),
+    k.donemId ? prisma.donem.findUnique({ where: { id: k.donemId } }) : null,
+    k.subeId ? prisma.sube.findUnique({ where: { id: k.subeId } }) : null,
+    k.kasaId ? prisma.kasa.findUnique({ where: { id: k.kasaId } }) : null,
+  ]);
   return res.json({
-    kullanici: await kullaniciYanit(k, yetkiPaket),
+    kullanici: await kullaniciYanit(
+      k,
+      yetkiPaket,
+      firma && donem && sube && kasa ? { firma, donem, sube, kasa } : undefined
+    ),
   });
 });
 

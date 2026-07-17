@@ -33,15 +33,20 @@ export function subeKasalari(kasalar: AdminKasa[], subeId: string) {
 
 export function varsayilanOturumAlanlari(
   secenekler: KullaniciOturumSecenekleri
-): Pick<KullaniciFormDegeri, 'firmaId' | 'donemId' | 'subeId' | 'depoId' | 'kasaId'> {
+): Pick<
+  KullaniciFormDegeri,
+  'firmaId' | 'donemId' | 'subeId' | 'depoId' | 'kasaId' | 'oturumYetkileri'
+> {
   const firmaId = secenekler.firmalar[0]?.id ?? '';
+  const donemId = firmaDonemleri(secenekler.donemler, firmaId)[0]?.id ?? '';
   const subeId = firmaSubeleri(secenekler.subeler, firmaId)[0]?.id ?? '';
   return {
     firmaId,
-    donemId: firmaDonemleri(secenekler.donemler, firmaId)[0]?.id ?? '',
+    donemId,
     subeId,
     depoId: subeDepolari(secenekler.depolar, subeId)[0]?.id ?? '',
     kasaId: subeKasalari(secenekler.kasalar, subeId)[0]?.id ?? '',
+    oturumYetkileri: firmaId && donemId ? [{ firmaId, donemId }] : [],
   };
 }
 

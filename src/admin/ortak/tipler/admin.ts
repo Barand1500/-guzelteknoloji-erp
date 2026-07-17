@@ -64,6 +64,13 @@ export interface OturumFirma {
 export interface OturumSecenekleriYanit {
   firmalar: OturumFirma[];
   kullaniciKodlari?: string[];
+  seciliKullaniciKodu?: string;
+  varsayilan?: {
+    firmaKodu: string;
+    donemKodu: string;
+    subeKodu: string;
+    kasaKodu: string;
+  };
 }
 
 export interface AuthYanit {

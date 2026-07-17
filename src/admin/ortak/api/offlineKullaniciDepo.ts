@@ -26,6 +26,8 @@ export interface OfflineKullaniciKayit {
 
   kasaId: string;
 
+  oturumYetkileri: Array<{ firmaId: string; donemId: string }>;
+
   pin: string;
 
   olusturma: string;
@@ -84,6 +86,8 @@ function varsayilanAdmin(): OfflineKullaniciKayit {
 
     kasaId: '1',
 
+    oturumYetkileri: [{ firmaId: '1', donemId: '1' }],
+
     pin: '2410',
 
     olusturma: simdi,
@@ -112,6 +116,17 @@ function kayitNormalize(ham: unknown): OfflineKullaniciKayit | null {
 
   if (!kullaniciKodu || !ad) return null;
 
+  const firmaId = String(o.firmaId ?? '1');
+  const donemId = String(o.donemId ?? '1');
+  const hamYetkiler = Array.isArray(o.oturumYetkileri) ? o.oturumYetkileri : [];
+  const oturumYetkileri = hamYetkiler
+    .filter((y): y is Record<string, unknown> => Boolean(y && typeof y === 'object'))
+    .map((y) => ({
+      firmaId: String(y.firmaId ?? ''),
+      donemId: String(y.donemId ?? ''),
+    }))
+    .filter((y) => y.firmaId && y.donemId);
+
   return {
 
     id: String(o.id ?? ''),
@@ -126,15 +141,22 @@ function kayitNormalize(ham: unknown): OfflineKullaniciKayit | null {
 
     aktif: o.aktif !== false,
 
-    firmaId: String(o.firmaId ?? '1'),
+    firmaId,
 
-    donemId: String(o.donemId ?? '1'),
+    donemId,
 
     subeId: String(o.subeId ?? '1'),
 
     depoId: String(o.depoId ?? '1'),
 
     kasaId: String(o.kasaId ?? '1'),
+
+    oturumYetkileri:
+      oturumYetkileri.length > 0
+        ? oturumYetkileri
+        : firmaId && donemId
+          ? [{ firmaId, donemId }]
+          : [],
 
     pin: String(o.pin ?? ''),
 
@@ -173,6 +195,8 @@ export function offlineKullaniciPanelYanit(k: OfflineKullaniciKayit) {
     depoId: k.depoId,
 
     kasaId: k.kasaId,
+
+    oturumYetkileri: k.oturumYetkileri,
 
     pin: k.pin,
 

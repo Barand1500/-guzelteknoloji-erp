@@ -127,6 +127,8 @@ function formKirliMi(
 
       form.kasaId !== kayitli.kasaId ||
 
+      JSON.stringify(form.oturumYetkileri) !== JSON.stringify(kayitli.oturumYetkileri) ||
+
       form.pin !== kayitli.pin
 
     );
@@ -333,6 +335,18 @@ export function KullanicilarSayfasiYeni() {
 
       return;
 
+    }
+    if (form.oturumYetkileri.length === 0) {
+      setHata('En az bir firma ve dönem yetkisi seçin');
+      return;
+    }
+    if (
+      !form.oturumYetkileri.some(
+        (y) => y.firmaId === form.firmaId && y.donemId === form.donemId
+      )
+    ) {
+      setHata('Default firma ve dönem, kullanıcıya eklenen yetkilerden biri olmalıdır');
+      return;
     }
 
     const hedef = `«${form.ad.trim()}» (${form.kullaniciKodu.trim()}) kullanıcısını`;

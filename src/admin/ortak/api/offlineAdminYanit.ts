@@ -313,6 +313,7 @@ function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, 
       subeId?: number | string | null;
       depoId?: number | string | null;
       kasaId?: number | string | null;
+      oturumYetkileri?: Array<{ firmaId: number | string; donemId: number | string }>;
       pin?: string | null;
     };
     const kullaniciKodu = String(girdi.kullaniciKodu ?? girdi.email ?? '')
@@ -337,6 +338,10 @@ function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, 
       subeId: girdi.subeId != null && girdi.subeId !== '' ? String(girdi.subeId) : '',
       depoId: girdi.depoId != null && girdi.depoId !== '' ? String(girdi.depoId) : '',
       kasaId: girdi.kasaId != null && girdi.kasaId !== '' ? String(girdi.kasaId) : '',
+      oturumYetkileri: (girdi.oturumYetkileri ?? []).map((y) => ({
+        firmaId: String(y.firmaId),
+        donemId: String(y.donemId),
+      })),
       pin: girdi.pin != null ? String(girdi.pin) : '',
       olusturma: simdi,
       guncelleme: simdi,
@@ -359,6 +364,7 @@ function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, 
       subeId?: number | string | null;
       depoId?: number | string | null;
       kasaId?: number | string | null;
+      oturumYetkileri?: Array<{ firmaId: number | string; donemId: number | string }>;
       pin?: string | null;
     };
     const idx = liste.findIndex((k) => k.id === id);
@@ -384,6 +390,14 @@ function offlineKullaniciYaz(body: BodyInit | null | undefined, method: string, 
       ...('subeId' in girdi ? { subeId: girdi.subeId != null && girdi.subeId !== '' ? String(girdi.subeId) : '' } : {}),
       ...('depoId' in girdi ? { depoId: girdi.depoId != null && girdi.depoId !== '' ? String(girdi.depoId) : '' } : {}),
       ...('kasaId' in girdi ? { kasaId: girdi.kasaId != null && girdi.kasaId !== '' ? String(girdi.kasaId) : '' } : {}),
+      ...('oturumYetkileri' in girdi
+        ? {
+            oturumYetkileri: (girdi.oturumYetkileri ?? []).map((y) => ({
+              firmaId: String(y.firmaId),
+              donemId: String(y.donemId),
+            })),
+          }
+        : {}),
       ...('pin' in girdi ? { pin: girdi.pin != null ? String(girdi.pin) : '' } : {}),
       guncelleme: simdi,
     };

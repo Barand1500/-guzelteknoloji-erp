@@ -76,6 +76,7 @@ model Kullanici {
   subeId           Int?     @map("sube_id")
   depoId           Int?     @map("depo_id")
   kasaId           Int?     @map("kasa_id")
+  oturumYetkileri  Json?    @map("oturum_yetkileri")
   kullaniciKodu    String   @unique @map("kullanici_kodu") @db.VarChar(50)
   adSoyad          String   @map("ad_soyad") @db.VarChar(150)
   sifreHash        String   @map("sifre_hash") @db.VarChar(255)

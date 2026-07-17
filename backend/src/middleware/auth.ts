@@ -35,7 +35,14 @@ export async function authZorunlu(req: AuthRequest, res: Response, next: NextFun
       return res.status(401).json({ mesaj: 'Oturum gecersiz' });
     }
 
-    req.kullanici = kullanici;
+    req.kullanici = {
+      ...kullanici,
+      firmaId: payload.firmaId ?? kullanici.firmaId,
+      donemId: payload.donemId ?? kullanici.donemId,
+      subeId: payload.subeId ?? kullanici.subeId,
+      kasaId: payload.kasaId ?? kullanici.kasaId,
+      depoId: payload.depoId !== undefined ? payload.depoId : kullanici.depoId,
+    };
     const yetkiPaket = await kullaniciYetkileriAl(kullanici);
     req.yetkiler = yetkiPaket.birlesik;
     req.yetkilerModul = yetkiPaket.modul;

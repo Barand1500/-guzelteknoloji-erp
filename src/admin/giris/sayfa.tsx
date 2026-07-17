@@ -136,26 +136,38 @@ export function GirisSayfasi() {
   const [gonderiliyor, setGonderiliyor] = useState(false);
 
   useEffect(() => {
-    oturumSecenekleriGetir()
+    let iptal = false;
+    setYukleniyor(true);
+    setHata('');
+    oturumSecenekleriGetir(kullaniciKodu)
       .then((veri) => {
+        if (iptal) return;
         setFirmalar(veri.firmalar);
         if (veri.kullaniciKodlari?.length) {
           setKullaniciKodlari(veri.kullaniciKodlari);
-          if (!veri.kullaniciKodlari.includes(kullaniciKodu)) {
-            setKullaniciKodu(veri.kullaniciKodlari[0]);
+          const seciliKod =
+            veri.seciliKullaniciKodu || veri.kullaniciKodlari[0];
+          if (!veri.kullaniciKodlari.includes(kullaniciKodu) && seciliKod) {
+            setKullaniciKodu(seciliKod);
           }
         }
-        const varsayilan = varsayilanSecimler(veri.firmalar);
+        const varsayilan = veri.varsayilan ?? varsayilanSecimler(veri.firmalar);
         setFirmaKodu(varsayilan.firmaKodu);
         setDonemKodu(varsayilan.donemKodu);
         setSubeKodu(varsayilan.subeKodu);
         setKasaKodu(varsayilan.kasaKodu);
       })
       .catch((err) => {
+        if (iptal) return;
         setHata(err instanceof Error ? err.message : 'Oturum seçenekleri yüklenemedi');
       })
-      .finally(() => setYukleniyor(false));
-  }, []);
+      .finally(() => {
+        if (!iptal) setYukleniyor(false);
+      });
+    return () => {
+      iptal = true;
+    };
+  }, [kullaniciKodu]);
 
   const seciliFirma = useMemo(
     () => firmalar.find((f) => f.firmaKodu === firmaKodu),

@@ -8,7 +8,6 @@ import type {
 import { jsonYanitOku } from '@/araclar/jsonFetch';
 import { BACKEND_YOK } from '@/yapilandirma/uygulama';
 import {
-  offlineAktifKullaniciKodlari,
   offlineGirisDogrula,
   offlineKullanicilariOku,
   offlineOturumKaydet,
@@ -17,6 +16,7 @@ import {
   type OfflineKullaniciKayit,
 } from '@/admin/ortak/api/offlineKullaniciDepo';
 import { offlinePanelDeposuTemizle } from '@/admin/ortak/api/offlinePanelDepo';
+import { offlineTanimlarGetir } from '@/admin/ortak/api/offlineTanimlar';
 
 const API_URL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 const TOKEN_KEY = 'gt_admin_token';
@@ -83,25 +83,108 @@ function kullaniciTercihleriEkle(k: AuthKullanici): AuthKullanici {
   };
 }
 
-const OFFLINE_OTURUM_SECENEKLERI: OturumSecenekleriYanit = {
-  firmalar: [
-    {
-      id: 1,
-      firmaKodu: 'F001',
-      firmaAdi: 'GUZEL IC VE DIS TICARET LIMITED SIRKETI',
-      donemler: [{ id: 1, donemKodu: 'D001', donemAdi: '2026' }],
-      subeler: [
-        {
-          id: 1,
-          subeKodu: 'MERKEZ',
-          subeAdi: 'MERKEZ',
-          kasalar: [{ id: 1, kasaKodu: 'MERKEZ', kasaAdi: 'MERKEZ' }],
-        },
-      ],
+function offlineOturumSecenekleriOlustur(kullaniciKodu?: string): OturumSecenekleriYanit {
+  const kullanicilar = offlineKullanicilariOku().filter((k) => k.aktif);
+  const kod = kullaniciKodu?.trim().toUpperCase();
+  const kullanici =
+    kullanicilar.find((k) => k.kullaniciKodu === kod) ?? kullanicilar[0];
+  if (!kullanici) {
+    return { firmalar: [], kullaniciKodlari: [] };
+  }
+
+  const firmaKaynak = offlineTanimlarGetir('/tanimlar/firmalar') as {
+    firmalar?: Array<{ id: string; firmaKodu: string; firmaAdi: string; aktif: boolean }>;
+  };
+  const donemKaynak = offlineTanimlarGetir('/tanimlar/donemler') as {
+    donemler?: Array<{
+      id: string;
+      firmaId: string;
+      donemKodu: string;
+      donemAdi: string;
+      aktif: boolean;
+    }>;
+  };
+  const subeKaynak = offlineTanimlarGetir('/tanimlar/subeler') as {
+    subeler?: Array<{
+      id: string;
+      firmaId: string;
+      subeKodu: string;
+      subeAdi: string;
+      aktif: boolean;
+    }>;
+  };
+  const kasaKaynak = offlineTanimlarGetir('/tanimlar/kasalar') as {
+    kasalar?: Array<{
+      id: string;
+      subeId: string;
+      kasaKodu: string;
+      kasaAdi: string;
+      aktif: boolean;
+    }>;
+  };
+
+  const yetkiler = kullanici.oturumYetkileri.length
+    ? kullanici.oturumYetkileri
+    : kullanici.firmaId && kullanici.donemId
+      ? [{ firmaId: kullanici.firmaId, donemId: kullanici.donemId }]
+      : [];
+  const firmaIdleri = new Set(yetkiler.map((y) => y.firmaId));
+  const donemIdleri = new Set(yetkiler.map((y) => y.donemId));
+  const subeler = subeKaynak.subeler ?? [];
+  const kasalar = kasaKaynak.kasalar ?? [];
+  const firmalar = (firmaKaynak.firmalar ?? [])
+    .filter((f) => f.aktif && firmaIdleri.has(f.id))
+    .map((firma) => ({
+      id: Number(firma.id),
+      firmaKodu: firma.firmaKodu,
+      firmaAdi: firma.firmaAdi,
+      donemler: (donemKaynak.donemler ?? [])
+        .filter((d) => d.aktif && d.firmaId === firma.id && donemIdleri.has(d.id))
+        .map((d) => ({
+          id: Number(d.id),
+          donemKodu: d.donemKodu,
+          donemAdi: d.donemAdi,
+        })),
+      subeler: subeler
+        .filter((s) => s.aktif && s.firmaId === firma.id)
+        .map((s) => ({
+          id: Number(s.id),
+          subeKodu: s.subeKodu,
+          subeAdi: s.subeAdi,
+          kasalar: kasalar
+            .filter((k) => k.aktif && k.subeId === s.id)
+            .map((k) => ({
+              id: Number(k.id),
+              kasaKodu: k.kasaKodu,
+              kasaAdi: k.kasaAdi,
+            })),
+        })),
+    }));
+
+  const varsayilanFirma =
+    firmalar.find((f) => String(f.id) === kullanici.firmaId) ?? firmalar[0];
+  const varsayilanDonem =
+    varsayilanFirma?.donemler.find((d) => String(d.id) === kullanici.donemId) ??
+    varsayilanFirma?.donemler[0];
+  const varsayilanSube =
+    varsayilanFirma?.subeler.find((s) => String(s.id) === kullanici.subeId) ??
+    varsayilanFirma?.subeler[0];
+  const varsayilanKasa =
+    varsayilanSube?.kasalar.find((k) => String(k.id) === kullanici.kasaId) ??
+    varsayilanSube?.kasalar[0];
+
+  return {
+    firmalar,
+    kullaniciKodlari: kullanicilar.map((k) => k.kullaniciKodu).sort(),
+    seciliKullaniciKodu: kullanici.kullaniciKodu,
+    varsayilan: {
+      firmaKodu: varsayilanFirma?.firmaKodu ?? '',
+      donemKodu: varsayilanDonem?.donemKodu ?? '',
+      subeKodu: varsayilanSube?.subeKodu ?? '',
+      kasaKodu: varsayilanKasa?.kasaKodu ?? '',
     },
-  ],
-  kullaniciKodlari: offlineAktifKullaniciKodlari(),
-};
+  };
+}
 
 function offlineAuthKullaniciOlustur(kayit: OfflineKullaniciKayit): AuthKullanici {
   return {
@@ -171,16 +254,18 @@ export function offlineKullanici(kullaniciKodu?: string): AuthKullanici {
   };
 }
 
-export async function oturumSecenekleriGetir(): Promise<OturumSecenekleriYanit> {
+export async function oturumSecenekleriGetir(kullaniciKodu?: string): Promise<OturumSecenekleriYanit> {
+  const kod = kullaniciKodu?.trim().toUpperCase();
   if (authOfflineMi()) {
-    return { ...OFFLINE_OTURUM_SECENEKLERI, kullaniciKodlari: offlineAktifKullaniciKodlari() };
+    return offlineOturumSecenekleriOlustur(kod);
   }
 
   try {
-    const yanit = await fetch(`${API_URL}/admin/auth/oturum-secenekleri`);
+    const sorgu = kod ? `?kullaniciKodu=${encodeURIComponent(kod)}` : '';
+    const yanit = await fetch(`${API_URL}/admin/auth/oturum-secenekleri${sorgu}`);
     if (yanit.status === 404) {
       authOfflineAyarla();
-      return OFFLINE_OTURUM_SECENEKLERI;
+      return offlineOturumSecenekleriOlustur(kod);
     }
     const veri = await jsonYanitOku<{ mesaj?: string } & OturumSecenekleriYanit>(yanit);
     if (!yanit.ok) throw new Error(veri.mesaj ?? 'Oturum secenekleri alinamadi');
@@ -188,7 +273,7 @@ export async function oturumSecenekleriGetir(): Promise<OturumSecenekleriYanit> 
   } catch (err) {
     if (authApiKullanilamazMi(err)) {
       authOfflineAyarla();
-      return { ...OFFLINE_OTURUM_SECENEKLERI, kullaniciKodlari: offlineAktifKullaniciKodlari() };
+      return offlineOturumSecenekleriOlustur(kod);
     }
     throw err;
   }

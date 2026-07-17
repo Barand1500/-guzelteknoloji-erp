@@ -17,6 +17,39 @@ function sayiAl(deger: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+interface OturumYetkisi {
+  firmaId: number;
+  donemId: number;
+}
+
+function oturumYetkileriAl(deger: unknown): OturumYetkisi[] {
+  if (!Array.isArray(deger)) return [];
+  const benzersiz = new Map<string, OturumYetkisi>();
+  for (const ham of deger) {
+    if (!ham || typeof ham !== 'object') continue;
+    const kayit = ham as Record<string, unknown>;
+    const firmaId = sayiAl(kayit.firmaId);
+    const donemId = sayiAl(kayit.donemId);
+    if (!firmaId || !donemId) continue;
+    benzersiz.set(`${firmaId}:${donemId}`, { firmaId, donemId });
+  }
+  return [...benzersiz.values()];
+}
+
+async function oturumYetkileriniDogrula(yetkiler: OturumYetkisi[]) {
+  if (yetkiler.length === 0) {
+    throw new Error('En az bir firma ve donem yetkisi secilmelidir');
+  }
+  const donemler = await prisma.donem.findMany({
+    where: { id: { in: yetkiler.map((y) => y.donemId) }, durum: true },
+    select: { id: true, firmaId: true },
+  });
+  const gecerli = new Set(donemler.map((d) => `${d.firmaId}:${d.id}`));
+  if (yetkiler.some((y) => !gecerli.has(`${y.firmaId}:${y.donemId}`))) {
+    throw new Error('Secilen firma/donem yetkilerinden biri gecersiz');
+  }
+}
+
 router.get('/', async (_req: AuthRequest, res: Response) => {
   const kullanicilar = await prisma.kullanici.findMany({
     orderBy: { kayitTarihi: 'desc' },
@@ -40,10 +73,19 @@ router.post('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response)
   const subeId = sayiAl(body.subeId);
   const depoId = sayiAl(body.depoId);
   const kasaId = sayiAl(body.kasaId);
+  const oturumYetkileri = oturumYetkileriAl(body.oturumYetkileri);
   const pin = body.pin != null && String(body.pin).trim() ? String(body.pin).trim() : null;
 
   if (!kullaniciKodu || !ad || !sifre) {
     return res.status(400).json({ mesaj: 'Zorunlu alanlar eksik' });
+  }
+  try {
+    await oturumYetkileriniDogrula(oturumYetkileri);
+  } catch (err) {
+    return res.status(400).json({ mesaj: err instanceof Error ? err.message : 'Oturum yetkileri gecersiz' });
+  }
+  if (!oturumYetkileri.some((y) => y.firmaId === firmaId && y.donemId === donemId)) {
+    return res.status(400).json({ mesaj: 'Varsayilan firma/donem, kullaniciya atanan yetkilerden biri olmalidir' });
   }
 
   const kullanici = await prisma.kullanici.create({
@@ -53,6 +95,7 @@ router.post('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response)
       subeId,
       depoId,
       kasaId,
+      oturumYetkileri: oturumYetkileri.map(({ firmaId, donemId }) => ({ firmaId, donemId })),
       kullaniciKodu,
       adSoyad: ad,
       sifreHash: sifreHashle(sifre),
@@ -90,6 +133,26 @@ router.put('/:id', kullaniciYonetimiYazma, async (req: AuthRequest, res: Respons
   if ('subeId' in body) veri.subeId = sayiAl(body.subeId);
   if ('depoId' in body) veri.depoId = sayiAl(body.depoId);
   if ('kasaId' in body) veri.kasaId = sayiAl(body.kasaId);
+  if ('oturumYetkileri' in body) {
+    const oturumYetkileri = oturumYetkileriAl(body.oturumYetkileri);
+    try {
+      await oturumYetkileriniDogrula(oturumYetkileri);
+    } catch (err) {
+      return res.status(400).json({ mesaj: err instanceof Error ? err.message : 'Oturum yetkileri gecersiz' });
+    }
+    const varsayilanFirmaId = sayiAl(body.firmaId);
+    const varsayilanDonemId = sayiAl(body.donemId);
+    if (
+      !varsayilanFirmaId ||
+      !varsayilanDonemId ||
+      !oturumYetkileri.some(
+        (y) => y.firmaId === varsayilanFirmaId && y.donemId === varsayilanDonemId
+      )
+    ) {
+      return res.status(400).json({ mesaj: 'Varsayilan firma/donem, kullaniciya atanan yetkilerden biri olmalidir' });
+    }
+    veri.oturumYetkileri = oturumYetkileri;
+  }
   if ('pin' in body) {
     veri.pin = body.pin != null && String(body.pin).trim() ? String(body.pin).trim() : null;
   }

@@ -2,6 +2,11 @@ import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
 
 export type RolKodu = string;
 
+export interface KullaniciOturumYetkisi {
+  firmaId: string;
+  donemId: string;
+}
+
 export interface AdminKullanici {
   id: string;
   kullaniciKodu: string;
@@ -13,6 +18,7 @@ export interface AdminKullanici {
   subeId: string;
   depoId: string;
   kasaId: string;
+  oturumYetkileri: KullaniciOturumYetkisi[];
   pin: string;
   olusturma: string;
   guncelleme: string;
@@ -29,6 +35,7 @@ export interface KullaniciFormDegeri {
   subeId: string;
   depoId: string;
   kasaId: string;
+  oturumYetkileri: KullaniciOturumYetkisi[];
   pin: string;
 }
 
@@ -43,6 +50,7 @@ export const bosKullaniciForm: KullaniciFormDegeri = {
   subeId: '',
   depoId: '',
   kasaId: '',
+  oturumYetkileri: [],
   pin: '',
 };
 
@@ -55,6 +63,15 @@ function alanStr(ham: Record<string, unknown>, ...anahtarlar: string[]): string 
 }
 
 function kullaniciMap(ham: Record<string, unknown>): AdminKullanici {
+  const hamYetkiler = Array.isArray(ham.oturumYetkileri) ? ham.oturumYetkileri : [];
+  const oturumYetkileri = hamYetkiler
+    .filter((y): y is Record<string, unknown> => Boolean(y && typeof y === 'object'))
+    .map((y) => ({
+      firmaId: String(y.firmaId ?? ''),
+      donemId: String(y.donemId ?? ''),
+    }))
+    .filter((y) => y.firmaId && y.donemId);
+
   return {
     id: String(ham.id),
     kullaniciKodu: String(ham.kullaniciKodu ?? ham.email ?? '').trim().toUpperCase(),
@@ -66,6 +83,7 @@ function kullaniciMap(ham: Record<string, unknown>): AdminKullanici {
     subeId: alanStr(ham, 'subeId'),
     depoId: alanStr(ham, 'depoId'),
     kasaId: alanStr(ham, 'kasaId'),
+    oturumYetkileri,
     pin: String(ham.pin ?? ''),
     olusturma: String(ham.olusturma ?? ham.kayitTarihi ?? ''),
     guncelleme: String(ham.guncelleme ?? ham.guncellemeTarihi ?? ''),
@@ -84,6 +102,11 @@ export function kullanicidanForm(k: AdminKullanici): KullaniciFormDegeri {
     subeId: k.subeId,
     depoId: k.depoId,
     kasaId: k.kasaId,
+    oturumYetkileri: k.oturumYetkileri.length
+      ? k.oturumYetkileri
+      : k.firmaId && k.donemId
+        ? [{ firmaId: k.firmaId, donemId: k.donemId }]
+        : [],
     pin: k.pin,
   };
 }
@@ -146,6 +169,10 @@ function payloadHazirla(form: KullaniciFormDegeri, sifreDahil: boolean) {
     subeId: form.subeId ? Number(form.subeId) : null,
     depoId: form.depoId ? Number(form.depoId) : null,
     kasaId: form.kasaId ? Number(form.kasaId) : null,
+    oturumYetkileri: form.oturumYetkileri.map((y) => ({
+      firmaId: Number(y.firmaId),
+      donemId: Number(y.donemId),
+    })),
     pin: form.pin.trim() || null,
   };
   if (sifreDahil && form.sifre.trim()) {

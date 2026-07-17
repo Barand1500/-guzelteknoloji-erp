@@ -28,7 +28,6 @@ import {
 import { caridenKartForm, kartFormdanApiForm } from '../cariYardimci';
 import {
   CARI_KART_SEKMELERI,
-  bosCariAltKart,
   bosCariKartForm,
   type AdminCari,
   type CariAltKart,
@@ -194,7 +193,7 @@ export function CariKart({
   const [form, setForm] = useState<CariKartForm>(bosCariKartForm);
   const [baslangic, setBaslangic] = useState<CariKartForm>(bosCariKartForm);
   const [yukleniyor, setYukleniyor] = useState(mod !== 'yeni');
-  const [kaydediliyor, setKaydediliyor] = useState(false);
+  const [, setKaydediliyor] = useState(false);
   const [aktifSekme, setAktifSekme] = useState<CariKartSekmeId>('kart-bilgileri');
   const [kartTipleri, setKartTipleri] = useState<CariKartTipiSecenek[]>(() => cariKartTipleriGetir());
   const [isletmeTurleri, setIsletmeTurleri] = useState<CariIsletmeTuruSecenek[]>(() =>
