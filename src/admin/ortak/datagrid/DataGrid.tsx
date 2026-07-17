@@ -307,6 +307,7 @@ export function DataGrid<TRow extends { id: string }>({
   const hizliGirisIlkRef = useRef<HTMLInputElement>(null);
   const girdiRef = useRef<HTMLElement>(null);
   const theadRef = useRef<HTMLTableSectionElement>(null);
+  const duzenlemeCommitRef = useRef(false);
   const [baslikYukseklik, setBaslikYukseklik] = useState(40);
 
   const hizliGirisKartModu = hizliGirisModu === 'kart' && Boolean(hizliGirisKolonlari?.length && onHizliGiris);
@@ -715,12 +716,45 @@ export function DataGrid<TRow extends { id: string }>({
     [satirGuncelle]
   );
 
+  const gezinilebilirKolonMu = useCallback((kolon: KolonTanimi<TRow>) => {
+    return kolon.id !== 'secim' && kolon.id !== 'islemler';
+  }, []);
+
+  const gezinilebilirKolonIndeksi = useCallback(
+    (baslangic: number, yon: 1 | -1) => {
+      let i = baslangic;
+      while (i >= 0 && i < dg.gorunurKolonlar.length) {
+        if (gezinilebilirKolonMu(dg.gorunurKolonlar[i])) return i;
+        i += yon;
+      }
+      return -1;
+    },
+    [dg.gorunurKolonlar, gezinilebilirKolonMu]
+  );
+
+  const odakAyarla = useCallback((satirId: string, kolonId: string) => {
+    setOdak({ satirId, kolonId });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!odak || duzenleme) return;
+    const kabuk = kabukRef.current;
+    if (!kabuk) return;
+    const el = kabuk.querySelector(
+      `td.dg-hucre[data-satir-id="${CSS.escape(odak.satirId)}"][data-kolon-id="${CSS.escape(odak.kolonId)}"]`
+    ) as HTMLElement | null;
+    if (!el) return;
+    if (document.activeElement === el || el.contains(document.activeElement)) return;
+    el.focus({ preventScroll: true });
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [odak, duzenleme, sayfalama.satirlar, dg.gorunurKolonlar]);
+
   const duzenlemeyiBaslat = (
     satir: TRow,
     kolon: KolonTanimi<TRow>,
     birlesikKatman: 'ust' | 'alt' = 'ust'
   ) => {
-    if (!kolon.duzenlenebilir || kolon.tip === 'salt-okunur') return;
+    if (!kolon.duzenlenebilir || kolon.tip === 'salt-okunur') return false;
     const deger = kolon.degerAl(satir);
     let ham = '';
     if (kolon.tip === 'iskonto') ham = String((deger as { yuzde: number }).yuzde);
@@ -730,20 +764,45 @@ export function DataGrid<TRow extends { id: string }>({
     else ham = String(deger ?? '');
     setDuzenleme({ satirId: satir.id, kolonId: kolon.id, hamDeger: ham, birlesikKatman });
     setOdak({ satirId: satir.id, kolonId: kolon.id });
+    return true;
+  };
+
+  /** Hücre satır-içi düzenlenebilirse onu açar; değilse satır düzenleme paneli / sayfasına gider. */
+  const hucreVeyaSatirDuzenle = (
+    satir: TRow,
+    kolon?: KolonTanimi<TRow> | null,
+    birlesikKatman: 'ust' | 'alt' = 'ust'
+  ) => {
+    if (kolon && duzenlemeyiBaslat(satir, kolon, birlesikKatman)) return true;
+    if (onSatirDuzenle) {
+      onSatirDuzenle(satir);
+      return true;
+    }
+    if (satirDuzenlePaneli) {
+      setSatirPanel(satir);
+      return true;
+    }
+    return false;
   };
 
   const klavyeNav = (e: KeyboardEvent, satir: TRow, kolonIdx: number) => {
     const satirIdx = sayfalama.satirlar.findIndex((s) => s.id === satir.id);
+    const kolon = dg.gorunurKolonlar[kolonIdx];
 
-    if (e.key === 'Enter' && !duzenleme) {
+    if ((e.key === 'Enter' || e.key === 'F2') && !duzenleme) {
       e.preventDefault();
-      const kolon = dg.gorunurKolonlar[kolonIdx];
-      if (kolon?.duzenlenebilir) duzenlemeyiBaslat(satir, kolon);
+      if (!kolon) return;
+      if (e.key === 'Enter' && kolon.tip === 'toggle' && kolon.degerYaz) {
+        satirGuncelle(kolon.degerYaz(satir, !Boolean(kolon.degerAl(satir))));
+        return;
+      }
+      hucreVeyaSatirDuzenle(satir, kolon);
       return;
     }
     if (e.key === 'Escape' && duzenleme) {
       e.preventDefault();
       setDuzenleme(null);
+      odakAyarla(satir.id, kolon?.id ?? dg.gorunurKolonlar[kolonIdx]?.id ?? '');
       return;
     }
     if (duzenleme) return;
@@ -753,14 +812,56 @@ export function DataGrid<TRow extends { id: string }>({
 
     if (e.key === 'ArrowDown') yeniSatirIdx = Math.min(satirIdx + 1, sayfalama.satirlar.length - 1);
     else if (e.key === 'ArrowUp') yeniSatirIdx = Math.max(satirIdx - 1, 0);
-    else if (e.key === 'ArrowRight') yeniKolonIdx = Math.min(kolonIdx + 1, dg.gorunurKolonlar.length - 1);
-    else if (e.key === 'ArrowLeft') yeniKolonIdx = Math.max(kolonIdx - 1, 0);
-    else return;
+    else if (e.key === 'ArrowRight') {
+      const sonraki = gezinilebilirKolonIndeksi(kolonIdx + 1, 1);
+      if (sonraki < 0) return;
+      yeniKolonIdx = sonraki;
+    } else if (e.key === 'ArrowLeft') {
+      const onceki = gezinilebilirKolonIndeksi(kolonIdx - 1, -1);
+      if (onceki < 0) return;
+      yeniKolonIdx = onceki;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      const ilk = gezinilebilirKolonIndeksi(0, 1);
+      if (ilk < 0) return;
+      yeniKolonIdx = ilk;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      const son = gezinilebilirKolonIndeksi(dg.gorunurKolonlar.length - 1, -1);
+      if (son < 0) return;
+      yeniKolonIdx = son;
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const yon: 1 | -1 = e.shiftKey ? -1 : 1;
+      let aday = gezinilebilirKolonIndeksi(kolonIdx + yon, yon);
+      let hedefSatirIdx = satirIdx;
+      if (aday < 0) {
+        hedefSatirIdx = satirIdx + yon;
+        if (hedefSatirIdx < 0 || hedefSatirIdx >= sayfalama.satirlar.length) return;
+        aday =
+          yon === 1
+            ? gezinilebilirKolonIndeksi(0, 1)
+            : gezinilebilirKolonIndeksi(dg.gorunurKolonlar.length - 1, -1);
+        if (aday < 0) return;
+        yeniSatirIdx = hedefSatirIdx;
+      }
+      yeniKolonIdx = aday;
+    } else return;
 
-    e.preventDefault();
+    if (
+      e.key === 'ArrowDown' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowLeft'
+    ) {
+      e.preventDefault();
+    }
+
     const hedefSatir = sayfalama.satirlar[yeniSatirIdx];
     const hedefKolon = dg.gorunurKolonlar[yeniKolonIdx];
-    if (hedefSatir && hedefKolon) setOdak({ satirId: hedefSatir.id, kolonId: hedefKolon.id });
+    if (hedefSatir && hedefKolon && gezinilebilirKolonMu(hedefKolon)) {
+      odakAyarla(hedefSatir.id, hedefKolon.id);
+    }
   };
 
   const csvAktar = (sadeceSecili = false) => {
@@ -882,6 +983,8 @@ export function DataGrid<TRow extends { id: string }>({
     }
 
     const satirlarEl: ReactNode[] = [];
+    const ilkGezinilebilirIdx = gezinilebilirKolonIndeksi(0, 1);
+    const ilkSatirId = sayfalama.satirlar[0]?.id;
 
     for (const satir of sayfalama.satirlar) {
       const secili = dg.seciliIdler.has(satir.id);
@@ -903,8 +1006,10 @@ export function DataGrid<TRow extends { id: string }>({
             onSatirTikla(satir);
           }}
           onDoubleClick={() => {
-            const ilk = dg.gorunurKolonlar.find((k) => k.duzenlenebilir);
-            if (ilk) duzenlemeyiBaslat(satir, ilk);
+            const ilk = dg.gorunurKolonlar.find(
+              (k) => gezinilebilirKolonMu(k) && k.duzenlenebilir && k.tip !== 'salt-okunur'
+            );
+            hucreVeyaSatirDuzenle(satir, ilk ?? null);
           }}
         >
           {dg.gorunurKolonlar.map((kolon, kolonIdx) => {
@@ -913,6 +1018,10 @@ export function DataGrid<TRow extends { id: string }>({
             const genislik = dg.ayar.kolonGenislikleri[kolon.id] ?? kolon.genislik ?? 120;
             const odakta = odak?.satirId === satir.id && odak?.kolonId === kolon.id;
             const duzenliyor = duzenleme?.satirId === satir.id && duzenleme?.kolonId === kolon.id;
+            const gezinilebilir = gezinilebilirKolonMu(kolon);
+            const varsayilanOdak =
+              !odak && satir.id === ilkSatirId && kolonIdx === ilkGezinilebilirIdx;
+            const hucreTabIndex = gezinilebilir ? (odakta || varsayilanOdak ? 0 : -1) : undefined;
 
             if (kolon.id === 'secim') {
               return (
@@ -987,10 +1096,12 @@ export function DataGrid<TRow extends { id: string }>({
                   data-satir-id={satir.id}
                   className={`dg-hucre dg-hucre--toggle${sabitHucreSinifi(kolon.id)}${odakta ? ' dg-hucre--odak' : ''}`}
                   style={{ width: genislik, minWidth: genislik, left: sabit ? left : undefined }}
-                  tabIndex={0}
+                  tabIndex={hucreTabIndex}
+                  onFocus={() => odakAyarla(satir.id, kolon.id)}
                   onKeyDown={(e) => klavyeNav(e, satir, kolonIdx)}
                   onClick={(e) => {
                     e.stopPropagation();
+                    odakAyarla(satir.id, kolon.id);
                     if (kolon.degerYaz) satirGuncelle(kolon.degerYaz(satir, !acik));
                   }}
                 >
@@ -999,6 +1110,7 @@ export function DataGrid<TRow extends { id: string }>({
                       type="button"
                       className={`dg-switch${acik ? ' dg-switch--acik' : ''}`}
                       aria-pressed={acik}
+                      tabIndex={-1}
                       onClick={(e) => {
                         e.stopPropagation();
                         if (kolon.degerYaz) satirGuncelle(kolon.degerYaz(satir, !acik));
@@ -1012,6 +1124,10 @@ export function DataGrid<TRow extends { id: string }>({
             }
 
             const kesilebilir = kolon.tip === 'birlesik' || kolon.tip === 'zengin';
+            const satirIciDuzenlenebilir = Boolean(
+              kolon.duzenlenebilir && kolon.tip !== 'salt-okunur'
+            );
+            const satirDuzenlemeVar = Boolean(onSatirDuzenle || satirDuzenlePaneli);
 
             return (
               <td
@@ -1020,20 +1136,27 @@ export function DataGrid<TRow extends { id: string }>({
                 data-satir-id={satir.id}
                 className={`dg-hucre${kesilebilir ? '' : ' dg-tooltip-kabuk'}${kolon.tip === 'etiket' ? ' dg-hucre--etiket' : ''}${kesilebilir ? ' dg-hucre--kesilebilir' : ''}${sabitHucreSinifi(kolon.id)}${kolon.tip === 'para' || kolon.tip === 'sayi' || kolon.tip === 'iskonto' ? ' dg-hucre--sayi' : ''}${odakta ? ' dg-hucre--odak' : ''}`}
                 style={{ width: genislik, minWidth: genislik, left: sabit ? left : undefined }}
-                tabIndex={0}
+                tabIndex={hucreTabIndex}
+                onFocus={() => odakAyarla(satir.id, kolon.id)}
                 onKeyDown={(e) => klavyeNav(e, satir, kolonIdx)}
-                onClick={() => setOdak({ satirId: satir.id, kolonId: kolon.id })}
+                onClick={() => odakAyarla(satir.id, kolon.id)}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
                   const katman =
                     kolon.tip === 'birlesik' && kolon.birlesikDuzenle
                       ? birlesikDuzenlemeKatmani(e, satir, kolon)
                       : 'ust';
-                  duzenlemeyiBaslat(satir, kolon, katman);
+                  hucreVeyaSatirDuzenle(satir, kolon, katman);
                 }}
               >
-                {kolon.duzenlenebilir && hover && !duzenliyor && (
-                  <span className="dg-tooltip">{dgTooltipMetni('Düzenlemek için çift tıklayın')}</span>
+                {hover && !duzenliyor && (satirIciDuzenlenebilir || satirDuzenlemeVar) && (
+                  <span className="dg-tooltip">
+                    {dgTooltipMetni(
+                      satirIciDuzenlenebilir
+                        ? 'Düzenlemek için çift tıklayın veya Enter'
+                        : 'Düzenleme sayfası için çift tıklayın veya Enter'
+                    )}
+                  </span>
                 )}
                 {duzenliyor ? (
                   kolon.secenekler?.length ? (
@@ -1043,14 +1166,25 @@ export function DataGrid<TRow extends { id: string }>({
                       value={duzenleme.hamDeger}
                       onChange={(e) => {
                         const yeni = e.target.value;
+                        duzenlemeCommitRef.current = true;
                         hucreDuzenlemeyiBitir(satir, kolon, yeni);
                         setDuzenleme(null);
+                        odakAyarla(satir.id, kolon.id);
                       }}
-                      onBlur={() => setDuzenleme(null)}
+                      onBlur={() => {
+                        if (duzenlemeCommitRef.current) {
+                          duzenlemeCommitRef.current = false;
+                          return;
+                        }
+                        setDuzenleme(null);
+                        odakAyarla(satir.id, kolon.id);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Escape') {
                           e.stopPropagation();
+                          duzenlemeCommitRef.current = true;
                           setDuzenleme(null);
+                          odakAyarla(satir.id, kolon.id);
                         }
                       }}
                       onClick={(e) => e.stopPropagation()}
@@ -1076,17 +1210,43 @@ export function DataGrid<TRow extends { id: string }>({
                       })()}
                       onChange={(e) => setDuzenleme({ ...duzenleme, hamDeger: e.target.value })}
                       onBlur={() => {
+                        if (duzenlemeCommitRef.current) {
+                          duzenlemeCommitRef.current = false;
+                          return;
+                        }
                         hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
                         setDuzenleme(null);
+                        odakAyarla(satir.id, kolon.id);
                       }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
+                          e.preventDefault();
+                          duzenlemeCommitRef.current = true;
                           hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
                           setDuzenleme(null);
+                          const satirIdx = sayfalama.satirlar.findIndex((s) => s.id === satir.id);
+                          const altSatir = sayfalama.satirlar[satirIdx + 1];
+                          if (altSatir) odakAyarla(altSatir.id, kolon.id);
+                          else odakAyarla(satir.id, kolon.id);
                         }
                         if (e.key === 'Escape') {
                           e.stopPropagation();
+                          duzenlemeCommitRef.current = true;
                           setDuzenleme(null);
+                          odakAyarla(satir.id, kolon.id);
+                        }
+                        if (e.key === 'Tab') {
+                          e.preventDefault();
+                          duzenlemeCommitRef.current = true;
+                          hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
+                          setDuzenleme(null);
+                          const yon: 1 | -1 = e.shiftKey ? -1 : 1;
+                          const sonraki = gezinilebilirKolonIndeksi(kolonIdx + yon, yon);
+                          if (sonraki >= 0) {
+                            odakAyarla(satir.id, dg.gorunurKolonlar[sonraki].id);
+                          } else {
+                            odakAyarla(satir.id, kolon.id);
+                          }
                         }
                       }}
                       onClick={(e) => e.stopPropagation()}

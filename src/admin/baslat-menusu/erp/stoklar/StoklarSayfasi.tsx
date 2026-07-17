@@ -557,6 +557,7 @@ export function StoklarSayfasi() {
                       bosMesaj="Aramanızla eşleşen stok bulunamadı. Yeni ile stok kartı ekleyebilirsiniz."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => stokSatirSec(s.id)}
+                      onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
                       onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                       onSecimDegistir={setSeciliIdler}
                       formulMenuGoster={false}
