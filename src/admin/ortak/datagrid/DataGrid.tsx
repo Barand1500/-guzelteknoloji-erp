@@ -266,7 +266,9 @@ export function DataGrid<TRow extends { id: string }>({
   formulMenuGoster = true,
   ustSolAraclarGoster = true,
   ustSagAraclarGoster = true,
+  ustAracGoster = true,
   topluBarModu = 'ust',
+  topluBarGoster = true,
   satirPanelModu = 'sheet',
 }: DataGridProps<TRow>) {
   const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar, kolonGenislikSurumu);
@@ -1681,7 +1683,8 @@ export function DataGrid<TRow extends { id: string }>({
     (i) => i === 0 || i === sayfalama.sayfaSayisi - 1 || Math.abs(i - sayfalama.sayfa) <= 1
   );
 
-  const ustBarSolVar = Boolean(tabloBaslik) || ustSolAraclarGoster;
+  const solAraclarAcik = ustSolAraclarGoster && ustAracGoster;
+  const ustBarSolVar = Boolean(tabloBaslik) || solAraclarAcik;
   const ustBarSagKdv = Boolean(kdvDahilGoster && onKdvDahilDegistir);
   const ustBarSagIkon = ustSagAraclarGoster;
   const ustBarGoster = ustBarSolVar || ustBarSagKdv || ustBarSagIkon;
@@ -1699,7 +1702,7 @@ export function DataGrid<TRow extends { id: string }>({
               <h2 className="dg-ust-baslik">{tabloBaslik}</h2>
             </div>
           )}
-          {ustSolAraclarGoster ? (
+          {solAraclarAcik ? (
             <div className="dg-arac-grup">
               <div className="dg-sayfa-boyutu">
                 <select
@@ -1803,7 +1806,8 @@ export function DataGrid<TRow extends { id: string }>({
       </div>
       ) : null}
 
-      {dg.seciliIdler.size > 0 &&
+      {topluBarGoster &&
+        dg.seciliIdler.size > 0 &&
         (topluBarModu === 'cubuk' ? (
           <TopluBarCubukKapak>
             <span>{dg.seciliIdler.size} kayıt seçili</span>

@@ -151,8 +151,12 @@ export interface DataGridProps<TRow extends { id: string }> {
   ustSolAraclarGoster?: boolean;
   /** false ise sağ üstteki sütun / CSV (ve formül) ikonları gizlenir */
   ustSagAraclarGoster?: boolean;
+  /** false ise sayfa boyutu / Kayıt / Çizgi kontrolleri gizlenir (başlık kalır; ustSolAraclarGoster ile AND) */
+  ustAracGoster?: boolean;
   /** 'cubuk' modunda seçim (toplu) çubuğu aksiyon butonlarının üstünden açılır */
   topluBarModu?: 'ust' | 'cubuk';
+  /** false ise seçimdeki "N kayıt seçili / Aktif Yap / …" toplu bar gizlenir */
+  topluBarGoster?: boolean;
   /** 'cubuk' modunda satır düzenle paneli aksiyon çubuğunun üstünden açılır */
   satirPanelModu?: 'sheet' | 'cubuk';
 }

@@ -22,6 +22,14 @@ const DURUM_SECENEKLERI = [
   { value: 'pasif', label: 'Pasif' },
 ];
 
+const BOS_FILTRE: StokGelismisFiltre = {
+  urunTipi: '',
+  urunKodu: '',
+  sinifGrup: '',
+  urunAdi: '',
+  durum: '',
+};
+
 export function StokGelismisArama({
   acik,
   filtre,
@@ -77,7 +85,15 @@ export function StokGelismisArama({
         <div className="stok-gelismis-arama-kart">
           <header className="stok-gelismis-arama-kart-baslik">
             <span className="stok-gelismis-arama-ikon" aria-hidden>
-              ⌕
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
+                <path
+                  d="M16.2 16.2 20 20"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
             </span>
             <div className="stok-gelismis-arama-kart-baslik-metin">
               <h3 className="stok-gelismis-arama-kart-etiket">Gelişmiş Stok Arama</h3>
@@ -85,20 +101,8 @@ export function StokGelismisArama({
                 <strong>{sonucSayisi}</strong> sonuç eşleşiyor
               </p>
             </div>
-            <button
-              type="button"
-              className="stok-gelismis-arama-temizle"
-              onClick={() =>
-                onFiltreDegistir({
-                  urunTipi: '',
-                  urunKodu: '',
-                  sinifGrup: '',
-                  urunAdi: '',
-                  durum: '',
-                })
-              }
-            >
-              Temizle
+            <button type="button" className="stok-gelismis-arama-temizle" onClick={onKapat}>
+              Vazgeç
             </button>
           </header>
 
@@ -146,9 +150,9 @@ export function StokGelismisArama({
             <button
               type="button"
               className="stok-gelismis-arama-tus stok-gelismis-arama-tus--iptal"
-              onClick={onKapat}
+              onClick={() => onFiltreDegistir({ ...BOS_FILTRE })}
             >
-              <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
+              <ModalTusIcerik metin="Temizle" />
             </button>
             <button
               type="button"

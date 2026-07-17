@@ -2476,6 +2476,449 @@ button.ap-tanimlar-panel-arka {
   gap: 0.85rem;
 }
 
+.stok-karti-ana-tanimlar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stok-karti-ana-tanimlar .stok-karti-yatay {
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+}
+
+.stok-karti-ana-ust {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.85rem;
+  align-items: center;
+}
+
+.stok-karti-ana-alt {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem 0.85rem;
+  align-items: center;
+}
+
+.stok-karti-ana-alt .stok-karti-yatay {
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+}
+
+.stok-karti-satir--3 .stok-karti-yatay {
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+}
+
+.stok-karti-ek-tanimlar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.stok-karti-ek-ust {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 0.4rem 1rem;
+  align-items: center;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.stok-karti-ek-govde {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr) minmax(0, 1.1fr);
+  gap: 0.75rem 1.15rem;
+  align-items: start;
+}
+
+.stok-karti-ek-sol,
+.stok-karti-ek-orta,
+.stok-karti-ek-sag {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.stok-karti-ek-mini {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.35rem 0.65rem;
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed color-mix(in srgb, var(--ap-border) 80%, transparent);
+}
+
+.stok-karti-yatay {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 9.5rem) minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.stok-karti-yatay-etiket {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  line-height: 1.2;
+  text-align: right;
+  padding-right: 0.1rem;
+}
+
+.stok-karti-yatay-etiket span {
+  color: color-mix(in srgb, #ef4444 85%, var(--ap-text));
+}
+
+.stok-karti-yatay-kontrol {
+  min-width: 0;
+}
+
+.stok-karti-yatay-kontrol .ap-input,
+.stok-karti-yatay-kontrol .ap-form-acilir-secim-tus {
+  min-height: 1.9rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.8125rem;
+}
+
+.stok-karti-fiyat-pb {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem;
+  gap: 0.35rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.stok-karti-tarih-girdi {
+  color-scheme: dark;
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-panel[data-tema='acik'] .stok-karti-tarih-girdi {
+  color-scheme: light;
+}
+
+.stok-karti-tarih-girdi[readonly] {
+  opacity: 0.92;
+  cursor: default;
+}
+
+.stok-karti-tarih-girdi::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  cursor: pointer;
+  filter: invert(0.85);
+}
+
+.admin-panel[data-tema='acik'] .stok-karti-tarih-girdi::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+.stok-karti-satir {
+  display: grid;
+  gap: 0.45rem 0.65rem;
+  align-items: end;
+  min-width: 0;
+}
+
+.stok-karti-satir--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stok-karti-satir--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stok-karti-form .ap-tanim-girdi,
+.stok-karti-form .ap-tanimlar-secim-alan {
+  margin: 0;
+}
+
+.stok-karti-form .ap-tanim-girdi-etiket {
+  font-size: 0.6875rem;
+  margin-bottom: 0.2rem;
+}
+
+.stok-karti-form .ap-input,
+.stok-karti-form .ap-form-acilir-secim-tus {
+  min-height: 2rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 1100px) {
+  .stok-karti-ek-govde {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stok-karti-ek-orta {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem 0.65rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .stok-karti-ek-ust,
+  .stok-karti-ek-govde,
+  .stok-karti-ek-orta,
+  .stok-karti-ek-mini,
+  .stok-karti-satir--2,
+  .stok-karti-satir--3,
+  .stok-karti-ana-ust,
+  .stok-karti-ana-alt {
+    grid-template-columns: 1fr;
+  }
+
+  .stok-karti-yatay {
+    grid-template-columns: minmax(6rem, 8rem) minmax(0, 1fr);
+  }
+
+  .stok-karti-fiyat-pb {
+    grid-template-columns: minmax(0, 1fr) 4.5rem;
+  }
+}
+
+/* Stok Kartı sekme içerikleri (referans ekran) */
+.stok-karti-sekme-birim-fiyat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.stok-karti-birim-fiyat-grid {
+  min-height: 10rem;
+  max-height: 16rem;
+  overflow: hidden;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.35rem;
+}
+
+.stok-karti-birim-fiyat-grid .dg-kabuk {
+  height: 100%;
+  min-height: 10rem;
+  border: none;
+  border-radius: 0;
+}
+
+.stok-karti-mini-tablo {
+  border: 1px solid var(--ap-border);
+  border-radius: 0.35rem;
+  overflow: auto;
+  background: var(--ap-surface);
+}
+
+.stok-karti-mini-tablo-baslik,
+.stok-karti-mini-tablo-satir {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(5rem, 1fr));
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  align-items: center;
+}
+
+.stok-karti-mini-tablo-baslik {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  border-bottom: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
+}
+
+.stok-karti-mini-tablo-baslik--fiyat,
+.stok-karti-mini-tablo-satir--fiyat {
+  grid-template-columns: repeat(17, minmax(4.2rem, 1fr));
+  min-width: 68rem;
+}
+
+.stok-karti-sekme-alt-tuslar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.stok-karti-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--ap-text);
+}
+
+.stok-karti-ozel-kodlar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(14rem, 0.9fr);
+  gap: 1rem;
+  min-width: 0;
+}
+
+.stok-karti-ozel-kodlar-sol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 28rem;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.stok-karti-ozel-kodlar-sag {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.stok-karti-ozel-kodlar-ust {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.stok-karti-raf-tablo {
+  border: 1px solid var(--ap-border);
+  border-radius: 0.35rem;
+  min-height: 10rem;
+  overflow: hidden;
+  background: var(--ap-surface);
+}
+
+.stok-karti-raf-baslik {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
+}
+
+.stok-karti-raf-bos {
+  padding: 1.25rem 0.75rem;
+  text-align: center;
+  color: var(--ap-muted);
+  font-size: 0.85rem;
+}
+
+.stok-karti-muhasebe,
+.stok-karti-analiz,
+.stok-karti-e-donusum,
+.stok-karti-istihbarat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 42rem;
+}
+
+.stok-karti-gider-cesit {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stok-karti-gider-baslik {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.stok-karti-resim-alan {
+  position: relative;
+  min-height: 16rem;
+  border: 1px solid color-mix(in srgb, #3b82f6 55%, var(--ap-border));
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--ap-surface-2) 40%, #f3f4f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.stok-karti-resim-yazi {
+  margin: 0;
+  color: var(--ap-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.stok-karti-resim-onizleme {
+  max-width: 100%;
+  max-height: 18rem;
+  object-fit: contain;
+}
+
+.stok-karti-resim-yukle {
+  position: absolute;
+  left: 0.65rem;
+  bottom: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.28rem 0.7rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.25rem;
+  background: var(--ap-surface);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.stok-karti-istihbarat-ust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.stok-karti-yatay--blok {
+  align-items: start;
+}
+
+.stok-karti-yatay--blok .stok-karti-yatay-kontrol textarea {
+  width: 100%;
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.stok-karti-tevkifat {
+  display: grid;
+  grid-template-columns: auto auto repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.45rem 0;
+}
+
+@media (max-width: 960px) {
+  .stok-karti-ozel-kodlar {
+    grid-template-columns: 1fr;
+  }
+
+  .stok-karti-tevkifat {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb2'],
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb3'],
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb4'],
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb5'],
+.stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb6'] {
+  text-align: left;
+}
+
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='pb2'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='pb3'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='pb4'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='pb5'],
+.stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='pb6'] {
+  text-align: center;
+}
+
 .stok-karti-icerik--yeni {
   gap: 0;
   max-width: none;
@@ -2985,12 +3428,14 @@ button.ap-tanimlar-panel-arka {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1;
   color: color-mix(in srgb, var(--ap-accent) 84%, #ffffff);
   background: color-mix(in srgb, var(--ap-accent) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--ap-accent) 55%, transparent);
+}
+
+.stok-gelismis-arama-ikon svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stok-gelismis-arama-kart-baslik-metin {

@@ -149,6 +149,67 @@ export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri 
   };
 }
 
+function yuvarla2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/** Tutar yazılınca miktar sabit → birim fiyat; miktar yoksa fiyat sabit → miktar */
+export function satirTutarYaz(s: SiparisSatiri, yeniTutar: number, kdvDahil = false): SiparisSatiri {
+  const tutar = Math.max(0, Number.isFinite(yeniTutar) ? yeniTutar : 0);
+  if (s.miktar > 0) {
+    return satirHesapla({ ...s, fiyat: yuvarla2(tutar / s.miktar) }, kdvDahil);
+  }
+  if (s.fiyat > 0) {
+    return satirHesapla({ ...s, miktar: yuvarla2(tutar / s.fiyat) }, kdvDahil);
+  }
+  return satirHesapla({ ...s, miktar: 1, fiyat: tutar }, kdvDahil);
+}
+
+/** Net tutar → satır iskonto oranını koruyarak brüt tutara, oradan fiyata */
+export function satirNetTutarYaz(s: SiparisSatiri, yeniNet: number, kdvDahil = false): SiparisSatiri {
+  const net = Math.max(0, Number.isFinite(yeniNet) ? yeniNet : 0);
+  const kalanOran = 1 - s.satirIskontoYuzde / 100;
+  const tutar = kalanOran > 0 ? yuvarla2(net / kalanOran) : net;
+  return satirTutarYaz(s, tutar, kdvDahil);
+}
+
+/**
+ * Gerçek tutar → alt iskonto tersine net tutar.
+ * KDV dahil modda gerçek tutar KDV'siz matrah; önce indirimli (KDV'li) tutara çevrilir.
+ */
+export function satirGercekTutarYaz(
+  s: SiparisSatiri,
+  yeniGercek: number,
+  kdvDahil = false
+): SiparisSatiri {
+  const gercek = Math.max(0, Number.isFinite(yeniGercek) ? yeniGercek : 0);
+  let indirimli = gercek;
+  if (kdvDahil) {
+    const kdvOran = s.toplamKdvYuzde / 100;
+    indirimli = kdvOran > 0 ? yuvarla2(gercek * (1 + kdvOran)) : gercek;
+  }
+  const kalanOran = 1 - s.altIskontoYuzde / 100;
+  const net = kalanOran > 0 ? yuvarla2(indirimli / kalanOran) : indirimli;
+  return satirNetTutarYaz(s, net, kdvDahil);
+}
+
+/** Toplam → KDV oranını koruyarak gerçek tutara (veya KDV dahilde indirimliye) */
+export function satirToplamTutarYaz(
+  s: SiparisSatiri,
+  yeniToplam: number,
+  kdvDahil = false
+): SiparisSatiri {
+  const toplam = Math.max(0, Number.isFinite(yeniToplam) ? yeniToplam : 0);
+  if (kdvDahil) {
+    const kalanOran = 1 - s.altIskontoYuzde / 100;
+    const net = kalanOran > 0 ? yuvarla2(toplam / kalanOran) : toplam;
+    return satirNetTutarYaz(s, net, kdvDahil);
+  }
+  const kdvOran = s.toplamKdvYuzde / 100;
+  const gercek = kdvOran > 0 ? yuvarla2(toplam / (1 + kdvOran)) : toplam;
+  return satirGercekTutarYaz(s, gercek, kdvDahil);
+}
+
 const urun = (sku: string, ad: string, kur?: string) => ({ sku, ad, kur });
 
 export const DEMO_SIPARIS_SATIRLARI: SiparisSatiri[] = [

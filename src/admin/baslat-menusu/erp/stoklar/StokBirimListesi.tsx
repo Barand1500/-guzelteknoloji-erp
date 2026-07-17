@@ -150,6 +150,30 @@ export function StokBirimListesi({
 
   const kolonlar = useMemo((): KolonTanimi<StokBirimListeSatir>[] => {
     const duzenlenebilir = duzenlemeVar;
+    const fiyatKolonu = (
+      id: 'satisFiyati1' | 'satisFiyati2' | 'satisFiyati3',
+      baslik: string
+    ): KolonTanimi<StokBirimListeSatir> => ({
+      id,
+      baslik,
+      tip: 'para',
+      genislik: 120,
+      siralama: true,
+      duzenlenebilir,
+      formulaTip: 'sayi',
+      paraSembolu: false,
+      degerAl: (s) => s[id],
+      degerYaz: (s, d) => {
+        let n: number | null;
+        if (d === '' || d === null || d === undefined) n = null;
+        else if (typeof d === 'number') n = Number.isFinite(d) ? d : null;
+        else n = sayiOku(String(d));
+        return { ...s, [id]: n };
+      },
+      siralamaDegeri: (s) => s[id] ?? -1,
+      goster: (s) => <FiyatGosterim deger={s[id]} />,
+    });
+
     return [
       {
         id: 'fiyatAd',
@@ -191,11 +215,14 @@ export function StokBirimListesi({
         siralamaDegeri: (s) => s.carpan,
         goster: (s) => String(s.carpan),
       },
+      fiyatKolonu('satisFiyati1', '1. Satış Fiyatı'),
+      fiyatKolonu('satisFiyati2', '2. Satış Fiyatı'),
+      fiyatKolonu('satisFiyati3', '3. Satış Fiyatı'),
       {
         id: 'kdv',
         baslik: 'KDV',
         tip: 'metin',
-        genislik: 72,
+        genislik: 80,
         siralama: true,
         duzenlenebilir,
         secenekler: [
@@ -206,42 +233,6 @@ export function StokBirimListesi({
         degerYaz: (s, d) => ({ ...s, kdvDahil: String(d) === 'dahil' }),
         siralamaDegeri: (s) => s.kdvYuzde,
         goster: (s) => <KdvHucre satir={s} />,
-      },
-      {
-        id: 'kdvYuzde',
-        baslik: 'KDV %',
-        tip: 'sayi',
-        genislik: 72,
-        siralama: true,
-        duzenlenebilir,
-        formulaTip: 'sayi',
-        degerAl: (s) => s.kdvYuzde,
-        degerYaz: (s, d) => {
-          const n = typeof d === 'number' ? d : sayiOku(String(d ?? '')) ?? s.kdvYuzde;
-          return { ...s, kdvYuzde: n };
-        },
-        siralamaDegeri: (s) => s.kdvYuzde,
-        goster: (s) => `%${Number.isInteger(s.kdvYuzde) ? s.kdvYuzde : sayiFormatla(s.kdvYuzde)}`,
-      },
-      {
-        id: 'satisFiyati1',
-        baslik: 'Satış Fiyatı',
-        tip: 'para',
-        genislik: 120,
-        siralama: true,
-        duzenlenebilir,
-        formulaTip: 'sayi',
-        paraSembolu: false,
-        degerAl: (s) => s.satisFiyati1,
-        degerYaz: (s, d) => {
-          let n: number | null;
-          if (d === '' || d === null || d === undefined) n = null;
-          else if (typeof d === 'number') n = Number.isFinite(d) ? d : null;
-          else n = sayiOku(String(d));
-          return { ...s, satisFiyati1: n };
-        },
-        siralamaDegeri: (s) => s.satisFiyati1 ?? -1,
-        goster: (s) => <FiyatGosterim deger={s.satisFiyati1} />,
       },
     ];
   }, [duzenlemeVar]);

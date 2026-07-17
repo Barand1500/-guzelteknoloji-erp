@@ -830,7 +830,7 @@
 
 .dg-baslik-hucre--sabit {
   position: sticky;
-  left: 0;
+  /* left: inline style (sabitLeftMap) ile verilir — CSS left:0 pin ofsetini bozuyordu */
   z-index: 5;
   background: color-mix(in srgb, var(--ap-surface-2) 50%, var(--ap-surface));
 }
@@ -996,7 +996,7 @@
 
 .dg-hucre--sabit {
   position: sticky;
-  left: 0;
+  /* left: inline style (sabitLeftMap) ile verilir — CSS left:0 pin ofsetini bozuyordu */
   z-index: 2;
   background: inherit;
 }

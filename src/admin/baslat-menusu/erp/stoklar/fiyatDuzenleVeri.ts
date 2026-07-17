@@ -20,6 +20,8 @@ function bosFiyatSatiri(
     pb4: 'TL',
     satisFiyati5: null,
     pb5: 'TL',
+    satisFiyati6: null,
+    pb6: 'TL',
     ...ek,
   };
 }

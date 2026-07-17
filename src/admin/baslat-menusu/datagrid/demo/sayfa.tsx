@@ -11,8 +11,12 @@ import { sayiFormatla, tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYa
 
 import {
   DEMO_SIPARIS_SATIRLARI,
+  satirGercekTutarYaz,
   satirHesapla,
+  satirNetTutarYaz,
   satirlariKdvModunaCevir,
+  satirToplamTutarYaz,
+  satirTutarYaz,
   yeniSiparisSatiriOlustur,
   type SiparisSatiri,
 } from './demoVeri';
@@ -76,6 +80,14 @@ function UrunKoduAdiHucre({ satir }: { satir: SiparisSatiri }) {
 function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
   const hesapla = (satir: SiparisSatiri, yama: Partial<SiparisSatiri>) =>
     satirHesapla({ ...satir, ...yama }, kdvDahil);
+
+  const paraOku = (d: unknown, yedek: number): number => {
+    if (typeof d === 'number' && Number.isFinite(d)) return d;
+    const ifade = ifadeHesapla(String(d ?? ''), 'sayi');
+    if (ifade !== null && Number.isFinite(ifade)) return ifade;
+    const ham = parseFloat(String(d ?? '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.'));
+    return Number.isFinite(ham) ? ham : yedek;
+  };
 
   return [
 
@@ -199,23 +211,18 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
     },
 
     {
-
       id: 'tutar',
-
       baslik: 'Tutar',
-
       tip: 'para',
-
       genislik: PARA_KOLON_GENISLIK,
       minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
-
+      duzenlenebilir: true,
+      formulaTip: 'sayi',
       siralama: true,
-
       degerAl: (s) => s.tutar,
-
+      degerYaz: (s, d) => satirTutarYaz(s, paraOku(d, s.tutar), kdvDahil),
       siralamaDegeri: (s) => s.tutar,
-
     },
 
     {
@@ -249,23 +256,18 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
     },
 
     {
-
       id: 'netTutar',
-
       baslik: 'Net Tutar',
-
       tip: 'para',
-
       genislik: PARA_KOLON_GENISLIK,
       minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
-
+      duzenlenebilir: true,
+      formulaTip: 'sayi',
       siralama: true,
-
       degerAl: (s) => s.netTutar,
-
+      degerYaz: (s, d) => satirNetTutarYaz(s, paraOku(d, s.netTutar), kdvDahil),
       siralamaDegeri: (s) => s.netTutar,
-
     },
 
     {
@@ -299,23 +301,18 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
     },
 
     {
-
       id: 'gercekToplam',
-
       baslik: 'Gerçek Tutar',
-
       tip: 'para',
-
       genislik: PARA_KOLON_GENISLIK,
       minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
-
+      duzenlenebilir: true,
+      formulaTip: 'sayi',
       siralama: true,
-
       degerAl: (s) => s.gercekToplam,
-
+      degerYaz: (s, d) => satirGercekTutarYaz(s, paraOku(d, s.gercekToplam), kdvDahil),
       siralamaDegeri: (s) => s.gercekToplam,
-
     },
 
     {
@@ -365,23 +362,23 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
     },
 
     {
-
       id: 'toplamTutar',
-
       baslik: 'Toplam',
-
       tip: 'para',
-
       genislik: PARA_KOLON_GENISLIK,
       minGenislik: PARA_KOLON_MIN,
       paraSembolu: false,
-
+      duzenlenebilir: true,
+      formulaTip: 'sayi',
       siralama: true,
-
       degerAl: (s) => s.toplamTutar,
-
+      degerYaz: (s, d) => satirToplamTutarYaz(s, paraOku(d, s.toplamTutar), kdvDahil),
       siralamaDegeri: (s) => s.toplamTutar,
-
+      goster: (s) => (
+        <span className="dg-kdv-vurgu">
+          {s.toplamTutar.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+      ),
     },
 
     {
@@ -656,7 +653,20 @@ export function DatagridDemoSayfasi() {
     setTopluSilmeAcik(false);
   }, []);
 
-  useModulAksiyonlari({ sil: seciliSatirlariSil }, { sil: seciliSatirSayisi > 0 });
+  useModulAksiyonlari(
+    {
+      sil: seciliSatirlariSil,
+      guncelle: () => {
+        const id = seciliSatirIdleriRef.current[0];
+        if (!id) return;
+        gridApiRef.current?.satirDuzenleAc(id);
+      },
+    },
+    {
+      sil: seciliSatirSayisi > 0,
+      guncelle: seciliSatirSayisi === 1,
+    }
+  );
 
   useEffect(() => {
     let iptal = false;
@@ -855,6 +865,8 @@ export function DatagridDemoSayfasi() {
         }}
 
         onSatirGuncelle={(s) => satirHesapla(s, kdvDahil)}
+
+        satirPanelModu="cubuk"
 
         satirDuzenlePaneli={(satir, onKaydet, onKapat) => (
 

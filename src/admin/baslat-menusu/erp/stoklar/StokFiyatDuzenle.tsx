@@ -33,7 +33,50 @@ import { stokFiyatBarkodUret } from './fiyatDuzenleVeri';
 import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import type { AdminStok } from './tipler';
 
-function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDuzenleSatir>[] {
+export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDuzenleSatir>[] {
+  const satisKolonu = (
+    id: IsaretliFiyatAlani &
+      (
+        | 'satisFiyati1'
+        | 'satisFiyati2'
+        | 'satisFiyati3'
+        | 'satisFiyati4'
+        | 'satisFiyati5'
+        | 'satisFiyati6'
+      ),
+    baslik: string
+  ): KolonTanimi<StokFiyatDuzenleSatir> => ({
+    id,
+    baslik,
+    tip: 'para',
+    genislik: 100,
+    paraSembolu: false,
+    duzenlenebilir,
+    formulaTip: 'sayi',
+    siralama: true,
+    degerAl: (s) => s[id],
+    siralamaDegeri: (s) => s[id] ?? -1,
+    degerYaz: (s, d) => fiyatDuzenleFiyatYaz(s, id, d),
+    goster: (s) => (s[id] === null ? '' : sayiFormatla(s[id]!)),
+  });
+
+  const pbKolonu = (
+    id: 'pb1' | 'pb2' | 'pb3' | 'pb4' | 'pb5' | 'pb6',
+    baslik = 'PB'
+  ): KolonTanimi<StokFiyatDuzenleSatir> => ({
+    id,
+    baslik,
+    tip: 'badge',
+    genislik: 48,
+    duzenlenebilir,
+    secenekler: STOK_FIYAT_PB_SECENEKLERI.map((x) => ({ deger: x.deger, etiket: x.etiket })),
+    siralama: true,
+    degerAl: (s) => s[id],
+    siralamaDegeri: (s) => s[id],
+    degerYaz: (s, d) => fiyatDuzenlePbYaz(s, id, d),
+    goster: (s) => <span className="stok-fiyat-duzenle-pb">{s[id]}</span>,
+  });
+
   return [
     {
       id: 'fiyatAdi',
@@ -51,7 +94,7 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
       id: 'birim',
       baslik: 'Birim',
       tip: 'metin',
-      genislik: 80,
+      genislik: 72,
       duzenlenebilir,
       siralama: true,
       degerAl: (s) => s.birim,
@@ -61,7 +104,7 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
       id: 'carpan',
       baslik: 'Çarpan',
       tip: 'sayi',
-      genislik: 64,
+      genislik: 56,
       duzenlenebilir,
       formulaTip: 'sayi',
       siralama: true,
@@ -74,8 +117,8 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
       id: 'barkod',
       baslik: 'Barkod',
       tip: 'metin',
-      genislik: 120,
-      minGenislik: 96,
+      genislik: 110,
+      minGenislik: 88,
       duzenlenebilir,
       siralama: true,
       degerAl: (s) => s.barkod,
@@ -85,7 +128,7 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
       id: 'kdv',
       baslik: 'Kdv',
       tip: 'sayi',
-      genislik: 56,
+      genislik: 52,
       duzenlenebilir,
       formulaTip: 'sayi',
       siralama: true,
@@ -99,8 +142,8 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
       baslik: 'K.',
       baslikIpucu: 'KDV dahil / hariç',
       tip: 'badge',
-      genislik: 52,
-      minGenislik: 48,
+      genislik: 44,
+      minGenislik: 40,
       duzenlenebilir,
       secenekler: STOK_FIYAT_KDV_TIPI_SECENEKLERI.map((x) => ({ deger: x.deger, etiket: x.etiket })),
       siralama: true,
@@ -111,47 +154,18 @@ function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<StokFiyatDu
         <span className="stok-fiyat-duzenle-kdv-tip">{kdvTipiEtiketi(s.kdvTipi)}</span>
       ),
     },
-    {
-      id: 'alisFiyati',
-      baslik: 'Alış Fiyatı',
-      tip: 'para',
-      genislik: 108,
-      paraSembolu: false,
-      duzenlenebilir,
-      formulaTip: 'sayi',
-      siralama: true,
-      degerAl: (s) => s.alisFiyati,
-      siralamaDegeri: (s) => s.alisFiyati ?? -1,
-      degerYaz: (s, d) => fiyatDuzenleFiyatYaz(s, 'alisFiyati', d),
-      goster: (s) => (s.alisFiyati === null ? '' : sayiFormatla(s.alisFiyati)),
-    },
-    {
-      id: 'satisFiyati1',
-      baslik: 'Satış Fiyatı',
-      tip: 'para',
-      genislik: 108,
-      paraSembolu: false,
-      duzenlenebilir,
-      formulaTip: 'sayi',
-      siralama: true,
-      degerAl: (s) => s.satisFiyati1,
-      siralamaDegeri: (s) => s.satisFiyati1 ?? -1,
-      degerYaz: (s, d) => fiyatDuzenleFiyatYaz(s, 'satisFiyati1', d),
-      goster: (s) => (s.satisFiyati1 === null ? '' : sayiFormatla(s.satisFiyati1)),
-    },
-    {
-      id: 'pb1',
-      baslik: 'PB',
-      tip: 'badge',
-      genislik: 52,
-      duzenlenebilir,
-      secenekler: STOK_FIYAT_PB_SECENEKLERI.map((x) => ({ deger: x.deger, etiket: x.etiket })),
-      siralama: true,
-      degerAl: (s) => s.pb1,
-      siralamaDegeri: (s) => s.pb1,
-      degerYaz: (s, d) => fiyatDuzenlePbYaz(s, 'pb1', d),
-      goster: (s) => <span className="stok-fiyat-duzenle-pb">{s.pb1}</span>,
-    },
+    satisKolonu('satisFiyati1', '1. Satış Fiyatı'),
+    pbKolonu('pb1'),
+    satisKolonu('satisFiyati2', '2. Satış'),
+    pbKolonu('pb2'),
+    satisKolonu('satisFiyati3', '3. Satış'),
+    pbKolonu('pb3'),
+    satisKolonu('satisFiyati4', '4. Satış'),
+    pbKolonu('pb4'),
+    satisKolonu('satisFiyati5', '5. Satış'),
+    pbKolonu('pb5'),
+    satisKolonu('satisFiyati6', 'Satış Fiyatı'),
+    pbKolonu('pb6'),
   ];
 }
 

@@ -48,13 +48,14 @@ const MODUL_VARSAYILAN: Record<string, Partial<Record<StandartAksiyonId, Aksiyon
   'kisayol-ayarlari': { kaydet: a(true) },
   kullanicilar: { kaydet: a(true), ekle: a(), sil: a() },
   roller: { kaydet: a(), ekle: a(), sil: a() },
-  'datagrid-demo': { sil: { aktif: false } },
+  'datagrid-demo': { sil: { aktif: false }, guncelle: { aktif: false } },
   loglar: { sil: a() },
 };
 
 const STOK_CUBUK: AksiyonButonu[] = [
   A('kaydet', 'Kaydet', false),
   A('ekle', 'Yeni', false),
+  A('sil', 'Sil', false),
   A('guncelle', 'Düzenle', false),
   A('stokAra', 'Ara', false),
   A('stokFiyatAnaliz', 'Fiyat Analiz', false),
@@ -89,10 +90,12 @@ const MODUL_AKSIYON_YETKI: Partial<Record<string, Partial<Record<AksiyonId, Yetk
     kaydet: 'duzenleme',
     ekle: 'ekleme',
     sil: 'silme',
+    guncelle: 'duzenleme',
   },
   stoklar: {
     // kaydet yetkisi durumlar icinde (yeni=ekleme, duzenle=duzenleme) kontrol edilir
     ekle: 'ekleme',
+    sil: 'silme',
     guncelle: 'duzenleme',
     stokAra: 'goruntuleme',
     stokFiyatAnaliz: 'goruntuleme',

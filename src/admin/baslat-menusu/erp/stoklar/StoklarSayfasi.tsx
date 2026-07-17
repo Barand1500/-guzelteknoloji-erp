@@ -3,6 +3,7 @@ import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/Tani
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import '@/admin/ortak/datagrid/datagrid.css';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
@@ -315,6 +316,17 @@ export function StoklarSayfasi() {
     {
       kaydet: kaydedilebilirForm ? () => kaydet() : undefined,
       ekle: eklemeVar ? yeniAc : undefined,
+      sil: silmeVar
+        ? () => {
+            const hedefId = baglamStokId ?? seciliIdler[0];
+            if (!hedefId) {
+              hataBildir('Silmek için bir stok seçin.');
+              return;
+            }
+            const hedef = stokBul(hedefId);
+            if (hedef) setSilme(hedef);
+          }
+        : undefined,
       guncelle: duzenlemeVar ? () => duzenleAc(baglamStokId ?? undefined) : undefined,
       stokAra: araAksiyon,
       stokFiyatAnaliz: fiyatAnalizAc,
@@ -327,6 +339,7 @@ export function StoklarSayfasi() {
         (kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar)) ||
         (birimFiyatFormu && duzenlemeVar),
       ekle: eklemeVar,
+      sil: silmeVar && Boolean(baglamStokId || seciliIdler.length > 0),
       guncelle: duzenlemeVar && stokSecili,
       stokAra: true,
       stokFiyatAnaliz: stokSecili,
@@ -343,11 +356,12 @@ export function StoklarSayfasi() {
       await stokSil(silme.id);
       basariBildir('Stok silindi.');
       setSilme(null);
+      if (gorunum === 'kart') listeyeDon();
       await yukle();
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Silme başarısız');
     }
-  }, [basariBildir, hataBildir, silme, yukle]);
+  }, [basariBildir, gorunum, hataBildir, listeyeDon, silme, yukle]);
 
   const kolonlar = useMemo((): KolonTanimi<AdminStok>[] => {
     return [
@@ -427,7 +441,32 @@ export function StoklarSayfasi() {
   }, []);
 
   return (
-    <AdminModulKabuk baslik="Stoklar" aciklama="Stok kartlarını listeleyin, arayın ve yönetin.">
+    <AdminModulKabuk
+      baslik="Stoklar"
+      aciklama="Stok kartlarını listeleyin, arayın ve yönetin."
+      ustAksiyon={
+        gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
+          <div className="dg-ikon-grup stoklar-modul-ust-araclar">
+            <button
+              type="button"
+              className="dg-tus dg-tus-ikon"
+              title="Sütun görünürlüğü"
+              onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
+            >
+              <DgIkon ad="sutun" />
+            </button>
+            <button
+              type="button"
+              className="dg-tus dg-tus-ikon"
+              title="CSV indir"
+              onClick={() => gridApiRef.current?.csvIndir()}
+            >
+              <DgIkon ad="indir" />
+            </button>
+          </div>
+        ) : null
+      }
+    >
       <div className="ap-tanimlar-sayfa">
         {gorunum === 'kart' ? (
           <StokKarti
@@ -547,8 +586,8 @@ export function StoklarSayfasi() {
                     />
                     <DataGrid
                       key="stoklar_kayitlar_v2"
-                      tabloBaslik="Stoklar"
-                      tabloAltBaslik="Arama sonuçları"
+                      tabloBaslik=""
+                      tabloAltBaslik=""
                       yukleniyor={false}
                       gridApiRef={gridApiRef}
                       kolonlar={kolonlar}
@@ -561,6 +600,10 @@ export function StoklarSayfasi() {
                       onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                       onSecimDegistir={setSeciliIdler}
                       formulMenuGoster={false}
+                      ustSolAraclarGoster={false}
+                      ustSagAraclarGoster={false}
+                      ustAracGoster={false}
+                      topluBarGoster={false}
                     />
                   </div>
                 )}

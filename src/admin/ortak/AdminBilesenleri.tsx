@@ -4,7 +4,7 @@ import { AdminSiteOnizleLink } from '@/admin/kabuk/AdminSiteOnizleLink';
 import { adminIslemBildirimi } from '@/araclar/adminBildirimOlaylari';
 
 interface AdminModulKabukProps {
-  baslik: string;
+  baslik?: string;
   aciklama?: string;
   children: ReactNode;
   onizleGoster?: boolean;
@@ -18,18 +18,21 @@ export function AdminModulKabuk({
   onizleGoster = false,
   ustAksiyon,
 }: AdminModulKabukProps) {
+  const baslikVar = Boolean(baslik?.trim() || aciklama?.trim() || ustAksiyon || onizleGoster);
   return (
     <div className="ap-modul-kabuk w-full min-w-0" data-ap-kesif="modul-kabuk">
-      <div className="ap-modul-baslik">
-        <div>
-          <h1 className="ap-heading text-xl font-bold">{baslik}</h1>
-          {aciklama && <p className="ap-muted mt-1 text-sm">{aciklama}</p>}
+      {baslikVar ? (
+        <div className="ap-modul-baslik">
+          <div>
+            {baslik?.trim() ? <h1 className="ap-heading text-xl font-bold">{baslik}</h1> : null}
+            {aciklama && <p className="ap-muted mt-1 text-sm">{aciklama}</p>}
+          </div>
+          <div className="flex items-center gap-2">
+            {ustAksiyon}
+            {onizleGoster && <AdminSiteOnizleLink />}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {ustAksiyon}
-          {onizleGoster && <AdminSiteOnizleLink />}
-        </div>
-      </div>
+      ) : null}
       <div className="mt-6">{children}</div>
     </div>
   );

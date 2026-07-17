@@ -56,6 +56,8 @@ export function birimdenFiyatDuzenleSatir(b: AdminBirim): StokFiyatDuzenleSatir 
     pb4: 'TL',
     satisFiyati5: null,
     pb5: 'TL',
+    satisFiyati6: null,
+    pb6: 'TL',
     alisKdv: b.alisKdv,
     aktif: b.aktif,
   };
