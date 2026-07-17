@@ -22,6 +22,7 @@ log_success() { echo -e "${GREEN}[OK]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[UYARI]${NC} $1"; }
 log_error() { echo -e "${RED}[HATA]${NC} $1"; exit 1; }
 
+
 echo -e "${GREEN}===========================================${NC}"
 echo -e "${GREEN}    GUZEL TEKNOLOJI ERP DEPLOYMENT (V2)    ${NC}"
 echo -e "${GREEN}===========================================${NC}"
@@ -125,6 +126,7 @@ else
 fi
 pm2 save
 
+log_success "PM2 servisi güncellendi."
 # 6. SAĞLIK KONTROLLERİ
 echo ""
 echo -e "${GREEN}=== SAĞLIK KONTROLLERİ ===${NC}"
@@ -136,11 +138,19 @@ check_endpoint() {
     local code
     code=$(curl -sS -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo "000")
     
+    log_info "Sağlık kontrolü yapılıyor... $url"
     if [ "$code" = "$expected_code" ]; then
         echo -e "  [${GREEN}OK${NC}] $name (HTTP $code)"
         return 0
     else
         echo -e "  [${RED}FAIL${NC}] $name (Beklenen: $expected_code, Gelen: $code)"
+        return 1
+    fi
+
+    log_info "Sağlık kontrolü tamamlandı. $url (HTTP $code)"
+    return 0
+    else
+        log_error "Sağlık kontrolü başarısız oldu. $url (HTTP $code)"
         return 1
     fi
 }

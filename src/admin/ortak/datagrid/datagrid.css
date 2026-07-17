@@ -2503,6 +2503,27 @@
   flex-shrink: 0;
 }
 
+.dg-toplu-bar-cubuk-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  z-index: 45;
+  display: flex;
+  justify-content: stretch;
+  pointer-events: none;
+}
+
+.dg-toplu-bar--cubuk {
+  pointer-events: auto;
+  width: 100%;
+  border-radius: 0.5rem 0.5rem 0 0;
+  border: 1px solid var(--ap-border);
+  border-bottom: none;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  animation: dg-cubuk-panel-giris 0.18s ease-out;
+}
+
 .dg-kdv-toggle {
   display: flex;
   align-items: center;

@@ -7,7 +7,7 @@ import {
   type AdminCari,
 } from '@/admin/baslat-menusu/erp/cari/tipler';
 
-export const CARI_KOLON_GENISLIK_SURUMU = 2;
+export const CARI_KOLON_GENISLIK_SURUMU = 4;
 
 export const CARI_VARSAYILAN_GIZLI: string[] = [];
 
@@ -35,6 +35,39 @@ function islemlerKolonu(): KolonTanimi<AdminCari> {
   };
 }
 
+function firmaKoduAdiKolonu(): KolonTanimi<AdminCari> {
+  return {
+    id: 'firmaKoduAdi',
+    baslik: 'Firma Kodu/Adı',
+    tip: 'metin',
+    genislik: 240,
+    minGenislik: 140,
+    zorunlu: true,
+    siralama: true,
+    degerAl: (s) => `${s.cariKodu} ${s.cariAdi}`,
+    siralamaDegeri: (s) => `${s.cariKodu} ${s.cariAdi}`,
+    goster: (s) => {
+      const ad = s.cariAdi?.trim() ?? '';
+      const kod = s.cariKodu?.trim() ?? '';
+      const ikili = Boolean(ad && kod && ad.toLowerCase() !== kod.toLowerCase());
+
+      if (!ad && !kod) return <>—</>;
+
+      if (ikili) {
+        return (
+          <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
+            <span className="dg-urun-kodu-alt">{kod}</span>
+            <span className="dg-urun-adi-ust">{ad}</span>
+          </div>
+        );
+      }
+
+      if (kod && !ad) return <span className="dg-urun-kodu-alt">{kod}</span>;
+      return <span className="dg-urun-adi-ust">{ad || kod}</span>;
+    },
+  };
+}
+
 function durumKolonu(): KolonTanimi<AdminCari> {
   return {
     id: 'durum',
@@ -43,6 +76,7 @@ function durumKolonu(): KolonTanimi<AdminCari> {
     genislik: 88,
     siralama: true,
     degerAl: (s) => s.aktif,
+    degerYaz: (s, d) => ({ ...s, aktif: Boolean(d) }),
     siralamaDegeri: (s) => (s.aktif ? 1 : 0),
     goster: (s) => <TanimDurumRozeti aktif={s.aktif} />,
   };
@@ -98,11 +132,10 @@ function metinKolon(
 export function cariKolonlari(): KolonTanimi<AdminCari>[] {
   return [
     secimKolonu(),
-    metinKolon('cariKodu', 'Cari Kodu', 110, (s) => s.cariKodu, { kod: true }),
-    metinKolon('cariAdi', 'Cari Adı', 200, (s) => s.cariAdi, { ad: true }),
+    firmaKoduAdiKolonu(),
     {
       id: 'cariTipi',
-      baslik: 'Cari Tipi',
+      baslik: 'Kart Tipi',
       tip: 'metin',
       genislik: 88,
       siralama: true,

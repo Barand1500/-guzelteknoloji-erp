@@ -97,6 +97,8 @@ export interface HizliGirisApi {
 export interface DataGridApi {
   satirDuzenleAc: (satirId: string) => void;
   csvIndir: (sadeceSecili?: boolean) => void;
+  /** Sütun menüsünü aç/kapat; harici düğmeden çağrılıyorsa konum için anchor verilir */
+  sutunMenuToggle: (anchor?: HTMLElement | null) => void;
   hizliGirisOdakla: () => void;
   hizliGirisKapat: () => void;
   seciliIdler: () => string[];
@@ -145,6 +147,12 @@ export interface DataGridProps<TRow extends { id: string }> {
   hizliGirisVarsayilanAlan?: boolean;
   /** false ise üst araç çubuğundaki sayı formülleri (ƒx) gizlenir */
   formulMenuGoster?: boolean;
+  /** false ise sol üstteki sayfa boyutu ve çizgi ayarları gizlenir */
+  ustSolAraclarGoster?: boolean;
+  /** false ise sağ üstteki sütun / CSV (ve formül) ikonları gizlenir */
+  ustSagAraclarGoster?: boolean;
+  /** 'cubuk' modunda seçim (toplu) çubuğu aksiyon butonlarının üstünden açılır */
+  topluBarModu?: 'ust' | 'cubuk';
   /** 'cubuk' modunda satır düzenle paneli aksiyon çubuğunun üstünden açılır */
   satirPanelModu?: 'sheet' | 'cubuk';
 }

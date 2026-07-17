@@ -1,7 +1,7 @@
 import { cariSeedKayitlari } from '@/admin/baslat-menusu/erp/cari/cariSeedVerisi';
 import type { AdminCari, CariFormDegeri } from '@/admin/baslat-menusu/erp/cari/tipler';
 
-const OFFLINE_CARILER_ANAHTAR = 'erp-offline-cariler-v2';
+const OFFLINE_CARILER_ANAHTAR = 'erp-offline-cariler-v3';
 
 function simdiIso() {
   return new Date().toISOString();

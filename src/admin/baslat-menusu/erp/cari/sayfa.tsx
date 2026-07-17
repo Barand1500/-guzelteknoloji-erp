@@ -1,73 +1,185 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
-import { carileriGetir } from '@/admin/baslat-menusu/erp/cari/api';
-import { CariKayitlarOzeti } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariKayitlarOzeti';
-import { CariKurulumSihirbazi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariKurulumSihirbazi';
-import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
+import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+import '@/admin/ortak/datagrid/datagrid.css';
+import type { DataGridApi } from '@/admin/ortak/datagrid/types';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
+import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
-import '@/admin/ortak/datagrid/datagrid.css';
-import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
-import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
+import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
+import { cariSil, cariGuncelle, carileriGetir } from './api';
+import { CariKart } from './bilesenler/CariKart';
+import { cariEkAlanlariSil } from './cariEkAlanlar';
+import { cariAramaKriteriVarMi, carileriFiltrele } from './cariFiltre';
+import { CARI_KOLON_GENISLIK_SURUMU, cariKolonlari } from './cariKolonlari';
+import { caridenForm, cariSatirEtiketi } from './cariYardimci';
+import type { AdminCari, CariKartModu } from './tipler';
 
-type CariSayfaModu = 'kurulum' | 'kayitlar';
-
-const MOD_SEKMELER = [
-  { id: 'kurulum', ad: 'Kurulum Sihirbazı', ikon: '✨' },
-  { id: 'kayitlar', ad: 'Kayıtlar', ikon: '📋' },
-] as const;
+type Gorunum = 'liste' | 'kart';
 
 export function CariSayfasi() {
-  const { goruntulemeVar, eklemeVar } = useYetkiler('cari');
-  const gorunurSekmeler = useMemo(
-    () => (eklemeVar ? MOD_SEKMELER : MOD_SEKMELER.filter((s) => s.id !== 'kurulum')),
-    [eklemeVar]
-  );
-  const [mod, setMod] = useState<CariSayfaModu>('kayitlar');
-  const [modYonu, setModYonu] = useState<'ileri' | 'geri'>('ileri');
-  const [ilkYukleniyor, setIlkYukleniyor] = useState(true);
-  const [ozetAnahtar, setOzetAnahtar] = useState(0);
-  const { setRehberModulId } = useAdminAksiyon();
+  const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
+  const { goruntulemeVar, eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('cari');
+  const [gorunum, setGorunum] = useState<Gorunum>('liste');
+  const [kartModu, setKartModu] = useState<CariKartModu>('yeni');
+  const [kayitlar, setKayitlar] = useState<AdminCari[]>([]);
+  const [yukleniyor, setYukleniyor] = useState(true);
+  const [filtreMetni, setFiltreMetni] = useState('');
+  const [uygulananFiltreMetni, setUygulananFiltreMetni] = useState('');
+  const [aramaGosterildi, setAramaGosterildi] = useState(false);
+  const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
+  const [aktifCariId, setAktifCariId] = useState<string | null>(null);
+  const [silme, setSilme] = useState<AdminCari | null>(null);
+  const [kartKirli, setKartKirli] = useState(false);
+  const gridApiRef = useRef<DataGridApi | null>(null);
+  const kaydetRef = useRef<(() => Promise<void>) | null>(null);
 
-  useEffect(() => {
-    if (mod === 'kurulum') {
-      setRehberModulId('cari-kurulum');
+  const yukle = useCallback(async () => {
+    setYukleniyor(true);
+    try {
+      setKayitlar(await carileriGetir());
+    } catch (e) {
+      hataBildir(e instanceof Error ? e.message : 'Cariler alınamadı');
+    } finally {
+      setYukleniyor(false);
     }
-    return () => setRehberModulId(null);
-  }, [mod, setRehberModulId]);
+  }, [hataBildir]);
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const cariler = await carileriGetir();
-        setMod(cariler.length === 0 && eklemeVar ? 'kurulum' : 'kayitlar');
-      } finally {
-        setIlkYukleniyor(false);
-      }
-    })();
+    void yukle();
+  }, [yukle]);
+
+  const filtrelenmis = useMemo(
+    () => carileriFiltrele(kayitlar, uygulananFiltreMetni),
+    [kayitlar, uygulananFiltreMetni]
+  );
+
+  const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
+  const baglamCariId = tekSeciliId ?? aktifCariId;
+
+  const listeyeDon = useCallback(() => {
+    setGorunum('liste');
+    setAktifCariId(null);
+    setKartKirli(false);
+    void yukle();
+  }, [yukle]);
+
+  const yeniAc = useCallback(() => {
+    if (!eklemeVar) return;
+    setKartModu('yeni');
+    setAktifCariId(null);
+    setGorunum('kart');
   }, [eklemeVar]);
 
-  const kurulumTamamlandi = useCallback(() => {
-    setModYonu('ileri');
-    setMod('kayitlar');
-    setOzetAnahtar((k) => k + 1);
-  }, []);
-
-  const modDegistir = useCallback(
-    (yeni: CariSayfaModu) => {
-      if (yeni === mod) return;
-      const eskiIdx = MOD_SEKMELER.findIndex((s) => s.id === mod);
-      const yeniIdx = MOD_SEKMELER.findIndex((s) => s.id === yeni);
-      if (eskiIdx >= 0 && yeniIdx >= 0) {
-        setModYonu(yeniIdx > eskiIdx ? 'ileri' : 'geri');
+  const duzenleAc = useCallback(
+    (satirId?: string) => {
+      const hedefId = satirId ?? baglamCariId;
+      if (!duzenlemeVar) return;
+      if (!hedefId) {
+        hataBildir('Düzenlemek için bir cari satırı seçin.');
+        return;
       }
-      setMod(yeni);
+      setSeciliIdler([hedefId]);
+      setKartModu('duzenle');
+      setAktifCariId(hedefId);
+      setGorunum('kart');
     },
-    [mod]
+    [baglamCariId, duzenlemeVar, hataBildir]
   );
 
-  if (ilkYukleniyor) return <TanimYukleniyor />;
+  const kaydet = useCallback(async () => {
+    if (!kaydetRef.current) {
+      hataBildir('Kayıt formu henüz hazır değil.');
+      throw new Error('Kayıt formu henüz hazır değil.');
+    }
+    await kaydetRef.current();
+  }, [hataBildir]);
+
+  const silAksiyon = useCallback(() => {
+    if (!silmeVar) return;
+    const hedefId = baglamCariId;
+    if (!hedefId) {
+      hataBildir('Silmek için bir cari satırı seçin.');
+      return;
+    }
+    const kayit = kayitlar.find((k) => k.id === hedefId);
+    if (!kayit) {
+      hataBildir('Seçili cari bulunamadı.');
+      return;
+    }
+    setSilme(kayit);
+  }, [baglamCariId, hataBildir, kayitlar, silmeVar]);
+
+  const hizliAraUygula = useCallback(() => {
+    if (!cariAramaKriteriVarMi(filtreMetni)) {
+      hataBildir('Aramak için firma kodu veya adı girin.');
+      return;
+    }
+    setUygulananFiltreMetni(filtreMetni);
+    setSeciliIdler([]);
+    setAramaGosterildi(true);
+  }, [filtreMetni, hataBildir]);
+
+  const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
+  const cariSecili = Boolean(baglamCariId);
+
+  useModulAksiyonlari(
+    {
+      kaydet: kartFormu ? () => kaydet() : undefined,
+      ekle: eklemeVar ? yeniAc : undefined,
+      guncelle: duzenlemeVar ? () => duzenleAc() : undefined,
+      sil: silmeVar ? silAksiyon : undefined,
+    },
+    {
+      kaydet: kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar),
+      ekle: eklemeVar,
+      guncelle: duzenlemeVar && cariSecili && gorunum === 'liste',
+      sil: silmeVar && cariSecili && gorunum === 'liste',
+    },
+    kartFormu ? kartKirli : false
+  );
+
+  const silOnayla = useCallback(async () => {
+    if (!silme) return;
+    try {
+      await cariSil(silme.id);
+      cariEkAlanlariSil(silme.id);
+      basariBildir('Cari silindi.');
+      setSilme(null);
+      setSeciliIdler((idler) => idler.filter((id) => id !== silme.id));
+      await yukle();
+    } catch (e) {
+      hataBildir(e instanceof Error ? e.message : 'Silme başarısız');
+    }
+  }, [basariBildir, hataBildir, silme, yukle]);
+
+  const satirlarDegistir = useCallback(
+    (yeni: AdminCari[]) => {
+      const oncekiMap = new Map(kayitlar.map((k) => [k.id, k]));
+      setKayitlar(yeni);
+
+      void (async () => {
+        for (const satir of yeni) {
+          const eski = oncekiMap.get(satir.id);
+          if (!eski || eski.aktif === satir.aktif) continue;
+          try {
+            await cariGuncelle(satir.id, { ...caridenForm(satir), aktif: satir.aktif });
+          } catch (e) {
+            hataBildir(e instanceof Error ? e.message : 'Durum güncellenemedi');
+            await yukle();
+            return;
+          }
+        }
+      })();
+    },
+    [hataBildir, kayitlar, yukle]
+  );
+
+  const kolonlar = useMemo(() => cariKolonlari(), []);
 
   if (!goruntulemeVar) {
     return (
@@ -78,31 +190,117 @@ export function CariSayfasi() {
   return (
     <AdminModulKabuk
       baslik="Cari Kartlar"
-      aciklama="Müşteri ve tedarikçi cari kartlarını buradan oluşturur, düzenler ve yönetirsiniz."
+      aciklama="Cari kartlarını listeleyin, arayın ve yönetin."
       ustAksiyon={
-        <TanimModCubugu
-          sekmeler={gorunurSekmeler}
-          aktif={mod}
-          onDegistir={(id) => modDegistir(id as CariSayfaModu)}
-          ariaLabel="Cari kartlar görünümü"
-        />
+        gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
+          <div className="dg-ikon-grup cari-modul-ust-araclar">
+            <button
+              type="button"
+              className="dg-tus dg-tus-ikon"
+              title="Sütun görünürlüğü"
+              onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
+            >
+              <DgIkon ad="sutun" />
+            </button>
+            <button
+              type="button"
+              className="dg-tus dg-tus-ikon"
+              title="CSV indir"
+              onClick={() => gridApiRef.current?.csvIndir()}
+            >
+              <DgIkon ad="indir" />
+            </button>
+          </div>
+        ) : null
       }
     >
       <div className="ap-tanimlar-sayfa">
-        <div
-          className={`ap-tanimlar-icerik ap-tanimlar-icerik--${modYonu}`}
-          key={mod === 'kurulum' ? 'kurulum' : `kayitlar-${ozetAnahtar}`}
-        >
-          {mod === 'kurulum' && eklemeVar ? (
-            <CariKurulumSihirbazi
-              onTamamlandi={kurulumTamamlandi}
-              onIptal={() => modDegistir('kayitlar')}
-            />
-          ) : (
-            <CariKayitlarOzeti />
-          )}
-        </div>
+        {gorunum === 'kart' ? (
+          <CariKart
+            mod={kartModu}
+            cariId={aktifCariId}
+            onGeri={listeyeDon}
+            onKaydedildi={listeyeDon}
+            kaydetRef={kaydetRef}
+            onKirliDegistir={setKartKirli}
+          />
+        ) : (
+          <div className="dg-urun-slayt-kabuk">
+            <div className="dg-urun-slayt-tablo">
+              <div className="dg-demo-sayfa">
+                <form
+                  className="stoklar-liste-ara-cubugu"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    hizliAraUygula();
+                  }}
+                >
+                  <div className="stoklar-liste-hizli-ara">
+                    <label className="stoklar-liste-hizli-ara-alan">
+                      <span>Ara</span>
+                      <input
+                        type="search"
+                        value={filtreMetni}
+                        onChange={(e) => setFiltreMetni(e.target.value)}
+                        placeholder="Firma kodu veya adı…"
+                        aria-label="Cari ara"
+                      />
+                    </label>
+                  </div>
+                  <button type="submit" className="stoklar-hizli-ara-tus">
+                    Ara
+                  </button>
+                </form>
+
+                {!aramaGosterildi ? (
+                  <div className="stoklar-liste-bekleme">
+                    <p className="stoklar-liste-bekleme-baslik">Cari arayın</p>
+                    <p className="stoklar-liste-bekleme-metin">
+                      Listeyi görmek için firma kodu veya adı yazıp Ara&apos;ya basın. Kayıt
+                      bulunamazsa boş liste açılır; aksiyon çubuğundan Yeni ile ekleyebilirsiniz.
+                    </p>
+                  </div>
+                ) : yukleniyor ? (
+                  <TanimYukleniyor />
+                ) : (
+                  <div className="stoklar-tablo-alan">
+                    <DataGrid
+                      key={`cari_kayitlar_v${CARI_KOLON_GENISLIK_SURUMU}`}
+                      tabloBaslik=""
+                      tabloAltBaslik="Arama sonuçları"
+                      yukleniyor={false}
+                      gridApiRef={gridApiRef}
+                      kolonlar={kolonlar}
+                      satirlar={filtrelenmis}
+                      depolamaAnahtari={`cari_kayitlar_v${CARI_KOLON_GENISLIK_SURUMU}`}
+                      bosMesaj="Aramanızla eşleşen cari bulunamadı. Yeni ile cari kart ekleyebilirsiniz."
+                      satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
+                      onSatirTikla={(s) => gridApiRef.current?.secimAyarla([s.id])}
+                      onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
+                      onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
+                      onSecimDegistir={setSeciliIdler}
+                      onSatirlarDegistir={satirlarDegistir}
+                      formulMenuGoster={false}
+                      ustSolAraclarGoster={false}
+                      ustSagAraclarGoster={false}
+                      topluBarModu="cubuk"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      <SilmeOnayModal
+        acik={!!silme}
+        onKapat={() => setSilme(null)}
+        onOnayla={() => void silOnayla()}
+        baslik="Bu cari kartı silmek istiyor musunuz?"
+        hedefMetin={silme ? cariSatirEtiketi(silme) : ''}
+        ariaLabel="Cari silme onayı"
+      />
     </AdminModulKabuk>
   );
 }

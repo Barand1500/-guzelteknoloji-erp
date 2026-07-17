@@ -55,6 +55,23 @@ function SatirPanelCubukKapak({ children, onKapat }: { children: ReactNode; onKa
   );
 }
 
+function TopluBarCubukKapak({ children }: { children: ReactNode }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  useAksiyonCubuguPanelSync(true, panelRef);
+  const footerKok = useMemo(() => document.querySelector('.ap-footer'), []);
+
+  if (!footerKok) return null;
+
+  return createPortal(
+    <div className="dg-toplu-bar-cubuk-wrap">
+      <div ref={panelRef} className="dg-toplu-bar dg-toplu-bar--cubuk" role="status">
+        {children}
+      </div>
+    </div>,
+    footerKok
+  );
+}
+
 const HIZLI_GIRIS_SISTEM_KOLONLARI = new Set(['secim', 'islemler', 'olusturma', 'guncelleme', 'bagli']);
 
 function kolonFormulaTipi<TRow>(kolon: KolonTanimi<TRow>): 'sayi' | 'iskonto' | null {
@@ -247,6 +264,9 @@ export function DataGrid<TRow extends { id: string }>({
   hizliGirisIstegeBagli = false,
   hizliGirisVarsayilanAlan = false,
   formulMenuGoster = true,
+  ustSolAraclarGoster = true,
+  ustSagAraclarGoster = true,
+  topluBarModu = 'ust',
   satirPanelModu = 'sheet',
 }: DataGridProps<TRow>) {
   const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar, kolonGenislikSurumu);
@@ -282,6 +302,7 @@ export function DataGrid<TRow extends { id: string }>({
   const menuRef = useRef<HTMLDivElement>(null);
   const formulMenuRef = useRef<HTMLDivElement>(null);
   const sutunTusRef = useRef<HTMLButtonElement>(null);
+  const sutunMenuAnchorRef = useRef<HTMLElement | null>(null);
   const formulTusRef = useRef<HTMLButtonElement>(null);
   const hizliGirisIlkRef = useRef<HTMLInputElement>(null);
   const girdiRef = useRef<HTMLElement>(null);
@@ -392,6 +413,7 @@ export function DataGrid<TRow extends { id: string }>({
         menuRef.current?.contains(hedef) ||
         formulMenuRef.current?.contains(hedef) ||
         sutunTusRef.current?.contains(hedef) ||
+        sutunMenuAnchorRef.current?.contains(hedef) ||
         formulTusRef.current?.contains(hedef)
       ) {
         return;
@@ -501,7 +523,8 @@ export function DataGrid<TRow extends { id: string }>({
   }, [dg.gorunurKolonlar.length]);
 
   const sutunMenuKonumGuncelle = useCallback(() => {
-    setSutunMenuKonum(portalMenuKonumHesapla(sutunTusRef.current?.getBoundingClientRect(), 300, 420));
+    const el = sutunMenuAnchorRef.current ?? sutunTusRef.current;
+    setSutunMenuKonum(portalMenuKonumHesapla(el?.getBoundingClientRect(), 300, 420));
   }, []);
 
   const formulMenuKonumGuncelle = useCallback(() => {
@@ -753,7 +776,11 @@ export function DataGrid<TRow extends { id: string }>({
         return String(d ?? '');
       })
     );
-    csvIndir(tabloBaslik.replace(/\s+/g, '-').toLowerCase(), basliklar, satirVeri);
+    csvIndir(
+      (tabloBaslik.trim() || depolamaAnahtari || 'tablo').replace(/\s+/g, '-').toLowerCase(),
+      basliklar,
+      satirVeri
+    );
   };
 
   useEffect(() => {
@@ -764,6 +791,16 @@ export function DataGrid<TRow extends { id: string }>({
         if (satir && satirDuzenlePaneli) setSatirPanel(satir);
       },
       csvIndir: (sadeceSecili) => csvAktar(sadeceSecili),
+      sutunMenuToggle: (anchor) => {
+        if (anchor) sutunMenuAnchorRef.current = anchor;
+        else if (anchor === null) sutunMenuAnchorRef.current = null;
+        setFormulMenuAcik(false);
+        dg.setSutunMenuAcik((acik) => {
+          const sonraki = !acik;
+          if (!sonraki) sutunMenuAnchorRef.current = null;
+          return sonraki;
+        });
+      },
       hizliGirisOdakla: () => {
         if (hizliGirisIstegeBagli) setHizliGirisAcik(true);
         requestAnimationFrame(() => {
@@ -1484,8 +1521,14 @@ export function DataGrid<TRow extends { id: string }>({
     (i) => i === 0 || i === sayfalama.sayfaSayisi - 1 || Math.abs(i - sayfalama.sayfa) <= 1
   );
 
+  const ustBarSolVar = Boolean(tabloBaslik) || ustSolAraclarGoster;
+  const ustBarSagKdv = Boolean(kdvDahilGoster && onKdvDahilDegistir);
+  const ustBarSagIkon = ustSagAraclarGoster;
+  const ustBarGoster = ustBarSolVar || ustBarSagKdv || ustBarSagIkon;
+
   return (
     <div className={`dg-kabuk${kompakt ? ' dg-kompakt' : ''}`} ref={kabukRef}>
+      {ustBarGoster ? (
       <div className="dg-ust-bar">
         <div className="dg-ust-sol">
           {tabloBaslik && (
@@ -1496,49 +1539,51 @@ export function DataGrid<TRow extends { id: string }>({
               <h2 className="dg-ust-baslik">{tabloBaslik}</h2>
             </div>
           )}
-          <div className="dg-arac-grup">
-            <div className="dg-sayfa-boyutu">
-              <select
-                value={dg.ayar.sayfaBoyutu}
-                onChange={(e) => dg.sayfaBoyutuAyarla(Number(e.target.value))}
-                aria-label="Sayfa başına kayıt"
-              >
-                {SAYFA_BOYUTLARI.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-              <span>Kayıt</span>
-            </div>
-            <span className="dg-arac-ayrac" />
-            <div className="dg-cizgi-grup">
-              <span className="dg-cizgi-etiket">Çizgi:</span>
-              <div className="dg-cizgi-secim" role="group" aria-label="Tablo çizgileri">
-                {CIZGI_MODLARI.map(({ mod, ikon, title }) => (
-                  <button
-                    key={mod}
-                    type="button"
-                    className={`dg-tus dg-tus-ikon${dg.ayar.cizgiModu === mod ? ' dg-tus-aktif' : ''}`}
-                    title={dgTooltipMetni(title)}
-                    aria-pressed={dg.ayar.cizgiModu === mod}
-                    onClick={() => dg.cizgiModuAyarla(mod)}
-                  >
-                    <DgIkon ad={ikon} />
-                  </button>
-                ))}
+          {ustSolAraclarGoster ? (
+            <div className="dg-arac-grup">
+              <div className="dg-sayfa-boyutu">
+                <select
+                  value={dg.ayar.sayfaBoyutu}
+                  onChange={(e) => dg.sayfaBoyutuAyarla(Number(e.target.value))}
+                  aria-label="Sayfa başına kayıt"
+                >
+                  {SAYFA_BOYUTLARI.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+                <span>Kayıt</span>
+              </div>
+              <span className="dg-arac-ayrac" />
+              <div className="dg-cizgi-grup">
+                <span className="dg-cizgi-etiket">Çizgi:</span>
+                <div className="dg-cizgi-secim" role="group" aria-label="Tablo çizgileri">
+                  {CIZGI_MODLARI.map(({ mod, ikon, title }) => (
+                    <button
+                      key={mod}
+                      type="button"
+                      className={`dg-tus dg-tus-ikon${dg.ayar.cizgiModu === mod ? ' dg-tus-aktif' : ''}`}
+                      title={dgTooltipMetni(title)}
+                      aria-pressed={dg.ayar.cizgiModu === mod}
+                      onClick={() => dg.cizgiModuAyarla(mod)}
+                    >
+                      <DgIkon ad={ikon} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
         </div>
         <div className="dg-ust-sag">
-          {kdvDahilGoster && onKdvDahilDegistir && (
+          {ustBarSagKdv && (
             <div className="dg-kdv-kapsul">
               <span className="dg-kdv-etiket">KDV Dahil</span>
               <button
                 type="button"
                 className={`dg-switch${kdvDahil ? ' dg-switch--acik' : ''}`}
-                onClick={() => onKdvDahilDegistir(!kdvDahil)}
+                onClick={() => onKdvDahilDegistir!(!kdvDahil)}
                 aria-pressed={kdvDahil}
                 title={dgTooltipMetni(
                   kdvDahil ? 'Fiyatlar KDV dahil hesaplanıyor' : 'Fiyatlar KDV hariç hesaplanıyor'
@@ -1548,6 +1593,7 @@ export function DataGrid<TRow extends { id: string }>({
               </button>
             </div>
           )}
+          {ustSagAraclarGoster ? (
           <div className="dg-ikon-grup">
             {formulMenuGoster && (
             <div className="dg-menu-wrap">
@@ -1579,6 +1625,7 @@ export function DataGrid<TRow extends { id: string }>({
                 className={`dg-tus dg-tus-ikon${dg.sutunMenuAcik ? ' dg-tus-aktif' : ''}`}
                 title={dgTooltipMetni('Sütun görünürlüğü')}
                 onClick={() => {
+                  sutunMenuAnchorRef.current = null;
                   if (!dg.sutunMenuAcik) sutunMenuKonumGuncelle();
                   setFormulMenuAcik(false);
                   dg.setSutunMenuAcik((a) => !a);
@@ -1591,26 +1638,45 @@ export function DataGrid<TRow extends { id: string }>({
               <DgIkon ad="indir" />
             </button>
           </div>
+          ) : null}
         </div>
       </div>
+      ) : null}
 
-      {dg.seciliIdler.size > 0 && (
-        <div className="dg-toplu-bar">
-          <span>{dg.seciliIdler.size} kayıt seçili</span>
-          <button type="button" className="dg-tus" onClick={() => topluDurum(true)}>
-            Aktif Yap
-          </button>
-          <button type="button" className="dg-tus" onClick={() => topluDurum(false)}>
-            Pasif Yap
-          </button>
-          <button type="button" className="dg-tus" onClick={() => csvAktar(true)}>
-            Dışa Aktar
-          </button>
-          <button type="button" className="dg-tus" onClick={dg.secimiTemizle}>
-            Seçimi Temizle
-          </button>
-        </div>
-      )}
+      {dg.seciliIdler.size > 0 &&
+        (topluBarModu === 'cubuk' ? (
+          <TopluBarCubukKapak>
+            <span>{dg.seciliIdler.size} kayıt seçili</span>
+            <button type="button" className="dg-tus" onClick={() => topluDurum(true)}>
+              Aktif Yap
+            </button>
+            <button type="button" className="dg-tus" onClick={() => topluDurum(false)}>
+              Pasif Yap
+            </button>
+            <button type="button" className="dg-tus" onClick={() => csvAktar(true)}>
+              Dışa Aktar
+            </button>
+            <button type="button" className="dg-tus" onClick={dg.secimiTemizle}>
+              Seçimi Temizle
+            </button>
+          </TopluBarCubukKapak>
+        ) : (
+          <div className="dg-toplu-bar">
+            <span>{dg.seciliIdler.size} kayıt seçili</span>
+            <button type="button" className="dg-tus" onClick={() => topluDurum(true)}>
+              Aktif Yap
+            </button>
+            <button type="button" className="dg-tus" onClick={() => topluDurum(false)}>
+              Pasif Yap
+            </button>
+            <button type="button" className="dg-tus" onClick={() => csvAktar(true)}>
+              Dışa Aktar
+            </button>
+            <button type="button" className="dg-tus" onClick={dg.secimiTemizle}>
+              Seçimi Temizle
+            </button>
+          </div>
+        ))}
 
       {hata && <div className="dg-hata">{hata}</div>}
 
