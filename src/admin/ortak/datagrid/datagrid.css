@@ -1032,6 +1032,47 @@
   outline-offset: -1.5px;
 }
 
+.dg-pano-bildirim {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 12000;
+  padding: 0.55rem 0.95rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  color: #0f172a;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+  pointer-events: none;
+  transform-origin: center center;
+  animation: dg-pano-bildirim-pop 1.15s ease-out forwards;
+}
+
+@keyframes dg-pano-bildirim-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+  34% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.55);
+  }
+}
+
 .dg-hucre-girdi {
   width: 100%;
   padding: 0.15rem 0.3rem;

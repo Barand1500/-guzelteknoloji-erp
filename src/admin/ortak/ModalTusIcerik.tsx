@@ -1,6 +1,6 @@
 interface ModalTusIcerikProps {
   metin: string;
-  kisayol?: 'Esc' | 'Enter';
+  kisayol?: string;
 }
 
 export function ModalTusIcerik({ metin, kisayol }: ModalTusIcerikProps) {

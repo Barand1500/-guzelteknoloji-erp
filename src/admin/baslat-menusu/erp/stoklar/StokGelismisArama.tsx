@@ -38,33 +38,49 @@ export function StokGelismisArama({
   onKapat,
   sonucSayisi,
 }: StokGelismisAramaProps) {
+  const temizle = useCallback(() => {
+    onFiltreDegistir({ ...BOS_FILTRE });
+  }, [onFiltreDegistir]);
+
   const klavyeIsle = useCallback(
     (e: KeyboardEvent) => {
       if (!acik) return;
-      // Bir açılır liste (combobox) açıkken Esc/Enter'ı ona bırak
+      const hedef = e.target as HTMLElement | null;
+      const girdiMi =
+        hedef?.tagName === 'INPUT' ||
+        hedef?.tagName === 'TEXTAREA' ||
+        hedef?.isContentEditable;
       const acilirListeVar = Boolean(document.querySelector('.ap-form-acilir-secim-liste'));
+
       if (e.key === 'Escape') {
         if (acilirListeVar) return;
         e.preventDefault();
         onKapat();
         return;
       }
+
+      if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (girdiMi || acilirListeVar || hedef?.closest('.ap-form-acilir-secim')) return;
+        e.preventDefault();
+        temizle();
+        return;
+      }
+
       if (e.key === 'Enter' && !e.shiftKey) {
-        const hedef = e.target as HTMLElement | null;
         if (acilirListeVar || hedef?.closest('.ap-form-acilir-secim')) return;
         e.preventDefault();
         onUygula();
       }
     },
-    [acik, onKapat, onUygula]
+    [acik, onKapat, onUygula, temizle]
   );
 
   useEffect(() => {
     if (!acik) return;
-    window.addEventListener('keydown', klavyeIsle);
+    document.addEventListener('keydown', klavyeIsle);
     document.body.style.overflow = 'hidden';
     return () => {
-      window.removeEventListener('keydown', klavyeIsle);
+      document.removeEventListener('keydown', klavyeIsle);
       document.body.style.overflow = '';
     };
   }, [acik, klavyeIsle]);
@@ -75,55 +91,54 @@ export function StokGelismisArama({
 
   return createPortal(
     <div
-      className="stok-gelismis-arama"
+      className="ap-sil-onay-modal stok-gelismis-arama"
       role="dialog"
       aria-modal="true"
       aria-label="Gelişmiş stok arama"
     >
-      <div className="stok-gelismis-arama-perde" aria-hidden="true" />
-      <DonenAccentCerceve className="ap-accent-donen-cerceve--stok-arama">
-        <div className="stok-gelismis-arama-kart">
-          <header className="stok-gelismis-arama-kart-baslik">
-            <span className="stok-gelismis-arama-ikon" aria-hidden>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
-                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2" />
-                <path
-                  d="M16.2 16.2 20 20"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-            <div className="stok-gelismis-arama-kart-baslik-metin">
-              <h3 className="stok-gelismis-arama-kart-etiket">Gelişmiş Stok Arama</h3>
-              <p className="stok-gelismis-arama-kart-alt">
-                <strong>{sonucSayisi}</strong> sonuç eşleşiyor
-              </p>
-            </div>
-            <button type="button" className="stok-gelismis-arama-temizle" onClick={onKapat}>
-              Vazgeç
-            </button>
-          </header>
+      <div className="ap-sil-onay-arka" aria-hidden="true" />
+      <DonenAccentCerceve className="ap-accent-donen-cerceve--sil ap-accent-donen-cerceve--stok-arama">
+        <div className="ap-sil-onay-kart stok-gelismis-arama-kart">
+          <button type="button" className="stok-gelismis-arama-vazgec" onClick={onKapat}>
+            <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
+          </button>
+
+          <div className="ap-sil-onay-ikon stok-gelismis-arama-ikon" aria-hidden>
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden>
+              <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2.25" />
+              <path
+                d="M16.2 16.2 20 20"
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <h3 className="ap-sil-onay-baslik">Gelişmiş Stok Arama</h3>
+          <p className="ap-sil-onay-metin stok-gelismis-arama-ozet">
+            <strong>{sonucSayisi}</strong> sonuç eşleşiyor
+          </p>
 
           <div className="stok-gelismis-arama-govde">
             <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-              <label className="ap-tanimlar-secim-alan block">
+              <div className="ap-tanimlar-secim-alan stok-gelismis-arama-alan">
                 <span className="ap-tanim-girdi-etiket">Stok Tipi</span>
                 <FormAcilirSecim
                   value={filtre.urunTipi}
                   onChange={(urunTipi) => onFiltreDegistir({ ...filtre, urunTipi })}
                   secenekler={[{ value: '', label: 'Tümü' }, ...URUN_TIPLERI.map((x) => ({ ...x }))]}
+                  aria-label="Stok Tipi"
                 />
-              </label>
-              <label className="ap-tanimlar-secim-alan block">
+              </div>
+              <div className="ap-tanimlar-secim-alan stok-gelismis-arama-alan">
                 <span className="ap-tanim-girdi-etiket">Durum</span>
                 <FormAcilirSecim
                   value={filtre.durum}
                   onChange={(durum) => onFiltreDegistir({ ...filtre, durum })}
                   secenekler={DURUM_SECENEKLERI}
+                  aria-label="Durum"
                 />
-              </label>
+              </div>
               <TanimGirdi
                 etiket="Stok Kodu"
                 deger={filtre.urunKodu}
@@ -146,19 +161,11 @@ export function StokGelismisArama({
             </div>
           </div>
 
-          <div className="stok-gelismis-arama-aksiyonlar">
-            <button
-              type="button"
-              className="stok-gelismis-arama-tus stok-gelismis-arama-tus--iptal"
-              onClick={() => onFiltreDegistir({ ...BOS_FILTRE })}
-            >
-              <ModalTusIcerik metin="Temizle" />
+          <div className="ap-sil-onay-aksiyonlar stok-gelismis-arama-aksiyonlar">
+            <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--iptal" onClick={temizle}>
+              <ModalTusIcerik metin="Temizle" kisayol="T" />
             </button>
-            <button
-              type="button"
-              className="stok-gelismis-arama-tus stok-gelismis-arama-tus--onay"
-              onClick={onUygula}
-            >
+            <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--onay" onClick={onUygula}>
               <ModalTusIcerik metin="Uygula" kisayol="Enter" />
             </button>
           </div>

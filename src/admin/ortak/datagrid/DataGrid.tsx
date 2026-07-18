@@ -163,6 +163,61 @@ function DgKesilenHucre({
   );
 }
 
+function hucrePanoyaMetin<TRow>(satir: TRow, kolon: KolonTanimi<TRow>): string {
+  const deger = kolon.degerAl(satir);
+  switch (kolon.tip) {
+    case 'zengin': {
+      const z = deger as { baslik?: string; alt?: string; kur?: string };
+      return [z.baslik, z.alt ?? z.kur].filter(Boolean).join(' ').trim();
+    }
+    case 'birlesik': {
+      const b = deger as { ust?: string; alt?: string };
+      return [b.ust, b.alt].filter(Boolean).join(' ').trim();
+    }
+    case 'etiket': {
+      const etiketler = (deger as { metin: string }[]) ?? [];
+      return etiketler.map((e) => e.metin).filter(Boolean).join(', ');
+    }
+    case 'toggle':
+      return Boolean(deger) ? 'Evet' : 'Hayır';
+    case 'iskonto': {
+      const i = deger as { yuzde?: number };
+      return String(i?.yuzde ?? '');
+    }
+    case 'para':
+    case 'sayi':
+      return Number.isFinite(Number(deger)) ? String(deger) : '';
+    case 'tarih':
+      return tarihFormatla(deger) === '—' ? '' : tarihFormatla(deger);
+    default:
+      if (deger == null) return '';
+      if (typeof deger === 'object') return JSON.stringify(deger);
+      return String(deger);
+  }
+}
+
+/** keydown içinde güvenilir senkron kopya (Clipboard API user-gesture kaybı olmasın) */
+function panoyaSenkronYaz(metin: string): boolean {
+  const onceki = document.activeElement as HTMLElement | null;
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = metin;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0;';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  } finally {
+    onceki?.focus?.({ preventScroll: true });
+  }
+}
+
 function HucreGoster<TRow>({
   satir,
   kolon,
@@ -290,6 +345,8 @@ export function DataGrid<TRow extends { id: string }>({
   const [sutunMenuKonum, setSutunMenuKonum] = useState({ top: 0, left: 0 });
   const [formulMenuAcik, setFormulMenuAcik] = useState(false);
   const [formulMenuKonum, setFormulMenuKonum] = useState({ top: 0, left: 0 });
+  const [panoBildirim, setPanoBildirim] = useState<{ metin: string; anahtar: number } | null>(null);
+  const dahiliPanoRef = useRef('');
   const portalKok = useMemo(
     () => document.querySelector('.admin-panel') ?? document.body,
     []
@@ -738,6 +795,130 @@ export function DataGrid<TRow extends { id: string }>({
     setOdak({ satirId, kolonId });
   }, []);
 
+  const panoBildirimGoster = useCallback((metin: string) => {
+    setPanoBildirim({ metin, anahtar: Date.now() });
+  }, []);
+
+  useEffect(() => {
+    if (!panoBildirim) return;
+    const id = window.setTimeout(() => setPanoBildirim(null), 1200);
+    return () => window.clearTimeout(id);
+  }, [panoBildirim]);
+
+  const hucreKopyala = useCallback(
+    (satir: TRow, kolon: KolonTanimi<TRow>) => {
+      const metin = hucrePanoyaMetin(satir, kolon);
+      dahiliPanoRef.current = metin;
+      panoyaSenkronYaz(metin);
+      void navigator.clipboard?.writeText?.(metin).catch(() => undefined);
+      panoBildirimGoster('Kopyalandı');
+    },
+    [panoBildirimGoster]
+  );
+
+  const hucreYapistir = useCallback(
+    (satir: TRow, kolon: KolonTanimi<TRow>, ham: string) => {
+      const degerYaz = kolon.degerYaz;
+      if (!kolon.duzenlenebilir || kolon.tip === 'salt-okunur' || !degerYaz) return false;
+      const metin = ham.trim();
+      if (!metin) return false;
+      if (kolon.tip === 'toggle') {
+        const kapali = /^(0|false|hayır|hayir|pasif|off|no)$/i.test(metin);
+        const acik = /^(1|true|evet|aktif|on|yes)$/i.test(metin);
+        if (kapali) satirGuncelle(degerYaz(satir, false));
+        else if (acik) satirGuncelle(degerYaz(satir, true));
+        else return false;
+      } else {
+        hucreDuzenlemeyiBitir(satir, kolon, metin);
+      }
+      panoBildirimGoster('Yapıştırıldı');
+      return true;
+    },
+    [hucreDuzenlemeyiBitir, panoBildirimGoster, satirGuncelle]
+  );
+
+  const odakliSatirKolon = useCallback(() => {
+    if (!odak) return null;
+    const satir =
+      sayfalama.satirlar.find((s) => s.id === odak.satirId) ??
+      satirlar.find((s) => s.id === odak.satirId);
+    const kolon = dg.gorunurKolonlar.find((k) => k.id === odak.kolonId);
+    if (!satir || !kolon) return null;
+    return { satir, kolon };
+  }, [odak, sayfalama.satirlar, satirlar, dg.gorunurKolonlar]);
+
+  /** Ok ile gezinen hücrede Ctrl+C / Ctrl+V — td keydown yetmezse belge düzeyinde yakala */
+  useEffect(() => {
+    function ızgaraIcindeMi(hedef: EventTarget | null): boolean {
+      const kabuk = kabukRef.current;
+      if (!kabuk || !(hedef instanceof Node)) return false;
+      return kabuk.contains(hedef);
+    }
+
+    function girdiMi(hedef: EventTarget | null): boolean {
+      if (!(hedef instanceof HTMLElement)) return false;
+      const etiket = hedef.tagName;
+      return etiket === 'INPUT' || etiket === 'TEXTAREA' || etiket === 'SELECT' || hedef.isContentEditable;
+    }
+
+    function odakHucreyiGarantiEt(): boolean {
+      const kabuk = kabukRef.current;
+      if (!kabuk || !odak) return false;
+      if (ızgaraIcindeMi(document.activeElement)) return true;
+      const el = kabuk.querySelector(
+        `td.dg-hucre[data-satir-id="${CSS.escape(odak.satirId)}"][data-kolon-id="${CSS.escape(odak.kolonId)}"]`
+      ) as HTMLElement | null;
+      if (!el) return false;
+      el.focus({ preventScroll: true });
+      return true;
+    }
+
+    function ızgaraAktifMi(hedef: EventTarget | null): boolean {
+      if (ızgaraIcindeMi(hedef) || ızgaraIcindeMi(document.activeElement)) return true;
+      const aktif = document.activeElement;
+      const kayip =
+        !aktif || aktif === document.body || aktif === document.documentElement;
+      return kayip && odakHucreyiGarantiEt();
+    }
+
+    function onKeyDown(e: globalThis.KeyboardEvent) {
+      if (duzenleme || !odak) return;
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const kopya = e.code === 'KeyC' || e.key === 'c' || e.key === 'C';
+      if (!kopya) return;
+      if (girdiMi(e.target) || girdiMi(document.activeElement)) return;
+      if (!ızgaraAktifMi(e.target)) return;
+
+      const hedef = odakliSatirKolon();
+      if (!hedef) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      hucreKopyala(hedef.satir, hedef.kolon);
+    }
+
+    function onPaste(e: ClipboardEvent) {
+      if (duzenleme || !odak) return;
+      if (girdiMi(e.target) || girdiMi(document.activeElement)) return;
+      if (!ızgaraAktifMi(e.target)) return;
+      const hedef = odakliSatirKolon();
+      if (!hedef) return;
+      const metin = (e.clipboardData?.getData('text/plain') || dahiliPanoRef.current).trim();
+      if (!metin) return;
+      if (!hucreYapistir(hedef.satir, hedef.kolon, metin)) return;
+      dahiliPanoRef.current = metin;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('paste', onPaste, true);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('paste', onPaste, true);
+    };
+  }, [duzenleme, odak, odakliSatirKolon, hucreKopyala, hucreYapistir]);
+
   useLayoutEffect(() => {
     if (!odak || duzenleme) return;
     const kabuk = kabukRef.current;
@@ -790,6 +971,9 @@ export function DataGrid<TRow extends { id: string }>({
   const klavyeNav = (e: KeyboardEvent, satir: TRow, kolonIdx: number) => {
     const satirIdx = sayfalama.satirlar.findIndex((s) => s.id === satir.id);
     const kolon = dg.gorunurKolonlar[kolonIdx];
+    const ctrl = e.ctrlKey || e.metaKey;
+
+    // Ctrl+C / Ctrl+V belge düzeyinde (capture) işlenir — burada sadece diğer tuşlar
 
     if ((e.key === 'Enter' || e.key === 'F2') && !duzenleme) {
       e.preventDefault();
@@ -807,6 +991,7 @@ export function DataGrid<TRow extends { id: string }>({
       odakAyarla(satir.id, kolon?.id ?? dg.gorunurKolonlar[kolonIdx]?.id ?? '');
       return;
     }
+    if (ctrl) return; // diğer Ctrl kombinasyonlarını ok navigasyonundan ayır
     if (duzenleme) return;
 
     let yeniSatirIdx = satirIdx;
@@ -1104,6 +1289,7 @@ export function DataGrid<TRow extends { id: string }>({
                   onClick={(e) => {
                     e.stopPropagation();
                     odakAyarla(satir.id, kolon.id);
+                    e.currentTarget.focus({ preventScroll: true });
                     if (kolon.degerYaz) satirGuncelle(kolon.degerYaz(satir, !acik));
                   }}
                 >
@@ -1141,7 +1327,10 @@ export function DataGrid<TRow extends { id: string }>({
                 tabIndex={hucreTabIndex}
                 onFocus={() => odakAyarla(satir.id, kolon.id)}
                 onKeyDown={(e) => klavyeNav(e, satir, kolonIdx)}
-                onClick={() => odakAyarla(satir.id, kolon.id)}
+                onClick={(e) => {
+                  odakAyarla(satir.id, kolon.id);
+                  e.currentTarget.focus({ preventScroll: true });
+                }}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
                   const katman =
@@ -2049,6 +2238,19 @@ export function DataGrid<TRow extends { id: string }>({
           ariaLabel="Satır silme onayı"
         />
       )}
+
+      {panoBildirim &&
+        createPortal(
+          <div
+            key={panoBildirim.anahtar}
+            className="dg-pano-bildirim"
+            role="status"
+            aria-live="polite"
+          >
+            {panoBildirim.metin}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
