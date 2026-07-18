@@ -87,17 +87,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function giris(form: GirisFormu) {
     const sonuc = await girisYap(form);
-    authOfflineTemizle();
-    offlinePanelDeposuTemizle();
+    // Offline (mock) oturumda localStorage'daki tanim/kullanici verisi korunur;
+    // yalnizca gercek backend girisinde eski mock verisi temizlenir.
+    if (sonuc.token !== 'offline-token') {
+      authOfflineTemizle();
+      offlinePanelDeposuTemizle();
+    }
     tokenKaydet(sonuc.token);
     setKullanici(sonuc.kullanici);
     await kullaniciAyarlariSenkronizeEt();
   }
 
   function cikis() {
+    const offlineOturumdu = tokenAl() === 'offline-token';
     tokenSil();
-    authOfflineTemizle();
-    offlinePanelDeposuTemizle();
+    if (!offlineOturumdu) {
+      authOfflineTemizle();
+      offlinePanelDeposuTemizle();
+    }
     offlineOturumTemizle();
     kisayolAyarlariTemizle();
     sekmeAyarlariTemizle();
