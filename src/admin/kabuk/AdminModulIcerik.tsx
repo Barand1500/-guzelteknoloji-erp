@@ -1,5 +1,6 @@
 import { LoglarSayfasi } from '@/admin/gizli-moduller/loglar/sayfa';
 import { VeriYedeklemeSayfasi } from '@/admin/gizli-moduller/veri-yedekleme/sayfa';
+import { YapilacaklarSayfasi } from '@/admin/gizli-moduller/yapilacaklar/sayfa';
 import { SistemAyarlariSayfasi } from '@/admin/baslat-menusu/sistem/ayarlar/sayfa';
 import { KullanicilarSayfasi } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/sayfa';
 import { RollerSayfasi } from '@/admin/baslat-menusu/musteri-ajans/roller/sayfa';
@@ -30,6 +31,8 @@ function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
       return <LoglarSayfasi />;
     case 'veri-yedekleme':
       return <VeriYedeklemeSayfasi />;
+    case 'yapilacaklar':
+      return <YapilacaklarSayfasi />;
     case 'ayarlar':
       return <SistemAyarlariSayfasi />;
     case 'kullanicilar':

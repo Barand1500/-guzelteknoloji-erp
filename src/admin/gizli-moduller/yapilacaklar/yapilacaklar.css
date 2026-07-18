@@ -1,0 +1,648 @@
+.yap-sayfa {
+  display: grid;
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+  gap: 0;
+  min-height: calc(100vh - 8.5rem);
+  margin: -0.25rem -0.35rem 0;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ap-surface) 88%, var(--ap-bg));
+  border: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+}
+
+.yap-yan {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0.85rem;
+  background: color-mix(in srgb, var(--ap-surface) 96%, var(--ap-bg));
+  border-right: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.yap-ekle-tus {
+  appearance: none;
+  border: none;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--ap-accent) 78%, #64748b);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.yap-ekle-tus:hover {
+  background: var(--ap-accent);
+}
+
+.yap-ekle-tus--ikincil {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.9rem;
+}
+
+.yap-filtre-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.yap-filtre {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ap-text);
+  text-align: left;
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  position: relative;
+}
+
+.yap-filtre:hover {
+  background: color-mix(in srgb, var(--ap-hover) 70%, transparent);
+}
+
+.yap-filtre--aktif {
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  color: var(--ap-heading);
+}
+
+.yap-filtre--aktif::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--ap-accent);
+}
+
+.yap-filtre-ikon {
+  width: 1.1rem;
+  text-align: center;
+  opacity: 0.72;
+  font-size: 0.8rem;
+}
+
+.yap-gorunum-grup {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+  padding: 0.25rem;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--ap-border) 35%, var(--ap-surface));
+}
+
+.yap-gorunum-tus {
+  appearance: none;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ap-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.45rem 0.4rem;
+  cursor: pointer;
+}
+
+.yap-gorunum-tus--aktif {
+  background: var(--ap-surface);
+  color: var(--ap-heading);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ap-heading) 8%, transparent);
+}
+
+.yap-ana {
+  min-width: 0;
+  background: var(--ap-surface);
+  padding: 1.1rem 1.25rem 1.5rem;
+  overflow: auto;
+}
+
+.yap-liste-baslik {
+  margin-bottom: 1rem;
+}
+
+.yap-liste-baslik h1,
+.yap-takvim-nav h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ap-heading);
+}
+
+.yap-liste-baslik p {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ap-text-muted);
+}
+
+.yap-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.yap-satir {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 55%, transparent);
+}
+
+.yap-satir--tamam .yap-satir-baslik {
+  color: var(--ap-text-muted);
+  text-decoration: line-through;
+  opacity: 0.78;
+}
+
+.yap-check {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.35rem;
+  border: 1.5px solid color-mix(in srgb, var(--ap-border) 90%, var(--ap-accent));
+  background: transparent;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.yap-check--acik {
+  background: color-mix(in srgb, var(--ap-accent) 82%, #64748b);
+  border-color: transparent;
+}
+
+.yap-satir-metin {
+  appearance: none;
+  border: none;
+  background: transparent;
+  text-align: left;
+  min-width: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.yap-satir-baslik {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yap-yildiz {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--ap-border) 80%, #94a3b8);
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.1rem;
+  line-height: 1;
+}
+
+.yap-yildiz--acik {
+  color: #eab308;
+}
+
+.yap-satir-tarih {
+  font-size: 0.72rem;
+  color: var(--ap-text-muted);
+  white-space: nowrap;
+  min-width: 5.5rem;
+  text-align: right;
+}
+
+.yap-avatar {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--ap-text-muted);
+  background: color-mix(in srgb, var(--ap-border) 45%, var(--ap-surface));
+}
+
+.yap-satir-sil {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ap-text-muted);
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.2rem;
+}
+
+.yap-satir:hover .yap-satir-sil {
+  opacity: 0.7;
+}
+
+.yap-satir-sil:hover {
+  color: #b91c1c;
+  opacity: 1;
+}
+
+.yap-bos {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--ap-text-muted);
+}
+
+.yap-tarihsiz-bolum {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.yap-tarihsiz-bolum h2 {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-text-muted);
+}
+
+.yap-tarihsiz-bos {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--ap-text-muted);
+}
+
+.yap-takvim-ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.yap-takvim-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.yap-takvim-nav button {
+  appearance: none;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.yap-takvim-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background: color-mix(in srgb, var(--ap-border) 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ap-border) 65%, transparent);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.yap-takvim-gun-baslik {
+  background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-bg));
+  padding: 0.45rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-text-muted);
+  text-align: center;
+}
+
+.yap-takvim-hucre {
+  min-height: 5.5rem;
+  background: var(--ap-surface);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.yap-takvim-hucre--dis {
+  background: color-mix(in srgb, var(--ap-surface) 85%, var(--ap-bg));
+}
+
+.yap-takvim-hucre--dis .yap-takvim-gun-no {
+  opacity: 0.45;
+}
+
+.yap-takvim-gun-no {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--ap-text-muted);
+}
+
+.yap-takvim-chip-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-height: 0;
+}
+
+.yap-takvim-chip {
+  appearance: none;
+  border: none;
+  border-radius: 0.3rem;
+  background: color-mix(in srgb, #fda4af 35%, var(--ap-surface));
+  color: #9f1239;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.18rem 0.3rem;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-height: 1.15rem;
+}
+
+.yap-takvim-chip--bas {
+  border-radius: 0.3rem 0 0 0.3rem;
+  margin-right: -1px;
+}
+
+.yap-takvim-chip--orta {
+  border-radius: 0;
+  margin-left: -1px;
+  margin-right: -1px;
+}
+
+.yap-takvim-chip--son {
+  border-radius: 0 0.3rem 0.3rem 0;
+  margin-left: -1px;
+}
+
+.yap-takvim-chip--onemli {
+  background: color-mix(in srgb, #fde68a 55%, var(--ap-surface));
+  color: #92400e;
+}
+
+.yap-takvim-chip--tamam {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.yap-takvim-daha {
+  font-size: 0.65rem;
+  color: var(--ap-text-muted);
+  padding-left: 0.15rem;
+}
+
+.yap-tarihsiz-bolum--takvim {
+  margin-top: 1.25rem;
+}
+
+.yap-gorev-modal .ap-accent-donen-cerceve--yap-gorev {
+  --cerceve-yaricap: 1rem;
+  width: min(26rem, calc(100vw - 2rem));
+}
+
+.yap-gorev-kart {
+  position: relative;
+  background: var(--ap-surface);
+  border-radius: calc(var(--cerceve-yaricap, 1rem) - 2px);
+  overflow: hidden;
+  text-align: left;
+  animation: ap-sil-onay-giris 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.yap-gorev-ust {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 65%, transparent);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface)),
+    var(--ap-surface) 70%
+  );
+}
+
+.yap-gorev-ust-sol {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.yap-gorev-mini-ikon {
+  flex-shrink: 0;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--ap-accent) 88%, #fff);
+  background: color-mix(in srgb, var(--ap-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 40%, transparent);
+}
+
+.yap-gorev-ust h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ap-heading);
+}
+
+.yap-gorev-ust p {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ap-text-muted);
+  line-height: 1.35;
+}
+
+.yap-gorev-vazgec {
+  flex-shrink: 0;
+  appearance: none;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.55rem;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  padding: 0.32rem 0.65rem 0.38rem;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.02rem;
+  line-height: 1.15;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition:
+    border-color 0.14s ease,
+    color 0.14s ease,
+    background 0.14s ease;
+}
+
+.yap-gorev-vazgec .ap-modal-tus-metin {
+  font-size: 0.75rem;
+}
+
+.yap-gorev-vazgec .ap-modal-tus-kisayol {
+  font-size: 0.6rem;
+  opacity: 0.55;
+}
+
+.yap-gorev-vazgec:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
+}
+
+.yap-gorev-govde {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1rem 1.15rem;
+}
+
+.yap-gorev-alan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.yap-gorev-alan > span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.yap-gorev-input {
+  border-radius: 0.6rem !important;
+  border-color: color-mix(in srgb, var(--ap-border) 85%, transparent) !important;
+  background: color-mix(in srgb, var(--ap-input-bg, var(--ap-surface)) 92%, var(--ap-bg)) !important;
+  padding: 0.55rem 0.7rem !important;
+}
+
+.yap-gorev-input:focus,
+.yap-gorev-input:focus-visible {
+  outline: none !important;
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ap-accent) 12%, transparent) !important;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+}
+
+.yap-gorev-tarih-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.yap-gorev-satir {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.yap-gorev-onemli {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  height: 2.35rem;
+  padding: 0 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  background: color-mix(in srgb, var(--ap-input-bg, var(--ap-surface)) 92%, var(--ap-bg));
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease,
+    color 0.14s ease;
+}
+
+.yap-gorev-onemli input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.yap-gorev-onemli-yildiz {
+  color: color-mix(in srgb, var(--ap-border) 70%, #94a3b8);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.yap-gorev-onemli--acik {
+  border-color: color-mix(in srgb, #eab308 45%, var(--ap-border));
+  background: color-mix(in srgb, #fde68a 28%, var(--ap-surface));
+  color: #92400e;
+}
+
+.yap-gorev-onemli--acik .yap-gorev-onemli-yildiz {
+  color: #eab308;
+}
+
+.yap-gorev-hata {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.78rem;
+}
+
+.yap-gorev-aksiyonlar {
+  margin: 0;
+  grid-template-columns: 1fr;
+  border-radius: 0;
+}
+
+@media (max-width: 860px) {
+  .yap-sayfa {
+    grid-template-columns: 1fr;
+  }
+
+  .yap-yan {
+    border-right: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  }
+
+  .yap-gorunum-grup {
+    margin-top: 0;
+  }
+}

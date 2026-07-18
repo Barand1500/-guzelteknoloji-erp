@@ -84,6 +84,14 @@ export const adminGizliModuller: AdminModul[] = [
     yol: '/gt-admin/veri-yedekleme',
     menuGizle: true,
   },
+  {
+    id: 'yapilacaklar',
+    baslik: 'Yapılacaklar',
+    ikon: '✅',
+    kategori: 'Sistem',
+    yol: '/gt-admin/yapilacaklar',
+    menuGizle: true,
+  },
 ];
 
 export const adminKategoriler = ['Müşteri / Ajans', 'Sistem', 'Tanımlar', 'ERP', 'Datagrid'] as const;
@@ -117,6 +125,7 @@ const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'datagrid-demo',
   'cari',
   'stoklar',
+  'yapilacaklar',
 ]);
 const TAM_YETKI_GEREKTIREN_MODULLER = new Set(['kullanicilar', 'roller']);
 

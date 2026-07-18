@@ -137,20 +137,13 @@ check_endpoint() {
     local name=$3
     local code
     code=$(curl -sS -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo "000")
-    
+
     log_info "Sağlık kontrolü yapılıyor... $url"
     if [ "$code" = "$expected_code" ]; then
         echo -e "  [${GREEN}OK${NC}] $name (HTTP $code)"
         return 0
     else
         echo -e "  [${RED}FAIL${NC}] $name (Beklenen: $expected_code, Gelen: $code)"
-        return 1
-    fi
-
-    log_info "Sağlık kontrolü tamamlandı. $url (HTTP $code)"
-    return 0
-    else
-        log_error "Sağlık kontrolü başarısız oldu. $url (HTTP $code)"
         return 1
     fi
 }

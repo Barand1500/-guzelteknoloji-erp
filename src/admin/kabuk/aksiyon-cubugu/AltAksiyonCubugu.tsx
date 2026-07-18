@@ -178,6 +178,21 @@ function AltAksiyonCubuguGovde({
           onKapat={() => setAcikPanel(null)}
           onModulAc={onModulAc}
         />
+        {onModulAc ? (
+          <button
+            type="button"
+            className="ap-tray-ikon"
+            title={tooltipMetni('Yapılacaklar')}
+            aria-label="Yapılacaklar"
+            onClick={() => onModulAc('yapilacaklar')}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+              <rect x="4" y="3" width="16" height="18" rx="2" />
+              <path strokeLinecap="round" d="M8 8h8M8 12h8M8 16h5" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 15.5l1 1 2-2.5" />
+            </svg>
+          </button>
+        ) : null}
         <SaatTakvimWidget />
       </div>
     </footer>

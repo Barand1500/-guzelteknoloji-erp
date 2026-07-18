@@ -9,6 +9,10 @@ import {
   zamanEtiketi,
   type TakvimNotu,
 } from './takvimNotlari';
+import {
+  takvimGoreviniKaldir,
+  takvimNotundanGorevSenkron,
+} from '@/admin/gizli-moduller/yapilacaklar/yapilacaklarDepo';
 import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 const GUNLER = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
@@ -119,17 +123,20 @@ export function SaatTakvimWidget() {
   const notKaydet = (anahtar: string, metin: string) => {
     if (!metin.trim()) {
       takvimNotuSil(anahtar);
+      takvimGoreviniKaldir(anahtar);
       setNotlar(takvimNotlariOku());
       setNotModu(null);
       return;
     }
     takvimNotuKaydet(anahtar, metin);
+    takvimNotundanGorevSenkron(anahtar, metin);
     setNotlar(takvimNotlariOku());
     setNotModu({ tur: 'oku', anahtar });
   };
 
   const notSil = (anahtar: string) => {
     takvimNotuSil(anahtar);
+    takvimGoreviniKaldir(anahtar);
     setNotlar(takvimNotlariOku());
     setNotModu(null);
   };
