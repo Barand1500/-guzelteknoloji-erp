@@ -2477,27 +2477,28 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-karti-ana-tanimlar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.15rem;
+  align-items: stretch;
 }
 
 .stok-karti-ana-tanimlar .stok-karti-yatay {
   grid-template-columns: 7.5rem minmax(0, 1fr);
 }
 
+/* Sol kolon (Stok Kodu/Adı) sağdaki 3 satırlık kolonla aynı yükseklikte dağılır */
 .stok-karti-ana-ust {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 0.85rem;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.6rem;
 }
 
 .stok-karti-ana-alt {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem 0.85rem;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .stok-karti-ana-alt .stok-karti-yatay {
@@ -2525,7 +2526,8 @@ button.ap-tanimlar-panel-arka {
 
 .stok-karti-ek-govde {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr) minmax(0, 1.1fr);
+  /* Orta kolon (Alış KDV) Üretici inputunun bittiği hizada bitsin */
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.6fr) minmax(0, 1.35fr);
   gap: 0.75rem 1.15rem;
   align-items: start;
 }
@@ -2778,6 +2780,17 @@ button.ap-tanimlar-panel-arka {
   gap: 0.5rem;
 }
 
+/* Pl: kutu etiketin hemen önünde, tablonun (Depo Adı) sol hizasında */
+.stok-karti-ozel-kodlar-ust .stok-karti-yatay {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.35rem 0.35rem;
+}
+
+.stok-karti-ozel-kodlar-ust .stok-karti-yatay-etiket {
+  text-align: left;
+  padding-right: 0;
+}
+
 .stok-karti-raf-tablo {
   border: 1px solid var(--ap-border);
   border-radius: 0.35rem;
@@ -2804,7 +2817,6 @@ button.ap-tanimlar-panel-arka {
   font-size: 0.85rem;
 }
 
-.stok-karti-muhasebe,
 .stok-karti-analiz,
 .stok-karti-e-donusum,
 .stok-karti-istihbarat {
@@ -2814,11 +2826,50 @@ button.ap-tanimlar-panel-arka {
   max-width: 42rem;
 }
 
+/* E-Dönüşüm: sol GTIP kolonu + sağ Menşei kolonu satırı birlikte kaplar */
+.stok-karti-e-donusum {
+  max-width: none;
+}
+
+.stok-karti-e-donusum-govde {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.15rem;
+  align-items: start;
+}
+
+.stok-karti-e-donusum-kolon {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+/* Muhasebe: sol kod alanları + sağ Gider Çeşit Kodları */
+.stok-karti-muhasebe {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.5rem;
+  align-items: start;
+}
+
+.stok-karti-muhasebe-sol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+/* İstihbarat: etiket kolonu daraltılıp alanlar sola hizalanır */
+.stok-karti-istihbarat .stok-karti-yatay {
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+}
+
 .stok-karti-gider-cesit {
-  margin-top: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .stok-karti-gider-baslik {
@@ -2828,15 +2879,22 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-karti-resim-alan {
-  position: relative;
-  min-height: 16rem;
-  border: 1px solid color-mix(in srgb, #3b82f6 55%, var(--ap-border));
-  border-radius: 0.25rem;
-  background: color-mix(in srgb, var(--ap-surface-2) 40%, #f3f4f6);
+  flex: 1 1 auto;
+  min-height: 11rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px dashed color-mix(in srgb, var(--ap-accent) 30%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 4%, var(--ap-surface));
+  padding: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.stok-karti-resim-alan:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
 }
 
 .stok-karti-resim-yazi {
@@ -2848,23 +2906,35 @@ button.ap-tanimlar-panel-arka {
 
 .stok-karti-resim-onizleme {
   max-width: 100%;
-  max-height: 18rem;
+  max-height: 100%;
+  border-radius: 0.5rem;
   object-fit: contain;
 }
 
-.stok-karti-resim-yukle {
-  position: absolute;
-  left: 0.65rem;
-  bottom: 0.65rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.28rem 0.7rem;
-  border: 1px solid var(--ap-border);
-  border-radius: 0.25rem;
-  background: var(--ap-surface);
-  font-size: 0.8rem;
-  cursor: pointer;
+/* Resim, İstihbarat ve E-Dönüşüm sekmeleri: panel alttaki boşluğu doldursun, sayfa kaymasın */
+.stok-karti-icerik > .stok-karti-form[data-stok-sekme='resim'],
+.stok-karti-icerik > .stok-karti-form[data-stok-sekme='istihbarat'],
+.stok-karti-icerik > .stok-karti-form[data-stok-sekme='e-donusum'] {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stok-karti-form[data-stok-sekme='resim'] > .ap-tanimlar-bolum,
+.stok-karti-form[data-stok-sekme='istihbarat'] > .ap-tanimlar-bolum,
+.stok-karti-form[data-stok-sekme='e-donusum'] > .ap-tanimlar-bolum {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stok-karti-form[data-stok-sekme='resim'] .ap-tanimlar-bolum-icerik,
+.stok-karti-form[data-stok-sekme='istihbarat'] .ap-tanimlar-bolum-icerik,
+.stok-karti-form[data-stok-sekme='e-donusum'] .ap-tanimlar-bolum-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .stok-karti-istihbarat-ust {
@@ -2885,12 +2955,75 @@ button.ap-tanimlar-panel-arka {
   resize: vertical;
 }
 
+/* Tevkifat satırı üstteki iki kolon düzenine oturur:
+   sol parça GTIP inputlarının bittiği çizgide biter, Oran sağ kolonun başında başlar */
 .stok-karti-tevkifat {
   display: grid;
-  grid-template-columns: auto auto repeat(3, minmax(0, 1fr));
-  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.15rem;
   align-items: center;
   padding: 0.45rem 0;
+  min-width: 0;
+}
+
+.stok-karti-tevkifat-sol {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+/* Oran satırı sağ kolondaki diğer satırlarla (İhraç Kayıt Şekilleri vb.) aynı ızgarada durur */
+.stok-karti-tevkifat-sag {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 9.5rem) minmax(0, 1fr);
+  gap: 0.35rem 0.55rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.stok-karti-tevkifat-sol > .stok-karti-yatay-etiket {
+  flex-shrink: 0;
+  width: 6.5rem;
+}
+
+.stok-karti-tevkifat-sol > .stok-karti-checkbox {
+  flex-shrink: 0;
+}
+
+.stok-karti-tevkifat-etiket {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  line-height: 1.2;
+}
+
+.stok-karti-tevkifat-kod {
+  flex-shrink: 0;
+  width: 7rem;
+}
+
+.stok-karti-tevkifat-aciklama {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.stok-karti-tevkifat-kod .ap-form-acilir-secim-tus,
+.stok-karti-tevkifat-aciklama .ap-form-acilir-secim-tus {
+  min-height: 1.9rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.8125rem;
+}
+
+.stok-karti-tevkifat-oran {
+  flex-shrink: 0;
+  width: 4.5rem;
+  min-height: 1.9rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.8125rem;
 }
 
 @media (max-width: 960px) {
@@ -2898,7 +3031,20 @@ button.ap-tanimlar-panel-arka {
     grid-template-columns: 1fr;
   }
 
+  .stok-karti-ana-tanimlar {
+    grid-template-columns: 1fr;
+  }
+
   .stok-karti-tevkifat {
+    grid-template-columns: 1fr;
+  }
+
+  .stok-karti-tevkifat-sol {
+    flex-wrap: wrap;
+  }
+
+  .stok-karti-e-donusum-govde,
+  .stok-karti-muhasebe {
     grid-template-columns: 1fr;
   }
 }

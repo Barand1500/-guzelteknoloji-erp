@@ -603,7 +603,7 @@ export function StoklarSayfasi() {
                       ustSolAraclarGoster={false}
                       ustSagAraclarGoster={false}
                       ustAracGoster={false}
-                      topluBarGoster={false}
+                      topluBarModu="cubuk"
                     />
                   </div>
                 )}

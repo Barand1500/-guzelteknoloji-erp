@@ -4,6 +4,8 @@ import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { formInputSinifi } from '@/formlar/FormAlani';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
+import { FormAramaSecim } from '@/formlar/FormAramaSecim';
+import { ulkeAra } from '@/veri/ulkeler';
 import type { ReactNode } from 'react';
 import { yeniIdGecici } from './birimMap';
 import { fiyatDuzenleKolonlari } from './StokFiyatDuzenle';
@@ -56,7 +58,7 @@ function AlanGuncelle(
   setForm((f) => ({ ...f, [alan]: deger }));
 }
 
-function bosBirimFiyatSatiri(): StokFiyatDuzenleSatir {
+export function bosBirimFiyatSatiri(): StokFiyatDuzenleSatir {
   return {
     id: yeniIdGecici(),
     fiyatAdi: 'FİYAT',
@@ -173,6 +175,25 @@ const MUHASEBE_ALANLARI: { alan: keyof StokForm; etiket: string }[] = [
   { alan: 'muhUretimBaglantiBorc', etiket: 'Üretim Bağlantı H. (Borçlu)' },
 ];
 
+/** GİB KDV tevkifat kodları (kod seçilince açıklama ve oran otomatik dolar) */
+const TEVKIFAT_SECENEKLERI: { kod: string; aciklama: string; oran: string }[] = [
+  { kod: '601', aciklama: 'Yapım İşleri ile Birlikte İfa Edilen Mühendislik-Mimarlık Hizmetleri', oran: '40' },
+  { kod: '602', aciklama: 'Etüt, Plan-Proje, Danışmanlık, Denetim ve Benzeri Hizmetler', oran: '90' },
+  { kod: '603', aciklama: 'Makine, Teçhizat, Demirbaş ve Taşıtlara Ait Tadil, Bakım ve Onarım Hizmetleri', oran: '70' },
+  { kod: '604', aciklama: 'Yemek Servis Hizmeti', oran: '50' },
+  { kod: '605', aciklama: 'Organizasyon Hizmeti', oran: '50' },
+  { kod: '606', aciklama: 'İşgücü Temin Hizmetleri', oran: '90' },
+  { kod: '607', aciklama: 'Özel Güvenlik Hizmeti', oran: '90' },
+  { kod: '608', aciklama: 'Yapı Denetim Hizmetleri', oran: '90' },
+  { kod: '609', aciklama: 'Fason Olarak Yaptırılan Tekstil ve Konfeksiyon İşleri', oran: '70' },
+  { kod: '612', aciklama: 'Temizlik Hizmeti', oran: '90' },
+  { kod: '614', aciklama: 'Servis Taşımacılığı Hizmeti', oran: '50' },
+  { kod: '615', aciklama: 'Her Türlü Baskı ve Basım Hizmetleri', oran: '70' },
+  { kod: '616', aciklama: 'Diğer Hizmetler', oran: '50' },
+  { kod: '623', aciklama: 'Yük Taşımacılığı Hizmeti', oran: '20' },
+  { kod: '624', aciklama: 'Ticari Reklam Hizmetleri', oran: '30' },
+];
+
 const ANALIZ_ALANLARI: { alan: keyof StokForm; etiket: string }[] = [
   { alan: 'analizSonSatis', etiket: 'Son Satış Fiyatı' },
   { alan: 'analizEski1', etiket: '1. Eski Satış Fiyatı' },
@@ -192,11 +213,15 @@ const ANALIZ_ALANLARI: { alan: keyof StokForm; etiket: string }[] = [
 function BirimVeFiyatlarSekmesi({
   form,
   setForm,
+  birimSatirlari,
+  onBirimSatirlariDegistir,
 }: {
   form: StokForm;
   setForm: (fn: (f: StokForm) => StokForm) => void;
+  birimSatirlari: StokFiyatDuzenleSatir[];
+  onBirimSatirlariDegistir: (satirlar: StokFiyatDuzenleSatir[]) => void;
 }) {
-  const [satirlar, setSatirlar] = useState<StokFiyatDuzenleSatir[]>(() => [bosBirimFiyatSatiri()]);
+  const satirlar = birimSatirlari;
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const pasifGoster = form.kartPasifBirimleriGoster === '1';
 
@@ -208,15 +233,18 @@ function BirimVeFiyatlarSekmesi({
     [pasifGoster, satirlar]
   );
 
-  const satirlarAyarla = useCallback((yeni: StokFiyatDuzenleSatir[]) => {
-    setSatirlar(yeni);
-  }, []);
+  const satirlarAyarla = useCallback(
+    (yeni: StokFiyatDuzenleSatir[]) => {
+      onBirimSatirlariDegistir(yeni);
+    },
+    [onBirimSatirlariDegistir]
+  );
 
   const yeniSatir = useCallback(() => {
     const satir = bosBirimFiyatSatiri();
-    setSatirlar((onceki) => [...onceki, satir]);
+    onBirimSatirlariDegistir([...satirlar, satir]);
     setSeciliIdler([satir.id]);
-  }, []);
+  }, [onBirimSatirlariDegistir, satirlar]);
 
   return (
     <TanimFormBolum baslik="Birim ve Fiyatlar">
@@ -312,7 +340,7 @@ function OzelKodlarSekmesi({
                 value={form.ozelPl}
                 onChange={(v) => AlanGuncelle(setForm, 'ozelPl', v)}
                 secenekler={[
-                  { value: '', label: '' },
+                  { value: '', label: 'Seçilmedi' },
                   { value: '1', label: '1' },
                 ]}
               />
@@ -322,7 +350,7 @@ function OzelKodlarSekmesi({
                 value={form.ozelPoz}
                 onChange={(v) => AlanGuncelle(setForm, 'ozelPoz', v)}
                 secenekler={[
-                  { value: '', label: '' },
+                  { value: '', label: 'Seçilmedi' },
                   { value: '1', label: '1' },
                 ]}
               />
@@ -351,14 +379,16 @@ function MuhasebeSekmesi({
   return (
     <TanimFormBolum baslik="Muhasebe Kodları">
       <div className="stok-karti-muhasebe">
-        {MUHASEBE_ALANLARI.map(({ alan, etiket }) => (
-          <Metin
-            key={alan}
-            etiket={etiket}
-            deger={String(form[alan] ?? '')}
-            onChange={(v) => AlanGuncelle(setForm, alan, v)}
-          />
-        ))}
+        <div className="stok-karti-muhasebe-sol">
+          {MUHASEBE_ALANLARI.map(({ alan, etiket }) => (
+            <Metin
+              key={alan}
+              etiket={etiket}
+              deger={String(form[alan] ?? '')}
+              onChange={(v) => AlanGuncelle(setForm, alan, v)}
+            />
+          ))}
+        </div>
         <div className="stok-karti-gider-cesit">
           <p className="stok-karti-gider-baslik">Gider Çeşit Kodları</p>
           <div className="stok-karti-raf-tablo">
@@ -383,30 +413,26 @@ function ResimSekmesi({
 }) {
   return (
     <TanimFormBolum baslik="Resim">
-      <div className="stok-karti-resim-alan">
+      <label className="stok-karti-resim-alan">
         {form.resimUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={form.resimUrl} alt="Stok resmi" className="stok-karti-resim-onizleme" />
         ) : (
-          <p className="stok-karti-resim-yazi">
-            Resim yüklemek için [Yükle] butonuna basınız...
-          </p>
+          <p className="stok-karti-resim-yazi">Resim yüklemek için bu alana tıklayın…</p>
         )}
-        <label className="stok-karti-resim-yukle">
-          Yükle
-          <input
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => {
-              const dosya = e.target.files?.[0];
-              if (!dosya) return;
-              const url = URL.createObjectURL(dosya);
-              setForm((f) => ({ ...f, resimUrl: url }));
-            }}
-          />
-        </label>
-      </div>
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            const dosya = e.target.files?.[0];
+            if (!dosya) return;
+            const url = URL.createObjectURL(dosya);
+            setForm((f) => ({ ...f, resimUrl: url }));
+            e.target.value = '';
+          }}
+        />
+      </label>
     </TanimFormBolum>
   );
 }
@@ -532,73 +558,126 @@ function EDonusumSekmesi({
             F-Kasa
           </label>
         </div>
-        <Metin etiket="GTIP" deger={form.gtip} onChange={(v) => AlanGuncelle(setForm, 'gtip', v)} />
-        <Metin etiket="UNS" deger={form.uns} onChange={(v) => AlanGuncelle(setForm, 'uns', v)} />
-        <Metin etiket="UBL-TR" deger={form.ublTr} onChange={(v) => AlanGuncelle(setForm, 'ublTr', v)} />
-        <Metin
-          etiket="CPA Rev 2.1"
-          deger={form.cpaRev}
-          onChange={(v) => AlanGuncelle(setForm, 'cpaRev', v)}
-        />
-        <div className="stok-karti-tevkifat">
-          <span className="stok-karti-yatay-etiket">Tevkifat</span>
-          <label className="stok-karti-checkbox">
-            <input
-              type="checkbox"
-              checked={form.tevkifatUygulanacak === '1'}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, tevkifatUygulanacak: e.target.checked ? '1' : '' }))
-              }
+        <div className="stok-karti-e-donusum-govde">
+          <div className="stok-karti-e-donusum-kolon">
+            <Metin etiket="GTIP" deger={form.gtip} onChange={(v) => AlanGuncelle(setForm, 'gtip', v)} />
+            <Metin etiket="UNS" deger={form.uns} onChange={(v) => AlanGuncelle(setForm, 'uns', v)} />
+            <Metin
+              etiket="UBL-TR"
+              deger={form.ublTr}
+              onChange={(v) => AlanGuncelle(setForm, 'ublTr', v)}
             />
-            Uygulanacak
-          </label>
-          <Metin
-            etiket="Kodu"
-            deger={form.tevkifatKodu}
-            onChange={(v) => AlanGuncelle(setForm, 'tevkifatKodu', v)}
-          />
-          <Metin
-            etiket="Açıklama"
-            deger={form.tevkifatAciklama}
-            onChange={(v) => AlanGuncelle(setForm, 'tevkifatAciklama', v)}
-          />
-          <Metin
-            etiket="Oran"
-            deger={form.tevkifatOran}
-            onChange={(v) => AlanGuncelle(setForm, 'tevkifatOran', v)}
-          />
+            <Metin
+              etiket="CPA Rev 2.1"
+              deger={form.cpaRev}
+              onChange={(v) => AlanGuncelle(setForm, 'cpaRev', v)}
+            />
+          </div>
+          <div className="stok-karti-e-donusum-kolon">
+            <YatayAlan etiket="Menşei">
+              <FormAramaSecim
+                value={form.eMensei}
+                onChange={(v) => AlanGuncelle(setForm, 'eMensei', v)}
+                secenekAra={ulkeAra}
+                minAramaUzunlugu={2}
+                placeholder="En az 2 harf yazın…"
+                aria-label="Menşei"
+              />
+            </YatayAlan>
+            <YatayAlan etiket="İstisna">
+              <FormAcilirSecim
+                value={form.istisna}
+                onChange={(v) => AlanGuncelle(setForm, 'istisna', v)}
+                secenekler={[{ value: '', label: 'Seçilmedi' }]}
+              />
+            </YatayAlan>
+            <YatayAlan etiket="Özel Matrah">
+              <FormAcilirSecim
+                value={form.ozelMatrah}
+                onChange={(v) => AlanGuncelle(setForm, 'ozelMatrah', v)}
+                secenekler={[{ value: '', label: 'Seçilmedi' }]}
+              />
+            </YatayAlan>
+            <YatayAlan etiket="İhraç Kayıt Şekilleri">
+              <FormAcilirSecim
+                value={form.ihracKayit}
+                onChange={(v) => AlanGuncelle(setForm, 'ihracKayit', v)}
+                secenekler={[{ value: '', label: 'Seçilmedi' }]}
+              />
+            </YatayAlan>
+          </div>
         </div>
-        <YatayAlan etiket="Menşei">
-          <FormAcilirSecim
-            value={form.eMensei}
-            onChange={(v) => AlanGuncelle(setForm, 'eMensei', v)}
-            secenekler={[
-              { value: '', label: 'Seçilmedi' },
-              { value: 'TR', label: 'Türkiye' },
-            ]}
-          />
-        </YatayAlan>
-        <YatayAlan etiket="İstisna">
-          <FormAcilirSecim
-            value={form.istisna}
-            onChange={(v) => AlanGuncelle(setForm, 'istisna', v)}
-            secenekler={[{ value: '', label: 'Seçilmedi' }]}
-          />
-        </YatayAlan>
-        <YatayAlan etiket="Özel Matrah">
-          <FormAcilirSecim
-            value={form.ozelMatrah}
-            onChange={(v) => AlanGuncelle(setForm, 'ozelMatrah', v)}
-            secenekler={[{ value: '', label: 'Seçilmedi' }]}
-          />
-        </YatayAlan>
-        <YatayAlan etiket="İhraç Kayıt Şekilleri">
-          <FormAcilirSecim
-            value={form.ihracKayit}
-            onChange={(v) => AlanGuncelle(setForm, 'ihracKayit', v)}
-            secenekler={[{ value: '', label: 'Seçilmedi' }]}
-          />
-        </YatayAlan>
+        <div className="stok-karti-tevkifat">
+          <div className="stok-karti-tevkifat-sol">
+            <span className="stok-karti-yatay-etiket">Tevkifat</span>
+            <label className="stok-karti-checkbox">
+              <input
+                type="checkbox"
+                checked={form.tevkifatUygulanacak === '1'}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, tevkifatUygulanacak: e.target.checked ? '1' : '' }))
+                }
+              />
+              Uygulanacak
+            </label>
+            <span className="stok-karti-tevkifat-etiket">Kodu</span>
+            <div className="stok-karti-tevkifat-kod">
+              <FormAcilirSecim
+                value={form.tevkifatKodu}
+                onChange={(kod) => {
+                  const secim = TEVKIFAT_SECENEKLERI.find((t) => t.kod === kod);
+                  setForm((f) => ({
+                    ...f,
+                    tevkifatKodu: kod,
+                    tevkifatAciklama: secim ? secim.aciklama : '',
+                    tevkifatOran: secim ? secim.oran : '',
+                  }));
+                }}
+                secenekler={[
+                  { value: '', label: 'Seçilmedi' },
+                  ...TEVKIFAT_SECENEKLERI.map((t) => ({ value: t.kod, label: t.kod })),
+                ]}
+                aria-label="Tevkifat kodu"
+              />
+            </div>
+            <span className="stok-karti-tevkifat-etiket">Açıklama</span>
+            <div className="stok-karti-tevkifat-aciklama">
+              <FormAcilirSecim
+                value={form.tevkifatAciklama}
+                onChange={(aciklama) => {
+                  const secim = TEVKIFAT_SECENEKLERI.find((t) => t.aciklama === aciklama);
+                  setForm((f) => ({
+                    ...f,
+                    tevkifatAciklama: aciklama,
+                    tevkifatKodu: secim ? secim.kod : '',
+                    tevkifatOran: secim ? secim.oran : '',
+                  }));
+                }}
+                secenekler={[
+                  { value: '', label: 'Seçilmedi' },
+                  ...TEVKIFAT_SECENEKLERI.map((t) => ({
+                    value: t.aciklama,
+                    label: `${t.kod} - ${t.aciklama}`,
+                  })),
+                ]}
+                aria-label="Tevkifat açıklaması"
+              />
+            </div>
+          </div>
+          <div className="stok-karti-tevkifat-sag">
+            <span className="stok-karti-yatay-etiket">Oran</span>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              className={`${formInputSinifi} stok-karti-tevkifat-oran`}
+              value={form.tevkifatOran}
+              onChange={(e) => AlanGuncelle(setForm, 'tevkifatOran', e.target.value)}
+              aria-label="Tevkifat oranı"
+              placeholder="0"
+            />
+          </div>
+        </div>
       </div>
     </TanimFormBolum>
   );
@@ -609,17 +688,28 @@ export function StokKartiSekmeIcerik({
   form,
   setForm,
   stokBilgileri,
+  birimSatirlari,
+  onBirimSatirlariDegistir,
 }: {
   aktifSekme: StokKartSekmeId;
   form: StokForm;
   setForm: (fn: (f: StokForm) => StokForm) => void;
   stokBilgileri: ReactNode;
+  birimSatirlari: StokFiyatDuzenleSatir[];
+  onBirimSatirlariDegistir: (satirlar: StokFiyatDuzenleSatir[]) => void;
 }) {
   switch (aktifSekme) {
     case 'stok-bilgileri':
       return <>{stokBilgileri}</>;
     case 'birim-fiyatlar':
-      return <BirimVeFiyatlarSekmesi form={form} setForm={setForm} />;
+      return (
+        <BirimVeFiyatlarSekmesi
+          form={form}
+          setForm={setForm}
+          birimSatirlari={birimSatirlari}
+          onBirimSatirlariDegistir={onBirimSatirlariDegistir}
+        />
+      );
     case 'ozel-kodlar':
       return <OzelKodlarSekmesi form={form} setForm={setForm} />;
     case 'muhasebe':

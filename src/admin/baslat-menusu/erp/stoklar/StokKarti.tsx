@@ -13,8 +13,10 @@ import {
   URUN_TIPLERI,
   type AdminBirim,
 } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
-import { birimleriGetir, stokGuncelle, stokOlustur, stoklariGetir } from './api';
-import { StokKartiSekmeIcerik } from './StokKartiSekmeIcerik';
+import { birimGuncelle, birimOlustur, birimleriGetir, stokGuncelle, stokOlustur, stoklariGetir } from './api';
+import { birimdenFiyatDuzenleSatir, fiyatDuzenleSatirdanBirimForm, geciciIdMi } from './birimMap';
+import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
+import { StokKartiSekmeIcerik, bosBirimFiyatSatiri } from './StokKartiSekmeIcerik';
 import {
   STOK_KART_SEKMELERI,
   STOK_KDV_DEPARTMAN_SECENEKLERI,
@@ -239,6 +241,10 @@ export function StokKarti({
   const [kayitlar, setKayitlar] = useState<AdminStok[]>([]);
   const [birimler, setBirimler] = useState<AdminBirim[]>([]);
   const [form, setForm] = useState<StokForm>(bosStokForm);
+  const [birimSatirlari, setBirimSatirlari] = useState<StokFiyatDuzenleSatir[]>(() => [
+    bosBirimFiyatSatiri(),
+  ]);
+  const [birimlerKirli, setBirimlerKirli] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(mod !== 'yeni');
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [aktifSekme, setAktifSekme] = useState<StokKartSekmeId>('stok-bilgileri');
@@ -274,12 +280,32 @@ export function StokKarti({
     if (seciliKayit) setForm(stoktenForm(seciliKayit));
   }, [mod, seciliKayit]);
 
+  // Birim ve Fiyatlar sekmesi satırları: yeni kartta tek boş satır, mevcut kartta kayıtlı birimler
+  useEffect(() => {
+    if (mod === 'yeni') {
+      setBirimSatirlari([bosBirimFiyatSatiri()]);
+      setBirimlerKirli(false);
+      return;
+    }
+    if (!stokId) return;
+    setBirimSatirlari(
+      birimler.filter((b) => b.urunId === stokId).map(birimdenFiyatDuzenleSatir)
+    );
+    setBirimlerKirli(false);
+  }, [mod, stokId, birimler]);
+
+  const birimSatirlariDegistir = useCallback((satirlar: StokFiyatDuzenleSatir[]) => {
+    setBirimSatirlari(satirlar);
+    setBirimlerKirli(true);
+  }, []);
+
   const kirli = useMemo(() => {
     if (mod === 'duzenle' && seciliKayit) {
-      return !formlarEsit(form, stoktenForm(seciliKayit));
+      return birimlerKirli || !formlarEsit(form, stoktenForm(seciliKayit));
     }
     if (mod === 'yeni') {
       return (
+        birimlerKirli ||
         form.urunKodu.trim() !== '' ||
         form.urunAdi.trim() !== '' ||
         form.marka.trim() !== '' ||
@@ -288,7 +314,7 @@ export function StokKarti({
       );
     }
     return false;
-  }, [form, mod, seciliKayit]);
+  }, [birimlerKirli, form, mod, seciliKayit]);
 
   useEffect(() => {
     onKirliDegistir(kirli);
@@ -315,18 +341,31 @@ export function StokKarti({
     }
     const hata = dogrula();
     if (hata) {
+      // Eksik alan Stok Bilgileri sekmesindeyse kullanıcıyı oraya götür
+      if (hata.startsWith('Stok tipi')) setAktifSekme('stok-bilgileri');
       hataBildir(hata);
       throw new Error(hata);
     }
     const aktif = mod === 'duzenle' && seciliKayit ? seciliKayit.aktif : true;
     const urunForm = stokFormdanUrunForm(form);
+
+    const birimSatirlariniKaydet = async (urunId: string) => {
+      for (const satir of birimSatirlari) {
+        const birimForm = fiyatDuzenleSatirdanBirimForm(satir, urunId);
+        if (geciciIdMi(satir.id)) await birimOlustur(birimForm);
+        else await birimGuncelle(satir.id, birimForm);
+      }
+    };
+
     setKaydediliyor(true);
     try {
       if (mod === 'duzenle' && stokId) {
         await stokGuncelle(stokId, { ...urunForm, aktif });
+        if (birimlerKirli) await birimSatirlariniKaydet(stokId);
         basariBildir('Stok kartı güncellendi.');
       } else {
-        await stokOlustur({ ...urunForm, aktif: true });
+        const yeniStok = await stokOlustur({ ...urunForm, aktif: true });
+        await birimSatirlariniKaydet(yeniStok.id);
         basariBildir('Stok kartı eklendi.');
       }
       onKaydedildi();
@@ -338,6 +377,8 @@ export function StokKarti({
     }
   }, [
     basariBildir,
+    birimSatirlari,
+    birimlerKirli,
     dogrula,
     duzenlemeVar,
     eklemeVar,
@@ -599,6 +640,8 @@ export function StokKarti({
       form={form}
       setForm={setForm}
       stokBilgileri={ekTanimlar}
+      birimSatirlari={birimSatirlari}
+      onBirimSatirlariDegistir={birimSatirlariDegistir}
     />
   );
 
