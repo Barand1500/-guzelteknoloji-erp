@@ -4035,17 +4035,42 @@ button.ap-tanimlar-panel-arka {
   accent-color: var(--ap-accent);
 }
 
+.cari-secenek-modal .ap-accent-donen-cerceve--cari-secenek {
+  --cerceve-yaricap: 1.1rem;
+  width: min(28rem, calc(100vw - 2rem));
+}
+
+.cari-secenek-kart {
+  text-align: center;
+}
+
+.cari-secenek-ikon {
+  font-size: 0;
+}
+
+.cari-secenek-ikon svg {
+  display: block;
+}
+
+.cari-secenek-ozet {
+  margin: 0.65rem 0 1rem;
+}
+
 .cari-secenek-govde {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
   min-height: 0;
+  text-align: left;
+  padding: 0 0.1rem 1.2rem;
+  color: var(--ap-text);
 }
 
 .cari-secenek-ekle {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.45rem;
+  align-items: stretch;
 }
 
 .cari-secenek-ekle input {
@@ -4053,13 +4078,35 @@ button.ap-tanimlar-panel-arka {
   border-radius: 0.5rem;
   background: var(--ap-input-bg, var(--ap-surface));
   color: var(--ap-text);
-  padding: 0.45rem 0.65rem;
+  padding: 0.5rem 0.7rem;
   font-size: 0.875rem;
   outline: none;
+  min-width: 0;
 }
 
-.cari-secenek-ekle input:focus {
-  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+.cari-secenek-ekle input:focus,
+.cari-secenek-ekle input:focus-visible {
+  border-color: var(--ap-accent);
+  box-shadow: inset 0 0 0 1px var(--ap-accent);
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+}
+
+.cari-secenek-ekle-tus {
+  appearance: none;
+  border: none;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--ap-accent) 84%, #000000);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cari-secenek-ekle-tus:hover {
+  background: var(--ap-accent);
 }
 
 .cari-secenek-hata {
@@ -4119,6 +4166,10 @@ button.ap-tanimlar-panel-arka {
   font-weight: 650;
   cursor: pointer;
   padding: 0.15rem 0.25rem;
+}
+
+.cari-secenek-aksiyonlar {
+  grid-template-columns: 1fr 1fr;
 }
 
 .cari-alt-modal {
