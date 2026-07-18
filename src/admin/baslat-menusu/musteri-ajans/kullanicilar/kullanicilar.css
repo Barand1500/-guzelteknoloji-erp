@@ -301,7 +301,7 @@
   min-height: 2.25rem;
   padding: 0.55rem 0.7rem;
   border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
+  border: 1px solid var(--ap-border);
   background: var(--ap-input-bg);
   color: var(--ap-heading);
   font-size: 0.8125rem;
@@ -395,7 +395,6 @@
 
 .ap-kullanici-yeni-form .ap-form-acilir-secim-tus {
   border-radius: 0.5rem;
-  border-color: color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
 }
 
 .ap-kullanici-yeni-bolum-baslik {
@@ -634,7 +633,6 @@
   padding-bottom: 0.28rem;
   font-size: 0.6875rem;
   border-radius: 0.45rem;
-  border-color: color-mix(in srgb, var(--ap-accent) 20%, var(--ap-border));
 }
 
 .ap-kullanici-oturum-cubuk .ap-kullanici-yeni-input,
@@ -647,7 +645,7 @@
 
 .ap-kullanici-oturum-pin-input {
   width: 100%;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
+  border: 1px solid var(--ap-border);
   background: var(--ap-input-bg);
   color: var(--ap-heading);
   outline: none;
