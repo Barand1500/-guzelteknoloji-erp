@@ -510,6 +510,14 @@
   max-height: 16rem;
   overflow: auto;
   padding: 0.1rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ap-kullanici-oturum-yetki-listesi::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .ap-kullanici-oturum-yetki-grup {
@@ -584,8 +592,15 @@
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding-bottom: 0.1rem;
+}
+
+.ap-kullanici-oturum-satir::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .ap-kullanici-oturum-alan {

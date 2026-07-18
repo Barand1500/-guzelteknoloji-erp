@@ -417,7 +417,7 @@ export function DataGrid<TRow extends { id: string }>({
     [islenmis, dg.sayfa, dg.ayar.sayfaBoyutu]
   );
 
-  const sabitLeftMap = useMemo(() => {
+  const sabitLeftHesapli = useMemo(() => {
     const map = new Map<string, number>();
     const pinId = dg.ayar.sabitlenmisKolonlar[0];
     if (!pinId) return map;
@@ -430,6 +430,19 @@ export function DataGrid<TRow extends { id: string }>({
     }
     return map;
   }, [dg.gorunurKolonlar, dg.ayar.sabitlenmisKolonlar, dg.ayar.kolonGenislikleri]);
+
+  // Tablo min-width: 100% ile konteynere yayıldığında kolonlar ayarlanandan geniş çizilir;
+  // sticky left değerleri gerçek (render edilen) genişliklerden ölçülür, yoksa hesaplanan kullanılır.
+  const [sabitLeftOlculen, setSabitLeftOlculen] = useState<Map<string, number> | null>(null);
+
+  const sabitLeftMap = useMemo(() => {
+    if (!sabitLeftOlculen) return sabitLeftHesapli;
+    const map = new Map<string, number>();
+    for (const [id, left] of sabitLeftHesapli) {
+      map.set(id, sabitLeftOlculen.get(id) ?? left);
+    }
+    return map;
+  }, [sabitLeftHesapli, sabitLeftOlculen]);
 
   const sabitKolonMu = useCallback((kolonId: string) => sabitLeftMap.has(kolonId), [sabitLeftMap]);
 
@@ -581,6 +594,49 @@ export function DataGrid<TRow extends { id: string }>({
     ro.observe(theadRef.current);
     return () => ro.disconnect();
   }, [dg.gorunurKolonlar.length]);
+
+  // Sabit kolon left ofsetleri: başlık hücrelerinin gerçek genişliklerinden ölçülür.
+  useLayoutEffect(() => {
+    const pinId = dg.ayar.sabitlenmisKolonlar[0];
+    const thead = theadRef.current;
+    if (!pinId || !thead) {
+      setSabitLeftOlculen(null);
+      return;
+    }
+
+    const olc = () => {
+      const yeni = new Map<string, number>();
+      let left = 0;
+      for (const k of dg.gorunurKolonlar) {
+        const th = thead.querySelector<HTMLTableCellElement>(
+          `th[data-kolon-id="${CSS.escape(k.id)}"]`
+        );
+        if (!th) return;
+        yeni.set(k.id, Math.round(left));
+        left += th.getBoundingClientRect().width;
+        if (k.id === pinId) break;
+      }
+      setSabitLeftOlculen((eski) => {
+        if (eski && eski.size === yeni.size) {
+          let ayni = true;
+          for (const [id, deger] of yeni) {
+            if (eski.get(id) !== deger) {
+              ayni = false;
+              break;
+            }
+          }
+          if (ayni) return eski;
+        }
+        return yeni;
+      });
+    };
+
+    olc();
+    const tablo = thead.closest('table');
+    const ro = new ResizeObserver(olc);
+    if (tablo) ro.observe(tablo);
+    return () => ro.disconnect();
+  }, [dg.ayar.sabitlenmisKolonlar, dg.gorunurKolonlar, dg.ayar.kolonGenislikleri]);
 
   const sutunMenuKonumGuncelle = useCallback(() => {
     const el = sutunMenuAnchorRef.current ?? sutunTusRef.current;

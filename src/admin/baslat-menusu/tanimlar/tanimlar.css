@@ -2706,6 +2706,11 @@ button.ap-tanimlar-panel-arka {
   border-radius: 0;
 }
 
+/* Tablo kendi sonuna gelince tekerlek kaydırması sayfaya devretsin (takılma olmasın) */
+.stok-karti-birim-fiyat-grid .dg-scroll {
+  overscroll-behavior: auto;
+}
+
 .stok-karti-mini-tablo {
   border: 1px solid var(--ap-border);
   border-radius: 0.35rem;
@@ -2826,6 +2831,32 @@ button.ap-tanimlar-panel-arka {
   max-width: 42rem;
 }
 
+/* Analiz: fiyatlar sol, değişim tarihleri sağda yan yana */
+.stok-karti-analiz {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.15rem;
+  align-items: start;
+  max-width: none;
+}
+
+.stok-karti-analiz-kolon {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.stok-karti-analiz-kolon .stok-karti-yatay {
+  grid-template-columns: minmax(6.5rem, 11rem) minmax(0, 1fr);
+}
+
+@media (max-width: 960px) {
+  .stok-karti-analiz {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* E-Dönüşüm: sol GTIP kolonu + sağ Menşei kolonu satırı birlikte kaplar */
 .stok-karti-e-donusum {
   max-width: none;
@@ -2911,12 +2942,12 @@ button.ap-tanimlar-panel-arka {
   object-fit: contain;
 }
 
-/* Resim, İstihbarat ve E-Dönüşüm sekmeleri: panel alttaki boşluğu doldursun, sayfa kaymasın */
+/* Resim, İstihbarat ve E-Dönüşüm sekmeleri: panel alttaki boşluğu doldursun.
+   min-height: 0 kullanılmaz — kutu içerikten kısa kalıp alanlar çerçeve dışına taşmasın */
 .stok-karti-icerik > .stok-karti-form[data-stok-sekme='resim'],
 .stok-karti-icerik > .stok-karti-form[data-stok-sekme='istihbarat'],
 .stok-karti-icerik > .stok-karti-form[data-stok-sekme='e-donusum'] {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
@@ -2924,8 +2955,7 @@ button.ap-tanimlar-panel-arka {
 .stok-karti-form[data-stok-sekme='resim'] > .ap-tanimlar-bolum,
 .stok-karti-form[data-stok-sekme='istihbarat'] > .ap-tanimlar-bolum,
 .stok-karti-form[data-stok-sekme='e-donusum'] > .ap-tanimlar-bolum {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
@@ -2933,8 +2963,7 @@ button.ap-tanimlar-panel-arka {
 .stok-karti-form[data-stok-sekme='resim'] .ap-tanimlar-bolum-icerik,
 .stok-karti-form[data-stok-sekme='istihbarat'] .ap-tanimlar-bolum-icerik,
 .stok-karti-form[data-stok-sekme='e-donusum'] .ap-tanimlar-bolum-icerik {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
 }
 
 .stok-karti-istihbarat-ust {
@@ -3024,6 +3053,15 @@ button.ap-tanimlar-panel-arka {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   font-size: 0.8125rem;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Sayı artır/azalt okları gizli */
+.stok-karti-tevkifat-oran::-webkit-inner-spin-button,
+.stok-karti-tevkifat-oran::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 @media (max-width: 960px) {

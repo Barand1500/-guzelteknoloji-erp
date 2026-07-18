@@ -3698,7 +3698,8 @@ html:has(.admin-panel[data-tema='acik']) body {
   height: 0;
 }
 
-.ap-kullanicilar-sayfa {
+/* Yalnizca eski tasarim — yeni tasarim (--yeni) modul panelinin normal kaydirmasini kullanir */
+.ap-kullanicilar-sayfa:not(.ap-kullanicilar-sayfa--yeni) {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -3707,7 +3708,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   overflow: hidden;
 }
 
-.ap-modul-panel:has(.ap-kullanicilar-sayfa) {
+.ap-modul-panel:has(.ap-kullanicilar-sayfa:not(.ap-kullanicilar-sayfa--yeni)) {
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;

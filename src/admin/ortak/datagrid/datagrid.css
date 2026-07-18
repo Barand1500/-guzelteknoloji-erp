@@ -994,6 +994,9 @@
   overflow: hidden;
 }
 
+/* td.dg-hucre--sabit: .dg-tooltip-kabuk (position: relative) kuralını ezmek için
+   element+sınıf özgüllüğü gerekir; yoksa sticky uygulanmaz ve left hücreyi kaydırır */
+td.dg-hucre--sabit,
 .dg-hucre--sabit {
   position: sticky;
   /* left: inline style (sabitLeftMap) ile verilir — CSS left:0 pin ofsetini bozuyordu */

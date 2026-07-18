@@ -194,7 +194,7 @@ const TEVKIFAT_SECENEKLERI: { kod: string; aciklama: string; oran: string }[] = 
   { kod: '624', aciklama: 'Ticari Reklam Hizmetleri', oran: '30' },
 ];
 
-const ANALIZ_ALANLARI: { alan: keyof StokForm; etiket: string }[] = [
+const ANALIZ_FIYAT_ALANLARI: { alan: keyof StokForm; etiket: string }[] = [
   { alan: 'analizSonSatis', etiket: 'Son Satış Fiyatı' },
   { alan: 'analizEski1', etiket: '1. Eski Satış Fiyatı' },
   { alan: 'analizEski2', etiket: '2. Eski Satış Fiyatı' },
@@ -202,6 +202,9 @@ const ANALIZ_ALANLARI: { alan: keyof StokForm; etiket: string }[] = [
   { alan: 'analizEski4', etiket: '4. Eski Satış Fiyatı' },
   { alan: 'analizEski5', etiket: '5. Eski Satış Fiyatı' },
   { alan: 'analizEski6', etiket: '6. Eski Satış Fiyatı' },
+];
+
+const ANALIZ_TARIH_ALANLARI: { alan: keyof StokForm; etiket: string }[] = [
   { alan: 'analizDegisim1', etiket: '1. Satış Fiyatı Değişim Tarihi' },
   { alan: 'analizDegisim2', etiket: '2. Satış Fiyatı Değişim Tarihi' },
   { alan: 'analizDegisim3', etiket: '3. Satış Fiyatı Değişim Tarihi' },
@@ -286,16 +289,6 @@ function BirimVeFiyatlarSekmesi({
         <div className="stok-karti-sekme-alt-tuslar">
           <button type="button" className="ap-tanimlar-duzenle-geri" onClick={yeniSatir}>
             Yeni...
-          </button>
-          <button
-            type="button"
-            className="ap-tanimlar-duzenle-geri"
-            disabled={seciliIdler.length !== 1}
-            onClick={() => {
-              /* hücre düzenleme DataGrid çift tık ile */
-            }}
-          >
-            Düzelt...
           </button>
           <label className="stok-karti-checkbox">
             <input
@@ -447,14 +440,26 @@ function AnalizSekmesi({
   return (
     <TanimFormBolum baslik="Stok Analiz Bilgileri">
       <div className="stok-karti-analiz">
-        {ANALIZ_ALANLARI.map(({ alan, etiket }) => (
-          <Metin
-            key={alan}
-            etiket={etiket}
-            deger={String(form[alan] ?? '')}
-            onChange={(v) => AlanGuncelle(setForm, alan, v)}
-          />
-        ))}
+        <div className="stok-karti-analiz-kolon">
+          {ANALIZ_FIYAT_ALANLARI.map(({ alan, etiket }) => (
+            <Metin
+              key={alan}
+              etiket={etiket}
+              deger={String(form[alan] ?? '')}
+              onChange={(v) => AlanGuncelle(setForm, alan, v)}
+            />
+          ))}
+        </div>
+        <div className="stok-karti-analiz-kolon">
+          {ANALIZ_TARIH_ALANLARI.map(({ alan, etiket }) => (
+            <Metin
+              key={alan}
+              etiket={etiket}
+              deger={String(form[alan] ?? '')}
+              onChange={(v) => AlanGuncelle(setForm, alan, v)}
+            />
+          ))}
+        </div>
       </div>
     </TanimFormBolum>
   );
