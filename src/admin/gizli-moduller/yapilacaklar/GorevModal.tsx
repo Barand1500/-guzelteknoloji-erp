@@ -81,21 +81,14 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
     <div className="ap-sil-onay-modal yap-gorev-modal" role="dialog" aria-modal="true" aria-label={baslik}>
       <div className="ap-sil-onay-arka" aria-hidden="true" />
       <DonenAccentCerceve className="ap-accent-donen-cerceve--sil ap-accent-donen-cerceve--yap-gorev">
-        <div className="yap-gorev-kart">
-          <header className="yap-gorev-ust">
-            <div className="yap-gorev-ust-sol">
-              <span className="yap-gorev-mini-ikon" aria-hidden>
-                ✓
-              </span>
-              <div>
-                <h3>{baslik}</h3>
-                <p>Tarih yoksa tarihsiz listede görünür</p>
-              </div>
-            </div>
-            <button type="button" className="yap-gorev-vazgec" onClick={onKapat}>
-              <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
-            </button>
-          </header>
+        <div className="ap-sil-onay-kart yap-gorev-kart">
+          <div className="ap-sil-onay-ikon yap-gorev-ikon" aria-hidden>
+            ✓
+          </div>
+          <h3 className="ap-sil-onay-baslik">{baslik}</h3>
+          <p className="ap-sil-onay-metin yap-gorev-ozet">
+            Tarih yoksa <strong>tarihsiz görevler</strong> arasında görünür.
+          </p>
 
           <div className="yap-gorev-govde">
             <label className="yap-gorev-alan">
@@ -150,7 +143,10 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
             {hata ? <p className="yap-gorev-hata">{hata}</p> : null}
           </div>
 
-          <div className="ap-sil-onay-aksiyonlar yap-gorev-aksiyonlar">
+          <div className="ap-sil-onay-aksiyonlar">
+            <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--iptal" onClick={onKapat}>
+              <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
+            </button>
             <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--onay" onClick={kaydet}>
               <ModalTusIcerik metin="Kaydet" kisayol="Enter" />
             </button>

@@ -425,112 +425,28 @@
 }
 
 .yap-gorev-modal .ap-accent-donen-cerceve--yap-gorev {
-  --cerceve-yaricap: 1rem;
+  --cerceve-yaricap: 1.1rem;
   width: min(26rem, calc(100vw - 2rem));
 }
 
 .yap-gorev-kart {
-  position: relative;
-  background: var(--ap-surface);
-  border-radius: calc(var(--cerceve-yaricap, 1rem) - 2px);
-  overflow: hidden;
-  text-align: left;
-  animation: ap-sil-onay-giris 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  text-align: center;
 }
 
-.yap-gorev-ust {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 1rem 1rem 0.85rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 65%, transparent);
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface)),
-    var(--ap-surface) 70%
-  );
+.yap-gorev-ikon {
+  font-size: 1.35rem;
 }
 
-.yap-gorev-ust-sol {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
-  min-width: 0;
-}
-
-.yap-gorev-mini-ikon {
-  flex-shrink: 0;
-  width: 2.15rem;
-  height: 2.15rem;
-  border-radius: 0.65rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  font-weight: 800;
-  color: color-mix(in srgb, var(--ap-accent) 88%, #fff);
-  background: color-mix(in srgb, var(--ap-accent) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 40%, transparent);
-}
-
-.yap-gorev-ust h3 {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--ap-heading);
-}
-
-.yap-gorev-ust p {
-  margin: 0.2rem 0 0;
-  font-size: 0.75rem;
-  color: var(--ap-text-muted);
-  line-height: 1.35;
-}
-
-.yap-gorev-vazgec {
-  flex-shrink: 0;
-  appearance: none;
-  border: 1px solid var(--ap-border);
-  border-radius: 0.55rem;
-  background: var(--ap-surface);
-  color: var(--ap-text);
-  padding: 0.32rem 0.65rem 0.38rem;
-  cursor: pointer;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.02rem;
-  line-height: 1.15;
-  font-size: 0.75rem;
-  font-weight: 700;
-  transition:
-    border-color 0.14s ease,
-    color 0.14s ease,
-    background 0.14s ease;
-}
-
-.yap-gorev-vazgec .ap-modal-tus-metin {
-  font-size: 0.75rem;
-}
-
-.yap-gorev-vazgec .ap-modal-tus-kisayol {
-  font-size: 0.6rem;
-  opacity: 0.55;
-}
-
-.yap-gorev-vazgec:hover {
-  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
-  color: var(--ap-accent);
-  background: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
+.yap-gorev-ozet {
+  margin: 0.55rem 0 1rem;
 }
 
 .yap-gorev-govde {
+  text-align: left;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  padding: 1rem 1rem 1.15rem;
+  padding: 0 0.1rem 1.15rem;
 }
 
 .yap-gorev-alan {
@@ -538,7 +454,6 @@
   flex-direction: column;
   gap: 0.35rem;
   min-width: 0;
-  flex: 1;
 }
 
 .yap-gorev-alan > span {
@@ -563,17 +478,15 @@
   --tw-ring-offset-shadow: 0 0 #0000;
 }
 
+.yap-gorev-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .yap-gorev-tarih-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.65rem;
-}
-
-.yap-gorev-satir {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.75rem;
-  align-items: end;
 }
 
 .yap-gorev-onemli {
@@ -624,12 +537,6 @@
   margin: 0;
   color: #b91c1c;
   font-size: 0.78rem;
-}
-
-.yap-gorev-aksiyonlar {
-  margin: 0;
-  grid-template-columns: 1fr;
-  border-radius: 0;
 }
 
 @media (max-width: 860px) {
