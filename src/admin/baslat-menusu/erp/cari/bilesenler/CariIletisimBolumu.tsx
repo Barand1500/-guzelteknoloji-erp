@@ -2,10 +2,16 @@ import { useState } from 'react';
 import type { CariIletisimKisi } from '../tipler';
 import { bosIletisimKisi, iletisimKisiBosMu } from '../cariIletisimDeposu';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { CariOutlinedEposta } from './CariOutlinedEposta';
 import { CariOutlinedGirdi } from './CariOutlinedGirdi';
 import { CariOutlinedIl, CariOutlinedIlce } from './CariOutlinedIlArama';
 import { CariOutlinedTelefon } from './CariOutlinedTelefon';
+
+function kisiSilMetni(kisi: CariIletisimKisi): string {
+  const ad = kisi.adSoyad.trim();
+  return ad || 'Adsız kişi';
+}
 
 export function CariIletisimBolumu({
   kisiler,
@@ -23,8 +29,10 @@ export function CariIletisimBolumu({
   onChange: (kisiler: CariIletisimKisi[]) => void;
 }) {
   const [adresCekildi, setAdresCekildi] = useState<Record<string, true>>({});
+  const [silinecekId, setSilinecekId] = useState<string | null>(null);
   const bosFormVar = kisiler.some((k) => iletisimKisiBosMu(k));
   const ustAdres = varsayilanAdres.trim();
+  const silinecek = silinecekId ? kisiler.find((k) => k.id === silinecekId) : undefined;
 
   const kisiGuncelle = (id: string, parca: Partial<CariIletisimKisi>) => {
     onChange(kisiler.map((k) => (k.id === id ? { ...k, ...parca } : k)));
@@ -78,17 +86,15 @@ export function CariIletisimBolumu({
             return (
               <article key={kisi.id} className="cari-iletisim-kart">
                 {!disabled ? (
-                  <div className="cari-iletisim-kart-ust">
-                    <button
-                      type="button"
-                      className="cari-iletisim-kart-sil"
-                      onClick={() => kisiSil(kisi.id)}
-                      aria-label="İletişim kişisini sil"
-                      title="Sil"
-                    >
-                      <DgIkon ad="sil" />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className="cari-iletisim-kart-sil"
+                    onClick={() => setSilinecekId(kisi.id)}
+                    aria-label="İletişim kişisini sil"
+                    title="Sil"
+                  >
+                    <DgIkon ad="sil" />
+                  </button>
                 ) : null}
 
                 <div className="cari-iletisim-kart-grid">
@@ -161,6 +167,19 @@ export function CariIletisimBolumu({
           })}
         </div>
       ) : null}
+
+      <SilmeOnayModal
+        acik={!!silinecek}
+        onKapat={() => setSilinecekId(null)}
+        onOnayla={() => {
+          if (!silinecekId) return;
+          kisiSil(silinecekId);
+          setSilinecekId(null);
+        }}
+        baslik="Silmek istediğinize emin misiniz?"
+        hedefMetin={silinecek ? kisiSilMetni(silinecek) : ''}
+        ariaLabel="İletişim kişisi silme onayı"
+      />
     </section>
   );
 }
