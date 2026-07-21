@@ -7,7 +7,7 @@ import {
   type AdminCari,
 } from '@/admin/baslat-menusu/erp/cari/tipler';
 
-export const CARI_KOLON_GENISLIK_SURUMU = 6;
+export const CARI_KOLON_GENISLIK_SURUMU = 7;
 
 export const CARI_VARSAYILAN_GIZLI: string[] = ['id', 'ustId'];
 
@@ -99,8 +99,28 @@ function metinKolon(
 export function cariKolonlari(): KolonTanimi<AdminCari>[] {
   return [
     secimKolonu(),
-    metinKolon('cariKodu', 'Cari Kodu', 120, (s) => s.cariKodu, { kod: true }),
-    metinKolon('cariAdi', 'Cari Adı', 180, (s) => s.cariAdi, { ad: true }),
+    {
+      id: 'cariKoduAdi',
+      baslik: 'Cari Kodu/Adı',
+      tip: 'metin',
+      genislik: 240,
+      minGenislik: 140,
+      zorunlu: true,
+      siralama: true,
+      degerAl: (s) => `${s.cariKodu} ${s.cariAdi}`,
+      siralamaDegeri: (s) => `${s.cariKodu} ${s.cariAdi}`,
+      goster: (s) => {
+        const kod = s.cariKodu?.trim() ?? '';
+        const ad = s.cariAdi?.trim() ?? '';
+        if (!kod && !ad) return <>—</>;
+        return (
+          <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
+            {kod ? <span className="dg-urun-kodu-alt">{kod}</span> : null}
+            {ad ? <span className="dg-urun-adi-ust">{ad}</span> : null}
+          </div>
+        );
+      },
+    },
     {
       id: 'cariTipi',
       baslik: 'Cari Tipi',
@@ -119,8 +139,7 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
       degerAl: (s) => isletmeTuruEtiketi(s.isletmeTuru),
       goster: (s) => <span className="dg-birim-etiket">{isletmeTuruEtiketi(s.isletmeTuru)}</span>,
     },
-    metinKolon('unvan', 'Ünvan', 160, (s) => s.unvan),
-    metinKolon('yetkili', 'Yetkili', 120, (s) => s.yetkili),
+    metinKolon('unvan', 'Ünvanı', 160, (s) => s.unvan),
     {
       id: 'vergiDairesi',
       baslik: 'Vergi Dairesi',
@@ -170,7 +189,7 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
     metinKolon('il', 'İl', 80, (s) => s.il),
     metinKolon('ilce', 'İlçe', 80, (s) => s.ilce),
     metinKolon('telefon', 'Telefon', 100, (s) => s.telefon),
-    metinKolon('eposta', 'E-posta', 140, (s) => s.eposta),
+    metinKolon('eposta', 'E-Posta', 140, (s) => s.eposta),
     metinKolon('web', 'Web', 120, (s) => s.web),
     {
       id: 'efatura',
@@ -180,7 +199,10 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
       siralama: true,
       degerAl: (s) => (s.efatura ? 'Evet' : 'Hayır'),
     },
-    metinKolon('efaturaTipi', 'E-Fatura Tipi', 110, (s) => s.efaturaTipi),
+    metinKolon('efaturaTipi', 'Fatura Tipi', 100, (s) => {
+      if (!s.efatura) return '';
+      return s.efaturaTipi === 'TICARI' ? 'Ticari' : 'Temel';
+    }),
     metinKolon('alias', 'Alias', 120, (s) => s.alias),
     metinKolon('id', 'ID', 72, (s) => s.id),
     metinKolon('ustId', 'Üst ID', 72, (s) => s.ustId),

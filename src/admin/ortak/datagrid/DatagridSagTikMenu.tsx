@@ -4,6 +4,13 @@ import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { hucrePanoyaMetni, secimMetnindenKopya } from '@/admin/ortak/datagrid/sagTikYardimci';
 
+function menuBasligi(metin: string): string {
+  return metin.replace(/([\p{L}\p{M}']+)/gu, (kelime) => {
+    if (!kelime) return kelime;
+    return kelime.charAt(0).toLocaleUpperCase('tr') + kelime.slice(1);
+  });
+}
+
 export type DatagridSagTikIslem =
   | 'satirSil'
   | 'seciliSil'
@@ -42,7 +49,7 @@ interface DatagridSagTikMenuProps<TRow extends { id: string }> {
   onBilgi?: (mesaj: string) => void;
   hucrePanoyaMetniAl?: (satir: TRow, kolonId: string | null, kolonlar: KolonTanimi<TRow>[]) => string;
   satirSilMetniAl?: (satir: TRow) => string;
-  /** Değeri Yay: kolonId + ham değer verilir; dışarısı tüm görünen satırları günceller */
+  /** Değeri Yay: kolonId + ham değer verilir; dışarısı yalnızca sağ tıklanan satırın altındaki satırları günceller */
   onDegeriYay?: (kolonId: string, deger: unknown, satirlar: TRow[]) => void;
 }
 
@@ -58,8 +65,8 @@ interface MenuOgesi {
 }
 
 const SATIR_EKLE_ALT_OGELER: { konum: SatirEkleKonumu; etiket: string; ikon: string }[] = [
-  { konum: 'ust', etiket: 'Satır üstüne ekle', ikon: '↑' },
-  { konum: 'alt', etiket: 'Satır altına ekle', ikon: '↓' },
+  { konum: 'ust', etiket: 'Satır Üstüne Ekle', ikon: '↑' },
+  { konum: 'alt', etiket: 'Satır Altına Ekle', ikon: '↓' },
 ];
 
 const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', string> = {
@@ -189,8 +196,13 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
           const kolon = kolonlar.find((k) => k.id === menu.kolonId);
           if (kolon) {
             const deger = kolon.degerAl(satir);
-            onDegeriYay(menu.kolonId, deger, satirlar);
-            onBilgi?.('Değer tüm satırlara yayıldı');
+            const satirIndeks = satirlar.findIndex((s) => s.id === menu.satirId);
+            const altSatirlar =
+              satirIndeks >= 0 ? satirlar.slice(satirIndeks + 1) : [];
+            if (altSatirlar.length > 0) {
+              onDegeriYay(menu.kolonId, deger, altSatirlar);
+              onBilgi?.('Değer alt satırlara yayıldı');
+            }
           }
         }
         break;
@@ -251,7 +263,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
             const ogeler: MenuOgesi[] = [
               {
                 id: 'satirEkle' as const,
-                etiket: 'Satır ekle',
+                etiket: menuBasligi('Satır ekle'),
                 ikon: MENU_IKONLARI.satirEkle,
                 devreDisi: !menu.satirId,
                 flyout: true,
@@ -259,14 +271,14 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
               },
               {
                 id: 'satirDuzenle' as const,
-                etiket: 'Satırı düzenle',
+                etiket: menuBasligi('Satırı düzenle'),
                 ikon: MENU_IKONLARI.satirDuzenle,
                 devreDisi: !menu.satirId,
                 goster: true,
               },
               {
                 id: 'satirCogalt' as const,
-                etiket: 'Satırı kopyala',
+                etiket: menuBasligi('Satırı kopyala'),
                 ikon: MENU_IKONLARI.satirCogalt,
                 devreDisi: !menu.satirId,
                 goster: satirCogaltGoster && !!onSatirCogalt,
@@ -274,24 +286,32 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
               {
                 id: 'degeriYay' as const,
                 etiket: (() => {
-                  if (!menu.kolonId || !menu.satirId) return 'Değeri Yay';
+                  if (!menu.kolonId || !menu.satirId) return menuBasligi('Değeri yay');
                   const kolon = kolonlar.find((k) => k.id === menu.kolonId);
-                  if (!kolon || kolon.id === 'secim' || kolon.id === 'islemler' || !kolon.degerYaz) return 'Değeri Yay';
+                  if (!kolon || kolon.id === 'secim' || kolon.id === 'islemler' || !kolon.degerYaz) {
+                    return menuBasligi('Değeri yay');
+                  }
                   const etkt = kolon.baslik || menu.kolonId;
-                  return `"${etkt}" değerini yay`;
+                  return menuBasligi(`"${etkt}" değerini yay`);
                 })(),
                 ikon: MENU_IKONLARI.degeriYay,
                 devreDisi: (() => {
                   if (!menu.kolonId || !menu.satirId || !onDegeriYay) return true;
                   const kolon = kolonlar.find((k) => k.id === menu.kolonId);
-                  return !kolon || !kolon.degerYaz || kolon.id === 'secim' || kolon.id === 'islemler';
+                  if (!kolon || !kolon.degerYaz || kolon.id === 'secim' || kolon.id === 'islemler') {
+                    return true;
+                  }
+                  const satirIndeks = satirlar.findIndex((s) => s.id === menu.satirId);
+                  return satirIndeks < 0 || satirIndeks >= satirlar.length - 1;
                 })(),
                 ayiriciOnce: true,
                 goster: !!onDegeriYay,
               },
               {
                 id: 'panoyaKopyala' as const,
-                etiket: kopyaEtiket ? `Panoya kopyala — ${kopyaEtiket}` : 'Panoya kopyala',
+                etiket: kopyaEtiket
+                  ? menuBasligi(`Panoya kopyala — ${kopyaEtiket}`)
+                  : menuBasligi('Panoya kopyala'),
                 ikon: MENU_IKONLARI.panoyaKopyala,
                 devreDisi: !menu.kopyaMetni,
                 ayiriciOnce: true,
@@ -299,14 +319,14 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
               },
               {
                 id: 'csvDisa' as const,
-                etiket: 'Dışa aktar (CSV)',
+                etiket: menuBasligi('Dışa aktar (CSV)'),
                 ikon: MENU_IKONLARI.csvDisa,
                 ayiriciOnce: true,
                 goster: true,
               },
               {
                 id: 'satirSil' as const,
-                etiket: 'Satır sil',
+                etiket: menuBasligi('Satır sil'),
                 ikon: MENU_IKONLARI.satirSil,
                 devreDisi: !menu.satirId,
                 tehlike: true,
@@ -317,8 +337,8 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 id: 'seciliSil' as const,
                 etiket:
                   seciliSatirSayisi > 0
-                    ? `Seçili satırları sil (${seciliSatirSayisi})`
-                    : 'Seçili satırları sil',
+                    ? menuBasligi(`Seçili satırları sil (${seciliSatirSayisi})`)
+                    : menuBasligi('Seçili satırları sil'),
                 ikon: MENU_IKONLARI.seciliSil,
                 devreDisi: seciliSatirSayisi === 0,
                 tehlike: true,
@@ -374,7 +394,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                                 }}
                               >
                                 <span>{alt.ikon}</span>
-                                <span>{alt.etiket}</span>
+                                <span>{menuBasligi(alt.etiket)}</span>
                               </button>
                             ))}
                           </div>

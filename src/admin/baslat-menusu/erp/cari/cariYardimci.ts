@@ -1,5 +1,12 @@
 import type { AdminCari, CariFormDegeri, CariTipi, IsletmeTuru } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { bosCariForm } from '@/admin/baslat-menusu/erp/cari/tipler';
+import { cariIletisimGetir } from '@/admin/baslat-menusu/erp/cari/cariIletisimDeposu';
+
+function faturaTipiNormalize(tip: string): string {
+  const v = tip.trim().toUpperCase();
+  if (v === 'TICARI' || v === 'TICARI FATURA') return 'TICARI';
+  return 'TEMEL';
+}
 
 export function caridenForm(c: AdminCari): CariFormDegeri {
   return {
@@ -19,9 +26,10 @@ export function caridenForm(c: AdminCari): CariFormDegeri {
     eposta: c.eposta,
     web: c.web,
     efatura: c.efatura,
-    efaturaTipi: c.efaturaTipi || 'E-ARSIV',
+    efaturaTipi: c.efatura ? faturaTipiNormalize(c.efaturaTipi) : 'TEMEL',
     alias: c.alias,
     aktif: c.aktif,
+    iletisimKisiler: cariIletisimGetir(c.id),
   };
 }
 
@@ -56,9 +64,10 @@ export function hizliGirisdenForm(degerler: Record<string, string>): CariFormDeg
     eposta: degerler.eposta?.trim() ?? '',
     web: degerler.web?.trim() ?? '',
     efatura: degerler.efatura === 'true' || degerler.efatura === '1',
-    efaturaTipi: degerler.efaturaTipi?.trim() || 'E-ARSIV',
+    efaturaTipi: degerler.efaturaTipi?.trim() || 'TEMEL',
     alias: degerler.alias?.trim() ?? '',
     aktif: degerler.durum !== 'false',
+    iletisimKisiler: [],
   };
 }
 

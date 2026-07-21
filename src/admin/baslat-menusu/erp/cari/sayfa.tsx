@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
@@ -36,6 +36,7 @@ export function CariSayfasi() {
   const [aktifCariId, setAktifCariId] = useState<string | null>(null);
   const [silme, setSilme] = useState<AdminCari | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
+  const [kartUstAksiyon, setKartUstAksiyon] = useState<ReactNode>(null);
   const gridApiRef = useRef<DataGridApi | null>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
   const kaydetRef = useRef<(() => Promise<void>) | null>(null);
@@ -62,6 +63,10 @@ export function CariSayfasi() {
 
   const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
   const baglamCariId = tekSeciliId ?? aktifCariId;
+
+  useEffect(() => {
+    if (gorunum !== 'kart') setKartUstAksiyon(null);
+  }, [gorunum]);
 
   const listeyeDon = useCallback(() => {
     setGorunum('liste');
@@ -205,7 +210,9 @@ export function CariSayfasi() {
       baslik={modulBaslik}
       aciklama={modulAciklama}
       ustAksiyon={
-        gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
+        gorunum === 'kart' ? (
+          kartUstAksiyon
+        ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-ikon-grup cari-modul-ust-araclar">
             <button
               type="button"
@@ -235,6 +242,7 @@ export function CariSayfasi() {
             onKaydedildi={listeyeDon}
             kaydetRef={kaydetRef}
             onKirliDegistir={setKartKirli}
+            onUstAksiyonDegistir={setKartUstAksiyon}
           />
         ) : (
           <div className="dg-urun-slayt-kabuk">

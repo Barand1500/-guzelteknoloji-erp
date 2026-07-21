@@ -78,7 +78,7 @@ export function CariOutlinedEposta({
       ref={kapsayiciRef}
       className={`cari-outlined-field cari-eposta-alan${focused ? ' cari-outlined-field--focus' : ''}${disabled ? ' cari-outlined-field--pasif' : ''}`}
     >
-      <CariOutlinedEtiket etiket="E-posta" htmlFor={inputId} />
+      <CariOutlinedEtiket etiket="E-Posta" htmlFor={inputId} />
       <div className="cari-outlined-cerceve">
         <input
           id={inputId}

@@ -12,20 +12,25 @@ export const ISLETME_TURLERI: { value: IsletmeTuru; label: string }[] = [
   { value: 'GERCEK', label: 'Gerçek' },
 ];
 
-export const EFATURA_TIPLERI = [
-  { value: 'TICARI FATURA', label: 'Ticari Fatura' },
-  { value: 'E-ARSIV', label: 'E-Arşiv' },
+export const EFATURA_EVET_HAYIR = [
+  { value: 'HAYIR', label: 'Hayır' },
+  { value: 'EVET', label: 'Evet' },
 ] as const;
 
-export const EFATURA_SECIMLERI = [
-  { value: 'HAYIR', label: 'Hayır', efatura: false, efaturaTipi: 'E-ARSIV' },
-  { value: 'E-ARSIV', label: 'E-Arşiv', efatura: true, efaturaTipi: 'E-ARSIV' },
-  { value: 'TICARI FATURA', label: 'Ticari Fatura', efatura: true, efaturaTipi: 'TICARI FATURA' },
+export const FATURA_TIPLERI = [
+  { value: 'TEMEL', label: 'Temel' },
+  { value: 'TICARI', label: 'Ticari' },
 ] as const;
 
-export function efaturaSecimDegeri(efatura: boolean, efaturaTipi: string): string {
-  if (!efatura) return 'HAYIR';
-  return efaturaTipi === 'TICARI FATURA' ? 'TICARI FATURA' : 'E-ARSIV';
+export interface CariIletisimKisi {
+  id: string;
+  adSoyad: string;
+  gorevi: string;
+  eposta: string;
+  telefon: string;
+  il: string;
+  ilce: string;
+  adres: string;
 }
 
 export interface CariAdresDegeri {
@@ -85,6 +90,7 @@ export interface CariFormDegeri extends CariAdresDegeri {
   efaturaTipi: string;
   alias: string;
   aktif: boolean;
+  iletisimKisiler: CariIletisimKisi[];
 }
 
 export const bosCariForm: CariFormDegeri = {
@@ -104,9 +110,10 @@ export const bosCariForm: CariFormDegeri = {
   eposta: '',
   web: '',
   efatura: false,
-  efaturaTipi: 'E-ARSIV',
+  efaturaTipi: 'TEMEL',
   alias: '',
   aktif: true,
+  iletisimKisiler: [],
 };
 
 export function cariTipiEtiketi(tip: CariTipi): string {

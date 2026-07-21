@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useMemo, useState, type MutableRefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type MutableRefObject,
+  type ReactNode,
+} from 'react';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { cariOlustur, cariGuncelle, carileriGetir } from '../api';
 import { cariFormDogrula } from '../alanKurallari';
+import { cariIletisimKaydet } from '../cariIletisimDeposu';
 import {
   cariIsletmeTuruEkle,
   cariIsletmeTuruGuncelle,
@@ -21,29 +29,45 @@ import {
 } from '../cariKartTipleri';
 import { caridenForm } from '../cariYardimci';
 import {
-  EFATURA_SECIMLERI,
+  EFATURA_EVET_HAYIR,
+  FATURA_TIPLERI,
   bosCariForm,
-  efaturaSecimDegeri,
   kartTipindenApiCariTipi,
   type AdminCari,
   type CariFormDegeri,
   type CariKartModu,
 } from '../tipler';
+import { CariIletisimBolumu } from './CariIletisimBolumu';
 import { CariOutlinedAcilir } from './CariOutlinedAcilir';
+import { CariOutlinedAramaAcilir } from './CariOutlinedAramaAcilir';
 import { CariOutlinedEposta } from './CariOutlinedEposta';
 import { CariOutlinedGirdi } from './CariOutlinedGirdi';
 import { CariOutlinedTelefon } from './CariOutlinedTelefon';
 import { CariOutlinedVergiDairesi } from './CariOutlinedVergiDairesi';
 import { CariOutlinedVergiNo } from './CariOutlinedVergiNo';
 import { CariSecenekModal } from './CariSecenekModal';
-import { CariUstCariSecici } from './CariUstCariSecici';
+import { CariUstCariBaslikSecici } from './CariUstCariBaslikSecici';
+
 function formlarEsit(a: CariFormDegeri, b: CariFormDegeri): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+function apiFormHazirla(form: CariFormDegeri, kartTipiSecim: string, mod: CariKartModu): CariFormDegeri {
+  const { iletisimKisiler, ...rest } = form;
+  const ilkKisi = iletisimKisiler.find((k) => k.adSoyad.trim());
+  return {
+    ...rest,
+    iletisimKisiler: [],
+    cariTipi: kartTipindenApiCariTipi(kartTipiSecim),
+    yetkili: ilkKisi?.adSoyad.trim() ?? '',
+    aktif: mod === 'yeni' ? true : form.aktif,
+    efaturaTipi: form.efatura ? form.efaturaTipi : 'TEMEL',
+    alias: form.efatura ? form.alias : '',
+  };
+}
+
 function SecimChipleri({
   etiket,
-  zorunlu,
   secenekler,
   deger,
   saltOkunur,
@@ -51,7 +75,6 @@ function SecimChipleri({
   onDegistir,
 }: {
   etiket: string;
-  zorunlu?: boolean;
   secenekler: readonly { value: string; label: string }[];
   deger: string;
   saltOkunur: boolean;
@@ -61,10 +84,7 @@ function SecimChipleri({
   return (
     <div className="cari-secili-alan">
       <div className="cari-secili-etiket-satir">
-        <span className="cari-secili-etiket">
-          {etiket}
-          {zorunlu ? <span className="cari-outlined-zorunlu"> *</span> : null}
-        </span>
+        <span className="cari-secili-etiket">{etiket}</span>
         {!saltOkunur && onYonet ? (
           <button
             type="button"
@@ -94,17 +114,20 @@ function SecimChipleri({
   );
 }
 
-export function CariKart({  mod,
+export function CariKart({
+  mod,
   cariId,
   onKaydedildi,
   kaydetRef,
   onKirliDegistir,
+  onUstAksiyonDegistir,
 }: {
   mod: CariKartModu;
   cariId: string | null;
   onKaydedildi: () => void;
   kaydetRef: MutableRefObject<(() => Promise<void>) | null>;
   onKirliDegistir: (kirli: boolean) => void;
+  onUstAksiyonDegistir?: (node: ReactNode | null) => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { eklemeVar, duzenlemeVar } = useYetkiler('cari');
@@ -172,6 +195,20 @@ export function CariKart({  mod,
     setForm((f) => ({ ...f, [alan]: deger }));
   }, []);
 
+  useEffect(() => {
+    if (!onUstAksiyonDegistir) return;
+    onUstAksiyonDegistir(
+      <CariUstCariBaslikSecici
+        ustId={form.ustId}
+        cariler={kayitlar}
+        haricId={cariId}
+        disabled={saltOkunur}
+        onChange={(ustId) => setAlan('ustId', ustId)}
+      />
+    );
+    return () => onUstAksiyonDegistir(null);
+  }, [onUstAksiyonDegistir, form.ustId, kayitlar, cariId, saltOkunur, setAlan]);
+
   const kaydet = useCallback(async () => {
     if (saltOkunur) return;
     if (mod === 'duzenle' && !duzenlemeVar) {
@@ -184,23 +221,24 @@ export function CariKart({  mod,
       hataBildir(mesaj);
       throw new Error(mesaj);
     }
-    const apiForm: CariFormDegeri = {
-      ...form,
-      cariTipi: kartTipindenApiCariTipi(kartTipiSecim),
-      aktif: mod === 'yeni' ? true : form.aktif,
-    };
+    const apiForm = apiFormHazirla(form, kartTipiSecim, mod);
     const hata = cariFormDogrula(apiForm);
     if (hata) {
       hataBildir(hata);
       throw new Error(hata);
     }
     try {
+      let kaydedilenId = cariId;
       if (mod === 'duzenle' && cariId) {
         await cariGuncelle(cariId, apiForm);
         basariBildir('Cari kart güncellendi.');
       } else {
-        await cariOlustur(apiForm);
+        const yeni = await cariOlustur(apiForm);
+        kaydedilenId = yeni.id;
         basariBildir('Cari kart eklendi.');
+      }
+      if (kaydedilenId) {
+        cariIletisimKaydet(kaydedilenId, form.iletisimKisiler);
       }
       onKaydedildi();
     } catch (e) {
@@ -229,8 +267,6 @@ export function CariKart({  mod,
 
   const kimlikModu =
     form.isletmeTuru === 'GERCEK' ? 'gercek' : form.isletmeTuru === 'YABANCI' ? 'yabanci' : 'tuzel';
-  const efaturaSecim = efaturaSecimDegeri(form.efatura, form.efaturaTipi);
-  const efaturaSecenekleri = EFATURA_SECIMLERI.map((s) => ({ value: s.value, label: s.label }));
 
   if (yukleniyor && mod !== 'yeni') return <TanimYukleniyor />;
   if (mod !== 'yeni' && !seciliKayit) return <TanimYukleniyor />;
@@ -240,14 +276,15 @@ export function CariKart({  mod,
       <div className={`cari-kart-sayfa${saltOkunur ? ' cari-kart-sayfa--salt' : ''}`}>
         <div className={`cari-kart-kabuk${saltOkunur ? ' cari-kart-kabuk--salt' : ''}`}>
           <div className="cari-kart-grid">
-            <SecimChipleri
+            <CariOutlinedAramaAcilir
               etiket="Cari Tipi"
               zorunlu
-              secenekler={kartTipleri}
               deger={kartTipiSecim}
-              saltOkunur={saltOkunur}
+              secenekler={kartTipleri}
+              disabled={saltOkunur}
+              aramaPlaceholder="Cari tipi ara…"
               onYonet={() => setTipModalAcik(true)}
-              onDegistir={setKartTipiSecim}
+              onChange={setKartTipiSecim}
             />
             <SecimChipleri
               etiket="İşletme Türü"
@@ -276,37 +313,22 @@ export function CariKart({  mod,
               onChange={(cariKodu) => setAlan('cariKodu', cariKodu)}
             />
             <CariOutlinedGirdi
-              etiket="Cari Adı"
+              etiket="Tabela Adı"
               deger={form.cariAdi}
               zorunlu
               maxLength={255}
-              odakPlaceholder="Cari adını yazınız"
+              odakPlaceholder="Tabela adını yazınız"
               disabled={saltOkunur}
               onChange={(cariAdi) => setAlan('cariAdi', cariAdi)}
             />
             <CariOutlinedGirdi
-              etiket="Ünvan"
+              etiket="Ünvanı"
               deger={form.unvan}
               className="cari-alan-tam"
               maxLength={255}
               odakPlaceholder="Ünvanı yazınız"
               disabled={saltOkunur}
               onChange={(unvan) => setAlan('unvan', unvan)}
-            />
-            <CariOutlinedGirdi
-              etiket="Yetkili"
-              deger={form.yetkili}
-              maxLength={120}
-              odakPlaceholder="Yetkili adını yazınız"
-              disabled={saltOkunur}
-              onChange={(yetkili) => setAlan('yetkili', yetkili)}
-            />
-            <CariUstCariSecici
-              ustId={form.ustId}
-              cariler={kayitlar}
-              haricId={cariId}
-              disabled={saltOkunur}
-              onChange={(ustId) => setAlan('ustId', ustId)}
             />
 
             {kimlikModu === 'yabanci' ? (
@@ -392,32 +414,48 @@ export function CariKart({  mod,
             />
             <CariOutlinedAcilir
               etiket="E-Fatura"
-              deger={efaturaSecim}
-              secenekler={efaturaSecenekleri}
+              deger={form.efatura ? 'EVET' : 'HAYIR'}
+              secenekler={EFATURA_EVET_HAYIR}
               disabled={saltOkunur}
               onChange={(v) => {
-                const secim = EFATURA_SECIMLERI.find((s) => s.value === v);
-                if (!secim) return;
+                const evet = v === 'EVET';
                 setForm((f) => ({
                   ...f,
-                  efatura: secim.efatura,
-                  efaturaTipi: secim.efaturaTipi,
-                  alias: secim.efatura ? f.alias : '',
+                  efatura: evet,
+                  alias: evet ? f.alias : '',
+                  efaturaTipi: evet ? f.efaturaTipi || 'TEMEL' : 'TEMEL',
                 }));
               }}
             />
             {form.efatura ? (
-              <CariOutlinedGirdi
-                etiket="Alias"
-                deger={form.alias}
-                className="cari-alan-tam"
-                maxLength={200}
-                odakPlaceholder="urn:mail:…"
-                disabled={saltOkunur}
-                onChange={(alias) => setAlan('alias', alias)}
-              />
+              <>
+                <CariOutlinedGirdi
+                  etiket="Alias"
+                  deger={form.alias}
+                  maxLength={200}
+                  odakPlaceholder="urn:mail:…"
+                  disabled={saltOkunur}
+                  onChange={(alias) => setAlan('alias', alias)}
+                />
+                <CariOutlinedAcilir
+                  etiket="Fatura Tipi"
+                  deger={form.efaturaTipi === 'TICARI' ? 'TICARI' : 'TEMEL'}
+                  secenekler={FATURA_TIPLERI}
+                  disabled={saltOkunur}
+                  onChange={(efaturaTipi) => setAlan('efaturaTipi', efaturaTipi)}
+                />
+              </>
             ) : null}
+
           </div>
+
+          <CariIletisimBolumu
+            kisiler={form.iletisimKisiler}
+            varsayilanIl={form.il}
+            varsayilanIlce={form.ilce}
+            disabled={saltOkunur}
+            onChange={(iletisimKisiler) => setAlan('iletisimKisiler', iletisimKisiler)}
+          />
 
           {mod !== 'yeni' && seciliKayit && (seciliKayit.olusturma || seciliKayit.guncelleme) ? (
             <div className="cari-kart-tarihler">
