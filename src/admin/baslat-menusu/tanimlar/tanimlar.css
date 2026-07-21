@@ -3415,6 +3415,20 @@ button.ap-tanimlar-panel-arka {
   padding-left: 1.55rem !important;
 }
 
+.stok-yb-outlined-sonek {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-muted);
+  line-height: 1;
+  padding-right: 0.15rem;
+  pointer-events: none;
+}
+
+.stok-yb-outlined-input--sonekli {
+  padding-right: 0.35rem !important;
+}
+
 .stok-yb-kdv-outlined .cari-outlined-acilir-tus {
   width: 100%;
 }

@@ -54,8 +54,8 @@ export function StokDigerVergiBlok() {
             <CariOutlinedSayi
               etiket={etiket}
               deger={ev.deger}
-              placeholder="0,00"
-              sagaHizali
+              placeholder="0"
+              yuzde
               onDegistir={(deger) =>
                 setListe((l) => l.map((x, i) => (i === idx ? { ...x, deger } : x)))
               }

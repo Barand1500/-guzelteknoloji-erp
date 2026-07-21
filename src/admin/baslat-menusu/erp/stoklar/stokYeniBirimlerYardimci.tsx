@@ -38,33 +38,40 @@ export function CariOutlinedSayi({
   onDegistir,
   zorunlu,
   onek,
+  sonek,
   placeholder,
   sagaHizali,
+  yuzde,
 }: {
   etiket: string;
   deger: number | null | undefined;
   onDegistir: (deger: number | null) => void;
   zorunlu?: boolean;
   onek?: string;
+  sonek?: string;
   placeholder?: string;
   sagaHizali?: boolean;
+  /** Yüzde alanı: virgülsüz tam sayı, `%` sonek */
+  yuzde?: boolean;
 }) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
+  const gosterilenOnek = yuzde ? '%' : onek;
+  const gosterilenSonek = yuzde ? undefined : sonek;
 
   return (
     <div className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}>
       <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
       <div className="cari-outlined-cerceve">
-        {onek ? (
+        {gosterilenOnek ? (
           <span className="stok-yb-outlined-onek" aria-hidden>
-            {onek}
+            {gosterilenOnek}
           </span>
         ) : null}
         <input
           id={inputId}
-          className={`cari-outlined-input${onek ? ' stok-yb-outlined-input--onekli' : ''}${sagaHizali ? ' cari-outlined-input--saga' : ''}`.trim()}
-          inputMode="decimal"
+          className={`cari-outlined-input${gosterilenOnek ? ' stok-yb-outlined-input--onekli' : ''}${gosterilenSonek ? ' stok-yb-outlined-input--sonekli' : ''}${sagaHizali || yuzde ? ' cari-outlined-input--saga' : ''}`.trim()}
+          inputMode={yuzde ? 'numeric' : 'decimal'}
           placeholder={placeholder}
           value={sayiGoster(deger)}
           onFocus={() => setFocused(true)}
@@ -75,11 +82,25 @@ export function CariOutlinedSayi({
               onDegistir(null);
               return;
             }
+            if (yuzde) {
+              const sadeceRakam = ham.replace(/\D/g, '');
+              if (!sadeceRakam) {
+                onDegistir(null);
+                return;
+              }
+              onDegistir(Number(sadeceRakam));
+              return;
+            }
             const n = sayiOku(ham);
             if (n !== null) onDegistir(n);
           }}
           aria-label={etiket}
         />
+        {gosterilenSonek ? (
+          <span className="stok-yb-outlined-sonek" aria-hidden>
+            {gosterilenSonek}
+          </span>
+        ) : null}
       </div>
     </div>
   );
