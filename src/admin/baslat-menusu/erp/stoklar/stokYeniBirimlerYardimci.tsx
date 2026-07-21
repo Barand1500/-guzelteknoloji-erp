@@ -139,7 +139,6 @@ export function CariOutlinedFiyat({
             listeSinifi="stok-yb-fiyat-pb-liste"
             listeAnchor="self"
           />
-          />
         </div>
       </div>
     </div>
