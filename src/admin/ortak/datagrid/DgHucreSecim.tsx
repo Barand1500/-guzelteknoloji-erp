@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -8,6 +9,11 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  AP_SEKME_DEGISTI,
+  sekmeGecisTiklamasiMi,
+  sekmePortalHedefi,
+} from '@/araclar/sekmePortal';
 
 type Secenek = { deger: string; etiket: string };
 
@@ -37,32 +43,54 @@ export function DgHucreSecim({
   );
   const [odakIndex, setOdakIndex] = useState(baslangicIdx);
   const [stil, setStil] = useState<CSSProperties>({});
+  const [usteAc, setUsteAc] = useState(false);
 
-  useLayoutEffect(() => {
-    const el = kokRef.current?.closest('td') ?? kokRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const genislik = Math.min(104, Math.max(72, rect.width + 16));
+  const konumGuncelle = useCallback(() => {
+    const tus = odakRef.current;
+    if (!tus) return;
+    const rect = tus.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    // Dar kolonlarda (PB) liste biraz genişlesin; metin tek satırda kalsın
+    const genislik = Math.max(rect.width, 76);
     let left = rect.left + rect.width / 2 - genislik / 2;
     if (left + genislik > window.innerWidth - 8) {
       left = window.innerWidth - genislik - 8;
     }
     if (left < 8) left = 8;
 
-    const listeH = Math.min(160, secenekler.length * 30 + 10);
-    let top = rect.bottom + 4;
-    if (top + listeH > window.innerHeight - 8 && rect.top > listeH + 8) {
-      top = rect.top - listeH - 4;
-    }
+    const listeH = Math.min(148, secenekler.length * 24 + 8);
+    const altaSigar = rect.bottom + listeH <= window.innerHeight - 8;
+    const usteAcik = !altaSigar && rect.top > listeH + 8;
+    setUsteAc(usteAcik);
+
+    const top = usteAcik ? rect.top - listeH + 1.5 : rect.bottom - 1.5;
     setStil({
       position: 'fixed',
       top,
       left,
       width: genislik,
-      maxHeight: Math.min(160, window.innerHeight - top - 8),
+      maxHeight: listeH,
       zIndex: 12050,
     });
   }, [secenekler.length]);
+
+  useLayoutEffect(() => {
+    konumGuncelle();
+  }, [konumGuncelle]);
+
+  useEffect(() => {
+    function yenile() {
+      requestAnimationFrame(() => konumGuncelle());
+    }
+    window.addEventListener(AP_SEKME_DEGISTI, yenile);
+    window.addEventListener('resize', konumGuncelle);
+    window.addEventListener('scroll', konumGuncelle, true);
+    return () => {
+      window.removeEventListener(AP_SEKME_DEGISTI, yenile);
+      window.removeEventListener('resize', konumGuncelle);
+      window.removeEventListener('scroll', konumGuncelle, true);
+    };
+  }, [konumGuncelle]);
 
   useEffect(() => {
     odakRef.current?.focus();
@@ -75,6 +103,7 @@ export function DgHucreSecim({
 
   useEffect(() => {
     function disTik(e: MouseEvent) {
+      if (sekmeGecisTiklamasiMi(e.target)) return;
       const hedef = e.target as Node;
       if (kokRef.current?.contains(hedef) || panelRef.current?.contains(hedef)) return;
       onIptal();
@@ -85,16 +114,18 @@ export function DgHucreSecim({
 
   const sec = (s: Secenek) => onSec(s.deger);
 
-  const portalKok = document.querySelector('.admin-panel') ?? document.body;
+  const portalKok = sekmePortalHedefi(kokRef.current);
 
   return (
     <>
-      <span ref={kokRef} className="dg-hucre-secim-kok">
-        <span className="dg-hucre-secim-goster">{gosterilen}</span>
+      <span
+        ref={kokRef}
+        className={`dg-hucre-secim-kok${usteAc ? ' dg-hucre-secim-kok--uste' : ''}`}
+      >
         <button
           ref={odakRef}
           type="button"
-          className="dg-hucre-secim-odak"
+          className="dg-hucre-secim-tus"
           aria-haspopup="listbox"
           aria-expanded
           aria-controls={listeId}
@@ -132,14 +163,19 @@ export function DgHucreSecim({
               if (hedef) sec(hedef);
             }
           }}
-        />
+        >
+          <span className="dg-hucre-secim-tus-metin">{gosterilen}</span>
+          <span className="dg-hucre-secim-tus-ok" aria-hidden>
+            ▾
+          </span>
+        </button>
       </span>
 
       {createPortal(
         <ul
           ref={panelRef}
           id={listeId}
-          className="ap-form-acilir-secim-liste dg-hucre-secim-liste"
+          className={`ap-form-acilir-secim-liste dg-hucre-secim-liste${usteAc ? ' dg-hucre-secim-liste--uste' : ''}`}
           role="listbox"
           aria-label={baslik}
           style={stil}

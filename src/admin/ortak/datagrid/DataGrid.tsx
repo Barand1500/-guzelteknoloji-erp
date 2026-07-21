@@ -23,6 +23,7 @@ import { DgIkon } from './DgIkonlar';
 import { DgSecimUstKutu } from './DgSecimUstKutu';
 import { DgHucreSecim } from './DgHucreSecim';
 import { EtiketHucre } from './EtiketHucre';
+import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import './datagrid.css';
 
@@ -998,6 +999,20 @@ export function DataGrid<TRow extends { id: string }>({
     el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [odak, duzenleme, sayfalama.satirlar, dg.gorunurKolonlar]);
 
+  const hucreMouseDown = (
+    e: ReactMouseEvent<HTMLTableCellElement>,
+    satirId: string,
+    kolonId: string,
+    duzenliyor: boolean
+  ) => {
+    if (duzenliyor) return;
+    const t = e.target as HTMLElement;
+    if (t.closest('button, input, select, textarea, a, label')) return;
+    e.preventDefault();
+    odakAyarla(satirId, kolonId);
+    e.currentTarget.focus({ preventScroll: true });
+  };
+
   const duzenlemeyiBaslat = (
     satir: TRow,
     kolon: KolonTanimi<TRow>,
@@ -1177,6 +1192,62 @@ export function DataGrid<TRow extends { id: string }>({
       odakAyarla(hedefSatir.id, hedefKolon.id);
     }
   };
+
+  /** Ok navigasyonu td odakliyken orada; fare sonrası odak kaybolursa belge düzeyinde yakala */
+  useEffect(() => {
+    function girdiMi(hedef: EventTarget | null): boolean {
+      if (!(hedef instanceof HTMLElement)) return false;
+      const etiket = hedef.tagName;
+      return etiket === 'INPUT' || etiket === 'TEXTAREA' || etiket === 'SELECT' || hedef.isContentEditable;
+    }
+
+    function onKeyDown(e: globalThis.KeyboardEvent) {
+      if (duzenleme || !odak) return;
+      if (
+        e.key !== 'ArrowUp' &&
+        e.key !== 'ArrowDown' &&
+        e.key !== 'ArrowLeft' &&
+        e.key !== 'ArrowRight' &&
+        e.key !== 'Home' &&
+        e.key !== 'End'
+      ) {
+        return;
+      }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (girdiMi(e.target) || girdiMi(document.activeElement)) return;
+
+      const aktif = document.activeElement;
+      if (aktif instanceof HTMLElement) {
+        if (
+          aktif.closest(
+            '.dg-hizli-giris-hucre, .ap-form-acilir-secim-liste, .dg-hucre-secim-liste, .ap-sil-onay-modal, .dg-sutun-menu'
+          )
+        ) {
+          return;
+        }
+        if (
+          aktif.matches('td.dg-hucre[data-satir-id]') &&
+          !aktif.classList.contains('dg-hizli-giris-hucre')
+        ) {
+          return;
+        }
+      }
+
+      const hedef = odakliSatirKolon();
+      if (!hedef) return;
+      const kolonIdx = dg.gorunurKolonlar.findIndex((k) => k.id === hedef.kolon.id);
+      if (kolonIdx < 0) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      klavyeNav(e as unknown as KeyboardEvent<Element>, hedef.satir, kolonIdx);
+    }
+
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+    // klavyeNav her render'da yeni; odak değişince yenilenmesi yeterli
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duzenleme, odak, odakliSatirKolon, dg.gorunurKolonlar, sayfalama.satirlar]);
 
   const csvAktar = (sadeceSecili = false) => {
     const kaynak = sadeceSecili
@@ -1413,6 +1484,7 @@ export function DataGrid<TRow extends { id: string }>({
                   tabIndex={hucreTabIndex}
                   onFocus={() => odakAyarla(satir.id, kolon.id)}
                   onKeyDown={(e) => klavyeNav(e, satir, kolonIdx)}
+                  onMouseDown={(e) => hucreMouseDown(e, satir.id, kolon.id, false)}
                   onClick={(e) => {
                     e.stopPropagation();
                     odakAyarla(satir.id, kolon.id);
@@ -1428,6 +1500,10 @@ export function DataGrid<TRow extends { id: string }>({
                       tabIndex={-1}
                       onClick={(e) => {
                         e.stopPropagation();
+                        odakAyarla(satir.id, kolon.id);
+                        (e.currentTarget.closest('td') as HTMLElement | null)?.focus({
+                          preventScroll: true,
+                        });
                         if (kolon.degerYaz) satirGuncelle(kolon.degerYaz(satir, !acik));
                       }}
                     >
@@ -1454,6 +1530,7 @@ export function DataGrid<TRow extends { id: string }>({
                 tabIndex={hucreTabIndex}
                 onFocus={() => odakAyarla(satir.id, kolon.id)}
                 onKeyDown={(e) => klavyeNav(e, satir, kolonIdx)}
+                onMouseDown={(e) => hucreMouseDown(e, satir.id, kolon.id, duzenliyor)}
                 onClick={(e) => {
                   odakAyarla(satir.id, kolon.id);
                   e.currentTarget.focus({ preventScroll: true });
@@ -1642,20 +1719,25 @@ export function DataGrid<TRow extends { id: string }>({
       girisAyar: NonNullable<typeof hizliGirisKolonlari>[number]
     ) => {
       const girdiDeger = hizliGiris[kolonId] ?? girisAyar.varsayilan ?? '';
+      const secenekler = (girisAyar.secenekler ?? []).map((s) => ({
+        value: s.deger,
+        label: s.etiket,
+      }));
+      const liste =
+        girisAyar.varsayilan !== undefined
+          ? secenekler
+          : [{ value: '', label: girisAyar.placeholder ?? 'Seçin' }, ...secenekler];
+
       return (
-        <select
-          className="dg-hizli-giris-girdi dg-hizli-giris-secim"
-          title={girisAyar.ipucu ? dgTooltipMetni(girisAyar.ipucu) : undefined}
+        <FormAcilirSecim
+          className="dg-hizli-giris-combobox"
+          listeSinifi="dg-hizli-giris-combobox-liste"
+          listeDikeyBosluk={0}
           value={girdiDeger}
-          onChange={(e) => girdiDegistir(kolonId, e.target.value)}
-        >
-          <option value="">{girisAyar.placeholder ?? 'Seçin'}</option>
-          {girisAyar.secenekler?.map((s) => (
-            <option key={s.deger} value={s.deger}>
-              {s.etiket}
-            </option>
-          ))}
-        </select>
+          onChange={(deger) => girdiDegistir(kolonId, deger)}
+          secenekler={liste}
+          aria-label={girisAyar.ipucu ?? kolonId}
+        />
       );
     };
 

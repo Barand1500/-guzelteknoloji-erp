@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { hucrePanoyaMetni, secimMetnindenKopya } from '@/admin/ortak/datagrid/sagTikYardimci';
+import { useSekmeDegisinceKapat } from '@/araclar/sekmePortal';
 
 function menuBasligi(metin: string): string {
   return metin.replace(/([\p{L}\p{M}']+)/gu, (kelime) => {
@@ -126,6 +127,8 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
     setFlyout(null);
     setMenu(null);
   }, []);
+
+  useSekmeDegisinceKapat(kapat);
 
   useEffect(() => {
     const kok = konteynerRef.current;

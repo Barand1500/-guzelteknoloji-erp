@@ -1,7 +1,13 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
+import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
+import {
+  sekmePortalHedefi,
+  sekmePortaliGizliMi,
+  useSekmeModalGovdeKilidi,
+} from '@/araclar/sekmePortal';
 
 interface SilmeOnayModalProps {
   acik: boolean;
@@ -24,12 +30,20 @@ export function SilmeOnayModal({
   onayMetin = 'Evet, Sil',
   iptalMetin = 'Vazgeç',
 }: SilmeOnayModalProps) {
+  const sekme = useAdminSekmeKabuk();
   const kapat = useCallback(() => onKapat(), [onKapat]);
+  const portalKok = useMemo(
+    () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
+    [acik, sekme?.sekmeId]
+  );
+
+  useSekmeModalGovdeKilidi(acik, portalKok);
 
   useEffect(() => {
-    if (!acik) return;
+    if (!acik || !portalKok) return;
 
     function tusHandler(e: KeyboardEvent) {
+      if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         kapat();
@@ -42,16 +56,10 @@ export function SilmeOnayModal({
     }
 
     document.addEventListener('keydown', tusHandler);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', tusHandler);
-      document.body.style.overflow = '';
-    };
-  }, [acik, kapat, onOnayla]);
+    return () => document.removeEventListener('keydown', tusHandler);
+  }, [acik, kapat, onOnayla, portalKok]);
 
-  if (!acik) return null;
-
-  const portalKok = document.querySelector('.admin-panel') ?? document.body;
+  if (!acik || !portalKok) return null;
 
   return createPortal(
     <div className="ap-sil-onay-modal" role="dialog" aria-modal="true" aria-label={ariaLabel}>

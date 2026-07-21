@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
+import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
+import {
+  sekmePortalHedefi,
+  sekmePortaliGizliMi,
+  useSekmeModalGovdeKilidi,
+} from '@/araclar/sekmePortal';
 import type { GorevKayitGirdi, YapilacakGorev } from './yapilacaklarDepo';
 
 interface GorevModalProps {
@@ -18,6 +24,13 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
   const [bitis, setBitis] = useState('');
   const [onemli, setOnemli] = useState(false);
   const [hata, setHata] = useState('');
+  const sekme = useAdminSekmeKabuk();
+  const portalKok = useMemo(
+    () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
+    [acik, sekme?.sekmeId]
+  );
+
+  useSekmeModalGovdeKilidi(acik, portalKok);
 
   useEffect(() => {
     if (!acik) return;
@@ -51,8 +64,9 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
   }, [metin, baslangic, bitis, onemli, onKaydet]);
 
   useEffect(() => {
-    if (!acik) return;
+    if (!acik || !portalKok) return;
     function tus(e: KeyboardEvent) {
+      if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         onKapat();
@@ -66,16 +80,10 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
       }
     }
     document.addEventListener('keydown', tus);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', tus);
-      document.body.style.overflow = '';
-    };
-  }, [acik, onKapat, kaydet]);
+    return () => document.removeEventListener('keydown', tus);
+  }, [acik, onKapat, kaydet, portalKok]);
 
-  if (!acik) return null;
-
-  const portalKok = document.querySelector('.admin-panel') ?? document.body;
+  if (!acik || !portalKok) return null;
 
   return createPortal(
     <div className="ap-sil-onay-modal yap-gorev-modal" role="dialog" aria-modal="true" aria-label={baslik}>

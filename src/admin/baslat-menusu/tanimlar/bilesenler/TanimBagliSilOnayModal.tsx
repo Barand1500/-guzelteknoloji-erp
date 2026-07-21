@@ -1,8 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import type { TanimSilModu } from '@/admin/baslat-menusu/tanimlar/api';
+import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
+import {
+  sekmePortalHedefi,
+  sekmePortaliGizliMi,
+  useSekmeModalGovdeKilidi,
+} from '@/araclar/sekmePortal';
 
 interface TanimBagliSilOnayModalProps {
   acik: boolean;
@@ -23,15 +29,23 @@ export function TanimBagliSilOnayModal({
 }: TanimBagliSilOnayModalProps) {
   const [mod, setMod] = useState<TanimSilModu>('hepsi');
   const kapat = useCallback(() => onKapat(), [onKapat]);
+  const sekme = useAdminSekmeKabuk();
+  const portalKok = useMemo(
+    () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
+    [acik, sekme?.sekmeId]
+  );
+
+  useSekmeModalGovdeKilidi(acik, portalKok);
 
   useEffect(() => {
     if (acik) setMod('hepsi');
   }, [acik]);
 
   useEffect(() => {
-    if (!acik) return;
+    if (!acik || !portalKok) return;
 
     function tusHandler(e: KeyboardEvent) {
+      if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         kapat();
@@ -46,16 +60,11 @@ export function TanimBagliSilOnayModal({
     }
 
     document.addEventListener('keydown', tusHandler);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', tusHandler);
-      document.body.style.overflow = '';
-    };
-  }, [acik, kapat, onOnayla, mod]);
+    return () => document.removeEventListener('keydown', tusHandler);
+  }, [acik, kapat, onOnayla, mod, portalKok]);
 
-  if (!acik) return null;
+  if (!acik || !portalKok) return null;
 
-  const portalKok = document.querySelector('.admin-panel') ?? document.body;
   const bagliMetin = bagliOzet.join(', ');
 
   return createPortal(

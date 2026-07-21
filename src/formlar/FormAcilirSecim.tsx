@@ -9,6 +9,11 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { formSelectSinifi } from '@/formlar/FormAlani';
+import {
+  sekmeGecisTiklamasiMi,
+  sekmePortalHedefi,
+  useSekmeDegisinceYenile,
+} from '@/araclar/sekmePortal';
 
 export interface FormAcilirSecimSecenek {
   value: string;
@@ -23,15 +28,13 @@ interface FormAcilirSecimProps {
   listeSinifi?: string;
   listeMinGenislik?: number;
   listeAnchor?: 'self' | 'cerceve';
+  /** Tetikleyici ile liste arası dikey boşluk (px). 0 = bitişik */
+  listeDikeyBosluk?: number;
   disabled?: boolean;
   'aria-label'?: string;
 }
 
 const KENAR_BOSLUK = 8;
-
-function portalHedefiBul(): HTMLElement {
-  return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
-}
 
 function anchorBul(trigger: HTMLElement, listeAnchor: 'self' | 'cerceve'): HTMLElement {
   if (listeAnchor === 'self') {
@@ -52,7 +55,8 @@ function anchorBul(trigger: HTMLElement, listeAnchor: 'self' | 'cerceve'): HTMLE
 function listeKonumuHesapla(
   trigger: HTMLButtonElement,
   minGenislik = 0,
-  listeAnchor: 'self' | 'cerceve' = 'cerceve'
+  listeAnchor: 'self' | 'cerceve' = 'cerceve',
+  dikeyBosluk = 4
 ) {
   const rect = anchorBul(trigger, listeAnchor).getBoundingClientRect();
   const genislik = listeAnchor === 'self' ? rect.width : Math.max(rect.width, minGenislik);
@@ -63,7 +67,7 @@ function listeKonumuHesapla(
   }
   if (left < KENAR_BOSLUK) left = KENAR_BOSLUK;
 
-  const ust = rect.bottom + 4;
+  const ust = rect.bottom + dikeyBosluk;
   const maxHeight = Math.max(120, window.innerHeight - ust - KENAR_BOSLUK);
 
   return { top: ust, left, width: genislik, maxHeight };
@@ -77,6 +81,7 @@ export function FormAcilirSecim({
   listeSinifi = '',
   listeMinGenislik = 0,
   listeAnchor = 'cerceve',
+  listeDikeyBosluk = 4,
   disabled = false,
   'aria-label': ariaLabel,
 }: FormAcilirSecimProps) {
@@ -93,7 +98,8 @@ export function FormAcilirSecim({
     const { top, left, width, maxHeight } = listeKonumuHesapla(
       tusRef.current,
       listeMinGenislik,
-      listeAnchor
+      listeAnchor,
+      listeDikeyBosluk
     );
     setListeStil({
       position: 'fixed',
@@ -103,7 +109,15 @@ export function FormAcilirSecim({
       maxHeight,
       zIndex: 10300,
     });
-  }, [listeMinGenislik, listeAnchor]);
+  }, [listeMinGenislik, listeAnchor, listeDikeyBosluk]);
+
+  const sekmeSonrasi = useCallback(() => {
+    if (!acik) return;
+    // Gizli sekmede getBoundingClientRect 0 döner; görünür olunca yenile
+    requestAnimationFrame(() => konumGuncelle());
+  }, [acik, konumGuncelle]);
+
+  useSekmeDegisinceYenile(sekmeSonrasi);
 
   useLayoutEffect(() => {
     if (!acik) return;
@@ -120,6 +134,7 @@ export function FormAcilirSecim({
     if (!acik) return;
 
     function disTik(e: MouseEvent) {
+      if (sekmeGecisTiklamasiMi(e.target)) return;
       const hedef = e.target as Node;
       if (tusRef.current?.contains(hedef) || listeRef.current?.contains(hedef)) return;
       setAcik(false);
@@ -193,7 +208,7 @@ export function FormAcilirSecim({
                 );
               })}
             </ul>,
-            portalHedefiBul()
+            sekmePortalHedefi(tusRef.current)
           )
         : null}
     </div>

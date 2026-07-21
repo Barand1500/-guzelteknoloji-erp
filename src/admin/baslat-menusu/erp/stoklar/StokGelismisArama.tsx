@@ -1,10 +1,16 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { URUN_TIPLERI } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
+import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
+import {
+  sekmePortalHedefi,
+  sekmePortaliGizliMi,
+  useSekmeModalGovdeKilidi,
+} from '@/araclar/sekmePortal';
 import type { StokGelismisFiltre } from './tipler';
 
 interface StokGelismisAramaProps {
@@ -38,13 +44,21 @@ export function StokGelismisArama({
   onKapat,
   sonucSayisi,
 }: StokGelismisAramaProps) {
+  const sekme = useAdminSekmeKabuk();
+  const portalKok = useMemo(
+    () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
+    [acik, sekme?.sekmeId]
+  );
+
+  useSekmeModalGovdeKilidi(acik, portalKok);
+
   const temizle = useCallback(() => {
     onFiltreDegistir({ ...BOS_FILTRE });
   }, [onFiltreDegistir]);
 
   const klavyeIsle = useCallback(
     (e: KeyboardEvent) => {
-      if (!acik) return;
+      if (!acik || sekmePortaliGizliMi(portalKok)) return;
       const hedef = e.target as HTMLElement | null;
       const girdiMi =
         hedef?.tagName === 'INPUT' ||
@@ -72,22 +86,16 @@ export function StokGelismisArama({
         onUygula();
       }
     },
-    [acik, onKapat, onUygula, temizle]
+    [acik, onKapat, onUygula, temizle, portalKok]
   );
 
   useEffect(() => {
     if (!acik) return;
     document.addEventListener('keydown', klavyeIsle);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', klavyeIsle);
-      document.body.style.overflow = '';
-    };
+    return () => document.removeEventListener('keydown', klavyeIsle);
   }, [acik, klavyeIsle]);
 
-  if (!acik) return null;
-
-  const portalKok = document.querySelector('.admin-panel') ?? document.body;
+  if (!acik || !portalKok) return null;
 
   return createPortal(
     <div

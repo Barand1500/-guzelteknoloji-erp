@@ -40,6 +40,7 @@ import { SekmeKapatOnayModal } from '@/admin/kabuk/sekme-cubugu/SekmeKapatOnayMo
 import { SekmeGecisOnayModal } from '@/admin/kabuk/sekme-cubugu/SekmeGecisOnayModal';
 import { AdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import type { AdminModul, AdminSekme } from '@/admin/ortak/tipler/admin';
+import { sekmeDegistiYayinla } from '@/araclar/sekmePortal';
 import '@/stiller/adminTema.css';
 
 interface AyriPencere {
@@ -138,6 +139,10 @@ function AdminPanelGovde() {
   useEffect(() => {
     if (aktifModul?.id) setFocusModulId(aktifModul.id);
   }, [aktifModul?.id, setFocusModulId]);
+
+  useEffect(() => {
+    sekmeDegistiYayinla();
+  }, [aktifSekmeId]);
 
   useEffect(() => {
     function tusHandler(e: KeyboardEvent) {
@@ -518,11 +523,13 @@ function AdminPanelGovde() {
     pencereKapat(sekmeId);
   }
 
-  function icerikPanel(sekme: AdminSekme, sekmeAktif: boolean, split = false) {
+  function icerikPanel(sekme: AdminSekme, sekmeAktif: boolean, split = false, canliGizli = false) {
     return (
       <div
         key={sekme.id}
-        className={`ap-sekme-split-pane flex min-h-0 min-w-0 flex-1 flex-col ${sekmeAktif ? 'ap-modul-panel-odak' : ''}`}
+        className={`ap-sekme-split-pane flex min-h-0 min-w-0 flex-1 flex-col${sekmeAktif ? ' ap-modul-panel-odak' : ''}${canliGizli ? ' ap-sekme-canli-gizli' : ''}`}
+        aria-hidden={canliGizli || undefined}
+        inert={canliGizli || undefined}
       >
         {split && (
           <div
@@ -548,6 +555,11 @@ function AdminPanelGovde() {
       </div>
     );
   }
+
+  const canliSekmeler = useMemo(
+    () => sekmeler.filter((s) => !ayriPencereler.some((p) => p.sekmeId === s.id)),
+    [sekmeler, ayriPencereler]
+  );
 
   return (
     <SistemKesifProvider onModulAc={modulSecHandler}>
@@ -581,12 +593,11 @@ function AdminPanelGovde() {
               {splitSekmeler.map((sekme) => icerikPanel(sekme, aktifSekmeId === sekme.id, true))}
             </div>
           ) : (
-            aktifModul &&
-            !ayriPencereler.some((p) => p.sekmeId === aktifSekmeId) &&
-            icerikPanel(
-              aktifSekme ?? { id: aktifSekmeId, modulId: aktifModul.id, baslik: aktifModul.baslik },
-              true
-            )
+            <div className="ap-sekme-canli-alan relative flex min-h-0 flex-1 flex-col overflow-hidden">
+              {canliSekmeler.map((sekme) =>
+                icerikPanel(sekme, sekme.id === aktifSekmeId, false, sekme.id !== aktifSekmeId)
+              )}
+            </div>
           )}
           <Outlet context={{ aktifModul }} />
         </main>

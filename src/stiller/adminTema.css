@@ -3315,6 +3315,21 @@ html:has(.admin-panel[data-tema='acik']) body {
   gap: 0.125rem;
 }
 
+/* Açık sekmeler mount’ta kalır; pasif olanlar gizlenir → form/liste state korunur */
+.ap-sekme-canli-alan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background: var(--ap-bg);
+}
+
+.ap-sekme-canli-gizli {
+  display: none !important;
+}
+
 .ap-sekme-split-alan {
   display: flex;
   min-height: 0;
@@ -3327,6 +3342,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-sekme-split-pane {
+  position: relative;
   border-right: 1px solid var(--ap-border);
 }
 

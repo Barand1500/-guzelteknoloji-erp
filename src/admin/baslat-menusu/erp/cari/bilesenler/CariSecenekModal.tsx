@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
+import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
+import {
+  sekmePortalHedefi,
+  sekmePortaliGizliMi,
+  useSekmeModalGovdeKilidi,
+} from '@/araclar/sekmePortal';
 
 export interface CariSecenekSatir {
   value: string;
@@ -45,6 +51,13 @@ export function CariSecenekModal({
   const [satirAd, setSatirAd] = useState('');
   const [silUyari, setSilUyari] = useState<{ etiket: string; adet: number } | null>(null);
   const sabit = new Set(sabitDegerler);
+  const sekme = useAdminSekmeKabuk();
+  const portalKok = useMemo(
+    () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
+    [acik, sekme?.sekmeId]
+  );
+
+  useSekmeModalGovdeKilidi(acik, portalKok);
 
   useEffect(() => {
     if (!acik) return;
@@ -88,9 +101,10 @@ export function CariSecenekModal({
   }, [onGuncelle, satirAd, satirDuzenle]);
 
   useEffect(() => {
-    if (!acik) return;
+    if (!acik || !portalKok) return;
 
     function tusHandler(e: KeyboardEvent) {
+      if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         if (silUyari) {
@@ -108,16 +122,10 @@ export function CariSecenekModal({
     }
 
     document.addEventListener('keydown', tusHandler);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', tusHandler);
-      document.body.style.overflow = '';
-    };
-  }, [acik, onKapat, satirDuzenle, silUyari]);
+    return () => document.removeEventListener('keydown', tusHandler);
+  }, [acik, onKapat, satirDuzenle, silUyari, portalKok]);
 
-  if (!acik) return null;
-
-  const portalKok = document.querySelector('.admin-panel') ?? document.body;
+  if (!acik || !portalKok) return null;
 
   return createPortal(
     <div

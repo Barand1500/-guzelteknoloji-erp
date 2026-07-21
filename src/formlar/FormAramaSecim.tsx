@@ -10,14 +10,11 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { formInputSinifi } from '@/formlar/FormAlani';
+import { sekmeGecisTiklamasiMi, sekmePortalHedefi, useSekmeDegisinceYenile } from '@/araclar/sekmePortal';
 
 const KENAR_BOSLUK = 8;
 const LISTE_LIMIT = 80;
 const ARAMA_GECIKME_MS = 80;
-
-function portalHedefiBul(): HTMLElement {
-  return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
-}
 
 function normalizeMetin(metin: string): string {
   return metin.trim().toLocaleLowerCase('tr');
@@ -151,6 +148,12 @@ export function FormAramaSecim({
     });
   }, []);
 
+  const sekmeSonrasi = useCallback(() => {
+    if (!acik) return;
+    requestAnimationFrame(() => konumGuncelle());
+  }, [acik, konumGuncelle]);
+  useSekmeDegisinceYenile(sekmeSonrasi);
+
   useLayoutEffect(() => {
     if (!oneriGoster) return;
     konumGuncelle();
@@ -172,6 +175,7 @@ export function FormAramaSecim({
     if (!acik) return;
 
     function disTik(e: MouseEvent) {
+      if (sekmeGecisTiklamasiMi(e.target)) return;
       const hedef = e.target as Node;
       if (kapsayiciRef.current?.contains(hedef) || listeRef.current?.contains(hedef)) return;
       setAcik(false);
@@ -289,7 +293,7 @@ export function FormAramaSecim({
                 })
               )}
             </ul>,
-            portalHedefiBul()
+            sekmePortalHedefi(kapsayiciRef.current)
           )
         : null}
     </div>

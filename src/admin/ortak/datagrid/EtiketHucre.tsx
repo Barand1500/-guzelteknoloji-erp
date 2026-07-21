@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { sekmePortalHedefi } from '@/araclar/sekmePortal';
+
 interface EtiketParca {
   metin: string;
   renk: string;
@@ -37,7 +39,7 @@ export function EtiketHucre({ etiketler }: { etiketler: EtiketParca[] }) {
     return <span className="dg-etiket-sayac dg-etiket-sayac--bos">—</span>;
   }
 
-  const portalKok = document.querySelector('.admin-panel') ?? document.body;
+  const portalKok = sekmePortalHedefi(tetikRef.current);
 
   return (
     <>

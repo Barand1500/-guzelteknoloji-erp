@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { FormAcilirSecimSecenek } from '@/formlar/FormAcilirSecim';
+import { sekmeGecisTiklamasiMi, sekmePortalHedefi, useSekmeDegisinceYenile } from '@/araclar/sekmePortal';
 import { CariOutlinedEtiket } from './CariOutlinedGirdi';
 
 const KENAR_BOSLUK = 8;
-
-function portalHedefiBul(): HTMLElement {
-  return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
-}
 
 function listeKonumuHesapla(anchor: HTMLElement) {
   const rect = anchor.getBoundingClientRect();
@@ -71,6 +68,12 @@ export function CariOutlinedAramaAcilir({
     setListeStil({ position: 'fixed', top, left, width, maxHeight, zIndex: 10050 });
   }, []);
 
+  const sekmeSonrasi = useCallback(() => {
+    if (!acik) return;
+    requestAnimationFrame(() => konumGuncelle());
+  }, [acik, konumGuncelle]);
+  useSekmeDegisinceYenile(sekmeSonrasi);
+
   useLayoutEffect(() => {
     if (!acik) return;
     konumGuncelle();
@@ -85,6 +88,7 @@ export function CariOutlinedAramaAcilir({
   useEffect(() => {
     if (!acik) return;
     function disTik(e: MouseEvent) {
+      if (sekmeGecisTiklamasiMi(e.target)) return;
       const hedef = e.target as Node;
       if (kapsayiciRef.current?.contains(hedef) || listeRef.current?.contains(hedef)) return;
       setAcik(false);
@@ -193,7 +197,7 @@ export function CariOutlinedAramaAcilir({
                 )}
               </ul>
             </div>,
-            portalHedefiBul()
+            sekmePortalHedefi(kapsayiciRef.current)
           )
         : null}
     </div>
