@@ -13,6 +13,11 @@ export function CariOutlinedMensei({ deger, onChange, disabled = false }: CariOu
   const [focused, setFocused] = useState(false);
   const menseiAra = useCallback((arama: string) => ulkeAra(arama), []);
 
+  const handleChange = useCallback(
+    (mensei: string) => onChange(mensei.toLocaleUpperCase('tr')),
+    [onChange]
+  );
+
   return (
     <CariOutlinedSarmalayici etiket="Menşei" disabled={disabled}>
       <div
@@ -23,7 +28,7 @@ export function CariOutlinedMensei({ deger, onChange, disabled = false }: CariOu
       >
         <FormAramaSecim
           value={deger}
-          onChange={onChange}
+          onChange={handleChange}
           secenekAra={menseiAra}
           minAramaUzunlugu={MIN_ULKE_ARAMA_UZUNLUGU}
           placeholder={focused ? 'En az 2 harf yazın…' : undefined}

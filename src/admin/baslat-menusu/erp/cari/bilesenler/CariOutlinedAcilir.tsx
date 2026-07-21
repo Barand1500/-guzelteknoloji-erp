@@ -8,15 +8,25 @@ export function CariOutlinedAcilir({
   onChange,
   secenekler,
   disabled = false,
+  sinif,
+  listeSinifi,
+  listeMinGenislik,
 }: {
   etiket: string;
   deger: string;
   onChange: (deger: string) => void;
   secenekler: readonly FormAcilirSecimSecenek[];
   disabled?: boolean;
+  sinif?: string;
+  listeSinifi?: string;
+  listeMinGenislik?: number;
 }) {
   return (
-    <CariOutlinedSarmalayici etiket={etiket} disabled={disabled} className="cari-outlined-acilir">
+    <CariOutlinedSarmalayici
+      etiket={etiket}
+      disabled={disabled}
+      className={`cari-outlined-acilir${sinif ? ` ${sinif}` : ''}`.trim()}
+    >
       <FormAcilirSecim
         value={deger}
         onChange={onChange}
@@ -24,6 +34,8 @@ export function CariOutlinedAcilir({
         disabled={disabled}
         aria-label={etiket}
         className="cari-outlined-acilir-tus"
+        listeSinifi={listeSinifi}
+        listeMinGenislik={listeMinGenislik}
       />
     </CariOutlinedSarmalayici>
   );

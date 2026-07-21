@@ -12092,11 +12092,21 @@ html:has(.admin-panel[data-tema='acik']) body {
   box-shadow: 0 10px 28px color-mix(in srgb, var(--ap-heading) 18%, transparent);
   overflow-y: auto;
   overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.ap-form-acilir-secim-liste > li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
 }
 
 .ap-form-acilir-secim-oge {
   display: block;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   text-align: left;
   padding: 0.45rem 0.625rem;
   border: none;
@@ -12109,19 +12119,19 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-form-acilir-secim-oge:hover,
 .ap-form-acilir-secim-oge-odak {
-  background: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 88%, #fff);
   color: #fff;
 }
 
 .ap-form-acilir-secim-oge-secili {
-  background: transparent;
-  color: var(--ap-text);
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  color: var(--ap-accent);
   font-weight: 600;
 }
 
 .ap-form-acilir-secim-oge-secili:hover,
 .ap-form-acilir-secim-oge-secili.ap-form-acilir-secim-oge-odak {
-  background: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 88%, #fff);
   color: #fff;
 }
 

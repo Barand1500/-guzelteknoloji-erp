@@ -20,6 +20,8 @@ interface FormAcilirSecimProps {
   onChange: (value: string) => void;
   secenekler: readonly FormAcilirSecimSecenek[];
   className?: string;
+  listeSinifi?: string;
+  listeMinGenislik?: number;
   disabled?: boolean;
   'aria-label'?: string;
 }
@@ -38,9 +40,9 @@ function anchorBul(trigger: HTMLElement): HTMLElement {
   );
 }
 
-function listeKonumuHesapla(trigger: HTMLButtonElement) {
+function listeKonumuHesapla(trigger: HTMLButtonElement, minGenislik = 0) {
   const rect = anchorBul(trigger).getBoundingClientRect();
-  const genislik = rect.width;
+  const genislik = Math.max(rect.width, minGenislik);
   let left = rect.left;
 
   if (left + genislik > window.innerWidth - KENAR_BOSLUK) {
@@ -59,6 +61,8 @@ export function FormAcilirSecim({
   onChange,
   secenekler,
   className = '',
+  listeSinifi = '',
+  listeMinGenislik = 0,
   disabled = false,
   'aria-label': ariaLabel,
 }: FormAcilirSecimProps) {
@@ -72,7 +76,10 @@ export function FormAcilirSecim({
 
   const konumGuncelle = useCallback(() => {
     if (!tusRef.current) return;
-    const { top, left, width, maxHeight } = listeKonumuHesapla(tusRef.current);
+    const { top, left, width, maxHeight } = listeKonumuHesapla(
+      tusRef.current,
+      listeMinGenislik
+    );
     setListeStil({
       position: 'fixed',
       top,
@@ -81,7 +88,7 @@ export function FormAcilirSecim({
       maxHeight,
       zIndex: 10300,
     });
-  }, []);
+  }, [listeMinGenislik]);
 
   useLayoutEffect(() => {
     if (!acik) return;
@@ -148,7 +155,7 @@ export function FormAcilirSecim({
             <ul
               ref={listeRef}
               id={listeId}
-              className="ap-form-acilir-secim-liste"
+              className={`ap-form-acilir-secim-liste${listeSinifi ? ` ${listeSinifi}` : ''}`.trim()}
               role="listbox"
               aria-label={ariaLabel}
               style={listeStil}
