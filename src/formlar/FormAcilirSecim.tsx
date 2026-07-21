@@ -22,6 +22,7 @@ interface FormAcilirSecimProps {
   className?: string;
   listeSinifi?: string;
   listeMinGenislik?: number;
+  listeAnchor?: 'self' | 'cerceve';
   disabled?: boolean;
   'aria-label'?: string;
 }
@@ -32,7 +33,15 @@ function portalHedefiBul(): HTMLElement {
   return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
 }
 
-function anchorBul(trigger: HTMLElement): HTMLElement {
+function anchorBul(trigger: HTMLElement, listeAnchor: 'self' | 'cerceve'): HTMLElement {
+  if (listeAnchor === 'self') {
+    return (
+      (trigger.closest('.ap-form-acilir-secim-liste-anchor') as HTMLElement | null) ??
+      (trigger.closest('.ap-form-acilir-secim') as HTMLElement | null) ??
+      trigger
+    );
+  }
+
   return (
     (trigger.closest('.cari-outlined-cerceve') as HTMLElement | null) ??
     (trigger.closest('.ap-form-acilir-secim') as HTMLElement | null) ??
@@ -40,9 +49,13 @@ function anchorBul(trigger: HTMLElement): HTMLElement {
   );
 }
 
-function listeKonumuHesapla(trigger: HTMLButtonElement, minGenislik = 0) {
-  const rect = anchorBul(trigger).getBoundingClientRect();
-  const genislik = Math.max(rect.width, minGenislik);
+function listeKonumuHesapla(
+  trigger: HTMLButtonElement,
+  minGenislik = 0,
+  listeAnchor: 'self' | 'cerceve' = 'cerceve'
+) {
+  const rect = anchorBul(trigger, listeAnchor).getBoundingClientRect();
+  const genislik = listeAnchor === 'self' ? rect.width : Math.max(rect.width, minGenislik);
   let left = rect.left;
 
   if (left + genislik > window.innerWidth - KENAR_BOSLUK) {
@@ -63,6 +76,7 @@ export function FormAcilirSecim({
   className = '',
   listeSinifi = '',
   listeMinGenislik = 0,
+  listeAnchor = 'cerceve',
   disabled = false,
   'aria-label': ariaLabel,
 }: FormAcilirSecimProps) {
@@ -78,7 +92,8 @@ export function FormAcilirSecim({
     if (!tusRef.current) return;
     const { top, left, width, maxHeight } = listeKonumuHesapla(
       tusRef.current,
-      listeMinGenislik
+      listeMinGenislik,
+      listeAnchor
     );
     setListeStil({
       position: 'fixed',
@@ -88,7 +103,7 @@ export function FormAcilirSecim({
       maxHeight,
       zIndex: 10300,
     });
-  }, [listeMinGenislik]);
+  }, [listeMinGenislik, listeAnchor]);
 
   useLayoutEffect(() => {
     if (!acik) return;

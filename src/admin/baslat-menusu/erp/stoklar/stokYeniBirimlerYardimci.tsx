@@ -1,6 +1,8 @@
 import { useId, useState } from 'react';
 import { CariOutlinedEtiket } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
-import type { StokFiyatKdvTipi } from './fiyatDuzenleTipler';
+import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
+import type { FormAcilirSecimSecenek } from '@/formlar/FormAcilirSecim';
+import type { StokFiyatKdvTipi, StokFiyatPb } from './fiyatDuzenleTipler';
 
 export function sayiOku(ham: string): number | null {
   const t = ham.trim();
@@ -64,6 +66,81 @@ export function CariOutlinedSayi({
           }}
           aria-label={etiket}
         />
+      </div>
+    </div>
+  );
+}
+
+export function CariOutlinedFiyat({
+  etiket,
+  deger,
+  onDegistir,
+  pb,
+  onPbChange,
+  pbSecenekleri,
+  zorunlu,
+  onek,
+  placeholder,
+}: {
+  etiket: string;
+  deger: number | null | undefined;
+  onDegistir: (deger: number | null) => void;
+  pb: StokFiyatPb;
+  onPbChange: (pb: StokFiyatPb) => void;
+  pbSecenekleri: readonly FormAcilirSecimSecenek[];
+  zorunlu?: boolean;
+  onek?: string;
+  placeholder?: string;
+}) {
+  const inputId = useId();
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <div
+      className={`cari-outlined-field stok-yb-fiyat-alan${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
+      }}
+    >
+      <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
+      <div className="cari-outlined-cerceve">
+        {onek ? (
+          <span className="stok-yb-outlined-onek" aria-hidden>
+            {onek}
+          </span>
+        ) : null}
+        <input
+          id={inputId}
+          className={`cari-outlined-input stok-yb-fiyat-input${onek ? ' stok-yb-outlined-input--onekli' : ''}`}
+          inputMode="decimal"
+          placeholder={placeholder}
+          value={sayiGoster(deger)}
+          onChange={(e) => {
+            const ham = e.target.value;
+            if (!ham.trim()) {
+              onDegistir(null);
+              return;
+            }
+            const n = sayiOku(ham);
+            if (n !== null) onDegistir(n);
+          }}
+          aria-label={etiket}
+        />
+        <div className="cari-outlined-sonek stok-yb-fiyat-pb-sonek ap-form-acilir-secim-liste-anchor">
+          <FormAcilirSecim
+            value={pb}
+            onChange={(v) =>
+              onPbChange(v === 'USD' || v === 'EUR' ? v : 'TL')
+            }
+            secenekler={pbSecenekleri}
+            aria-label="Para birimi"
+            className="stok-yb-fiyat-pb-secim"
+            listeSinifi="stok-yb-fiyat-pb-liste"
+            listeAnchor="self"
+          />
+          />
+        </div>
       </div>
     </div>
   );

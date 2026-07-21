@@ -13,6 +13,7 @@ import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
+import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { stokGuncelle, stokSil, stoklariGetir } from './api';
 import { StokGelismisArama } from './StokGelismisArama';
 import { StokFiyatDuzenle } from './StokFiyatDuzenle';
@@ -499,10 +500,28 @@ export function StoklarSayfasi() {
 
   return (
     <AdminModulKabuk
-      baslik={gorunum === 'kart' ? undefined : modulBaslik}
+      baslik={modulBaslik}
       aciklama={modulAciklama}
       ustAksiyon={
-        gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
+        gorunum === 'kart' ? (
+          <button
+            type="button"
+            className="cari-listeye-don-ikon"
+            onClick={listeyeDon}
+            title="Geri Dön"
+            aria-label="Geri Dön"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+              <path
+                d="M15 6l-6 6 6 6"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-modul-ust-araclar">
             <DgSecimUstKutu
               sayi={seciliIdler.length}
@@ -538,14 +557,6 @@ export function StoklarSayfasi() {
       }
     >
       <div className="ap-tanimlar-sayfa">
-        {gorunum === 'kart' ? (
-          <div className="stok-karti-modul-ust">
-            <button type="button" className="ap-tanimlar-duzenle-geri" onClick={listeyeDon}>
-              ← Listeye dön
-            </button>
-            <h2 className="stok-karti-modul-baslik">{modulBaslik}</h2>
-          </div>
-        ) : null}
         {gorunum === 'kart' ? (
           <StokKarti
             mod={kartModu}

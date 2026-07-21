@@ -2470,23 +2470,6 @@ button.ap-tanimlar-panel-arka {
   padding: 0;
 }
 
-.stok-karti-modul-ust {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  flex-shrink: 0;
-  min-width: 0;
-  margin-left: 1.15rem;
-}
-
-.stok-karti-modul-baslik {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--ap-heading);
-}
-
 .stok-karti-kabuk {
   flex: 1 1 auto;
   min-height: 0;
@@ -2514,20 +2497,21 @@ button.ap-tanimlar-panel-arka {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 1rem 1.15rem 1.25rem;
+  padding: 0.15rem 0 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.9rem;
 }
 
 /* Cari kartı gibi gri panel — turuncu sol şerit yok */
 .stok-karti-bolum-panel {
-  padding: 0.85rem 0.9rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--ap-border);
-  background: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
-  --cari-outlined-etiket-bg: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
-  --cari-alan-zemin: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
+  padding: 1.35rem 1.4rem 1.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  background: var(--ap-surface);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--ap-heading) 5%, transparent);
+  --cari-outlined-etiket-bg: var(--ap-surface);
+  --cari-alan-zemin: var(--ap-surface);
   min-width: 0;
 }
 
@@ -2559,8 +2543,8 @@ button.ap-tanimlar-panel-arka {
   --stok-karti-kisa-alan-genislik: 12.75rem;
   display: grid;
   grid-template-columns: minmax(10rem, 0.5fr) minmax(0, 1.5fr);
-  gap: 0.5rem 1.15rem;
-  align-items: end;
+  gap: 1rem 1.1rem;
+  align-items: start;
 }
 
 .stok-karti-ana-grid > .cari-outlined-field,
@@ -2573,7 +2557,7 @@ button.ap-tanimlar-panel-arka {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: minmax(10rem, 0.5fr) minmax(0, 1.5fr);
-  gap: 0.5rem 1.15rem;
+  gap: 1rem 1.1rem;
   align-items: start;
 }
 
@@ -2590,12 +2574,19 @@ button.ap-tanimlar-panel-arka {
 
 .stok-karti-diger-vergi {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 0.45rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.stok-karti-diger-vergi > .cari-outlined-acilir {
+  flex: none;
   width: var(--stok-karti-kisa-alan-genislik);
   max-width: var(--stok-karti-kisa-alan-genislik);
-  min-width: 0;
-  justify-self: start;
 }
 
 .stok-karti-diger-vergi-acilir .cari-outlined-etiket-metin {
@@ -2627,6 +2618,10 @@ button.ap-tanimlar-panel-arka {
   display: flex;
   align-items: flex-end;
   gap: 0.35rem;
+  flex: 1 1 10rem;
+  min-width: 9.5rem;
+  width: auto;
+  max-width: none;
 }
 
 .stok-karti-diger-vergi-ek .cari-outlined-field {
@@ -2853,8 +2848,20 @@ button.ap-tanimlar-panel-arka {
   margin-bottom: 0.2rem;
 }
 
-.stok-karti-form .ap-input,
-.stok-karti-form .ap-form-acilir-secim-tus {
+.stok-karti-form .cari-outlined-input {
+  padding: 0.5rem 0.1rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.stok-karti-form .cari-outlined-acilir .ap-form-acilir-secim-tus {
+  padding: 0.4rem 0.1rem !important;
+  min-height: unset;
+  font-size: 0.9rem;
+}
+
+.stok-karti-form .ap-input:not(.ap-form-acilir-secim-tus),
+.stok-karti-form .ap-form-acilir-secim-tus:not(.cari-outlined-acilir-tus) {
   min-height: 2rem;
   padding-top: 0.3rem;
   padding-bottom: 0.3rem;
@@ -2919,6 +2926,9 @@ button.ap-tanimlar-panel-arka {
 
 .stok-yb-fiyat-secim {
   min-width: 0;
+  width: 100%;
+  display: block;
+  padding-top: 0.55rem;
 }
 
 .stok-yb-fiyat-ust-icerik {
@@ -2926,6 +2936,7 @@ button.ap-tanimlar-panel-arka {
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.65rem;
+  width: 100%;
   min-width: 0;
 }
 
@@ -2941,7 +2952,8 @@ button.ap-tanimlar-panel-arka {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  flex-shrink: 0;
+  flex: none;
+  margin-left: auto;
   padding-bottom: 0.1rem;
 }
 
@@ -3004,10 +3016,6 @@ button.ap-tanimlar-panel-arka {
   font-size: 0.75rem;
   padding: 0;
   line-height: 1;
-}
-
-.stok-yb-fiyat-secim {
-  min-width: 0;
 }
 
 .stok-yb-bos {
@@ -3090,80 +3098,177 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-yb-kart {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
+  display: grid;
+  grid-template-columns:
+    minmax(4.25rem, 0.68fr)
+    minmax(2.45rem, 0.34fr)
+    0.85rem
+    minmax(5rem, 0.95fr)
+    minmax(3.65rem, 0.68fr)
+    minmax(4.1rem, 0.76fr)
+    minmax(3.15rem, 0.58fr);
+  column-gap: 0.4rem;
+  row-gap: 0.45rem;
+  align-items: end;
   min-width: 0;
   padding: 0.15rem 0;
 }
 
-.stok-yb-kart-ikili {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  min-width: 0;
-  width: 100%;
+.stok-yb-kart-grup--alis,
+.stok-yb-kart-grup--satis {
+  display: contents;
 }
 
-.stok-yb-kart-sol {
-  flex: 1 1 50%;
-  min-width: 0;
-  max-width: none;
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  justify-content: flex-start;
-}
-
-.stok-yb-kart-ayrac-dikey {
-  flex: 0 0 3.85rem;
-  width: 3.85rem;
-  min-width: 3.85rem;
-  margin: 0.42rem 0 0;
-  align-self: stretch;
-  border: none;
-  background: transparent;
-}
-
-.stok-yb-kart-sag {
-  flex: 1 1 50%;
-  width: 50%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.stok-yb-kart-grup {
-  display: grid;
-  align-items: end;
-  min-width: 0;
-}
-
-.stok-yb-kart-grup--birim-carpan {
-  grid-template-columns: minmax(0, 1.62fr) minmax(2.75rem, 0.68fr);
-  gap: 0.55rem;
-}
-
-.stok-yb-barkod-alan {
+.stok-yb-kart-grup--alis > :nth-child(1) {
   grid-column: 1;
+}
+
+.stok-yb-kart-grup--alis > :nth-child(2) {
+  grid-column: 2;
+}
+
+.stok-yb-kart-grup--alis > :nth-child(3) {
+  grid-column: 4;
+}
+
+.stok-yb-kart-grup--alis > :nth-child(4) {
+  grid-column: 5;
+}
+
+.stok-yb-kart-grup--alis > :nth-child(5) {
+  grid-column: 6;
+}
+
+.stok-yb-kart-grup--alis > :nth-child(6) {
+  grid-column: 7;
+}
+
+.stok-yb-kart-grup--satis > :nth-child(1) {
+  grid-column: 1 / span 2;
+}
+
+.stok-yb-kart-grup--satis > :nth-child(2) {
+  grid-column: 4;
+}
+
+.stok-yb-kart-grup--satis > :nth-child(3) {
+  grid-column: 5;
+}
+
+.stok-yb-kart-grup--satis > :nth-child(4) {
+  grid-column: 6;
+}
+
+.stok-yb-kart-grup--satis > :nth-child(5) {
+  grid-column: 7;
+}
+
+.stok-yb-kart-satir--aksiyon {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0;
+  padding-top: 0.05rem;
+}
+
+.stok-yb-birim-kisa.cari-outlined-field {
   min-width: 0;
 }
 
-.stok-yb-kart-grup--fiyat {
-  grid-template-columns:
-    minmax(4.1rem, 1fr)
-    minmax(2.85rem, 3.1rem)
-    minmax(4.1rem, 1fr)
-    minmax(2.85rem, 3.1rem)
-    minmax(3.5rem, 4.1rem);
-  gap: 0.45rem;
+.stok-yb-kart-grup--alis .stok-yb-toggle-alan,
+.stok-yb-kart-grup--satis .stok-yb-toggle-alan {
+  min-height: 2.95rem;
+  padding: 0.72rem 0.35rem 0.5rem;
+}
+
+.stok-yb-kart-grup--alis .cari-secili-etiket,
+.stok-yb-kart-grup--satis .cari-secili-etiket {
+  font-size: 0.64rem;
 }
 
 .stok-yb-pb-acilir .cari-outlined-cerceve {
   padding-left: 0.28rem;
   padding-right: 0.22rem;
+}
+
+.stok-yb-fiyat-alan .cari-outlined-cerceve {
+  position: relative;
+  padding-right: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.stok-yb-fiyat-input {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-right: 0.5rem !important;
+}
+
+.stok-yb-fiyat-pb-sonek {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 0.08rem 0 0.15rem;
+  background: color-mix(in srgb, var(--ap-text) 4%, var(--ap-input-bg));
+}
+
+.stok-yb-fiyat-pb-sonek .ap-form-acilir-secim {
+  position: relative;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  height: 100%;
+}
+
+.stok-yb-fiyat-pb-secim.ap-form-acilir-secim-tus {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  justify-content: center;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0.85rem 0.35rem 0.15rem !important;
+  gap: 0;
+  box-shadow: none;
+}
+
+.stok-yb-fiyat-pb-secim .ap-form-acilir-secim-tus-metin {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ap-text);
+}
+
+.stok-yb-fiyat-pb-secim .ap-form-acilir-secim-ok {
+  position: absolute;
+  right: 0.12rem;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+  font-size: 0.55rem;
+  line-height: 1;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.stok-yb-fiyat-pb-liste {
+  padding: 0.2rem;
+  min-width: 0;
+  max-width: none;
+}
+
+.stok-yb-fiyat-pb-liste .ap-form-acilir-secim-oge {
+  text-align: center;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .stok-yb-pb-acilir .ap-form-acilir-secim {
@@ -3215,33 +3320,6 @@ button.ap-tanimlar-panel-arka {
   letter-spacing: 0.02em;
 }
 
-.stok-yb-kart-grup--kdv {
-  grid-template-columns:
-    minmax(3.85rem, 1fr)
-    minmax(4.65rem, 1.05fr)
-    minmax(3.85rem, 1fr)
-    minmax(4.65rem, 1.05fr)
-    minmax(3.5rem, 4.1rem);
-  gap: 0.45rem;
-}
-
-.stok-yb-kart-grup--fiyat .stok-yb-toggle-alan,
-.stok-yb-kart-grup--kdv .stok-yb-toggle-alan {
-  min-height: 2.95rem;
-  padding: 0.72rem 0.4rem 0.5rem;
-}
-
-.stok-yb-kart-grup--fiyat .cari-secili-etiket,
-.stok-yb-kart-grup--kdv .cari-secili-etiket {
-  font-size: 0.64rem;
-}
-
-.stok-yb-kart-satir--aksiyon {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0;
-  padding-top: 0.05rem;
-}
 
 .stok-yb-kdv-tip-segment {
   display: flex;
@@ -3519,32 +3597,24 @@ button.ap-tanimlar-panel-arka {
 }
 
 @media (max-width: 1100px) {
-  .stok-yb-kart-ikili {
-    flex-direction: column;
-    gap: 0.65rem;
+  .stok-yb-kart {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .stok-yb-kart-sol,
-  .stok-yb-kart-sag {
-    flex: 1 1 auto;
-    width: 100%;
-  }
-
-  .stok-yb-kart-ayrac-dikey {
-    display: none;
-  }
-
-  .stok-yb-kart-grup--fiyat,
-  .stok-yb-kart-grup--kdv {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .stok-yb-kart-grup--alis > *,
+  .stok-yb-kart-grup--satis > * {
+    grid-column: auto !important;
   }
 }
 
 @media (max-width: 700px) {
-  .stok-yb-kart-grup--birim-carpan,
-  .stok-yb-kart-grup--fiyat,
-  .stok-yb-kart-grup--kdv {
+  .stok-yb-kart {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stok-yb-kart-grup--alis > *,
+  .stok-yb-kart-grup--satis > * {
+    grid-column: 1 !important;
   }
 
   .stok-yb-fiyat-ust-icerik {
