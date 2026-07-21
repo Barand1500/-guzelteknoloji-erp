@@ -91,12 +91,13 @@ export function geciciIdMi(id: string): boolean {
 }
 
 export function bosBirimFiyatSatiri(secenek?: {
+  fiyatAdi?: string;
   anaBirimMi?: boolean;
   varsayilanMi?: boolean;
 }): StokFiyatDuzenleSatir {
   return {
     id: yeniIdGecici(),
-    fiyatAdi: 'FİYAT',
+    fiyatAdi: secenek?.fiyatAdi ?? 'FİYAT',
     birim: 'ADET',
     carpan: 1,
     barkod: '',

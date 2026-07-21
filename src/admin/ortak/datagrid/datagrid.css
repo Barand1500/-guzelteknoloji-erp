@@ -1560,6 +1560,18 @@ td.dg-hucre--sabit,
   flex-shrink: 0;
 }
 
+.dg-alt-ozet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ap-muted);
+}
+
+.dg-alt-ayrac {
+  color: color-mix(in srgb, var(--ap-muted) 75%, var(--ap-border));
+  user-select: none;
+}
+
 .dg-sayfalama {
   display: flex;
   align-items: center;
@@ -2554,9 +2566,9 @@ td.dg-hucre--sabit,
   align-items: center;
   gap: 0.35rem;
   padding: 0.2rem 0.35rem;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  border: 1px solid color-mix(in srgb, var(--ap-border) 65%, transparent);
   border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--ap-hover) 55%, var(--ap-surface));
+  background: var(--ap-surface-2);
 }
 
 .dg-secim-ust-ayrac {
@@ -2567,19 +2579,16 @@ td.dg-hucre--sabit,
   background: color-mix(in srgb, var(--ap-border) 90%, transparent);
 }
 
-.dg-secim-ust-metin {
-  padding: 0 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 600;
+.dg-secim-ust-tus {
+  padding: 0.35rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--ap-muted);
   white-space: nowrap;
 }
 
-.dg-secim-ust-tus {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  white-space: nowrap;
+.dg-secim-ust-tus:hover {
+  color: var(--ap-text);
 }
 
 .dg-modul-ust-araclar {

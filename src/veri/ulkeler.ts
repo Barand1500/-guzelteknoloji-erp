@@ -201,7 +201,7 @@ export const ULKELER: readonly string[] = [
 ];
 
 /** Menşei aramasında en az bu kadar harf yazılınca öneri gösterilir. */
-export const MIN_ULKE_ARAMA_UZUNLUGU = 1;
+export const MIN_ULKE_ARAMA_UZUNLUGU = 2;
 
 const ULKE_ONERI_LIMIT = 30;
 

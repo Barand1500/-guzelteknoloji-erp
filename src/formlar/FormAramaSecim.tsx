@@ -31,8 +31,16 @@ function secenekleriFiltrele(secenekler: string[], arama: string, minAramaUzunlu
     .slice(0, LISTE_LIMIT);
 }
 
+function anchorBul(trigger: HTMLElement): HTMLElement {
+  return (
+    (trigger.closest('.cari-outlined-cerceve') as HTMLElement | null) ??
+    (trigger.closest('.ap-form-arama-secim') as HTMLElement | null) ??
+    trigger
+  );
+}
+
 function listeKonumuHesapla(anchor: HTMLElement) {
-  const rect = anchor.getBoundingClientRect();
+  const rect = anchorBul(anchor).getBoundingClientRect();
   const genislik = rect.width;
   let left = rect.left;
 

@@ -1,6 +1,7 @@
 /**
  * Seçim işlemleri kutusu — DataGrid üst barı ve modül başlığı için ortak.
- * Sıra: Aktif Yap · Pasif Yap · | · N kayıt seçili · Dışa Aktar · Seçimi Temizle
+ * Sıra: Aktif Yap · Pasif Yap · | · Dışa Aktar · Seçimi Temizle
+ * (Seçili kayıt sayısı tablo alt özetinde gösterilir.)
  */
 export function DgSecimUstKutu({
   sayi,
@@ -32,7 +33,6 @@ export function DgSecimUstKutu({
           <span className="dg-secim-ust-ayrac" aria-hidden />
         </>
       ) : null}
-      <span className="dg-secim-ust-metin">{sayi} kayıt seçili</span>
       <button type="button" className="dg-tus dg-secim-ust-tus" onClick={onDisaAktar}>
         Dışa Aktar
       </button>

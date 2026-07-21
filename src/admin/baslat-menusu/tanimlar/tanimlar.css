@@ -228,6 +228,7 @@
   border: 1px solid var(--ap-border);
   background: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
   border-left: 3px solid color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  --cari-outlined-etiket-bg: color-mix(in srgb, var(--ap-surface-2) 30%, var(--ap-surface));
 }
 
 .ap-tanimlar-bolum-baslik {
@@ -2496,6 +2497,11 @@ button.ap-tanimlar-panel-arka {
   gap: 0.75rem;
 }
 
+.stok-karti-ana-tanimlar .cari-outlined-field,
+.stok-karti-ana-tanimlar .cari-durum-alan {
+  min-width: 0;
+}
+
 .stok-karti-ana-tanimlar .stok-karti-yatay {
   grid-template-columns: 7.5rem minmax(0, 1fr);
 }
@@ -2522,6 +2528,28 @@ button.ap-tanimlar-panel-arka {
   flex-direction: column;
   gap: 0.5rem;
   min-width: 0;
+}
+
+.stok-karti-durum-alan {
+  width: fit-content;
+  max-width: 100%;
+  align-self: flex-start;
+  min-height: 2.55rem;
+  padding: 0.78rem 0.75rem 0.5rem;
+}
+
+.stok-karti-durum-alan .ap-tanimlar-aktif-satir {
+  margin: 0;
+  padding: 0;
+  border-top: none;
+  gap: 0.65rem;
+  width: auto;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.stok-karti-durum-alan .cari-durum-icerik {
+  width: auto;
 }
 
 .stok-karti-durum-satir {
@@ -2741,12 +2769,52 @@ button.ap-tanimlar-panel-arka {
   }
 }
 
-/* ── Yeni Stok — F001 Birimler kartı ── */
+/* ── Yeni Stok — Birimler kartı ── */
 .stok-yb-kabuk {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
   min-width: 0;
+}
+
+.stok-yb-fiyat-ust {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 0.15rem;
+}
+
+.stok-yb-baslik-birim {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.stok-yb-birim-ekle {
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.68rem;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.stok-yb-fiyat-secim {
+  min-width: 0;
+}
+
+.stok-yb-bos {
+  padding: 1rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--ap-muted);
+  border-top: 1px solid var(--ap-border);
+}
+
+.stok-yb-bos strong {
+  color: var(--ap-heading);
+  font-weight: 600;
 }
 
 .stok-yb-araclar {
@@ -2802,6 +2870,18 @@ button.ap-tanimlar-panel-arka {
   min-width: 42rem;
 }
 
+.stok-yb-tablo--birimler .stok-yb-baslik-satir,
+.stok-yb-tablo--birimler .stok-yb-satir {
+  grid-template-columns:
+    minmax(9rem, 1.15fr) minmax(8rem, 1fr) minmax(9rem, 1.1fr)
+    minmax(6.5rem, 0.7fr);
+  min-width: 38rem;
+}
+
+.stok-yb-hucre--fiyat {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .stok-yb-tablo--f001 .stok-yb-baslik-satir,
 .stok-yb-tablo--f001 .stok-yb-satir {
   grid-template-columns:
@@ -2846,6 +2926,13 @@ button.ap-tanimlar-panel-arka {
   padding-top: 0.35rem;
   padding-bottom: 0.35rem;
   font-size: 0.75rem;
+  background: var(--ap-input-bg);
+  border-color: var(--ap-border);
+  color: var(--ap-text);
+}
+
+.stok-yb-hucre .ap-form-acilir-secim-tus:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
 }
 
 .stok-yb-onekli {
@@ -4116,17 +4203,16 @@ button.ap-tanimlar-panel-arka {
 }
 
 .cari-secili-yonet {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.35rem;
-  height: 1.35rem;
+  display: inline-grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
   flex-shrink: 0;
-  border-radius: 0.35rem;
-  border: 1px dashed color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
   color: var(--ap-accent);
-  font-size: 0.95rem;
+  font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -4424,7 +4510,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.3rem;
   border: 1px solid color-mix(in srgb, var(--ap-border) 80%, var(--ap-surface));
   border-radius: 999px;
-  background: var(--ap-surface);
+  background: var(--ap-surface-2);
   color: var(--ap-muted);
   font-size: 0.68rem;
   font-weight: 700;
@@ -4432,7 +4518,7 @@ button.ap-tanimlar-panel-arka {
   padding: 0.28rem 0.55rem 0.28rem 0.45rem;
   cursor: pointer;
   line-height: 1;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
+  box-shadow: none;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -4508,7 +4594,7 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
   border: 1px solid var(--ap-accent);
   border-radius: 0.35rem;
-  background: #fff;
+  background: var(--ap-input-bg);
   color: var(--ap-text);
   padding: 0.3rem 0.45rem;
   font-size: 0.85rem;

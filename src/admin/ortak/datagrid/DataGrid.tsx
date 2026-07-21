@@ -2210,8 +2210,16 @@ export function DataGrid<TRow extends { id: string }>({
       {formulMenuPanel}
 
       <div className="dg-alt">
-        <span>
-          Toplam {sayfalama.toplam} Kayıttan {sayfalama.baslangic}-{sayfalama.bitis} Arası
+        <span className="dg-alt-ozet">
+          Toplam {sayfalama.toplam} Kayıt
+          {dg.seciliIdler.size > 0 ? (
+            <>
+              <span className="dg-alt-ayrac" aria-hidden>
+                |
+              </span>
+              <span>{dg.seciliIdler.size} seçili</span>
+            </>
+          ) : null}
         </span>
         <div className="dg-sayfalama">
           <button

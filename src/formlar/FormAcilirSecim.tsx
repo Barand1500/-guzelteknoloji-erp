@@ -30,8 +30,16 @@ function portalHedefiBul(): HTMLElement {
   return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
 }
 
+function anchorBul(trigger: HTMLElement): HTMLElement {
+  return (
+    (trigger.closest('.cari-outlined-cerceve') as HTMLElement | null) ??
+    (trigger.closest('.ap-form-acilir-secim') as HTMLElement | null) ??
+    trigger
+  );
+}
+
 function listeKonumuHesapla(trigger: HTMLButtonElement) {
-  const rect = trigger.getBoundingClientRect();
+  const rect = anchorBul(trigger).getBoundingClientRect();
   const genislik = rect.width;
   let left = rect.left;
 

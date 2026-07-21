@@ -76,7 +76,18 @@
   }
 }
 
-/* Outlined input — etiket border üstünde, çizgi etiketi kesmez */
+/* Outlined input — etiket border üstünde, çizgi etiketten önce/sonra devam eder (notch) */
+
+.cari-kart-kabuk,
+.cari-kart-sayfa {
+  --cari-outlined-etiket-bg: var(--ap-surface);
+}
+
+.cari-outlined-etiket,
+.cari-secili-etiket-satir,
+.cari-durum-alan > .cari-secili-etiket {
+  background: var(--cari-outlined-etiket-bg, var(--cari-alan-zemin, var(--ap-surface)));
+}
 
 .cari-outlined-field {
   position: relative;
@@ -95,7 +106,6 @@
   max-width: calc(100% - 1.2rem);
   margin: 0;
   padding: 0 0.3rem;
-  background: var(--cari-alan-zemin, var(--ap-surface));
   pointer-events: none;
 }
 
@@ -193,9 +203,20 @@
   opacity: 0.76;
 }
 
+.cari-outlined-acilir .cari-outlined-cerceve--icerik {
+  width: 100%;
+}
+
+.cari-outlined-acilir .cari-outlined-icerik {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
 .cari-outlined-acilir .ap-form-acilir-secim,
 .cari-outlined-acilir .ap-form-acilir-secim-tus {
   width: 100%;
+  box-sizing: border-box;
 }
 
 .cari-outlined-acilir .cari-outlined-acilir-tus,
@@ -222,6 +243,10 @@
 .cari-outlined-icerik .ap-input:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+}
+
+.cari-outlined-icerik .ap-form-arama-secim {
+  width: 100%;
 }
 
 /* Chip seçim kutuları — outlined ile aynı dil */
@@ -252,7 +277,6 @@
   gap: 0.28rem;
   max-width: calc(100% - 1.2rem);
   padding: 0 0.3rem;
-  background: var(--cari-alan-zemin, var(--ap-surface));
 }
 
 .cari-secili-etiket {
@@ -270,13 +294,13 @@
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
-  color: var(--ap-accent);
+  color: var(--ap-accent, #e85d04);
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
   cursor: pointer;
   pointer-events: auto;
   transition:
@@ -297,7 +321,7 @@
 
 .cari-secili-chip {
   border: 1px solid var(--ap-border);
-  background: var(--ap-surface-2);
+  background: var(--ap-surface-2, var(--ap-hover));
   color: var(--ap-text);
   border-radius: 999px;
   padding: 0.34rem 0.8rem;
@@ -342,7 +366,8 @@
   z-index: 2;
   transform: translateY(-50%);
   padding: 0 0.3rem;
-  background: var(--ap-surface);
+  background: var(--cari-outlined-etiket-bg, var(--cari-alan-zemin, var(--ap-surface)));
+  color: var(--ap-muted);
 }
 
 .cari-durum-icerik {
