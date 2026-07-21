@@ -791,20 +791,14 @@
 
 .cari-arama-acilir-panel--kutu-ici {
   position: absolute;
-  top: calc(100% - 0.15rem);
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
   z-index: 20;
   max-height: 220px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
 }
 
-/* Liste açıkken üst kutu ile birleşsin; kapalıyken dört köşe yuvarlak kalsın */
-.cari-arama-acilir--kutu-ici.cari-arama-acilir--acik .cari-outlined-cerceve {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
+/* Açıkken kutu köşeleri yuvarlak kalsın (liste ayrı yüzer) */
 
 /* ——— Adres / İletişim ——— */
 
