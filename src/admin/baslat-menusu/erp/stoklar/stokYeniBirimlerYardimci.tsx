@@ -1,8 +1,6 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { CariOutlinedEtiket } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
-import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
-import type { FormAcilirSecimSecenek } from '@/formlar/FormAcilirSecim';
-import type { StokFiyatKdvTipi, StokFiyatPb } from './fiyatDuzenleTipler';
+import type { StokFiyatKdvTipi } from './fiyatDuzenleTipler';
 
 export function sayiOku(ham: string): number | null {
   const t = ham.trim();
@@ -20,6 +18,20 @@ export function barkodFiltrele(ham: string): string {
   return ham.replace(/\D/g, '').slice(0, 64);
 }
 
+function carpanHamFiltrele(ham: string): string {
+  let sonuc = '';
+  let virgulVar = false;
+  for (const ch of ham) {
+    if (ch >= '0' && ch <= '9') {
+      sonuc += ch;
+    } else if (ch === ',' && !virgulVar) {
+      virgulVar = true;
+      sonuc += ch;
+    }
+  }
+  return sonuc;
+}
+
 export function CariOutlinedSayi({
   etiket,
   deger,
@@ -27,6 +39,7 @@ export function CariOutlinedSayi({
   zorunlu,
   onek,
   placeholder,
+  sagaHizali,
 }: {
   etiket: string;
   deger: number | null | undefined;
@@ -34,6 +47,7 @@ export function CariOutlinedSayi({
   zorunlu?: boolean;
   onek?: string;
   placeholder?: string;
+  sagaHizali?: boolean;
 }) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
@@ -49,7 +63,7 @@ export function CariOutlinedSayi({
         ) : null}
         <input
           id={inputId}
-          className={`cari-outlined-input${onek ? ' stok-yb-outlined-input--onekli' : ''}`}
+          className={`cari-outlined-input${onek ? ' stok-yb-outlined-input--onekli' : ''}${sagaHizali ? ' cari-outlined-input--saga' : ''}`.trim()}
           inputMode="decimal"
           placeholder={placeholder}
           value={sayiGoster(deger)}
@@ -71,75 +85,58 @@ export function CariOutlinedSayi({
   );
 }
 
-export function CariOutlinedFiyat({
+export function CariOutlinedCarpan({
   etiket,
   deger,
   onDegistir,
-  pb,
-  onPbChange,
-  pbSecenekleri,
   zorunlu,
-  onek,
-  placeholder,
 }: {
   etiket: string;
   deger: number | null | undefined;
   onDegistir: (deger: number | null) => void;
-  pb: StokFiyatPb;
-  onPbChange: (pb: StokFiyatPb) => void;
-  pbSecenekleri: readonly FormAcilirSecimSecenek[];
   zorunlu?: boolean;
-  onek?: string;
-  placeholder?: string;
 }) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
+  const [ham, setHam] = useState('');
+
+  useEffect(() => {
+    if (!focused) {
+      setHam(deger !== null && deger !== undefined ? sayiGoster(deger) : '');
+    }
+  }, [deger, focused]);
 
   return (
-    <div
-      className={`cari-outlined-field stok-yb-fiyat-alan${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
-      onFocusCapture={() => setFocused(true)}
-      onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
-      }}
-    >
+    <div className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}>
       <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
       <div className="cari-outlined-cerceve">
-        {onek ? (
-          <span className="stok-yb-outlined-onek" aria-hidden>
-            {onek}
-          </span>
-        ) : null}
+        <span className="stok-yb-outlined-onek" aria-hidden>
+          ×
+        </span>
         <input
           id={inputId}
-          className={`cari-outlined-input stok-yb-fiyat-input${onek ? ' stok-yb-outlined-input--onekli' : ''}`}
+          className="cari-outlined-input stok-yb-outlined-input--onekli cari-outlined-input--saga"
           inputMode="decimal"
-          placeholder={placeholder}
-          value={sayiGoster(deger)}
-          onChange={(e) => {
-            const ham = e.target.value;
-            if (!ham.trim()) {
-              onDegistir(null);
-              return;
-            }
+          placeholder="1"
+          value={focused ? ham : sayiGoster(deger)}
+          onFocus={() => {
+            setFocused(true);
+            setHam(deger !== null && deger !== undefined ? sayiGoster(deger) : '');
+          }}
+          onBlur={() => {
+            setFocused(false);
             const n = sayiOku(ham);
+            onDegistir(n !== null && n > 0 ? n : 1);
+          }}
+          onChange={(e) => {
+            const sonraki = carpanHamFiltrele(e.target.value);
+            setHam(sonraki);
+            if (!sonraki.trim()) return;
+            const n = sayiOku(sonraki);
             if (n !== null) onDegistir(n);
           }}
           aria-label={etiket}
         />
-        <div className="cari-outlined-sonek stok-yb-fiyat-pb-sonek ap-form-acilir-secim-liste-anchor">
-          <FormAcilirSecim
-            value={pb}
-            onChange={(v) =>
-              onPbChange(v === 'USD' || v === 'EUR' ? v : 'TL')
-            }
-            secenekler={pbSecenekleri}
-            aria-label="Para birimi"
-            className="stok-yb-fiyat-pb-secim"
-            listeSinifi="stok-yb-fiyat-pb-liste"
-            listeAnchor="self"
-          />
-        </div>
       </div>
     </div>
   );

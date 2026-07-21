@@ -11,6 +11,7 @@ export function CariOutlinedAcilir({
   sinif,
   listeSinifi,
   listeMinGenislik,
+  tusMetin,
 }: {
   etiket: string;
   deger: string;
@@ -20,6 +21,7 @@ export function CariOutlinedAcilir({
   sinif?: string;
   listeSinifi?: string;
   listeMinGenislik?: number;
+  tusMetin?: string;
 }) {
   return (
     <CariOutlinedSarmalayici
@@ -36,6 +38,7 @@ export function CariOutlinedAcilir({
         className="cari-outlined-acilir-tus"
         listeSinifi={listeSinifi}
         listeMinGenislik={listeMinGenislik}
+        tusMetin={tusMetin}
       />
     </CariOutlinedSarmalayici>
   );

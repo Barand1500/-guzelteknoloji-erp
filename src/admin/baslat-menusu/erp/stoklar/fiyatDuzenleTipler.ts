@@ -46,13 +46,26 @@ export interface StokFiyatDuzenleSatir {
   agirlikKg?: string;
   anaBirimMi?: boolean;
   varsayilanMi?: boolean;
+  birimAciklama?: string;
 }
 
-export const STOK_FIYAT_PB_SECENEKLERI: { deger: StokFiyatPb; etiket: string }[] = [
-  { deger: 'TL', etiket: 'TL' },
-  { deger: 'USD', etiket: 'USD' },
-  { deger: 'EUR', etiket: 'EUR' },
+export const STOK_FIYAT_PB_SECENEKLERI: {
+  deger: StokFiyatPb;
+  etiket: string;
+  sembol: string;
+}[] = [
+  { deger: 'TL', etiket: '₺ TL', sembol: '₺' },
+  { deger: 'USD', etiket: '$ USD', sembol: '$' },
+  { deger: 'EUR', etiket: '€ EUR', sembol: '€' },
 ];
+
+export function stokPbSembolu(kod: StokFiyatPb | string): string {
+  return STOK_FIYAT_PB_SECENEKLERI.find((p) => p.deger === kod)?.sembol ?? kod;
+}
+
+export function stokPbEtiketi(kod: StokFiyatPb | string): string {
+  return STOK_FIYAT_PB_SECENEKLERI.find((p) => p.deger === kod)?.etiket ?? kod;
+}
 
 export const STOK_FIYAT_KDV_TIPI_SECENEKLERI: { deger: StokFiyatKdvTipi; etiket: string }[] = [
   { deger: 'dahil', etiket: 'D' },

@@ -55,6 +55,7 @@ export function StokDigerVergiBlok() {
               etiket={etiket}
               deger={ev.deger}
               placeholder="0,00"
+              sagaHizali
               onDegistir={(deger) =>
                 setListe((l) => l.map((x, i) => (i === idx ? { ...x, deger } : x)))
               }

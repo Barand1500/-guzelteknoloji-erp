@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CariSecenekModal } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariSecenekModal';
+import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
 import {
   CariOutlinedEtiket,
   CariOutlinedGirdi,
   CariOutlinedSarmalayici,
 } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { bosBirimFiyatSatiri } from './birimMap';
 import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
-import { STOK_FIYAT_PB_SECENEKLERI } from './fiyatDuzenleTipler';
+import { STOK_FIYAT_PB_SECENEKLERI, stokPbSembolu } from './fiyatDuzenleTipler';
 import {
   stokBirimAdiEkle,
   stokBirimAdiGuncelle,
@@ -28,13 +30,13 @@ import {
 } from './stokFiyatAdlari';
 import {
   barkodFiltrele,
-  CariOutlinedFiyat,
+  CariOutlinedCarpan,
   CariOutlinedSayi,
   CariToggleAlan,
   KdvTipSegment,
 } from './stokYeniBirimlerYardimci';
 
-const KDV_SECENEKLERI = ['0', '1', '10', '20'].map((k) => ({ value: k, label: `${k} %` }));
+const KDV_SECENEKLERI = ['0', '1', '10', '20'].map((k) => ({ value: k, label: `% ${k}` }));
 
 function CariOutlinedKdv({
   etiket,
@@ -59,6 +61,7 @@ function CariOutlinedKdv({
         secenekler={KDV_SECENEKLERI.map((x) => ({ ...x }))}
         aria-label={etiket}
         className="cari-outlined-acilir-tus"
+        listeSinifi="stok-yb-kdv-outlined-liste"
       />
     </CariOutlinedSarmalayici>
   );
@@ -302,106 +305,127 @@ export function StokYeniBirimler({
           </div>
         ) : (
           gorunenSatirlar.map((satir) => {
-            const alisKdvTipi = satir.alisKdvTipi ?? satir.kdvTipi;
+            const alisKdvTipi = satir.alisKdvTipi ?? satir.kdvTipi ?? 'haric';
+            const satisKdvTipi = satir.kdvTipi ?? 'haric';
             return (
-              <div key={satir.id} className="stok-yb-kart">
-                <div className="stok-yb-kart-grup stok-yb-kart-grup--alis">
-                  <CariOutlinedBirim
-                    sinif="stok-yb-birim-kisa"
-                    deger={satir.birim}
-                    secenekler={birimSecenekleri}
-                    onChange={(birim) => satirPatch(satir.id, { birim: birim || 'ADET' })}
-                    onYonet={() => setBirimModalAcik(true)}
-                  />
-                  <CariOutlinedSayi
-                    etiket="Çarpan"
-                    zorunlu
-                    onek="×"
-                    placeholder="1"
-                    deger={satir.carpan}
-                    onDegistir={(carpan) =>
-                      satirPatch(satir.id, {
-                        carpan: carpan !== null && carpan > 0 ? carpan : 1,
-                      })
-                    }
-                  />
-                  <CariOutlinedFiyat
-                    etiket="Alış Fiyatı"
-                    deger={satir.alisFiyati}
-                    placeholder="0,00"
-                    pb={satir.pb2}
-                    pbSecenekleri={pbSecenekleri}
-                    onDegistir={(alisFiyati) => satirPatch(satir.id, { alisFiyati })}
-                    onPbChange={(pb2) => satirPatch(satir.id, { pb2 })}
-                  />
-                  <CariOutlinedKdv
-                    etiket="Alış KDV"
-                    deger={satir.alisKdv ?? satir.kdv}
-                    onChange={(alisKdv) => satirPatch(satir.id, { alisKdv })}
-                  />
-                  <KdvTipSegment
-                    tip={alisKdvTipi}
-                    onChange={(alisKdvTipi) => satirPatch(satir.id, { alisKdvTipi })}
-                  />
-                  <CariToggleAlan
-                    etiket="Ana Birim"
-                    acik={Boolean(satir.anaBirimMi)}
-                    onChange={(v) => tekilPatch(satir.id, 'anaBirimMi', v)}
-                  />
-                </div>
-                <div className="stok-yb-kart-grup stok-yb-kart-grup--satis">
+              <article key={satir.id} className="stok-yb-kart-kabuk">
+                <button
+                  type="button"
+                  className="stok-yb-kart-sil cari-iletisim-kart-sil"
+                  title="Satırı sil"
+                  aria-label="Satırı sil"
+                  onClick={() => satirSil(satir.id)}
+                >
+                  <DgIkon ad="sil" />
+                </button>
+                <div className="stok-yb-kart">
+                  <div className="stok-yb-kart-grup stok-yb-kart-grup--alis">
+                    <CariOutlinedBirim
+                      sinif="stok-yb-birim-kisa"
+                      deger={satir.birim}
+                      secenekler={birimSecenekleri}
+                      onChange={(birim) => satirPatch(satir.id, { birim: birim || 'ADET' })}
+                      onYonet={() => setBirimModalAcik(true)}
+                    />
+                    <CariOutlinedCarpan
+                      etiket="Çarpan"
+                      zorunlu
+                      deger={satir.carpan}
+                      onDegistir={(carpan) => satirPatch(satir.id, { carpan })}
+                    />
+                    <CariOutlinedSayi
+                      etiket="Alış Fiyatı"
+                      deger={satir.alisFiyati}
+                      placeholder="0,00"
+                      sagaHizali
+                      onDegistir={(alisFiyati) => satirPatch(satir.id, { alisFiyati })}
+                    />
+                    <CariOutlinedAcilir
+                      etiket="Al.PB"
+                      deger={satir.pb2}
+                      secenekler={pbSecenekleri}
+                      tusMetin={stokPbSembolu(satir.pb2)}
+                      sinif="stok-yb-pb-acilir"
+                      listeSinifi="stok-yb-pb-acilir-liste"
+                      listeMinGenislik={92}
+                      onChange={(pb2) =>
+                        satirPatch(satir.id, {
+                          pb2: pb2 === 'USD' || pb2 === 'EUR' ? pb2 : 'TL',
+                        })
+                      }
+                    />
+                    <CariOutlinedKdv
+                      etiket="Alış KDV"
+                      deger={satir.alisKdv ?? satir.kdv}
+                      onChange={(alisKdv) => satirPatch(satir.id, { alisKdv })}
+                    />
+                    <KdvTipSegment
+                      tip={alisKdvTipi}
+                      onChange={(alisKdvTipi) => satirPatch(satir.id, { alisKdvTipi })}
+                    />
+                    <CariToggleAlan
+                      etiket="Ana Birim"
+                      acik={Boolean(satir.anaBirimMi)}
+                      onChange={(v) => tekilPatch(satir.id, 'anaBirimMi', v)}
+                    />
+                  </div>
+                  <div className="stok-yb-kart-grup stok-yb-kart-grup--satis">
+                    <CariOutlinedGirdi
+                      etiket="Barkod"
+                      deger={satir.barkod}
+                      inputMode="numeric"
+                      onChange={(barkod) => satirPatch(satir.id, { barkod: barkodFiltrele(barkod) })}
+                      maxLength={64}
+                      odakPlaceholder="Barkod yazınız"
+                    />
+                    <CariOutlinedSayi
+                      etiket="Satış Fiyatı"
+                      zorunlu
+                      deger={satir.satisFiyati1}
+                      placeholder="0,00"
+                      sagaHizali
+                      onDegistir={(satisFiyati1) => satirPatch(satir.id, { satisFiyati1 })}
+                    />
+                    <CariOutlinedAcilir
+                      etiket="Sat.PB"
+                      deger={satir.pb1}
+                      secenekler={pbSecenekleri}
+                      tusMetin={stokPbSembolu(satir.pb1)}
+                      sinif="stok-yb-pb-acilir"
+                      listeSinifi="stok-yb-pb-acilir-liste"
+                      listeMinGenislik={92}
+                      onChange={(pb1) =>
+                        satirPatch(satir.id, {
+                          pb1: pb1 === 'USD' || pb1 === 'EUR' ? pb1 : 'TL',
+                        })
+                      }
+                    />
+                    <CariOutlinedKdv
+                      etiket="Satış KDV"
+                      zorunlu
+                      deger={satir.kdv}
+                      onChange={(kdv) => satirPatch(satir.id, { kdv })}
+                    />
+                    <KdvTipSegment
+                      tip={satisKdvTipi}
+                      onChange={(kdvTipi) => satirPatch(satir.id, { kdvTipi })}
+                    />
+                    <CariToggleAlan
+                      etiket="Varsayılan"
+                      acik={Boolean(satir.varsayilanMi)}
+                      onChange={(v) => tekilPatch(satir.id, 'varsayilanMi', v)}
+                    />
+                  </div>
                   <CariOutlinedGirdi
-                    etiket="Barkod"
-                    deger={satir.barkod}
-                    inputMode="numeric"
-                    onChange={(barkod) => satirPatch(satir.id, { barkod: barkodFiltrele(barkod) })}
-                    maxLength={64}
-                    odakPlaceholder="Barkod yazınız"
-                  />
-                  <CariOutlinedFiyat
-                    etiket="Satış Fiyatı"
-                    zorunlu
-                    deger={satir.satisFiyati1}
-                    placeholder="0,00"
-                    pb={satir.pb1}
-                    pbSecenekleri={pbSecenekleri}
-                    onDegistir={(satisFiyati1) => satirPatch(satir.id, { satisFiyati1 })}
-                    onPbChange={(pb1) => satirPatch(satir.id, { pb1 })}
-                  />
-                  <CariOutlinedKdv
-                    etiket="Satış KDV"
-                    zorunlu
-                    deger={satir.kdv}
-                    onChange={(kdv) => satirPatch(satir.id, { kdv })}
-                  />
-                  <KdvTipSegment
-                    tip={satir.kdvTipi}
-                    onChange={(kdvTipi) => satirPatch(satir.id, { kdvTipi })}
-                  />
-                  <CariToggleAlan
-                    etiket="Varsayılan"
-                    acik={Boolean(satir.varsayilanMi)}
-                    onChange={(v) => tekilPatch(satir.id, 'varsayilanMi', v)}
+                    etiket="Birim Açıklama"
+                    className="stok-yb-birim-aciklama"
+                    deger={satir.birimAciklama ?? ''}
+                    maxLength={120}
+                    odakPlaceholder="Birim açıklaması"
+                    onChange={(birimAciklama) => satirPatch(satir.id, { birimAciklama })}
                   />
                 </div>
-
-                <div className="stok-yb-kart-satir stok-yb-kart-satir--aksiyon">
-                  <button
-                    type="button"
-                    className="stok-yb-sil stok-yb-sil--satir"
-                    title="Satırı sil"
-                    aria-label="Satırı sil"
-                    onClick={() => satirSil(satir.id)}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                      <path
-                        strokeLinecap="round"
-                        d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              </article>
             );
           })
         )}

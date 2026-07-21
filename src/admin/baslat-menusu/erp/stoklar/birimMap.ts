@@ -102,7 +102,8 @@ export function bosBirimFiyatSatiri(secenek?: {
     carpan: 1,
     barkod: '',
     kdv: 10,
-    kdvTipi: 'dahil',
+    kdvTipi: 'haric',
+    alisKdvTipi: 'haric',
     alisFiyati: null,
     satisFiyati1: null,
     pb1: 'TL',
@@ -120,6 +121,7 @@ export function bosBirimFiyatSatiri(secenek?: {
     aktif: true,
     anaBirimMi: secenek?.anaBirimMi ?? false,
     varsayilanMi: secenek?.varsayilanMi ?? false,
+    birimAciklama: '',
   };
 }
 

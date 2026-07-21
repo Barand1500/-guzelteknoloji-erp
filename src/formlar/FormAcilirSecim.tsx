@@ -30,6 +30,8 @@ interface FormAcilirSecimProps {
   listeAnchor?: 'self' | 'cerceve';
   /** Tetikleyici ile liste arası dikey boşluk (px). 0 = bitişik */
   listeDikeyBosluk?: number;
+  /** Kapalıyken tetikleyicide gösterilecek metin (liste etiketinden farklı olabilir) */
+  tusMetin?: string;
   disabled?: boolean;
   'aria-label'?: string;
 }
@@ -82,6 +84,7 @@ export function FormAcilirSecim({
   listeMinGenislik = 0,
   listeAnchor = 'cerceve',
   listeDikeyBosluk = 4,
+  tusMetin,
   disabled = false,
   'aria-label': ariaLabel,
 }: FormAcilirSecimProps) {
@@ -174,7 +177,7 @@ export function FormAcilirSecim({
           setAcik((o) => !o);
         }}
       >
-        <span className="ap-form-acilir-secim-tus-metin">{secili?.label ?? value}</span>
+        <span className="ap-form-acilir-secim-tus-metin">{tusMetin ?? secili?.label ?? value}</span>
         <span className="ap-form-acilir-secim-ok" aria-hidden>
           ▾
         </span>

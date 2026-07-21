@@ -26,6 +26,7 @@ import {
   ISARETLI_FIYAT_ALANLARI,
   STOK_FIYAT_KDV_TIPI_SECENEKLERI,
   STOK_FIYAT_PB_SECENEKLERI,
+  stokPbSembolu,
   type IsaretliFiyatAlani,
   type StokFiyatDuzenleSatir,
 } from './fiyatDuzenleTipler';
@@ -74,7 +75,7 @@ export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<Stok
     degerAl: (s) => s[id],
     siralamaDegeri: (s) => s[id],
     degerYaz: (s, d) => fiyatDuzenlePbYaz(s, id, d),
-    goster: (s) => <span className="stok-fiyat-duzenle-pb">{s[id]}</span>,
+    goster: (s) => <span className="stok-fiyat-duzenle-pb dg-pb-etiket">{stokPbSembolu(s[id])}</span>,
   });
 
   return [

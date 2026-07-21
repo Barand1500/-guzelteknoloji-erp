@@ -493,20 +493,6 @@ export function KullanicilarSayfasiYeni() {
 
 
 
-        {kirli && !kaydediliyor && (
-
-          <div className="ap-kullanici-kirli-banner" role="status">
-
-            <span aria-hidden>●</span>
-
-            Kaydedilmemiş değişiklikler var — üst çubuktan Kaydet ile uygulayın.
-
-          </div>
-
-        )}
-
-
-
         {yukleniyor ? (
 
           <YukleniyorDurumu mesaj="Kullanıcılar yükleniyor..." />
