@@ -12080,7 +12080,8 @@ html:has(.admin-panel[data-tema='acik']) body {
   cursor: pointer;
 }
 
-.ap-form-acilir-secim-oge:hover {
+.ap-form-acilir-secim-oge:hover,
+.ap-form-acilir-secim-oge-odak {
   background: var(--ap-accent);
   color: #fff;
 }
@@ -12091,12 +12092,14 @@ html:has(.admin-panel[data-tema='acik']) body {
   font-weight: 600;
 }
 
-.ap-form-acilir-secim-oge-secili:hover {
+.ap-form-acilir-secim-oge-secili:hover,
+.ap-form-acilir-secim-oge-secili.ap-form-acilir-secim-oge-odak {
   background: var(--ap-accent);
   color: #fff;
 }
 
 .admin-panel--kenarlik-neon .ap-form-acilir-secim-oge:hover,
+.admin-panel--kenarlik-neon .ap-form-acilir-secim-oge-odak,
 .admin-panel--kenarlik-neon .ap-form-acilir-secim-oge-secili:hover {
   box-shadow: var(--ap-accent-glow);
 }

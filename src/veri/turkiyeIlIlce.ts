@@ -4,6 +4,91 @@ const API = 'https://api.turkiyeapi.dev/v2';
 const MIN_ARAMA = 2;
 const ARAMA_LIMIT = 25;
 
+/** Plaka kodu = API id — anında yerel arama için */
+const YEREL_ILLER: { id: number; name: string }[] = [
+  { id: 1, name: 'Adana' },
+  { id: 2, name: 'Adıyaman' },
+  { id: 3, name: 'Afyonkarahisar' },
+  { id: 4, name: 'Ağrı' },
+  { id: 5, name: 'Amasya' },
+  { id: 6, name: 'Ankara' },
+  { id: 7, name: 'Antalya' },
+  { id: 8, name: 'Artvin' },
+  { id: 9, name: 'Aydın' },
+  { id: 10, name: 'Balıkesir' },
+  { id: 11, name: 'Bilecik' },
+  { id: 12, name: 'Bingöl' },
+  { id: 13, name: 'Bitlis' },
+  { id: 14, name: 'Bolu' },
+  { id: 15, name: 'Burdur' },
+  { id: 16, name: 'Bursa' },
+  { id: 17, name: 'Çanakkale' },
+  { id: 18, name: 'Çankırı' },
+  { id: 19, name: 'Çorum' },
+  { id: 20, name: 'Denizli' },
+  { id: 21, name: 'Diyarbakır' },
+  { id: 22, name: 'Edirne' },
+  { id: 23, name: 'Elazığ' },
+  { id: 24, name: 'Erzincan' },
+  { id: 25, name: 'Erzurum' },
+  { id: 26, name: 'Eskişehir' },
+  { id: 27, name: 'Gaziantep' },
+  { id: 28, name: 'Giresun' },
+  { id: 29, name: 'Gümüşhane' },
+  { id: 30, name: 'Hakkari' },
+  { id: 31, name: 'Hatay' },
+  { id: 32, name: 'Isparta' },
+  { id: 33, name: 'Mersin' },
+  { id: 34, name: 'İstanbul' },
+  { id: 35, name: 'İzmir' },
+  { id: 36, name: 'Kars' },
+  { id: 37, name: 'Kastamonu' },
+  { id: 38, name: 'Kayseri' },
+  { id: 39, name: 'Kırklareli' },
+  { id: 40, name: 'Kırşehir' },
+  { id: 41, name: 'Kocaeli' },
+  { id: 42, name: 'Konya' },
+  { id: 43, name: 'Kütahya' },
+  { id: 44, name: 'Malatya' },
+  { id: 45, name: 'Manisa' },
+  { id: 46, name: 'Kahramanmaraş' },
+  { id: 47, name: 'Mardin' },
+  { id: 48, name: 'Muğla' },
+  { id: 49, name: 'Muş' },
+  { id: 50, name: 'Nevşehir' },
+  { id: 51, name: 'Niğde' },
+  { id: 52, name: 'Ordu' },
+  { id: 53, name: 'Rize' },
+  { id: 54, name: 'Sakarya' },
+  { id: 55, name: 'Samsun' },
+  { id: 56, name: 'Siirt' },
+  { id: 57, name: 'Sinop' },
+  { id: 58, name: 'Sivas' },
+  { id: 59, name: 'Tekirdağ' },
+  { id: 60, name: 'Tokat' },
+  { id: 61, name: 'Trabzon' },
+  { id: 62, name: 'Tunceli' },
+  { id: 63, name: 'Şanlıurfa' },
+  { id: 64, name: 'Uşak' },
+  { id: 65, name: 'Van' },
+  { id: 66, name: 'Yozgat' },
+  { id: 67, name: 'Zonguldak' },
+  { id: 68, name: 'Aksaray' },
+  { id: 69, name: 'Bayburt' },
+  { id: 70, name: 'Karaman' },
+  { id: 71, name: 'Kırıkkale' },
+  { id: 72, name: 'Batman' },
+  { id: 73, name: 'Şırnak' },
+  { id: 74, name: 'Bartın' },
+  { id: 75, name: 'Ardahan' },
+  { id: 76, name: 'Iğdır' },
+  { id: 77, name: 'Yalova' },
+  { id: 78, name: 'Karabük' },
+  { id: 79, name: 'Kilis' },
+  { id: 80, name: 'Osmaniye' },
+  { id: 81, name: 'Düzce' },
+];
+
 type IlKaydi = { id: number; name: string };
 type IlceKaydi = { id: number; name: string };
 type MahalleKaydi = { id: number; name: string; postalCode?: string };
@@ -15,6 +100,7 @@ const ilceAdlariOnbellegi = new Map<string, string[]>();
 const mahalleAramaOnbellegi = new Map<string, string[]>();
 
 let tumIllerYukleniyor: Promise<string[]> | null = null;
+let yerelIlAdlari: string[] = YEREL_ILLER.map((p) => p.name);
 
 function ilAnahtar(il: string) {
   return il.trim().toLocaleLowerCase('tr');
@@ -36,21 +122,27 @@ function yerelAra(liste: string[], arama: string): string[] {
 }
 
 async function tumIlleriYukle(): Promise<string[]> {
+  if (ilKayitlari.size === 0) {
+    illeriOnbellegeYaz(YEREL_ILLER);
+    yerelIlAdlari = trSirala(YEREL_ILLER.map((p) => p.name));
+  }
+
   if (tumIllerYukleniyor) return tumIllerYukleniyor;
 
   tumIllerYukleniyor = apiGet<{ data: { id: number; name: string }[] }>(
     `/provinces?fields=id,name&limit=100&sort=name`
-  ).then((yanit) => {
-    illeriOnbellegeYaz(yanit.data);
-    return trSirala(yanit.data.map((p) => p.name));
-  });
+  )
+    .then((yanit) => {
+      illeriOnbellegeYaz(yanit.data);
+      yerelIlAdlari = trSirala(yanit.data.map((p) => p.name));
+      return yerelIlAdlari;
+    })
+    .catch(() => {
+      tumIllerYukleniyor = null;
+      return yerelIlAdlari;
+    });
 
-  try {
-    return await tumIllerYukleniyor;
-  } catch {
-    tumIllerYukleniyor = null;
-    return [];
-  }
+  return tumIllerYukleniyor;
 }
 
 async function ilceAdlariniYukle(il: string): Promise<string[]> {
@@ -110,6 +202,9 @@ function illeriOnbellegeYaz(kayitlar: { id: number; name: string }[]) {
   }
 }
 
+illeriOnbellegeYaz(YEREL_ILLER);
+yerelIlAdlari = trSirala(YEREL_ILLER.map((p) => p.name));
+
 function ilceleriOnbellegeYaz(il: string, kayitlar: { id: number; name: string }[]) {
   const mevcut = ilceKayitlari.get(ilAnahtar(il)) ?? [];
   const birlesik = new Map<number, IlceKaydi>();
@@ -164,8 +259,15 @@ async function ilceKaydiniCoz(il: string, ilce: string): Promise<IlceKaydi | und
 export async function turkiyeIlAra(arama: string): Promise<string[]> {
   const q = arama.trim();
   if (q.length < MIN_ARAMA) return [];
-  const liste = await tumIlleriYukle();
+  if (ilKayitlari.size === 0) illeriOnbellegeYaz(YEREL_ILLER);
+  const liste = yerelIlAdlari.length ? yerelIlAdlari : await tumIlleriYukle();
   return yerelAra(liste, q);
+}
+
+/** Anlık kullanım için yerel il adları */
+export function turkiyeIlAdlari(): string[] {
+  if (ilKayitlari.size === 0) illeriOnbellegeYaz(YEREL_ILLER);
+  return yerelIlAdlari.length ? yerelIlAdlari : trSirala(YEREL_ILLER.map((p) => p.name));
 }
 
 /** İlçe araması — il seçili; önbellekten yerel filtre */

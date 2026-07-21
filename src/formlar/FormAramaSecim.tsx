@@ -27,7 +27,7 @@ function secenekleriFiltrele(secenekler: string[], arama: string, minAramaUzunlu
   const q = normalizeMetin(arama);
   if (q.length < minAramaUzunlugu) return [];
   return secenekler
-    .filter((s) => normalizeMetin(s).startsWith(q))
+    .filter((s) => normalizeMetin(s).includes(q))
     .slice(0, LISTE_LIMIT);
 }
 
@@ -78,6 +78,7 @@ export function FormAramaSecim({
   const [listeStil, setListeStil] = useState<CSSProperties>({});
   const [asyncSecenekler, setAsyncSecenekler] = useState<string[]>([]);
   const [aramaYukleniyor, setAramaYukleniyor] = useState(false);
+  const [odakIndex, setOdakIndex] = useState(0);
   const aramaSurumuRef = useRef(0);
 
   const benzersizSecenekler = useMemo(
@@ -122,7 +123,12 @@ export function FormAramaSecim({
     return secenekleriFiltrele(benzersizSecenekler, value, minAramaUzunlugu);
   }, [secenekAra, asyncSecenekler, benzersizSecenekler, value, minAramaUzunlugu]);
 
-  const oneriGoster = acik && value.trim().length >= minAramaUzunlugu && (aramaYukleniyor || filtrelenmis.length > 0);
+  useEffect(() => {
+    setOdakIndex(0);
+  }, [value, filtrelenmis.length]);
+
+  const oneriGoster =
+    acik && value.trim().length >= minAramaUzunlugu && (aramaYukleniyor || filtrelenmis.length > 0);
 
   const konumGuncelle = useCallback(() => {
     if (!kapsayiciRef.current) return;
@@ -147,6 +153,12 @@ export function FormAramaSecim({
       window.removeEventListener('scroll', konumGuncelle, true);
     };
   }, [oneriGoster, konumGuncelle, filtrelenmis.length, aramaYukleniyor]);
+
+  useLayoutEffect(() => {
+    if (!oneriGoster || !listeRef.current) return;
+    const el = listeRef.current.querySelector<HTMLElement>(`[data-odak-index="${odakIndex}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [odakIndex, oneriGoster, filtrelenmis]);
 
   useEffect(() => {
     if (!acik) return;
@@ -193,6 +205,9 @@ export function FormAramaSecim({
         aria-autocomplete="list"
         aria-expanded={oneriGoster}
         aria-controls={oneriGoster ? listeId : undefined}
+        aria-activedescendant={
+          oneriGoster && filtrelenmis[odakIndex] ? `${listeId}-oge-${odakIndex}` : undefined
+        }
         onChange={(e) => {
           onChange(e.target.value);
           if (e.target.value.trim().length >= minAramaUzunlugu) setAcik(true);
@@ -200,13 +215,32 @@ export function FormAramaSecim({
         }}
         onFocus={alanAc}
         onKeyDown={(e) => {
-          if (e.key === 'ArrowDown' && filtrelenmis.length > 0) {
+          if (e.key === 'ArrowDown') {
+            if (filtrelenmis.length === 0) return;
             e.preventDefault();
-            setAcik(true);
+            if (!acik) {
+              setAcik(true);
+              setOdakIndex(0);
+              return;
+            }
+            setOdakIndex((i) => Math.min(i + 1, filtrelenmis.length - 1));
+            return;
           }
-          if (e.key === 'Enter' && filtrelenmis.length === 1) {
+          if (e.key === 'ArrowUp') {
+            if (filtrelenmis.length === 0) return;
             e.preventDefault();
-            sec(filtrelenmis[0]);
+            if (!acik) {
+              setAcik(true);
+              setOdakIndex(0);
+              return;
+            }
+            setOdakIndex((i) => Math.max(i - 1, 0));
+            return;
+          }
+          if (e.key === 'Enter' && filtrelenmis.length > 0 && (acik || filtrelenmis.length === 1)) {
+            e.preventDefault();
+            const secilecek = filtrelenmis[odakIndex] ?? filtrelenmis[0];
+            if (secilecek) sec(secilecek);
           }
         }}
       />
@@ -224,16 +258,20 @@ export function FormAramaSecim({
               {aramaYukleniyor ? (
                 <li className="ap-form-arama-secim-bos">Aranıyor…</li>
               ) : (
-                filtrelenmis.map((secenek) => {
+                filtrelenmis.map((secenek, index) => {
                   const seciliMi = secenek === value;
+                  const odakMi = index === odakIndex;
                   return (
                     <li key={secenek}>
                       <button
                         type="button"
+                        id={`${listeId}-oge-${index}`}
+                        data-odak-index={index}
                         role="option"
-                        aria-selected={seciliMi}
-                        className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}`}
+                        aria-selected={seciliMi || odakMi}
+                        className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}${odakMi ? ' ap-form-acilir-secim-oge-odak' : ''}`}
                         onMouseDown={(e) => e.preventDefault()}
+                        onMouseEnter={() => setOdakIndex(index)}
                         onClick={() => sec(secenek)}
                       >
                         {secenek}

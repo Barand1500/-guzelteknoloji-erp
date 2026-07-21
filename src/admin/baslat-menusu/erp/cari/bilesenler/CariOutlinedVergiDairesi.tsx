@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormAramaSecim } from '@/formlar/FormAramaSecim';
-import { vergiDaireleriAra } from '@/veri/vergiDaireleriApi';
+import { vergiDaireleriAdlari, vergiDaireleriListeYukle } from '@/veri/vergiDaireleriApi';
 import { MIN_ADRES_ARAMA_UZUNLUGU } from '@/veri/turkiyeIlIlce';
 import { CariOutlinedSarmalayici } from './CariOutlinedGirdi';
 
@@ -16,7 +16,18 @@ export function CariOutlinedVergiDairesi({
   disabled = false,
 }: CariOutlinedVergiDairesiProps) {
   const [focused, setFocused] = useState(false);
-  const daireAra = useCallback((arama: string) => vergiDaireleriAra(arama), []);
+  const [secenekler, setSecenekler] = useState<string[]>(() => vergiDaireleriAdlari());
+
+  useEffect(() => {
+    if (secenekler.length > 0) return;
+    let iptal = false;
+    void vergiDaireleriListeYukle().then((liste) => {
+      if (!iptal) setSecenekler(liste);
+    });
+    return () => {
+      iptal = true;
+    };
+  }, [secenekler.length]);
 
   return (
     <CariOutlinedSarmalayici etiket="Vergi Dairesi" disabled={disabled}>
@@ -29,7 +40,7 @@ export function CariOutlinedVergiDairesi({
         <FormAramaSecim
           value={deger}
           onChange={onChange}
-          secenekAra={daireAra}
+          secenekler={secenekler}
           minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
           placeholder={focused ? 'En az 2 harf yazın…' : undefined}
           disabled={disabled}

@@ -42,6 +42,7 @@ import { CariOutlinedAcilir } from './CariOutlinedAcilir';
 import { CariOutlinedAramaAcilir } from './CariOutlinedAramaAcilir';
 import { CariOutlinedEposta } from './CariOutlinedEposta';
 import { CariOutlinedGirdi } from './CariOutlinedGirdi';
+import { CariOutlinedIl, CariOutlinedIlce } from './CariOutlinedIlArama';
 import { CariOutlinedTelefon } from './CariOutlinedTelefon';
 import { CariOutlinedVergiDairesi } from './CariOutlinedVergiDairesi';
 import { CariOutlinedVergiNo } from './CariOutlinedVergiNo';
@@ -365,6 +366,7 @@ export function CariKart({
               deger={form.cariAdi}
               zorunlu
               maxLength={255}
+              buyukHarf
               odakPlaceholder="Tabela adını yazınız"
               disabled={saltOkunur}
               onChange={(cariAdi) => setAlan('cariAdi', cariAdi)}
@@ -374,6 +376,7 @@ export function CariKart({
               deger={form.unvan}
               className="cari-alan-tam"
               maxLength={255}
+              buyukHarf
               odakPlaceholder="Ünvanı yazınız"
               disabled={saltOkunur}
               onChange={(unvan) => setAlan('unvan', unvan)}
@@ -387,19 +390,20 @@ export function CariKart({
               disabled={saltOkunur}
               onChange={(adres) => setAlan('adres', adres)}
             />
-            <CariOutlinedGirdi
-              etiket="İl"
+            <CariOutlinedIl
               deger={form.il}
-              maxLength={40}
-              odakPlaceholder="İl yazınız"
               disabled={saltOkunur}
-              onChange={(il) => setAlan('il', il)}
+              onChange={(il) => {
+                setForm((f) => ({
+                  ...f,
+                  il,
+                  ilce: il !== f.il ? '' : f.ilce,
+                }));
+              }}
             />
-            <CariOutlinedGirdi
-              etiket="İlçe"
+            <CariOutlinedIlce
               deger={form.ilce}
-              maxLength={40}
-              odakPlaceholder="İlçe yazınız"
+              il={form.il}
               disabled={saltOkunur}
               onChange={(ilce) => setAlan('ilce', ilce)}
             />
@@ -460,6 +464,7 @@ export function CariKart({
 
           <CariIletisimBolumu
             kisiler={form.iletisimKisiler}
+            varsayilanAdres={form.adres}
             varsayilanIl={form.il}
             varsayilanIlce={form.ilce}
             disabled={saltOkunur}

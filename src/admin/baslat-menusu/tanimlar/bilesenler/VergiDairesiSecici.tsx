@@ -1,7 +1,6 @@
-import { useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { FormAramaSecim } from '@/formlar/FormAramaSecim';
-import { vergiDaireleriAra } from '@/veri/vergiDaireleriApi';
-
+import { vergiDaireleriAdlari, vergiDaireleriListeYukle } from '@/veri/vergiDaireleriApi';
 import { MIN_ADRES_ARAMA_UZUNLUGU } from '@/veri/turkiyeIlIlce';
 
 interface VergiDairesiSeciciProps {
@@ -10,7 +9,18 @@ interface VergiDairesiSeciciProps {
 }
 
 export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps) {
-  const daireAra = useCallback((arama: string) => vergiDaireleriAra(arama), []);
+  const [secenekler, setSecenekler] = useState<string[]>(() => vergiDaireleriAdlari());
+
+  useEffect(() => {
+    if (secenekler.length > 0) return;
+    let iptal = false;
+    void vergiDaireleriListeYukle().then((liste) => {
+      if (!iptal) setSecenekler(liste);
+    });
+    return () => {
+      iptal = true;
+    };
+  }, [secenekler.length]);
 
   return (
     <label className="ap-tanimlar-secim-alan block">
@@ -18,7 +28,7 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
       <FormAramaSecim
         value={deger}
         onChange={onChange}
-        secenekAra={daireAra}
+        secenekler={secenekler}
         minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
         placeholder="En az 2 harf yazın…"
         aria-label="Vergi dairesi"

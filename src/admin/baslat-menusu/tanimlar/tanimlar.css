@@ -4422,10 +4422,10 @@ button.ap-tanimlar-panel-arka {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, #fff);
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, var(--ap-surface));
   border-radius: 999px;
-  background: #fff;
-  color: #64748b;
+  background: var(--ap-surface);
+  color: var(--ap-muted);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -4439,6 +4439,12 @@ button.ap-tanimlar-panel-arka {
     background 0.15s ease;
 }
 
+.admin-panel[data-tema='koyu'] .cari-secenek-kapat {
+  background: var(--ap-surface-2);
+  border-color: var(--ap-border);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
 .cari-secenek-kapat svg {
   display: block;
 }
@@ -4446,7 +4452,11 @@ button.ap-tanimlar-panel-arka {
 .cari-secenek-kapat:hover {
   color: var(--ap-accent, #e85d04);
   border-color: color-mix(in srgb, var(--ap-accent, #e85d04) 40%, var(--ap-border));
-  background: color-mix(in srgb, var(--ap-accent, #e85d04) 6%, #fff);
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 10%, var(--ap-surface));
+}
+
+.admin-panel[data-tema='koyu'] .cari-secenek-kapat:hover {
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 14%, var(--ap-surface-2));
 }
 
 .cari-secenek-ikon {
