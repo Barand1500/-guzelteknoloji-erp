@@ -1127,22 +1127,22 @@ td.dg-hucre--sabit,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.2rem;
+  gap: 0.28rem;
   width: 100%;
   height: 100%;
   min-height: 1.85rem;
   box-sizing: border-box;
   margin: 0;
-  padding: 0.2rem 0.35rem;
+  padding: 0.28rem 0.4rem;
   border: 1.5px solid var(--ap-accent);
   border-bottom: none;
-  border-radius: 0;
-  background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
+  border-radius: 0.35rem 0.35rem 0 0;
+  background: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
   color: var(--ap-accent);
   font: inherit;
-  font-size: inherit;
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: inherit;
+  line-height: 1.25;
   cursor: pointer;
   outline: none;
   position: relative;
@@ -1152,49 +1152,54 @@ td.dg-hucre--sabit,
 .dg-hucre-secim-kok--uste .dg-hucre-secim-tus {
   border-bottom: 1.5px solid var(--ap-accent);
   border-top: none;
+  border-radius: 0 0 0.35rem 0.35rem;
 }
 
 .dg-hucre-secim-tus-metin {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 0;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
 }
 
 .dg-hucre-secim-tus-ok {
   flex-shrink: 0;
   color: var(--ap-accent);
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   line-height: 1;
   opacity: 0.9;
 }
 
 .dg-hucre-secim-liste.ap-form-acilir-secim-liste {
   margin: 0 !important;
-  padding: 0.12rem;
+  padding: 0.22rem !important;
   border: 1.5px solid var(--ap-accent) !important;
   border-top: none !important;
-  border-radius: 0 !important;
+  border-radius: 0 0 0.4rem 0.4rem !important;
   background: var(--ap-surface);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--ap-heading) 12%, transparent);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--ap-heading) 14%, transparent);
   overflow: auto;
 }
 
 .dg-hucre-secim-liste--uste.ap-form-acilir-secim-liste {
   border-top: 1.5px solid var(--ap-accent) !important;
   border-bottom: none !important;
-  box-shadow: 0 -8px 20px color-mix(in srgb, var(--ap-heading) 12%, transparent);
+  border-radius: 0.4rem 0.4rem 0 0 !important;
+  box-shadow: 0 -10px 24px color-mix(in srgb, var(--ap-heading) 14%, transparent);
 }
 
 .dg-hucre-secim-liste .ap-form-acilir-secim-oge {
-  padding: 0.18rem 0.3rem;
-  font-size: 0.65rem;
+  padding: 0.38rem 0.5rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.3 !important;
+  border-radius: 0.3rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

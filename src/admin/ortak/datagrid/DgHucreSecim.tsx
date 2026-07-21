@@ -50,15 +50,16 @@ export function DgHucreSecim({
     if (!tus) return;
     const rect = tus.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return;
-    // Dar kolonlarda (PB) liste biraz genişlesin; metin tek satırda kalsın
-    const genislik = Math.max(rect.width, 76);
-    let left = rect.left + rect.width / 2 - genislik / 2;
-    if (left + genislik > window.innerWidth - 8) {
-      left = window.innerWidth - genislik - 8;
-    }
-    if (left < 8) left = 8;
 
-    const listeH = Math.min(148, secenekler.length * 24 + 8);
+    // Hücre genişliği + kısa PB kolonlarında okunabilir min genişlik; sola hizalı
+    const genislik = Math.max(rect.width, 92);
+    let left = rect.left;
+    if (left + genislik > window.innerWidth - 8) {
+      left = Math.max(8, window.innerWidth - genislik - 8);
+    }
+
+    const satirH = 30;
+    const listeH = Math.min(220, secenekler.length * satirH + 10);
     const altaSigar = rect.bottom + listeH <= window.innerHeight - 8;
     const usteAcik = !altaSigar && rect.top > listeH + 8;
     setUsteAc(usteAcik);
