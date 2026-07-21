@@ -131,15 +131,15 @@ export function CariIletisimBolumu({
                     disabled={disabled}
                     onChange={(gorevi) => kisiGuncelle(kisi.id, { gorevi })}
                   />
-                  <CariOutlinedEposta
-                    deger={kisi.eposta}
-                    disabled={disabled}
-                    onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
-                  />
                   <CariOutlinedTelefon
                     deger={kisi.telefon}
                     disabled={disabled}
                     onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
+                  />
+                  <CariOutlinedEposta
+                    deger={kisi.eposta}
+                    disabled={disabled}
+                    onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
                   />
                   <CariOutlinedGirdi
                     etiket="Adres"
@@ -181,7 +181,7 @@ export function CariIletisimBolumu({
                   {index === 0 ? (
                     <>
                       <CariOutlinedGirdi
-                        etiket="e-Fatura Alias"
+                        etiket="E-Fatura Alias"
                         deger={efaturaAlias}
                         maxLength={200}
                         odakPlaceholder="Alias giriniz"
@@ -189,7 +189,7 @@ export function CariIletisimBolumu({
                         onChange={onEfaturaAliasChange}
                       />
                       <CariOutlinedGirdi
-                        etiket="e-İrsaliye Alias"
+                        etiket="E-İrsaliye Alias"
                         deger={eirsaliyeAlias}
                         maxLength={200}
                         odakPlaceholder="Alias giriniz"

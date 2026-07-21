@@ -1,4 +1,5 @@
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/baglamlar/AuthContext';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -46,6 +47,11 @@ function dosyayiOku(dosya: File): Promise<string> {
   });
 }
 
+function dosyaResimMi(dosya: CariDosya): boolean {
+  if (dosya.tip.startsWith('image/')) return true;
+  return /\.(png|jpe?g|gif|webp)$/i.test(dosya.ad);
+}
+
 export function CariDosyaDokumanBolumu({
   deger,
   disabled,
@@ -70,6 +76,7 @@ export function CariDosyaDokumanBolumu({
     | { tur: 'etiket'; metin: string }
     | null
   >(null);
+  const [onizleme, setOnizleme] = useState<CariDosya | null>(null);
   const veriVar =
     deger.notlar.length > 0 || deger.dosyalar.length > 0 || deger.etiketler.length > 0;
   const [acik, setAcik] = useState(veriVar);
@@ -189,6 +196,26 @@ export function CariDosyaDokumanBolumu({
   const dosyaSil = (id: string) => {
     guncelle({ dosyalar: deger.dosyalar.filter((d) => d.id !== id) });
   };
+
+  const dosyaAc = (dosya: CariDosya) => {
+    if (dosyaResimMi(dosya)) {
+      setOnizleme(dosya);
+      return;
+    }
+    window.open(dosya.dataUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  useEffect(() => {
+    if (!onizleme) return;
+    function tusHandler(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOnizleme(null);
+      }
+    }
+    document.addEventListener('keydown', tusHandler);
+    return () => document.removeEventListener('keydown', tusHandler);
+  }, [onizleme]);
 
   return (
     <section className="cari-dokuman-bolumu">
@@ -437,14 +464,14 @@ export function CariDosyaDokumanBolumu({
               <ul className="cari-dokuman-dosya-liste">
                 {deger.dosyalar.map((dosya) => (
                   <li key={dosya.id} className="cari-dokuman-dosya-oge">
-                    <a
-                      href={dosya.dataUrl}
-                      download={dosya.ad}
+                    <button
+                      type="button"
                       className="cari-dokuman-dosya-ad"
-                      title={dosya.ad}
+                      title={dosyaResimMi(dosya) ? 'Görüntüle' : 'Aç'}
+                      onClick={() => dosyaAc(dosya)}
                     >
                       {dosya.ad}
-                    </a>
+                    </button>
                     <span className="cari-dokuman-dosya-boyut">{boyutEtiketi(dosya.boyut)}</span>
                     {!disabled ? (
                       <button
@@ -544,6 +571,44 @@ export function CariDosyaDokumanBolumu({
         }
         ariaLabel={silinecek?.tur === 'etiket' ? 'Etiket silme onayı' : 'Not silme onayı'}
       />
+
+      {onizleme
+        ? createPortal(
+            <div
+              className="cari-dokuman-onizleme"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Resim önizleme"
+            >
+              <button
+                type="button"
+                className="cari-dokuman-onizleme-arka"
+                aria-label="Kapat"
+                onClick={() => setOnizleme(null)}
+              />
+              <div className="cari-dokuman-onizleme-panel">
+                <div className="cari-dokuman-onizleme-ust">
+                  <span className="cari-dokuman-onizleme-baslik" title={onizleme.ad}>
+                    {onizleme.ad}
+                  </span>
+                  <button
+                    type="button"
+                    className="cari-dokuman-onizleme-kapat"
+                    onClick={() => setOnizleme(null)}
+                    aria-label="Kapat (Esc)"
+                    title="Kapat (Esc)"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="cari-dokuman-onizleme-govde">
+                  <img src={onizleme.dataUrl} alt={onizleme.ad} className="cari-dokuman-onizleme-resim" />
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </section>
   );
 }
