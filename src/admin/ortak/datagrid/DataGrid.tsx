@@ -21,6 +21,7 @@ import { FormulaRehberiIcerik } from './FormulaRehberi';
 import { bosGosterim, csvIndir, dgTooltipMetni, paraFormatla, tarihFormatla, yuzdeFormatla } from './formatYardimci';
 import { DgIkon } from './DgIkonlar';
 import { DgSecimUstKutu } from './DgSecimUstKutu';
+import { DgHucreSecim } from './DgHucreSecim';
 import { EtiketHucre } from './EtiketHucre';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import './datagrid.css';
@@ -789,13 +790,6 @@ export function DataGrid<TRow extends { id: string }>({
     if (el instanceof HTMLInputElement) {
       const len = el.value.length;
       el.setSelectionRange(len, len);
-    } else if (el instanceof HTMLSelectElement) {
-      try {
-        // Enter ile açılan birim/pb seçiminde listeyi hemen göster
-        (el as HTMLSelectElement & { showPicker?: () => void }).showPicker?.();
-      } catch {
-        /* tarayıcı engellerse sessizce geç */
-      }
     }
   }, [duzenleme?.satirId, duzenleme?.kolonId, duzenleme?.birlesikKatman]);
 
@@ -1488,41 +1482,21 @@ export function DataGrid<TRow extends { id: string }>({
                 )}
                 {duzenliyor ? (
                   kolon.secenekler?.length ? (
-                    <select
-                      ref={girdiRef as React.RefObject<HTMLSelectElement>}
-                      className="dg-hucre-girdi dg-hucre-secim"
-                      value={duzenleme.hamDeger}
-                      onChange={(e) => {
-                        const yeni = e.target.value;
+                    <DgHucreSecim
+                      deger={duzenleme.hamDeger}
+                      secenekler={kolon.secenekler}
+                      onSec={(yeni) => {
                         duzenlemeCommitRef.current = true;
                         hucreDuzenlemeyiBitir(satir, kolon, yeni);
                         setDuzenleme(null);
                         odakAyarla(satir.id, kolon.id);
                       }}
-                      onBlur={() => {
-                        if (duzenlemeCommitRef.current) {
-                          duzenlemeCommitRef.current = false;
-                          return;
-                        }
+                      onIptal={() => {
+                        duzenlemeCommitRef.current = true;
                         setDuzenleme(null);
                         odakAyarla(satir.id, kolon.id);
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          e.stopPropagation();
-                          duzenlemeCommitRef.current = true;
-                          setDuzenleme(null);
-                          odakAyarla(satir.id, kolon.id);
-                        }
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {kolon.secenekler.map((s) => (
-                        <option key={s.deger} value={s.deger}>
-                          {s.etiket}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   ) : (
                     <input
                       ref={girdiRef as React.RefObject<HTMLInputElement>}

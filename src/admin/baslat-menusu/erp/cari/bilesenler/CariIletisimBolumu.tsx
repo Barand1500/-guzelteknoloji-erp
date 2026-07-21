@@ -70,33 +70,24 @@ export function CariIletisimBolumu({
         ) : null}
       </div>
 
-      {kisiler.length === 0 ? (
-        <p className="cari-iletisim-bos-metin">
-          İletişim kişisi eklemek için + butonuna tıklayın.
-        </p>
-      ) : (
+      {kisiler.length > 0 ? (
         <div className="cari-iletisim-liste">
-          {kisiler.map((kisi, index) => {
+          {kisiler.map((kisi) => {
             const cekGoster = !disabled && !!ustAdres && !adresCekildi[kisi.id];
 
             return (
               <article key={kisi.id} className="cari-iletisim-kart">
-                {!disabled || kisiler.length > 1 ? (
+                {!disabled ? (
                   <div className="cari-iletisim-kart-ust">
-                    <span className="cari-iletisim-kart-etiket">
-                      {kisiler.length > 1 ? `İletişim ${kisiler.length - index}` : 'İletişim Kişisi'}
-                    </span>
-                    {!disabled ? (
-                      <button
-                        type="button"
-                        className="cari-iletisim-kart-sil"
-                        onClick={() => kisiSil(kisi.id)}
-                        aria-label="İletişim kişisini sil"
-                        title="Sil"
-                      >
-                        <DgIkon ad="sil" />
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      className="cari-iletisim-kart-sil"
+                      onClick={() => kisiSil(kisi.id)}
+                      aria-label="İletişim kişisini sil"
+                      title="Sil"
+                    >
+                      <DgIkon ad="sil" />
+                    </button>
                   </div>
                 ) : null}
 
@@ -169,7 +160,7 @@ export function CariIletisimBolumu({
             );
           })}
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

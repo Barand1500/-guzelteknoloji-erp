@@ -92,10 +92,6 @@ type SilmeOnayDurumu =
   | { tip: 'tek'; satir: { id: string }; metin: string }
   | { tip: 'coklu'; adet: number };
 
-function kisaMetin(metin: string, limit = 28) {
-  return metin.length > limit ? `${metin.slice(0, limit)}…` : metin;
-}
-
 export function DatagridSagTikMenu<TRow extends { id: string }>({
   konteynerRef,
   kolonlar,
@@ -321,9 +317,13 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
               },
               {
                 id: 'panoyaKopyala' as const,
-                etiket: menu.kopyaMetni
-                  ? menuBasligi(`"${kisaMetin(menu.kopyaMetni)}" değerini panoya kopyala`)
-                  : menuBasligi('Panoya kopyala'),
+                etiket: (() => {
+                  if (!menu.kopyaMetni) return menuBasligi('Panoya kopyala');
+                  const kolonAdi = kolon?.baslik || menu.kolonId;
+                  return kolonAdi
+                    ? menuBasligi(`"${kolonAdi}" değerini panoya kopyala`)
+                    : menuBasligi('Panoya kopyala');
+                })(),
                 ikon: MENU_IKONLARI.panoyaKopyala,
                 devreDisi: !menu.kopyaMetni,
                 ayiriciOnce: true,
@@ -344,17 +344,6 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 tehlike: true,
                 ayiriciOnce: true,
                 goster: !!onSatirSil,
-              },
-              {
-                id: 'seciliSil' as const,
-                etiket:
-                  seciliSatirSayisi > 0
-                    ? menuBasligi(`Seçili satırları sil (${seciliSatirSayisi})`)
-                    : menuBasligi('Seçili satırları sil'),
-                ikon: MENU_IKONLARI.seciliSil,
-                devreDisi: seciliSatirSayisi === 0,
-                tehlike: true,
-                goster: seciliSilGoster && !!onSeciliSil,
               },
             ].filter((oge) => oge.goster !== false);
 

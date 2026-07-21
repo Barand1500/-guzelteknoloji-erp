@@ -4,7 +4,6 @@ import {
   useMemo,
   useState,
   type MutableRefObject,
-  type ReactNode,
 } from 'react';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
@@ -47,7 +46,6 @@ import { CariOutlinedTelefon } from './CariOutlinedTelefon';
 import { CariOutlinedVergiDairesi } from './CariOutlinedVergiDairesi';
 import { CariOutlinedVergiNo } from './CariOutlinedVergiNo';
 import { CariSecenekModal } from './CariSecenekModal';
-import { CariUstCariBaslikSecici } from './CariUstCariBaslikSecici';
 
 function formlarEsit(a: CariFormDegeri, b: CariFormDegeri): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -121,14 +119,12 @@ export function CariKart({
   onKaydedildi,
   kaydetRef,
   onKirliDegistir,
-  onUstAksiyonDegistir,
 }: {
   mod: CariKartModu;
   cariId: string | null;
   onKaydedildi: () => void;
   kaydetRef: MutableRefObject<(() => Promise<void>) | null>;
   onKirliDegistir: (kirli: boolean) => void;
-  onUstAksiyonDegistir?: (node: ReactNode | null) => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { eklemeVar, duzenlemeVar } = useYetkiler('cari');
@@ -195,20 +191,6 @@ export function CariKart({
   const setAlan = useCallback(<K extends keyof CariFormDegeri>(alan: K, deger: CariFormDegeri[K]) => {
     setForm((f) => ({ ...f, [alan]: deger }));
   }, []);
-
-  useEffect(() => {
-    if (!onUstAksiyonDegistir) return;
-    onUstAksiyonDegistir(
-      <CariUstCariBaslikSecici
-        ustId={form.ustId}
-        cariler={kayitlar}
-        haricId={cariId}
-        disabled={saltOkunur}
-        onChange={(ustId) => setAlan('ustId', ustId)}
-      />
-    );
-    return () => onUstAksiyonDegistir(null);
-  }, [onUstAksiyonDegistir, form.ustId, kayitlar, cariId, saltOkunur, setAlan]);
 
   const kaydet = useCallback(async () => {
     if (saltOkunur) return;
@@ -511,15 +493,6 @@ export function CariKart({
 
           </div>
 
-          <CariIletisimBolumu
-            kisiler={form.iletisimKisiler}
-            varsayilanAdres={form.adres}
-            varsayilanIl={form.il}
-            varsayilanIlce={form.ilce}
-            disabled={saltOkunur}
-            onChange={(iletisimKisiler) => setAlan('iletisimKisiler', iletisimKisiler)}
-          />
-
           {mod !== 'yeni' && seciliKayit && (seciliKayit.olusturma || seciliKayit.guncelleme) ? (
             <div className="cari-kart-tarihler">
               {seciliKayit.olusturma ? (
@@ -538,6 +511,15 @@ export function CariKart({
             </div>
           ) : null}
         </div>
+
+        <CariIletisimBolumu
+          kisiler={form.iletisimKisiler}
+          varsayilanAdres={form.adres}
+          varsayilanIl={form.il}
+          varsayilanIlce={form.ilce}
+          disabled={saltOkunur}
+          onChange={(iletisimKisiler) => setAlan('iletisimKisiler', iletisimKisiler)}
+        />
       </div>
 
       <CariSecenekModal

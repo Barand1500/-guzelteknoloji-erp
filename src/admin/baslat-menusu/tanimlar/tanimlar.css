@@ -12,7 +12,8 @@
 .ap-tanimlar-sayfa:has(.stok-fiyat-analiz-sayfa),
 .ap-tanimlar-sayfa:has(.stok-envanter-analiz-sayfa),
 .ap-tanimlar-sayfa:has(.stok-birim-liste-sayfa),
-.ap-tanimlar-sayfa:has(.stok-fiyat-duzenle-sayfa) {
+.ap-tanimlar-sayfa:has(.stok-fiyat-duzenle-sayfa),
+.ap-tanimlar-sayfa:has(.cari-kart-sayfa) {
   flex: 1;
   min-height: 0;
   gap: 0.85rem;
@@ -4106,13 +4107,13 @@ button.ap-tanimlar-panel-arka {
 
 
 /* ——— Cari Kart ——— */
+/* Kaydırma .cari-kart-sayfa'da; kabuk içeriğe göre uzar (+ ile iletişim açılınca) */
 .cari-kart-kabuk {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  overflow: auto;
-  overscroll-behavior: contain;
-  max-height: calc(100vh - 9.5rem);
+  overflow: visible;
+  max-height: none;
   padding-bottom: 1.25rem;
 }
 
@@ -4223,81 +4224,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.5rem 0.75rem;
 }
 
-.cari-secili-alan {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  min-width: 0;
-}
-
-.cari-secili-etiket-satir {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 1.15rem;
-}
-
-.cari-secili-etiket-satir .ap-tanim-girdi-etiket {
-  margin-bottom: 0;
-}
-
-.cari-secili-chip-grup {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-}
-
-.cari-secili-chip {
-  border: 1px solid var(--ap-border);
-  background: var(--ap-surface);
-  color: var(--ap-text);
-  border-radius: 999px;
-  padding: 0.28rem 0.7rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
-}
-
-.cari-secili-chip:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
-}
-
-.cari-secili-chip--aktif {
-  border-color: var(--ap-accent);
-  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
-  color: var(--ap-heading);
-}
-
-.cari-secili-chip:disabled {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.cari-secili-yonet {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.15rem;
-  height: 1.15rem;
-  flex-shrink: 0;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
-  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
-  color: var(--ap-accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-  transform: translateY(-1px);
-}
-
-.cari-secili-yonet:hover {
-  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
-  transform: translateY(-1px) scale(1.05);
-}
+/* İşletme Türü / chip stilleri: cari.css (outlined notch) — burada ezme */
 
 .cari-onay {
   display: inline-flex;

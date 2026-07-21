@@ -1,34 +1,42 @@
 /* ——— Cari Kart Form ——— */
 
-.cari-kart-baslik-blok {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.12rem;
-}
-
-.cari-listeye-don {
-  display: inline;
-  margin: 0;
+.cari-listeye-don-ikon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.05rem;
+  height: 2.05rem;
   padding: 0;
-  border: none;
-  background: none;
+  border: 1.5px solid var(--ap-border);
+  border-radius: 0.55rem;
+  background: var(--ap-surface);
   color: var(--ap-text-muted);
-  font-size: 0.78rem;
-  font-weight: 500;
-  line-height: 1.2;
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-  text-decoration-thickness: 1px;
   cursor: pointer;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
 }
 
-.cari-listeye-don:hover {
+.cari-listeye-don-ikon:hover {
   color: var(--ap-accent);
+  border-color: color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
+}
+
+.cari-listeye-don-ikon svg {
+  display: block;
 }
 
 .cari-kart-sayfa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
   padding: 0.15rem 0 1rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cari-kart-kabuk {
@@ -38,9 +46,7 @@
   border-radius: 0.85rem;
   box-shadow: 0 8px 28px color-mix(in srgb, var(--ap-heading) 5%, transparent);
   padding: 1.35rem 1.4rem 1.5rem;
-  overflow: auto;
-  overscroll-behavior: contain;
-  max-height: calc(100vh - 10.5rem);
+  overflow: visible;
 }
 
 .cari-kart-grid {
@@ -284,8 +290,13 @@
 .cari-secili-alan {
   position: relative;
   min-width: 0;
+  margin-top: 0.42rem;
   min-height: 2.95rem;
-  padding: 0.82rem 0.75rem 0.62rem;
+  box-sizing: border-box;
+  padding: 0.45rem 0.55rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   border: 1.5px solid var(--ap-border);
   border-radius: 0.5rem;
   background: var(--ap-input-bg);
@@ -318,14 +329,14 @@
 }
 
 .cari-secili-yonet {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1.05rem;
+  height: 1.05rem;
   flex-shrink: 0;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
   color: var(--ap-accent, #e85d04);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   line-height: 1;
   padding: 0;
@@ -349,7 +360,9 @@
 .cari-secili-chip-grup {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.38rem;
+  align-items: center;
+  gap: 0.28rem;
+  width: 100%;
 }
 
 .cari-secili-chip {
@@ -357,9 +370,10 @@
   background: var(--ap-surface-2, var(--ap-hover));
   color: var(--ap-text);
   border-radius: 999px;
-  padding: 0.34rem 0.8rem;
-  font-size: 0.8rem;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.74rem;
   font-weight: 600;
+  line-height: 1.25;
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -439,23 +453,6 @@
   .cari-efatura-secim .cari-secili-chip-grup {
     flex-wrap: wrap;
   }
-}
-
-.cari-ust-cari-oge {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.1rem;
-  text-align: left;
-}
-
-.cari-ust-cari-oge-ad {
-  font-weight: 600;
-}
-
-.cari-ust-cari-oge-kod {
-  font-size: 0.72rem;
-  opacity: 0.72;
 }
 
 .cari-kart-kabuk--salt .cari-secili-chip,
@@ -584,314 +581,16 @@
   color: var(--ap-text-muted);
 }
 
-/* ——— Üst cari başlık seçici ——— */
-
-.cari-ust-baslik-secici {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  min-width: 0;
-}
-
-.cari-ust-baslik-etiket {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--ap-text-muted);
-  white-space: nowrap;
-}
-
-.cari-ust-baslik-sec-tus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 2.05rem;
-  padding: 0 0.9rem;
-  border: 1.5px solid color-mix(in srgb, var(--ap-accent) 42%, var(--ap-border));
-  border-radius: 0.55rem;
-  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
-  color: var(--ap-accent);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease;
-}
-
-.cari-ust-baslik-sec-tus:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
-  border-color: var(--ap-accent);
-}
-
-.cari-ust-baslik-secici--pasif .cari-ust-baslik-sec-tus,
-.cari-ust-baslik-secici--pasif .cari-ust-baslik-temizle-x {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.cari-ust-baslik-secili-kutu {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  max-width: min(420px, 48vw);
-  min-width: 0;
-  height: 2.05rem;
-  padding: 0 0.35rem 0 0.7rem;
-  border: 1.5px solid var(--ap-border);
-  border-radius: 0.55rem;
-  background: var(--ap-input-bg);
-}
-
-.cari-ust-baslik-secili {
-  display: inline-grid;
-  grid-template-columns: auto minmax(0, max-content);
-  gap: 0.45rem;
-  align-items: center;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.cari-ust-baslik-secili-kod {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--ap-accent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-}
-
-.cari-ust-baslik-secili-ad {
-  font-size: 0.84rem;
-  font-weight: 500;
-  color: var(--ap-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-}
-
-.cari-ust-baslik-temizle-x {
-  flex-shrink: 0;
-  display: inline-grid;
-  place-items: center;
-  width: 1.45rem;
-  height: 1.45rem;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ap-text-muted);
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
-}
-
-.cari-ust-baslik-temizle-x:hover {
-  background: color-mix(in srgb, #ef4444 14%, var(--ap-surface));
-  color: #ef4444;
-}
-
-/* Üst cari seçim modalı */
-
-.cari-ust-modal-kart {
-  width: min(460px, calc(100vw - 2rem));
-  max-height: min(580px, calc(100vh - 2.5rem));
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 0.85rem !important;
-}
-
-.cari-ust-modal-govde {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  min-height: 0;
-  flex: 1;
-  margin-top: 0.45rem;
-  text-align: left;
-}
-
-.cari-ust-modal-ara-kutu {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  width: 100%;
-  min-height: 2.65rem;
-  padding: 0 0.85rem;
-  border: 1.5px solid color-mix(in srgb, var(--ap-border) 85%, var(--ap-text));
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-input-bg));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
-  transition:
-    border-color 0.14s ease,
-    box-shadow 0.14s ease,
-    background 0.14s ease;
-}
-
-.cari-ust-modal-ara-kutu:focus-within {
-  border-color: var(--ap-accent);
-  background: var(--ap-input-bg);
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--ap-accent) 18%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
-}
-
-.cari-ust-modal-ara-ikon {
-  flex-shrink: 0;
-  color: var(--ap-text-muted);
-}
-
-.cari-ust-modal-ara-kutu:focus-within .cari-ust-modal-ara-ikon {
-  color: var(--ap-accent);
-}
-
-.cari-ust-modal-ara {
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--ap-text);
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 0.55rem 0;
-}
-
-.cari-ust-modal-ara::placeholder {
-  color: var(--ap-text-muted);
-  font-weight: 400;
-}
-
-.cari-ust-modal-ara::-webkit-search-cancel-button {
-  appearance: none;
-}
-
-.cari-ust-modal-tablo {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  /* Modal yan padding'ini kırıp kenardan kenara kapla */
-  margin-left: -1.75rem;
-  margin-right: -1.75rem;
-  width: calc(100% + 3.5rem);
-  max-width: none;
-  border: none;
-  border-top: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
-  border-radius: 0;
-  background: var(--ap-surface);
-  overflow: hidden;
-  box-shadow: none;
-}
-
-.cari-ust-modal-tablo-baslik {
-  display: grid;
-  grid-template-columns: 118px 1fr;
-  gap: 0.55rem;
-  padding: 0.55rem 1.1rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--ap-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: color-mix(in srgb, var(--ap-surface-2) 70%, var(--ap-surface));
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
-}
-
-.cari-ust-modal-liste {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  overflow: auto;
-  max-height: min(300px, 40vh);
-}
-
-.cari-ust-modal-liste > li + li .cari-ust-modal-oge {
-  border-top: 1px solid color-mix(in srgb, var(--ap-border) 55%, transparent);
-}
-
-.cari-ust-modal-oge {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 118px 1fr;
-  gap: 0.55rem;
-  align-items: center;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  text-align: left;
-  padding: 0.7rem 1.1rem;
-  cursor: pointer;
-  color: var(--ap-text);
-  transition: background 0.12s ease;
-}
-
-.cari-ust-modal-oge:hover {
-  background: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
-}
-
-.cari-ust-modal-oge--odak {
-  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
-  box-shadow: inset 3px 0 0 var(--ap-accent);
-}
-
-.cari-ust-modal-oge-kod {
-  font-size: 0.78rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
-  color: var(--ap-accent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cari-ust-modal-oge-ad {
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--ap-heading);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cari-ust-modal-bos {
-  padding: 1.4rem 1.1rem;
-  text-align: center;
-  color: var(--ap-text-muted);
-  font-size: 0.86rem;
-}
-
-.cari-ust-modal-alt {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.5rem 1.1rem;
-  border-top: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
-  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--ap-text-muted);
-}
-
-.cari-ust-modal-alt-ipucu {
-  font-weight: 500;
-  opacity: 0.85;
-}
-
 /* ——— Adres / İletişim ——— */
 
 .cari-iletisim-bolumu {
   --cari-alan-zemin: var(--ap-surface);
-  margin-top: 0.5rem;
+  margin-top: 0;
   padding: 1.2rem 1.4rem 1.4rem;
   background: var(--ap-surface);
   border: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
   border-radius: 0.85rem;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--ap-heading) 4%, transparent);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--ap-heading) 5%, transparent);
 }
 
 .cari-iletisim-baslik-satir {
@@ -899,6 +598,10 @@
   align-items: center;
   justify-content: flex-start;
   gap: 0.55rem;
+  margin-bottom: 0;
+}
+
+.cari-iletisim-bolumu:has(.cari-iletisim-liste) .cari-iletisim-baslik-satir {
   margin-bottom: 0.85rem;
 }
 
@@ -935,12 +638,6 @@
   cursor: not-allowed;
 }
 
-.cari-iletisim-bos-metin {
-  margin: 0;
-  font-size: 0.84rem;
-  color: var(--ap-text-muted);
-}
-
 .cari-iletisim-liste {
   display: flex;
   flex-direction: column;
@@ -949,28 +646,21 @@
 
 .cari-iletisim-kart {
   --cari-alan-zemin: var(--ap-surface);
+  position: relative;
   border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
   border-radius: 0.65rem;
-  padding: 0.75rem 1rem 0.85rem;
+  padding: 0.85rem 1rem 0.85rem;
   background: var(--ap-surface);
 }
 
 .cari-iletisim-kart-ust {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.75rem;
-  margin-bottom: 0.65rem;
-  padding-bottom: 0.55rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
-}
-
-.cari-iletisim-kart-etiket {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--ap-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .cari-iletisim-kart-sil {
@@ -1044,9 +734,5 @@
 @media (max-width: 720px) {
   .cari-iletisim-kart-grid {
     grid-template-columns: 1fr;
-  }
-
-  .cari-ust-baslik-secili-kutu {
-    max-width: 100%;
   }
 }

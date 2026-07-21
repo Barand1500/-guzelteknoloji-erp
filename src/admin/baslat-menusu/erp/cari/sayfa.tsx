@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
@@ -37,7 +37,6 @@ export function CariSayfasi() {
   const [aktifCariId, setAktifCariId] = useState<string | null>(null);
   const [silme, setSilme] = useState<AdminCari | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
-  const [kartUstAksiyon, setKartUstAksiyon] = useState<ReactNode>(null);
   const gridApiRef = useRef<DataGridApi | null>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
   const kaydetRef = useRef<(() => Promise<void>) | null>(null);
@@ -64,10 +63,6 @@ export function CariSayfasi() {
 
   const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
   const baglamCariId = tekSeciliId ?? aktifCariId;
-
-  useEffect(() => {
-    if (gorunum !== 'kart') setKartUstAksiyon(null);
-  }, [gorunum]);
 
   const listeyeDon = useCallback(() => {
     setGorunum('liste');
@@ -230,18 +225,6 @@ export function CariSayfasi() {
           ? 'Cari Kart İnceleme'
           : 'Cari Kartlar';
 
-  const modulBaslikIcerik =
-    gorunum === 'kart' ? (
-      <div className="cari-kart-baslik-blok">
-        <button type="button" className="cari-listeye-don" onClick={listeyeDon}>
-          Listeye dön
-        </button>
-        <h1 className="ap-heading text-xl font-bold">{modulBaslik}</h1>
-      </div>
-    ) : (
-      modulBaslik
-    );
-
   const modulAciklama =
     gorunum === 'liste' ? 'Cari kartlarını listeleyin, arayın ve yönetin.' : undefined;
 
@@ -253,11 +236,27 @@ export function CariSayfasi() {
 
   return (
     <AdminModulKabuk
-      baslik={modulBaslikIcerik}
+      baslik={modulBaslik}
       aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'kart' ? (
-          kartUstAksiyon
+          <button
+            type="button"
+            className="cari-listeye-don-ikon"
+            onClick={listeyeDon}
+            title="Geri Dön"
+            aria-label="Geri Dön"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+              <path
+                d="M15 6l-6 6 6 6"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-modul-ust-araclar">
             <DgSecimUstKutu
@@ -301,7 +300,6 @@ export function CariSayfasi() {
             onKaydedildi={listeyeDon}
             kaydetRef={kaydetRef}
             onKirliDegistir={setKartKirli}
-            onUstAksiyonDegistir={setKartUstAksiyon}
           />
         ) : (
           <div className="dg-urun-slayt-kabuk">

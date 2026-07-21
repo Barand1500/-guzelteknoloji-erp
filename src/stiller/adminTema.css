@@ -11377,37 +11377,42 @@ html:has(.admin-panel[data-tema='acik']) body {
   50% { opacity: 1; transform: scale(1); }
 }
 
-/* â”€â”€ SaÄŸ tÄ±k menÃ¼sÃ¼ â”€â”€ */
+/* ── Sağ tık menüsü (Windows 11 tarzı) ── */
 .ap-sag-tik-menu {
   position: fixed;
   z-index: 10050;
   min-width: 220px;
   max-width: min(280px, calc(100vw - 16px));
-  padding: 0.35rem 0;
-  border-radius: 10px;
+  padding: 0.28rem;
+  border-radius: 8px;
   background: var(--ap-surface, #1e293b);
   border: 1px solid var(--ap-border, rgba(148, 163, 184, 0.25));
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.28),
+    0 2px 6px rgba(0, 0, 0, 0.12);
   font-size: 0.8125rem;
 }
 
 .ap-sag-tik-oge {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.65rem;
   width: 100%;
-  padding: 0.45rem 0.75rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
   border: none;
+  border-radius: 4px;
   background: transparent;
   color: var(--ap-text, #e2e8f0);
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background 0.1s ease;
 }
 
 .ap-sag-tik-oge:hover:not(:disabled),
 .ap-sag-tik-oge-aktif {
-  background: var(--ap-hover, rgba(148, 163, 184, 0.12));
+  background: var(--ap-hover, rgba(148, 163, 184, 0.14));
 }
 
 .ap-sag-tik-oge:disabled {
@@ -11417,8 +11422,13 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-sag-tik-oge > span:first-child {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.25rem;
+  height: 1.25rem;
   text-align: center;
+  line-height: 1;
 }
 
 .ap-sekme-sag-tik-menu .ap-sekme-sag-tik-ikon-wrap {
@@ -11444,14 +11454,15 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-sag-tik-ok {
   margin-left: auto;
-  opacity: 0.55;
-  font-size: 1rem;
+  opacity: 0.5;
+  font-size: 0.95rem;
   line-height: 1;
+  padding-left: 0.75rem;
 }
 
 .ap-sag-tik-ayirici {
   height: 1px;
-  margin: 0.3rem 0.5rem;
+  margin: 0.28rem 0.4rem;
   background: var(--ap-border, rgba(148, 163, 184, 0.2));
 }
 
@@ -11459,17 +11470,32 @@ html:has(.admin-panel[data-tema='acik']) body {
   position: relative;
 }
 
-.ap-sag-tik-flyout {
+/* Fare ana → alt menü geçiş köprüsü */
+.ap-sag-tik-flyout-wrap::after {
+  content: '';
   position: absolute;
   top: 0;
-  left: calc(100% + 4px);
-  min-width: 200px;
+  right: -4px;
+  width: 6px;
+  height: 100%;
+  z-index: 0;
+}
+
+.ap-sag-tik-flyout {
+  position: absolute;
+  top: -0.28rem;
+  left: calc(100% + 2px);
+  z-index: 2;
+  min-width: 168px;
   max-height: 280px;
-  padding: 0.35rem 0;
-  border-radius: 10px;
+  padding: 0.28rem;
+  border-radius: 8px;
   background: var(--ap-surface, #1e293b);
   border: 1px solid var(--ap-border, rgba(148, 163, 184, 0.25));
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.28),
+    0 2px 6px rgba(0, 0, 0, 0.12);
   overflow: hidden;
 }
 
