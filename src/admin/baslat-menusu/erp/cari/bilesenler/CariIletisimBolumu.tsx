@@ -15,18 +15,26 @@ function kisiSilMetni(kisi: CariIletisimKisi): string {
 
 export function CariIletisimBolumu({
   kisiler,
+  efaturaAlias,
+  eirsaliyeAlias,
   varsayilanAdres,
   varsayilanIl,
   varsayilanIlce,
   disabled,
   onChange,
+  onEfaturaAliasChange,
+  onEirsaliyeAliasChange,
 }: {
   kisiler: CariIletisimKisi[];
+  efaturaAlias: string;
+  eirsaliyeAlias: string;
   varsayilanAdres: string;
   varsayilanIl: string;
   varsayilanIlce: string;
   disabled?: boolean;
   onChange: (kisiler: CariIletisimKisi[]) => void;
+  onEfaturaAliasChange: (alias: string) => void;
+  onEirsaliyeAliasChange: (alias: string) => void;
 }) {
   const [adresCekildi, setAdresCekildi] = useState<Record<string, true>>({});
   const [silinecekId, setSilinecekId] = useState<string | null>(null);
@@ -80,7 +88,7 @@ export function CariIletisimBolumu({
 
       {kisiler.length > 0 ? (
         <div className="cari-iletisim-liste">
-          {kisiler.map((kisi) => {
+          {kisiler.map((kisi, index) => {
             const cekGoster = !disabled && !!ustAdres && !adresCekildi[kisi.id];
 
             return (
@@ -170,6 +178,26 @@ export function CariIletisimBolumu({
                     disabled={disabled}
                     onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
                   />
+                  {index === 0 ? (
+                    <>
+                      <CariOutlinedGirdi
+                        etiket="e-Fatura Alias"
+                        deger={efaturaAlias}
+                        maxLength={200}
+                        odakPlaceholder="Alias giriniz"
+                        disabled={disabled}
+                        onChange={onEfaturaAliasChange}
+                      />
+                      <CariOutlinedGirdi
+                        etiket="e-İrsaliye Alias"
+                        deger={eirsaliyeAlias}
+                        maxLength={200}
+                        odakPlaceholder="Alias giriniz"
+                        disabled={disabled}
+                        onChange={onEirsaliyeAliasChange}
+                      />
+                    </>
+                  ) : null}
                 </div>
               </article>
             );

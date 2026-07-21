@@ -1,5 +1,7 @@
 import type { AdminCari, CariFormDegeri, CariIletisimKisi, CariTipi, IsletmeTuru } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { bosCariForm, FATURA_TIPLERI } from '@/admin/baslat-menusu/erp/cari/tipler';
+import { cariDosyaDokumanGetir } from '@/admin/baslat-menusu/erp/cari/cariDosyaDokumanDeposu';
+import { cariEirsaliyeAliasGetir } from '@/admin/baslat-menusu/erp/cari/cariEirsaliyeAliasDeposu';
 import { cariIletisimGetir } from '@/admin/baslat-menusu/erp/cari/cariIletisimDeposu';
 
 const FATURA_TIPI_KODLARI = new Set<string>(FATURA_TIPLERI.map((t) => t.value));
@@ -78,8 +80,10 @@ export function caridenForm(c: AdminCari): CariFormDegeri {
     efaturaTipi: c.efatura ? faturaTipiNormalize(c.efaturaTipi) : 'TEMEL',
     alias: c.alias,
     earsivAlias: c.earsivAlias ?? '',
+    eirsaliyeAlias: cariEirsaliyeAliasGetir(c.id),
     aktif: c.aktif,
     iletisimKisiler: iletisimKisileriniHazirla(c),
+    dosyaDokuman: cariDosyaDokumanGetir(c.id),
   };
 }
 

@@ -7,6 +7,7 @@ import {
   CariOutlinedSarmalayici,
 } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { bosBirimFiyatSatiri } from './birimMap';
@@ -131,6 +132,7 @@ export function StokYeniBirimler({
   const [fiyatModalAcik, setFiyatModalAcik] = useState(false);
   const [birimAdlari, setBirimAdlari] = useState<StokBirimAdiSecenek[]>(() => stokBirimAdlariGetir());
   const [birimModalAcik, setBirimModalAcik] = useState(false);
+  const [silinecekSatirId, setSilinecekSatirId] = useState<string | null>(null);
 
   useEffect(() => {
     setFiyatAdlari(stokFiyatAdlariGetir());
@@ -157,7 +159,14 @@ export function StokYeniBirimler({
 
   const satirPatch = useCallback(
     (id: string, patch: Partial<StokFiyatDuzenleSatir>) => {
-      onChange(satirlarRef.current.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+      onChange(
+        satirlarRef.current.map((s) => {
+          if (s.id !== id) return s;
+          const guncel = { ...s, ...patch };
+          if (guncel.anaBirimMi) guncel.carpan = 1;
+          return guncel;
+        })
+      );
     },
     [onChange]
   );
@@ -202,6 +211,10 @@ export function StokYeniBirimler({
     },
     [onChange, seciliFiyatAdi]
   );
+
+  const silinecekSatir = silinecekSatirId
+    ? satirlar.find((s) => s.id === silinecekSatirId) ?? null
+    : null;
 
   const digerFiyatlariHesapla = useCallback(() => {
     const liste = gorunenSatirlar;
@@ -314,7 +327,7 @@ export function StokYeniBirimler({
                   className="stok-yb-kart-sil cari-iletisim-kart-sil"
                   title="Satırı sil"
                   aria-label="Satırı sil"
-                  onClick={() => satirSil(satir.id)}
+                  onClick={() => setSilinecekSatirId(satir.id)}
                 >
                   <DgIkon ad="sil" />
                 </button>
@@ -330,24 +343,32 @@ export function StokYeniBirimler({
                     <CariOutlinedCarpan
                       etiket="Çarpan"
                       zorunlu
-                      deger={satir.carpan}
-                      onDegistir={(carpan) => satirPatch(satir.id, { carpan })}
+                      disabled={Boolean(satir.anaBirimMi)}
+                      deger={satir.anaBirimMi ? 1 : satir.carpan}
+                      onDegistir={(carpan) => {
+                        if (satir.anaBirimMi) {
+                          satirPatch(satir.id, { carpan: 1 });
+                          return;
+                        }
+                        satirPatch(satir.id, { carpan });
+                      }}
                     />
                     <CariOutlinedSayi
                       etiket="Alış Fiyatı"
                       deger={satir.alisFiyati}
                       placeholder="0,00"
                       sagaHizali
+                      formatli
                       onDegistir={(alisFiyati) => satirPatch(satir.id, { alisFiyati })}
                     />
                     <CariOutlinedAcilir
-                      etiket="Al.PB"
+                      etiket="PB"
                       deger={satir.pb2}
                       secenekler={pbSecenekleri}
                       tusMetin={stokPbSembolu(satir.pb2)}
                       sinif="stok-yb-pb-acilir"
                       listeSinifi="stok-yb-pb-acilir-liste"
-                      listeMinGenislik={92}
+                      listeMinGenislik={76}
                       onChange={(pb2) =>
                         satirPatch(satir.id, {
                           pb2: pb2 === 'USD' || pb2 === 'EUR' ? pb2 : 'TL',
@@ -384,16 +405,17 @@ export function StokYeniBirimler({
                       deger={satir.satisFiyati1}
                       placeholder="0,00"
                       sagaHizali
+                      formatli
                       onDegistir={(satisFiyati1) => satirPatch(satir.id, { satisFiyati1 })}
                     />
                     <CariOutlinedAcilir
-                      etiket="Sat.PB"
+                      etiket="PB"
                       deger={satir.pb1}
                       secenekler={pbSecenekleri}
                       tusMetin={stokPbSembolu(satir.pb1)}
                       sinif="stok-yb-pb-acilir"
                       listeSinifi="stok-yb-pb-acilir-liste"
-                      listeMinGenislik={92}
+                      listeMinGenislik={76}
                       onChange={(pb1) =>
                         satirPatch(satir.id, {
                           pb1: pb1 === 'USD' || pb1 === 'EUR' ? pb1 : 'TL',
@@ -489,6 +511,23 @@ export function StokYeniBirimler({
           setBirimAdlari(stokBirimAdlariGetir());
         }}
         onKapat={() => setBirimModalAcik(false)}
+      />
+
+      <SilmeOnayModal
+        acik={!!silinecekSatir}
+        onKapat={() => setSilinecekSatirId(null)}
+        onOnayla={() => {
+          if (!silinecekSatirId) return;
+          satirSil(silinecekSatirId);
+          setSilinecekSatirId(null);
+        }}
+        baslik="Silmek istediğinize emin misiniz?"
+        hedefMetin={
+          silinecekSatir
+            ? `${silinecekSatir.birim || 'Birim'}${silinecekSatir.barkod ? ` (${silinecekSatir.barkod})` : ''}`
+            : ''
+        }
+        ariaLabel="Birim satırı silme onayı"
       />
     </div>
   );

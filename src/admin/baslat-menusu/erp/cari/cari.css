@@ -850,3 +850,407 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ——— Dosya ve Dokümanlar ——— */
+
+.cari-dokuman-bolumu {
+  --cari-alan-zemin: var(--ap-surface);
+  margin-top: 0;
+  padding: 1.2rem 1.4rem 1.4rem;
+  background: var(--ap-surface);
+  border: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--ap-heading) 5%, transparent);
+}
+
+.cari-dokuman-baslik-satir {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  margin-bottom: 0;
+}
+
+.cari-dokuman-bolumu:has(.cari-dokuman-alanlar) .cari-dokuman-baslik-satir {
+  margin-bottom: 1rem;
+}
+
+.cari-dokuman-baslik {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ap-heading);
+}
+
+.cari-dokuman-alanlar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+}
+
+.cari-dokuman-alan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.cari-dokuman-alan-etiket {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.cari-dokuman-satir {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.cari-dokuman-girdi {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 2.45rem;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  border-radius: 0.55rem;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font: inherit;
+  font-size: 0.86rem;
+  padding: 0 0.75rem;
+  outline: none;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.cari-dokuman-girdi::placeholder {
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-girdi:focus {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ap-accent) 14%, transparent);
+}
+
+.cari-dokuman-ekle-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.45rem;
+  min-width: 4.25rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--ap-accent) 55%, #9eb0f0);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, opacity 0.12s ease;
+}
+
+.cari-dokuman-ekle-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-accent) 72%, #7f95e8);
+}
+
+.cari-dokuman-ekle-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cari-dokuman-ekle-btn--ikon {
+  min-width: 2.45rem;
+  width: 2.45rem;
+  padding: 0;
+}
+
+.cari-dokuman-ekle-btn--ikon svg {
+  display: block;
+}
+
+.cari-dokuman-not-liste {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.55rem 0.6rem;
+}
+
+.cari-dokuman-not-kart {
+  --cari-alan-zemin: var(--ap-surface);
+  position: relative;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: min(100%, 18rem);
+  min-width: 8.5rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.75rem 0.55rem;
+  background: var(--ap-surface);
+}
+
+.cari-dokuman-not-kart--duzenleniyor {
+  --cari-alan-zemin: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: var(--cari-alan-zemin);
+}
+
+.cari-dokuman-not-aksiyonlar {
+  position: absolute;
+  top: 0;
+  right: 0.55rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.cari-dokuman-kart-aksiyon {
+  display: inline-grid;
+  place-items: center;
+  margin: 0;
+  padding: 0 0.22rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--cari-alan-zemin, var(--ap-surface));
+  color: var(--ap-text-muted);
+  line-height: 0;
+  cursor: pointer;
+  transition: color 0.12s ease;
+}
+
+.cari-dokuman-kart-aksiyon .dg-svg-ikon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.cari-dokuman-kart-aksiyon:hover {
+  color: var(--ap-accent);
+}
+
+.cari-dokuman-kart-aksiyon--sil:hover {
+  color: #ef4444;
+}
+
+.cari-dokuman-ikon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.cari-dokuman-ikon-btn:hover {
+  color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+}
+
+.cari-dokuman-ikon-btn--tehlike:hover {
+  color: #ef4444;
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+}
+
+.cari-dokuman-ikon-btn .dg-svg-ikon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.cari-dokuman-not-metin {
+  margin: 0 0 0.4rem;
+  padding-right: 0.15rem;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  color: var(--ap-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cari-dokuman-not-satir-input {
+  display: block;
+  width: 100%;
+  min-width: 7rem;
+  margin: 0 0 0.4rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: var(--ap-text);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.35;
+  padding: 0.05rem 0;
+  outline: none;
+}
+
+.cari-dokuman-not-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.7rem;
+}
+
+.cari-dokuman-not-meta-oge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 7.5rem;
+  padding: 1.15rem 1rem;
+  border: 1.5px dashed color-mix(in srgb, var(--ap-border) 90%, transparent);
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--ap-border) 8%, var(--ap-surface));
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.cari-dokuman-dropzone:hover,
+.cari-dokuman-dropzone--aktif {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
+}
+
+.cari-dokuman-dropzone-ikon {
+  color: color-mix(in srgb, var(--ap-text-muted) 70%, transparent);
+  margin-bottom: 0.15rem;
+}
+
+.cari-dokuman-dropzone-yazi {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.cari-dokuman-dropzone-link {
+  color: var(--ap-accent);
+}
+
+.cari-dokuman-dropzone-ipucu {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-dosya-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cari-dokuman-dosya-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cari-dokuman-dosya-oge {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  border-radius: 0.5rem;
+  background: var(--ap-surface);
+}
+
+.cari-dokuman-dosya-ad {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  color: var(--ap-accent);
+  text-decoration: none;
+}
+
+.cari-dokuman-dosya-ad:hover {
+  text-decoration: underline;
+}
+
+.cari-dokuman-dosya-boyut {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-etiket-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-bottom: 0.15rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  margin-bottom: 0.15rem;
+}
+
+.cari-dokuman-etiket-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.22rem 0.55rem 0.22rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
+  color: color-mix(in srgb, var(--ap-accent) 82%, #1e3a8a);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.cari-dokuman-etiket-sil {
+  display: inline-grid;
+  place-items: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.cari-dokuman-etiket-sil:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--ap-accent) 16%, transparent);
+}
+
+.cari-dokuman-bos {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--ap-text-muted);
+}
+

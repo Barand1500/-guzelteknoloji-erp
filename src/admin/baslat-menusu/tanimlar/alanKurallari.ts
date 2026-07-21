@@ -2,6 +2,7 @@
 
 export type AlanKuralTipi =
   | 'kod'
+  | 'stokKod'
   | 'ad'
   | 'vergiNo'
   | 'postaKodu'
@@ -17,6 +18,7 @@ export interface AlanKurali {
 
 export const ALAN_KURALLARI: Record<AlanKuralTipi, AlanKurali> = {
   kod: { max: 20 },
+  stokKod: { max: 30 },
   ad: { max: 150 },
   vergiNo: { max: 10 },
   postaKodu: { max: 5 },
@@ -38,6 +40,8 @@ export function alanDegeriniFiltrele(tip: AlanKuralTipi, ham: string): string {
     case 'ebelgeSeri':
     case 'ticaretSicil':
       return ham.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, max);
+    case 'stokKod':
+      return ham.replace(/[^a-zA-Z0-9.]/g, '').toUpperCase().slice(0, max);
     case 'binaNo':
       return ham.slice(0, max);
     default:

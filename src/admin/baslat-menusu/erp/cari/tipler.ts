@@ -39,6 +39,28 @@ export interface CariIletisimKisi {
   adres: string;
 }
 
+export interface CariNot {
+  id: string;
+  metin: string;
+  yazar: string;
+  tarih: string;
+}
+
+export interface CariDosya {
+  id: string;
+  ad: string;
+  boyut: number;
+  tip: string;
+  dataUrl: string;
+  tarih: string;
+}
+
+export interface CariDosyaDokuman {
+  notlar: CariNot[];
+  dosyalar: CariDosya[];
+  etiketler: string[];
+}
+
 export interface CariAdresDegeri {
   il: string;
   ilce: string;
@@ -103,9 +125,17 @@ export interface CariFormDegeri extends CariAdresDegeri {
   efaturaTipi: string;
   alias: string;
   earsivAlias: string;
+  eirsaliyeAlias: string;
   aktif: boolean;
   iletisimKisiler: CariIletisimKisi[];
+  dosyaDokuman: CariDosyaDokuman;
 }
+
+export const bosDosyaDokuman: CariDosyaDokuman = {
+  notlar: [],
+  dosyalar: [],
+  etiketler: [],
+};
 
 export const bosCariForm: CariFormDegeri = {
   ustId: '',
@@ -129,8 +159,10 @@ export const bosCariForm: CariFormDegeri = {
   efaturaTipi: 'TEMEL',
   alias: '',
   earsivAlias: '',
+  eirsaliyeAlias: '',
   aktif: true,
   iletisimKisiler: [],
+  dosyaDokuman: bosDosyaDokuman,
 };
 
 export function cariTipiEtiketi(tip: CariTipi): string {

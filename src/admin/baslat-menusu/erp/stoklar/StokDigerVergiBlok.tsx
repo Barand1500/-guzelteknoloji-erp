@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
+import '@/admin/baslat-menusu/erp/cari/cari.css';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { CariOutlinedSayi } from './stokYeniBirimlerYardimci';
 
 type EkVergiTipi = 'oiv' | 'alisOtv' | 'satisOtv' | 'konaklama';
@@ -14,6 +16,7 @@ const DIGER_VERGI_SECENEKLERI: { value: EkVergiTipi; label: string }[] = [
 export function StokDigerVergiBlok() {
   const [liste, setListe] = useState<{ tip: EkVergiTipi; deger: number | null }[]>([]);
   const [secim, setSecim] = useState('');
+  const [silinecekIdx, setSilinecekIdx] = useState<number | null>(null);
 
   const eklenebilir = useMemo(
     () => DIGER_VERGI_SECENEKLERI.filter((o) => !liste.some((e) => e.tip === o.value)),
@@ -35,6 +38,12 @@ export function StokDigerVergiBlok() {
     setListe((l) => [...l, { tip, deger: null }]);
     setSecim('');
   };
+
+  const silinecek =
+    silinecekIdx !== null && liste[silinecekIdx]
+      ? DIGER_VERGI_SECENEKLERI.find((o) => o.value === liste[silinecekIdx]!.tip)?.label ??
+        liste[silinecekIdx]!.tip
+      : '';
 
   return (
     <div className="stok-karti-diger-vergi">
@@ -65,13 +74,26 @@ export function StokDigerVergiBlok() {
               className="stok-karti-diger-vergi-ek-sil"
               title={`${etiket} kaldır`}
               aria-label={`${etiket} kaldır`}
-              onClick={() => setListe((l) => l.filter((_, i) => i !== idx))}
+              onClick={() => setSilinecekIdx(idx)}
             >
               ×
             </button>
           </div>
         );
       })}
+
+      <SilmeOnayModal
+        acik={silinecekIdx !== null}
+        onKapat={() => setSilinecekIdx(null)}
+        onOnayla={() => {
+          if (silinecekIdx === null) return;
+          setListe((l) => l.filter((_, i) => i !== silinecekIdx));
+          setSilinecekIdx(null);
+        }}
+        baslik="Silmek istediğinize emin misiniz?"
+        hedefMetin={silinecek || 'Vergi'}
+        ariaLabel="Vergi silme onayı"
+      />
     </div>
   );
 }

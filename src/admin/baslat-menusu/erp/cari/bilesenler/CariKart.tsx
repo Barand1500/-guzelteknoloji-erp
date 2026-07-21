@@ -12,6 +12,8 @@ import { useYetkiler } from '@/kancalar/useYetkiler';
 import { cariOlustur, cariGuncelle, carileriGetir } from '../api';
 import { cariFormDogrula, cariVergiNoDoluVeGecerliMi } from '../alanKurallari';
 import { cariIletisimKaydet } from '../cariIletisimDeposu';
+import { cariDosyaDokumanKaydet } from '../cariDosyaDokumanDeposu';
+import { cariEirsaliyeAliasKaydet } from '../cariEirsaliyeAliasDeposu';
 import {
   cariIsletmeTuruEkle,
   cariIsletmeTuruGuncelle,
@@ -37,6 +39,7 @@ import {
   type CariKartModu,
 } from '../tipler';
 import { stokFiyatAdlariGetir } from '@/admin/baslat-menusu/erp/stoklar/stokFiyatAdlari';
+import { CariDosyaDokumanBolumu } from './CariDosyaDokumanBolumu';
 import { CariIletisimBolumu } from './CariIletisimBolumu';
 import { CariOutlinedAcilir } from './CariOutlinedAcilir';
 import { CariOutlinedAramaAcilir } from './CariOutlinedAramaAcilir';
@@ -53,11 +56,13 @@ function formlarEsit(a: CariFormDegeri, b: CariFormDegeri): boolean {
 }
 
 function apiFormHazirla(form: CariFormDegeri, kartTipiSecim: string, mod: CariKartModu): CariFormDegeri {
-  const { iletisimKisiler, ...rest } = form;
+  const { iletisimKisiler, dosyaDokuman: _dokuman, eirsaliyeAlias: _eirsaliye, ...rest } = form;
   const ilkKisi = iletisimKisiler.find((k) => k.adSoyad.trim());
   return {
     ...rest,
     iletisimKisiler: [],
+    dosyaDokuman: { notlar: [], dosyalar: [], etiketler: [] },
+    eirsaliyeAlias: '',
     cariTipi: kartTipindenApiCariTipi(kartTipiSecim),
     yetkili: ilkKisi?.adSoyad.trim() ?? '',
     aktif: mod === 'yeni' ? true : form.aktif,
@@ -224,6 +229,8 @@ export function CariKart({
       }
       if (kaydedilenId) {
         cariIletisimKaydet(kaydedilenId, form.iletisimKisiler);
+        cariDosyaDokumanKaydet(kaydedilenId, form.dosyaDokuman);
+        cariEirsaliyeAliasKaydet(kaydedilenId, form.eirsaliyeAlias);
       }
       onKaydedildi();
     } catch (e) {
@@ -510,7 +517,7 @@ export function CariKart({
                   etiket="E-Fatura Alias"
                   deger={form.alias}
                   maxLength={200}
-                  odakPlaceholder="urn:mail:…"
+                  odakPlaceholder="Alias giriniz"
                   disabled={saltOkunur}
                   onChange={(alias) => setAlan('alias', alias)}
                 />
@@ -518,17 +525,17 @@ export function CariKart({
                   etiket="E-Arşiv Alias"
                   deger={form.earsivAlias}
                   maxLength={200}
-                  odakPlaceholder="urn:mail:…"
+                  odakPlaceholder="Alias giriniz"
                   disabled={saltOkunur}
                   onChange={(earsivAlias) => setAlan('earsivAlias', earsivAlias)}
                 />
               </div>
             ) : form.efatura ? (
               <CariOutlinedGirdi
-                etiket="Alias"
+                etiket="E-Fatura Alias"
                 deger={form.alias}
                 maxLength={200}
-                odakPlaceholder="urn:mail:…"
+                odakPlaceholder="Alias giriniz"
                 disabled={saltOkunur}
                 onChange={(alias) => setAlan('alias', alias)}
               />
@@ -537,7 +544,7 @@ export function CariKart({
                 etiket="E-Arşiv Alias"
                 deger={form.earsivAlias}
                 maxLength={200}
-                odakPlaceholder="urn:mail:…"
+                odakPlaceholder="Alias giriniz"
                 disabled={saltOkunur}
                 onChange={(earsivAlias) => setAlan('earsivAlias', earsivAlias)}
               />
@@ -575,11 +582,22 @@ export function CariKart({
 
         <CariIletisimBolumu
           kisiler={form.iletisimKisiler}
+          efaturaAlias={form.alias}
+          eirsaliyeAlias={form.eirsaliyeAlias}
           varsayilanAdres={form.adres}
           varsayilanIl={form.il}
           varsayilanIlce={form.ilce}
           disabled={saltOkunur}
           onChange={(iletisimKisiler) => setAlan('iletisimKisiler', iletisimKisiler)}
+          onEfaturaAliasChange={(alias) => setAlan('alias', alias)}
+          onEirsaliyeAliasChange={(eirsaliyeAlias) => setAlan('eirsaliyeAlias', eirsaliyeAlias)}
+        />
+
+        <CariDosyaDokumanBolumu
+          deger={form.dosyaDokuman}
+          disabled={saltOkunur}
+          onChange={(dosyaDokuman) => setAlan('dosyaDokuman', dosyaDokuman)}
+          onHata={hataBildir}
         />
       </div>
 

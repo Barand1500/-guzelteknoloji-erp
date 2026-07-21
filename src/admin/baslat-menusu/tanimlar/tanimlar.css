@@ -1,4 +1,4 @@
-﻿/* Tanımlar — üst pill sekmeler + liste / form */
+/* Tanımlar — üst pill sekmeler + liste / form */
 
 .ap-tanimlar-sayfa {
   display: flex;
@@ -2614,6 +2614,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-karti-diger-vergi-ek {
+  --cari-alan-zemin: var(--ap-surface);
   position: relative;
   min-width: 0;
 }
@@ -2622,19 +2623,23 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
 }
 
+.stok-karti-diger-vergi-ek .cari-outlined-etiket {
+  background: var(--cari-alan-zemin, var(--ap-surface));
+}
+
 .stok-karti-diger-vergi-ek-sil {
   position: absolute;
-  top: 0;
-  right: 0.55rem;
+  top: 0.12rem;
+  right: 0.65rem;
   z-index: 2;
-  transform: translateY(-50%);
+  transform: translateY(-40%);
   margin: 0;
-  padding: 0 0.2rem;
+  padding: 0 0.22rem;
   border: 0;
   border-radius: 0;
-  background: var(--ap-surface);
+  background: var(--cari-alan-zemin, var(--ap-surface));
   color: var(--ap-text-muted);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -2643,6 +2648,46 @@ button.ap-tanimlar-panel-arka {
 
 .stok-karti-diger-vergi-ek-sil:hover {
   color: #ef4444;
+}
+
+.stok-karti-diger-vergi-ek .stok-yb-yuzde-cerceve {
+  justify-content: flex-end;
+  padding-left: 0.55rem;
+  padding-right: 0.65rem;
+}
+
+.stok-karti-diger-vergi-ek .stok-yb-yuzde-grup {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.stok-karti-diger-vergi-ek .stok-yb-yuzde-onek {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.stok-karti-diger-vergi-ek .stok-yb-yuzde-input {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0.9rem !important;
+  max-width: 3.5rem !important;
+  field-sizing: content;
+  text-align: left;
+  padding: 0 !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .stok-karti-durum-alan {
@@ -3209,12 +3254,13 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-yb-pb-acilir.cari-outlined-field {
-  min-width: 3.85rem;
+  min-width: 3.1rem;
+  max-width: 3.35rem;
 }
 
 .stok-yb-pb-acilir .cari-outlined-cerceve {
-  padding-left: 0.28rem;
-  padding-right: 0.22rem;
+  padding-left: 0.22rem;
+  padding-right: 0.18rem;
 }
 
 .stok-yb-pb-acilir .ap-form-acilir-secim-tus {
@@ -3335,16 +3381,22 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-yb-pb-acilir-liste {
-  padding: 0.2rem;
-  min-width: 5.75rem;
+  padding: 0.15rem;
+  min-width: 4.75rem !important;
+  width: max-content;
 }
 
 .stok-yb-pb-acilir-liste .ap-form-acilir-secim-oge {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  white-space: nowrap;
   text-align: left;
-  padding: 0.42rem 0.55rem;
-  font-size: 0.78rem;
+  padding: 0.32rem 0.5rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 

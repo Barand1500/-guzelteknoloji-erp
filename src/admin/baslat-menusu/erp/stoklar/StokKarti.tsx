@@ -127,10 +127,12 @@ export function StokKarti({
       .filter((b) => b.urunId === stokId)
       .map((b) => {
         const satir = birimdenFiyatDuzenleSatir(b);
+        const anaBirimMi = Boolean(anaBirim && b.birimAdi === anaBirim);
         return {
           ...satir,
-          anaBirimMi: Boolean(anaBirim && b.birimAdi === anaBirim),
+          anaBirimMi,
           varsayilanMi: Boolean(varsayilanBirim && b.birimAdi === varsayilanBirim),
+          carpan: anaBirimMi ? 1 : satir.carpan,
         };
       });
     setBirimSatirlari(
@@ -203,7 +205,8 @@ export function StokKarti({
       for (const satir of birimSatirlari) {
         // Otomatik eklenen ve hiç dokunulmamış boş satırları kaydetme
         if (geciciIdMi(satir.id) && birimSatiriBosMu(satir)) continue;
-        const birimForm = fiyatDuzenleSatirdanBirimForm(satir, urunId);
+        const kaydedilecek = satir.anaBirimMi ? { ...satir, carpan: 1 } : satir;
+        const birimForm = fiyatDuzenleSatirdanBirimForm(kaydedilecek, urunId);
         if (geciciIdMi(satir.id)) await birimOlustur(birimForm);
         else await birimGuncelle(satir.id, birimForm);
       }
@@ -291,7 +294,7 @@ export function StokKarti({
         <CariOutlinedGirdi
           etiket="Stok Kodu"
           deger={form.urunKodu}
-          kural="kod"
+          kural="stokKod"
           zorunlu
           maxLength={30}
           buyukHarf
