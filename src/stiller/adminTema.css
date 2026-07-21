@@ -11470,21 +11470,22 @@ html:has(.admin-panel[data-tema='acik']) body {
   position: relative;
 }
 
-/* Fare ana → alt menü geçiş köprüsü */
+/* Fare ana → alt menü geçiş köprüsü (menü padding’ini de kapsar) */
 .ap-sag-tik-flyout-wrap::after {
   content: '';
   position: absolute;
   top: 0;
-  right: -4px;
-  width: 6px;
+  right: calc(-0.28rem - 2px);
+  width: calc(0.28rem + 4px);
   height: 100%;
   z-index: 0;
 }
 
 .ap-sag-tik-flyout {
   position: absolute;
-  top: -0.28rem;
-  left: calc(100% + 2px);
+  top: 0;
+  /* Ana menü dış kenarının tam bitişinden başla (padding + border; üstüne binmesin) */
+  left: calc(100% + 0.28rem + 1px);
   z-index: 2;
   min-width: 168px;
   max-height: 280px;

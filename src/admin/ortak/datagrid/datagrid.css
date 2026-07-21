@@ -1109,87 +1109,45 @@ td.dg-hucre--sabit,
   text-align: right;
 }
 
-.dg-hucre-secim-tus {
+.dg-hucre-secim-kok {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  width: 100%;
-  min-height: 1.2rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dg-hucre-secim-goster {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.dg-hucre-secim-odak {
+  position: absolute;
+  inset: 0;
   margin: 0;
-  padding: 0.1rem 0.15rem;
-  border: none;
-  border-radius: 0;
+  padding: 0;
+  border: 0;
   background: transparent;
-  color: var(--ap-accent);
-  font: inherit;
-  font-size: inherit;
-  font-weight: 600;
-  line-height: inherit;
   cursor: pointer;
   outline: none;
 }
 
-.dg-hucre-secim-tus-metin {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dg-hucre-secim-tus-ok {
-  flex-shrink: 0;
-  font-size: 0.65rem;
-  opacity: 0.7;
-}
-
-.dg-hucre-secim-panel {
-  background: var(--ap-surface);
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
-  border-radius: 0.65rem;
-  box-shadow:
-    0 10px 28px color-mix(in srgb, var(--ap-heading) 14%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--ap-accent) 8%, transparent);
-  overflow: hidden;
-}
-
-.dg-hucre-secim-liste {
-  list-style: none;
-  margin: 0;
-  padding: 0.3rem;
-  overflow: auto;
-  max-height: inherit;
-}
-
-.dg-hucre-secim-oge {
-  width: 100%;
-  display: block;
-  border: 0;
+/* Stok Tipi / Stok Nevi (ap-form-acilir-secim) ile aynı liste; biraz daha kompakt */
+.dg-hucre-secim-liste.ap-form-acilir-secim-liste {
+  padding: 0.2rem;
   border-radius: 0.45rem;
-  background: transparent;
-  color: var(--ap-heading);
-  text-align: left;
-  padding: 0.48rem 0.65rem;
-  font-size: 0.8125rem;
+}
+
+.dg-hucre-secim-liste .ap-form-acilir-secim-oge {
+  padding: 0.28rem 0.4rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.1s ease,
-    color 0.1s ease;
-}
-
-.dg-hucre-secim-oge:hover,
-.dg-hucre-secim-oge--odak {
-  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
-  color: var(--ap-accent);
-}
-
-.dg-hucre-secim-oge--secili {
-  box-shadow: inset 2.5px 0 0 var(--ap-accent);
-}
-
-.dg-hucre-secim-oge--odak.dg-hucre-secim-oge--secili {
-  background: color-mix(in srgb, var(--ap-accent) 18%, var(--ap-surface));
 }
 
 .dg-stok-kodu {

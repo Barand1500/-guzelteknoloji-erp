@@ -1483,8 +1483,10 @@ export function DataGrid<TRow extends { id: string }>({
                 {duzenliyor ? (
                   kolon.secenekler?.length ? (
                     <DgHucreSecim
+                      baslik={kolon.baslik}
                       deger={duzenleme.hamDeger}
                       secenekler={kolon.secenekler}
+                      gosterilen={<HucreGoster satir={satir} kolon={kolon} />}
                       onSec={(yeni) => {
                         duzenlemeCommitRef.current = true;
                         hucreDuzenlemeyiBitir(satir, kolon, yeni);
