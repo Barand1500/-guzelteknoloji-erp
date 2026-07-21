@@ -2270,7 +2270,7 @@ export function DataGrid<TRow extends { id: string }>({
               <span className="dg-alt-ayrac" aria-hidden>
                 |
               </span>
-              <span>{dg.seciliIdler.size} seçili</span>
+              <span>{dg.seciliIdler.size} Seçili</span>
             </>
           ) : null}
         </span>

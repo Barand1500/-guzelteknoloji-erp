@@ -2882,7 +2882,9 @@ button.ap-tanimlar-panel-arka {
   padding: 1rem 0.75rem;
   font-size: 0.8125rem;
   color: var(--ap-muted);
-  border-top: 1px solid var(--ap-border);
+  border: 1px dashed var(--ap-border);
+  border-radius: 0.65rem;
+  text-align: center;
 }
 
 .stok-yb-bos strong {
@@ -2921,6 +2923,272 @@ button.ap-tanimlar-panel-arka {
 
 .stok-yb-tus--ekle {
   background: #22a558;
+}
+
+.stok-yb-tus--ikon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+}
+
+.stok-yb-tus--ikon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.stok-yb-birim-alan .cari-outlined-etiket {
+  gap: 0.32rem;
+  max-width: calc(100% - 0.6rem);
+}
+
+.stok-yb-birim-alan .stok-yb-birim-ekle {
+  transform: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  font-size: 0.68rem;
+  flex-shrink: 0;
+}
+
+/* ── Birim kart düzeni (ana tanımlar tarzı) ── */
+.stok-yb-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.stok-yb-kart {
+  border: 1px solid var(--ap-border);
+  border-radius: 0.65rem;
+  background: var(--ap-surface);
+  padding: 0.85rem 0.9rem;
+  min-width: 0;
+}
+
+.stok-yb-kart-govde {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 6.5rem);
+  gap: 0.65rem 0.85rem;
+  align-items: start;
+}
+
+.stok-yb-kart-sol,
+.stok-yb-kart-orta,
+.stok-yb-kart-sag {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.stok-yb-kart-ust-satir {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 5.5rem);
+  gap: 0.45rem;
+  align-items: end;
+}
+
+.stok-yb-fiyat-satir {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(3.5rem, 4.25rem);
+  gap: 0.45rem;
+  align-items: end;
+}
+
+.stok-yb-kdv-grup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.stok-yb-kdv-satir-compact {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.stok-yb-kdv-satir-compact .cari-outlined-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.stok-yb-kdv-tip--kucuk {
+  flex: none;
+  margin-bottom: 0;
+  padding: 0 0.45rem;
+  min-height: 2.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+}
+
+.stok-yb-outlined-onek-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.stok-yb-outlined-onek {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-muted);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.stok-yb-outlined-input--onekli {
+  padding-left: 1.55rem !important;
+}
+
+.stok-yb-kdv-outlined .cari-outlined-acilir-tus {
+  width: 100%;
+}
+
+.stok-yb-toggle-alan {
+  margin: 0;
+}
+
+.stok-yb-toggle-alan .cari-durum-icerik {
+  justify-content: flex-start;
+}
+
+.stok-yb-diger-vergi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0;
+}
+
+.stok-yb-diger-vergi-tus-wrap {
+  position: relative;
+}
+
+.stok-yb-diger-vergi-tus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.45rem;
+  background: var(--ap-surface);
+  padding: 0.38rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+
+.stok-yb-diger-vergi-tus:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  color: var(--ap-text);
+}
+
+.stok-yb-diger-vergi-tus:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.stok-yb-diger-vergi-ok {
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.stok-yb-diger-vergi-menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  z-index: 20;
+  min-width: 11rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.45rem;
+  background: var(--ap-surface);
+  box-shadow: 0 6px 18px color-mix(in srgb, #000 12%, transparent);
+  overflow: hidden;
+}
+
+.stok-yb-diger-vergi-menu-oge {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--ap-text);
+  cursor: pointer;
+}
+
+.stok-yb-diger-vergi-menu-oge:hover {
+  background: var(--ap-hover);
+}
+
+.stok-yb-ek-vergi-satir {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.stok-yb-ek-vergi-satir .cari-outlined-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.stok-yb-ek-vergi-sil {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 2rem;
+  margin-bottom: 0.15rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.4rem;
+  background: var(--ap-surface);
+  color: var(--ap-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stok-yb-ek-vergi-sil:hover {
+  border-color: #e2504c;
+  color: #e2504c;
+}
+
+.stok-yb-sil--kart {
+  margin-top: auto;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .stok-yb-kart-govde {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stok-yb-kart-sag {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .stok-yb-sil--kart {
+    width: auto;
+    margin-top: 0;
+    margin-left: auto;
+  }
 }
 
 .stok-yb-tablo {
