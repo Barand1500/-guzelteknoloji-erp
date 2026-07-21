@@ -9,8 +9,8 @@ import { CariOutlinedIl, CariOutlinedIlce } from './CariOutlinedIlArama';
 import { CariOutlinedTelefon } from './CariOutlinedTelefon';
 
 function kisiSilMetni(kisi: CariIletisimKisi): string {
-  const ad = kisi.adSoyad.trim();
-  return ad || 'Adsız kişi';
+  const baslik = kisi.adresBasligi.trim();
+  return baslik || 'Adsız adres başlığı';
 }
 
 export function CariIletisimBolumu({
@@ -99,6 +99,15 @@ export function CariIletisimBolumu({
 
                 <div className="cari-iletisim-kart-grid">
                   <CariOutlinedGirdi
+                    etiket="Adres Başlığı"
+                    deger={kisi.adresBasligi}
+                    className="cari-alan-tam"
+                    maxLength={80}
+                    odakPlaceholder="Merkez, Şube, Depo…"
+                    disabled={disabled}
+                    onChange={(adresBasligi) => kisiGuncelle(kisi.id, { adresBasligi })}
+                  />
+                  <CariOutlinedGirdi
                     etiket="Ad Soyad"
                     deger={kisi.adSoyad}
                     maxLength={120}
@@ -176,7 +185,7 @@ export function CariIletisimBolumu({
           kisiSil(silinecekId);
           setSilinecekId(null);
         }}
-        baslik="Silmek istediğinize emin misiniz?"
+        baslik="Bu adres başlığına sahip kişiyi silmek istediğinize emin misiniz?"
         hedefMetin={silinecek ? kisiSilMetni(silinecek) : ''}
         ariaLabel="İletişim kişisi silme onayı"
       />

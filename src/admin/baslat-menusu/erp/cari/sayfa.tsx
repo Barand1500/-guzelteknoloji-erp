@@ -23,6 +23,40 @@ import type { AdminCari, CariKartModu } from './tipler';
 
 type Gorunum = 'liste' | 'kart';
 
+function CariGezinOk({
+  yon,
+  hedef,
+  disabled,
+  onGit,
+}: {
+  yon: 'geri' | 'ileri';
+  hedef: AdminCari | null;
+  disabled?: boolean;
+  onGit: () => void;
+}) {
+  const etiket = hedef ? cariSatirEtiketi(hedef) : yon === 'geri' ? 'Önceki cari yok' : 'Sonraki cari yok';
+  return (
+    <button
+      type="button"
+      className={`cari-listeye-don-ikon${yon === 'ileri' ? ' cari-listeye-don-ikon--ileri' : ''}`}
+      onClick={onGit}
+      disabled={disabled || !hedef}
+      title={etiket}
+      aria-label={hedef ? `${yon === 'geri' ? 'Önceki' : 'Sonraki'}: ${etiket}` : etiket}
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+        <path
+          d="M15 6l-6 6 6 6"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
 export function CariSayfasi() {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { goruntulemeVar, eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('cari');
@@ -61,6 +95,39 @@ export function CariSayfasi() {
     [kayitlar, uygulananFiltreMetni]
   );
 
+  /** Datagrid’deki sıraya göre kart gezinmesi (uçlarda döngü) */
+  const gezinmeListesi = useMemo(
+    () => (aramaGosterildi && filtrelenmis.length > 0 ? filtrelenmis : kayitlar),
+    [aramaGosterildi, filtrelenmis, kayitlar]
+  );
+
+  const gezinmeIdx = useMemo(() => {
+    if (!aktifCariId) return -1;
+    const id = String(aktifCariId);
+    return gezinmeListesi.findIndex((c) => String(c.id) === id);
+  }, [aktifCariId, gezinmeListesi]);
+
+  const oncekiCari = useMemo(() => {
+    const n = gezinmeListesi.length;
+    if (n === 0) return null;
+    if (n === 1) {
+      /* Tek kayıt varken yine o kayıt (yeni formdan geçiş için) */
+      return gezinmeIdx === 0 ? null : gezinmeListesi[0] ?? null;
+    }
+    if (gezinmeIdx < 0) return gezinmeListesi[n - 1] ?? null; /* yeni → son kayıt */
+    return gezinmeListesi[(gezinmeIdx - 1 + n) % n] ?? null;
+  }, [gezinmeIdx, gezinmeListesi]);
+
+  const sonrakiCari = useMemo(() => {
+    const n = gezinmeListesi.length;
+    if (n === 0) return null;
+    if (n === 1) {
+      return gezinmeIdx === 0 ? null : gezinmeListesi[0] ?? null;
+    }
+    if (gezinmeIdx < 0) return gezinmeListesi[0] ?? null; /* yeni → ilk kayıt */
+    return gezinmeListesi[(gezinmeIdx + 1) % n] ?? null;
+  }, [gezinmeIdx, gezinmeListesi]);
+
   const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
   const baglamCariId = tekSeciliId ?? aktifCariId;
 
@@ -70,6 +137,23 @@ export function CariSayfasi() {
     setKartKirli(false);
     void yukle();
   }, [yukle]);
+
+  const cariyeGit = useCallback(
+    (hedef: AdminCari) => {
+      if (kartKirli) {
+        const onay = window.confirm(
+          'Kaydedilmemiş değişiklikler var. Yine de diğer cariye geçmek istiyor musunuz?'
+        );
+        if (!onay) return;
+      }
+      setSeciliIdler([hedef.id]);
+      setAktifCariId(hedef.id);
+      setKartModu(duzenlemeVar ? 'duzenle' : 'incele');
+      setKartKirli(false);
+      setGorunum('kart');
+    },
+    [duzenlemeVar, kartKirli]
+  );
 
   const yeniAc = useCallback(() => {
     if (!eklemeVar) return;
@@ -236,27 +320,28 @@ export function CariSayfasi() {
 
   return (
     <AdminModulKabuk
-      baslik={modulBaslik}
+      baslik={
+        gorunum === 'kart' ? (
+          <div className="cari-kart-modul-baslik">
+            <CariGezinOk
+              yon="geri"
+              hedef={oncekiCari}
+              onGit={() => oncekiCari && cariyeGit(oncekiCari)}
+            />
+            <h1 className="ap-heading text-xl font-bold">{modulBaslik}</h1>
+          </div>
+        ) : (
+          modulBaslik
+        )
+      }
       aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'kart' ? (
-          <button
-            type="button"
-            className="cari-listeye-don-ikon"
-            onClick={listeyeDon}
-            title="Geri Dön"
-            aria-label="Geri Dön"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
-              <path
-                d="M15 6l-6 6 6 6"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          <CariGezinOk
+            yon="ileri"
+            hedef={sonrakiCari}
+            onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
+          />
         ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-modul-ust-araclar">
             <DgSecimUstKutu

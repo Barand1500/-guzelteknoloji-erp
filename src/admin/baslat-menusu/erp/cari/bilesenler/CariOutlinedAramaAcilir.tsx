@@ -1,23 +1,8 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { FormAcilirSecimSecenek } from '@/formlar/FormAcilirSecim';
-import { sekmeGecisTiklamasiMi, sekmePortalHedefi, useSekmeDegisinceYenile } from '@/araclar/sekmePortal';
+import { sekmeGecisTiklamasiMi, sekmePortalHedefi } from '@/araclar/sekmePortal';
 import { CariOutlinedEtiket } from './CariOutlinedGirdi';
-
-const KENAR_BOSLUK = 8;
-
-function listeKonumuHesapla(anchor: HTMLElement) {
-  const rect = anchor.getBoundingClientRect();
-  const genislik = rect.width;
-  let left = rect.left;
-  if (left + genislik > window.innerWidth - KENAR_BOSLUK) {
-    left = window.innerWidth - genislik - KENAR_BOSLUK;
-  }
-  if (left < KENAR_BOSLUK) left = KENAR_BOSLUK;
-  const ust = rect.bottom + 4;
-  const maxHeight = Math.max(120, window.innerHeight - ust - KENAR_BOSLUK);
-  return { top: ust, left, width: genislik, maxHeight };
-}
 
 function normalizeMetin(metin: string) {
   return metin.trim().toLocaleLowerCase('tr');
@@ -32,6 +17,10 @@ export function CariOutlinedAramaAcilir({
   disabled = false,
   onYonet,
   aramaPlaceholder = 'Ara…',
+  /** Boşken gösterilecek metin; '' ise placeholder yazılmaz */
+  bosMetin = 'Seçiniz…',
+  /** Açılınca arama alanı kutunun içinde olur; liste alta açılır */
+  kutuIciArama = false,
 }: {
   etiket: string;
   deger: string;
@@ -41,15 +30,17 @@ export function CariOutlinedAramaAcilir({
   disabled?: boolean;
   onYonet?: () => void;
   aramaPlaceholder?: string;
+  bosMetin?: string;
+  kutuIciArama?: boolean;
 }) {
   const inputId = useId();
   const listeId = useId();
   const kapsayiciRef = useRef<HTMLDivElement>(null);
   const listeRef = useRef<HTMLUListElement>(null);
+  const araRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
   const [acik, setAcik] = useState(false);
   const [arama, setArama] = useState('');
-  const [listeStil, setListeStil] = useState<CSSProperties>({});
 
   const secili = useMemo(
     () => secenekler.find((s) => s.value === deger) ?? null,
@@ -62,41 +53,26 @@ export function CariOutlinedAramaAcilir({
     return secenekler.filter((s) => normalizeMetin(s.label).includes(q));
   }, [arama, secenekler]);
 
-  const konumGuncelle = useCallback(() => {
-    if (!kapsayiciRef.current) return;
-    const { top, left, width, maxHeight } = listeKonumuHesapla(kapsayiciRef.current);
-    setListeStil({ position: 'fixed', top, left, width, maxHeight, zIndex: 10050 });
-  }, []);
-
-  const sekmeSonrasi = useCallback(() => {
+  useEffect(() => {
     if (!acik) return;
-    requestAnimationFrame(() => konumGuncelle());
-  }, [acik, konumGuncelle]);
-  useSekmeDegisinceYenile(sekmeSonrasi);
-
-  useLayoutEffect(() => {
-    if (!acik) return;
-    konumGuncelle();
-    window.addEventListener('resize', konumGuncelle);
-    window.addEventListener('scroll', konumGuncelle, true);
-    return () => {
-      window.removeEventListener('resize', konumGuncelle);
-      window.removeEventListener('scroll', konumGuncelle, true);
-    };
-  }, [acik, konumGuncelle, filtrelenmis.length]);
+    if (kutuIciArama) {
+      requestAnimationFrame(() => araRef.current?.focus());
+    }
+  }, [acik, kutuIciArama]);
 
   useEffect(() => {
     if (!acik) return;
     function disTik(e: MouseEvent) {
       if (sekmeGecisTiklamasiMi(e.target)) return;
       const hedef = e.target as Node;
-      if (kapsayiciRef.current?.contains(hedef) || listeRef.current?.contains(hedef)) return;
+      if (kapsayiciRef.current?.contains(hedef)) return;
+      if (!kutuIciArama && listeRef.current?.contains(hedef)) return;
       setAcik(false);
       setArama('');
     }
     document.addEventListener('mousedown', disTik);
     return () => document.removeEventListener('mousedown', disTik);
-  }, [acik]);
+  }, [acik, kutuIciArama]);
 
   const sec = (value: string) => {
     onChange(value);
@@ -104,10 +80,41 @@ export function CariOutlinedAramaAcilir({
     setArama('');
   };
 
+  const acKapat = () => {
+    if (disabled) return;
+    setAcik((v) => {
+      if (!v) setArama('');
+      return !v;
+    });
+  };
+
+  const listeIcerik = (
+    <ul ref={listeRef} id={listeId} className="cari-arama-acilir-liste" role="listbox">
+      {filtrelenmis.length === 0 ? (
+        <li className="cari-arama-acilir-bos">Sonuç bulunamadı</li>
+      ) : (
+        filtrelenmis.map((s) => (
+          <li key={s.value}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={s.value === deger}
+              className={`cari-arama-acilir-oge${s.value === deger ? ' cari-arama-acilir-oge--secili' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => sec(s.value)}
+            >
+              {s.label}
+            </button>
+          </li>
+        ))
+      )}
+    </ul>
+  );
+
   return (
     <div
       ref={kapsayiciRef}
-      className={`cari-outlined-field cari-arama-acilir${focused ? ' cari-outlined-field--focus' : ''}${disabled ? ' cari-outlined-field--pasif' : ''}`}
+      className={`cari-outlined-field cari-arama-acilir${focused || acik ? ' cari-outlined-field--focus' : ''}${disabled ? ' cari-outlined-field--pasif' : ''}${kutuIciArama ? ' cari-arama-acilir--kutu-ici' : ''}${acik ? ' cari-arama-acilir--acik' : ''}`}
     >
       <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId}>
         {!disabled && onYonet ? (
@@ -127,34 +134,81 @@ export function CariOutlinedAramaAcilir({
         ) : null}
       </CariOutlinedEtiket>
       <div className="cari-outlined-cerceve cari-arama-acilir-cerceve">
-        <button
-          id={inputId}
-          type="button"
-          className="cari-arama-acilir-tus"
-          disabled={disabled}
-          aria-haspopup="listbox"
-          aria-expanded={acik}
-          aria-controls={acik ? listeId : undefined}
-          onClick={() => {
-            if (disabled) return;
-            setAcik((v) => !v);
-            if (!acik) setArama('');
-          }}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-        >
-          <span className={secili ? 'cari-arama-acilir-deger' : 'cari-arama-acilir-placeholder'}>
-            {secili?.label ?? 'Seçiniz…'}
-          </span>
-          <span className="cari-arama-acilir-ok" aria-hidden>
-            ▾
-          </span>
-        </button>
+        {kutuIciArama && acik && !disabled ? (
+          <input
+            ref={araRef}
+            id={inputId}
+            type="search"
+            className="cari-arama-acilir-kutu-girdi"
+            value={arama}
+            placeholder={aramaPlaceholder}
+            disabled={disabled}
+            aria-autocomplete="list"
+            aria-expanded
+            aria-controls={listeId}
+            onChange={(e) => setArama(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && filtrelenmis.length === 1) {
+                e.preventDefault();
+                sec(filtrelenmis[0].value);
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setAcik(false);
+                setArama('');
+              }
+            }}
+          />
+        ) : (
+          <button
+            id={inputId}
+            type="button"
+            className="cari-arama-acilir-tus"
+            disabled={disabled}
+            aria-haspopup="listbox"
+            aria-expanded={acik}
+            aria-controls={acik ? listeId : undefined}
+            onClick={acKapat}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          >
+            <span
+              className={
+                secili
+                  ? 'cari-arama-acilir-deger'
+                  : bosMetin
+                    ? 'cari-arama-acilir-placeholder'
+                    : 'cari-arama-acilir-deger cari-arama-acilir-deger--bos'
+              }
+            >
+              {secili?.label ?? bosMetin}
+            </span>
+            <span className="cari-arama-acilir-ok" aria-hidden>
+              ▾
+            </span>
+          </button>
+        )}
       </div>
 
-      {acik && !disabled
+      {acik && !disabled && kutuIciArama ? (
+        <div className="cari-arama-acilir-panel cari-arama-acilir-panel--kutu-ici">{listeIcerik}</div>
+      ) : null}
+
+      {acik && !disabled && !kutuIciArama
         ? createPortal(
-            <div className="cari-arama-acilir-panel" style={listeStil}>
+            <div
+              className="cari-arama-acilir-panel"
+              style={{
+                position: 'fixed',
+                top: (kapsayiciRef.current?.getBoundingClientRect().bottom ?? 0) + 4,
+                left: kapsayiciRef.current?.getBoundingClientRect().left ?? 0,
+                width: kapsayiciRef.current?.getBoundingClientRect().width ?? 200,
+                maxHeight: 280,
+                zIndex: 10050,
+              }}
+            >
               <div className="cari-arama-acilir-ara">
                 <input
                   type="search"
@@ -176,26 +230,7 @@ export function CariOutlinedAramaAcilir({
                   }}
                 />
               </div>
-              <ul ref={listeRef} id={listeId} className="cari-arama-acilir-liste" role="listbox">
-                {filtrelenmis.length === 0 ? (
-                  <li className="cari-arama-acilir-bos">Sonuç bulunamadı</li>
-                ) : (
-                  filtrelenmis.map((s) => (
-                    <li key={s.value}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={s.value === deger}
-                        className={`cari-arama-acilir-oge${s.value === deger ? ' cari-arama-acilir-oge--secili' : ''}`}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => sec(s.value)}
-                      >
-                        {s.label}
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
+              {listeIcerik}
             </div>,
             sekmePortalHedefi(kapsayiciRef.current)
           )

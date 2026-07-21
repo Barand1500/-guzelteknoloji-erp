@@ -6,8 +6,9 @@ import {
   isletmeTuruEtiketi,
   type AdminCari,
 } from '@/admin/baslat-menusu/erp/cari/tipler';
+import { faturaTipiEtiketi } from '@/admin/baslat-menusu/erp/cari/cariYardimci';
 
-export const CARI_KOLON_GENISLIK_SURUMU = 7;
+export const CARI_KOLON_GENISLIK_SURUMU = 8;
 
 export const CARI_VARSAYILAN_GIZLI: string[] = ['id', 'ustId'];
 
@@ -199,11 +200,20 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
       siralama: true,
       degerAl: (s) => (s.efatura ? 'Evet' : 'Hayır'),
     },
-    metinKolon('efaturaTipi', 'Fatura Tipi', 100, (s) => {
+    {
+      id: 'earsiv',
+      baslik: 'E-Arşiv',
+      tip: 'metin',
+      genislik: 80,
+      siralama: true,
+      degerAl: (s) => (s.earsiv ? 'Evet' : 'Hayır'),
+    },
+    metinKolon('efaturaTipi', 'Fatura Tipi', 110, (s) => {
       if (!s.efatura) return '';
-      return s.efaturaTipi === 'TICARI' ? 'Ticari' : 'Temel';
+      return faturaTipiEtiketi(s.efaturaTipi);
     }),
-    metinKolon('alias', 'Alias', 120, (s) => s.alias),
+    metinKolon('alias', 'E-Fatura Alias', 120, (s) => s.alias),
+    metinKolon('earsivAlias', 'E-Arşiv Alias', 120, (s) => s.earsivAlias ?? ''),
     metinKolon('id', 'ID', 72, (s) => s.id),
     metinKolon('ustId', 'Üst ID', 72, (s) => s.ustId),
     olusturmaKolonu(),

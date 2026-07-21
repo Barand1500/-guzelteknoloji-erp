@@ -1,11 +1,25 @@
 import type { AdminCari, CariFormDegeri, CariIletisimKisi, CariTipi, IsletmeTuru } from '@/admin/baslat-menusu/erp/cari/tipler';
-import { bosCariForm } from '@/admin/baslat-menusu/erp/cari/tipler';
+import { bosCariForm, FATURA_TIPLERI } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { cariIletisimGetir } from '@/admin/baslat-menusu/erp/cari/cariIletisimDeposu';
 
+const FATURA_TIPI_KODLARI = new Set<string>(FATURA_TIPLERI.map((t) => t.value));
+
 function faturaTipiNormalize(tip: string): string {
-  const v = tip.trim().toUpperCase();
-  if (v === 'TICARI' || v === 'TICARI FATURA') return 'TICARI';
+  const ham = tip.trim().toLocaleUpperCase('tr');
+  const v = ham.replace(/\s+/g, '_').replace(/-/g, '_');
+  if (v === 'TICARI_FATURA') return 'TICARI';
+  /* Eski kayıtlarda fatura tipi olarak E-Arşiv vardı; artık ayrı alan */
+  if (v === 'EARSIV' || v === 'E_ARSIV' || v === 'E_ARŞIV') return 'TEMEL';
+  if (v === 'IHRACAT' || v === 'İHRACAT') return 'IHRACAT';
+  if (v === 'YOLCU_BERABER') return 'YOLCU_BERABER';
+  if (FATURA_TIPI_KODLARI.has(v)) return v;
+  if (v === 'TICARI') return 'TICARI';
   return 'TEMEL';
+}
+
+export function faturaTipiEtiketi(tip: string): string {
+  const kod = faturaTipiNormalize(tip);
+  return FATURA_TIPLERI.find((t) => t.value === kod)?.label ?? (tip.trim() || 'Temel');
 }
 
 function iletisimKisileriniHazirla(c: AdminCari): CariIletisimKisi[] {
@@ -29,6 +43,7 @@ function iletisimKisileriniHazirla(c: AdminCari): CariIletisimKisi[] {
   return [
     {
       id: `ik-yetkili-${c.id}`,
+      adresBasligi: '',
       adSoyad: yetkili,
       gorevi: 'Yetkili',
       eposta: c.eposta.trim(),
@@ -48,6 +63,7 @@ export function caridenForm(c: AdminCari): CariFormDegeri {
     cariKodu: c.cariKodu,
     cariAdi: c.cariAdi,
     unvan: c.unvan,
+    fiyatTanimi: c.fiyatTanimi ?? '',
     yetkili: c.yetkili,
     vergiDairesi: c.vergiDairesi,
     vergiNo: c.vergiNo,
@@ -58,8 +74,10 @@ export function caridenForm(c: AdminCari): CariFormDegeri {
     eposta: c.eposta,
     web: c.web,
     efatura: c.efatura,
+    earsiv: c.earsiv ?? false,
     efaturaTipi: c.efatura ? faturaTipiNormalize(c.efaturaTipi) : 'TEMEL',
     alias: c.alias,
+    earsivAlias: c.earsivAlias ?? '',
     aktif: c.aktif,
     iletisimKisiler: iletisimKisileriniHazirla(c),
   };
@@ -86,6 +104,7 @@ export function hizliGirisdenForm(degerler: Record<string, string>): CariFormDeg
     cariTipi: gecerliCariTipi(degerler.cariTipi ?? '', 'ALICI'),
     isletmeTuru: gecerliIsletmeTuru(degerler.isletmeTuru ?? '', ''),
     unvan: degerler.unvan?.trim() ?? '',
+    fiyatTanimi: degerler.fiyatTanimi?.trim() ?? '',
     yetkili: degerler.yetkili?.trim() ?? '',
     vergiDairesi: degerler.vergiDairesi?.trim() ?? '',
     vergiNo: degerler.vergiNo?.trim() ?? '',
@@ -96,8 +115,10 @@ export function hizliGirisdenForm(degerler: Record<string, string>): CariFormDeg
     eposta: degerler.eposta?.trim() ?? '',
     web: degerler.web?.trim() ?? '',
     efatura: degerler.efatura === 'true' || degerler.efatura === '1',
+    earsiv: degerler.earsiv === 'true' || degerler.earsiv === '1',
     efaturaTipi: degerler.efaturaTipi?.trim() || 'TEMEL',
     alias: degerler.alias?.trim() ?? '',
+    earsivAlias: degerler.earsivAlias?.trim() ?? '',
     aktif: degerler.durum !== 'false',
     iletisimKisiler: [],
   };

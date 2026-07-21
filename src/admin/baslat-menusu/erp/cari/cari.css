@@ -17,14 +17,34 @@
     background 0.12s ease;
 }
 
-.cari-listeye-don-ikon:hover {
+.cari-listeye-don-ikon:hover:not(:disabled) {
   color: var(--ap-accent);
   border-color: color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
 }
 
+.cari-listeye-don-ikon:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
 .cari-listeye-don-ikon svg {
   display: block;
+}
+
+.cari-listeye-don-ikon--ileri svg {
+  transform: scaleX(-1);
+}
+
+.cari-kart-modul-baslik {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.cari-kart-modul-baslik .ap-heading {
+  margin: 0;
 }
 
 .cari-kart-sayfa {
@@ -37,6 +57,45 @@
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/*
+  Kesim: başlık altı çizgiden başlar, altta turuncu çizgiye kadar iner.
+  Dört köşe yuvarlak — üst köşe başlığın altında, alt köşe turuncu çizgide.
+*/
+.ap-modul-panel:has(.ap-tanimlar-sayfa):has(.cari-kart-sayfa) {
+  padding: 1.15rem 1.25rem 0 !important;
+}
+
+.ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk > .mt-6 {
+  margin-top: 0.65rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  background: var(--ap-surface);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--ap-heading) 5%, transparent);
+}
+
+.ap-modul-panel:has(.cari-kart-sayfa) .ap-tanimlar-sayfa:has(.cari-kart-sayfa) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.ap-modul-panel:has(.cari-kart-sayfa) .cari-kart-sayfa {
+  padding: 0.85rem 0.9rem 1.15rem;
+  border-radius: inherit;
+}
+
+/* Dış panel zaten çerçeve; iç kabuklar sade kalsın */
+.ap-modul-panel:has(.cari-kart-sayfa) .cari-kart-kabuk,
+.ap-modul-panel:has(.cari-kart-sayfa) .cari-iletisim-bolumu {
+  box-shadow: none;
 }
 
 .cari-kart-kabuk {
@@ -58,6 +117,29 @@
 
 .cari-kart-grid .cari-alan-tam {
   grid-column: 1 / -1;
+}
+
+.cari-unvan-fiyat-satir {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.1rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.cari-efatura-earsiv-satir {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.1rem;
+  align-items: start;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .cari-unvan-fiyat-satir,
+  .cari-efatura-earsiv-satir {
+    grid-template-columns: 1fr;
+  }
 }
 
 .cari-kart-ust-satir {
@@ -579,6 +661,47 @@
   padding: 0.65rem 0.55rem;
   font-size: 0.82rem;
   color: var(--ap-text-muted);
+}
+
+.cari-arama-acilir--kutu-ici {
+  position: relative;
+  z-index: 3;
+}
+
+.cari-arama-acilir-kutu-girdi {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--ap-text);
+  padding: 0.55rem 0;
+}
+
+.cari-arama-acilir-kutu-girdi::placeholder {
+  color: var(--ap-text-muted);
+}
+
+.cari-arama-acilir-deger--bos {
+  min-height: 1.2em;
+}
+
+.cari-arama-acilir-panel--kutu-ici {
+  position: absolute;
+  top: calc(100% - 0.15rem);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 220px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* Liste açıkken üst kutu ile birleşsin; kapalıyken dört köşe yuvarlak kalsın */
+.cari-arama-acilir--kutu-ici.cari-arama-acilir--acik .cari-outlined-cerceve {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* ——— Adres / İletişim ——— */

@@ -1,7 +1,7 @@
 import { cariSeedKayitlari } from '@/admin/baslat-menusu/erp/cari/cariSeedVerisi';
 import type { AdminCari, CariFormDegeri } from '@/admin/baslat-menusu/erp/cari/tipler';
 
-const OFFLINE_CARILER_ANAHTAR = 'erp-offline-cariler-v3';
+const OFFLINE_CARILER_ANAHTAR = 'erp-offline-cariler-v5';
 
 function simdiIso() {
   return new Date().toISOString();
@@ -42,6 +42,7 @@ function formdanCari(form: CariFormDegeri, id: string, firmaId = '1', olusturma?
     cariKodu: form.cariKodu.trim(),
     cariAdi: form.cariAdi.trim(),
     unvan: form.unvan.trim(),
+    fiyatTanimi: form.fiyatTanimi.trim(),
     yetkili: form.yetkili.trim(),
     vergiDairesi: form.vergiDairesi.trim(),
     vergiNo: form.vergiNo.trim(),
@@ -52,8 +53,10 @@ function formdanCari(form: CariFormDegeri, id: string, firmaId = '1', olusturma?
     eposta: form.eposta.trim(),
     web: form.web.trim(),
     efatura: form.efatura,
+    earsiv: form.earsiv,
     efaturaTipi: form.efaturaTipi.trim(),
     alias: form.alias.trim(),
+    earsivAlias: form.earsivAlias.trim(),
     aktif: form.aktif,
     olusturma: olusturma ?? simdi,
     guncelleme: simdi,

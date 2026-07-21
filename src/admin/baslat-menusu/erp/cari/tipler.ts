@@ -20,10 +20,16 @@ export const EFATURA_EVET_HAYIR = [
 export const FATURA_TIPLERI = [
   { value: 'TEMEL', label: 'Temel' },
   { value: 'TICARI', label: 'Ticari' },
+  { value: 'IHRACAT', label: 'İhracat' },
+  { value: 'YOLCU_BERABER', label: 'Yolcu Beraber' },
+  { value: 'KAMU', label: 'KAMU' },
+  { value: 'HKS', label: 'HKS' },
 ] as const;
 
 export interface CariIletisimKisi {
   id: string;
+  /** Kart / kişi için kısa adres başlığı (Merkez, Şube…) */
+  adresBasligi: string;
   adSoyad: string;
   gorevi: string;
   eposta: string;
@@ -55,6 +61,8 @@ export interface AdminCari {
   cariKodu: string;
   cariAdi: string;
   unvan: string;
+  /** Stok fiyat tanımı (FİYAT, PERAKENDE, TOPTAN…) */
+  fiyatTanimi: string;
   yetkili: string;
   vergiDairesi: string;
   vergiNo: string;
@@ -65,8 +73,10 @@ export interface AdminCari {
   eposta: string;
   web: string;
   efatura: boolean;
+  earsiv: boolean;
   efaturaTipi: string;
   alias: string;
+  earsivAlias: string;
   aktif: boolean;
   olusturma: string;
   guncelleme: string;
@@ -80,6 +90,8 @@ export interface CariFormDegeri extends CariAdresDegeri {
   cariKodu: string;
   cariAdi: string;
   unvan: string;
+  /** Stok fiyat tanımı (FİYAT, PERAKENDE, TOPTAN…) */
+  fiyatTanimi: string;
   yetkili: string;
   vergiDairesi: string;
   vergiNo: string;
@@ -87,8 +99,10 @@ export interface CariFormDegeri extends CariAdresDegeri {
   eposta: string;
   web: string;
   efatura: boolean;
+  earsiv: boolean;
   efaturaTipi: string;
   alias: string;
+  earsivAlias: string;
   aktif: boolean;
   iletisimKisiler: CariIletisimKisi[];
 }
@@ -100,6 +114,7 @@ export const bosCariForm: CariFormDegeri = {
   cariKodu: '',
   cariAdi: '',
   unvan: '',
+  fiyatTanimi: '',
   yetkili: '',
   vergiDairesi: '',
   vergiNo: '',
@@ -110,8 +125,10 @@ export const bosCariForm: CariFormDegeri = {
   eposta: '',
   web: '',
   efatura: false,
+  earsiv: false,
   efaturaTipi: 'TEMEL',
   alias: '',
+  earsivAlias: '',
   aktif: true,
   iletisimKisiler: [],
 };
