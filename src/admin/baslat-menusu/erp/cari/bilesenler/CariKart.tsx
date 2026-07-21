@@ -292,6 +292,8 @@ export function CariKart({
     basariBildir(`Kayıt bulundu: ${bulunan.cariAdi || bulunan.cariKodu}`);
   }, [basariBildir, form.isletmeTuru, form.vergiNo, hataBildir, kayitlar]);
 
+  const kimlikBulEnter = kimlikBulGoster ? () => void kimlikIleBul() : undefined;
+
   const kimlikBulButonu = kimlikBulGoster ? (
     <button
       type="button"
@@ -353,6 +355,7 @@ export function CariKart({
                       setAlan('vergiNo', vergiNo.replace(/[^A-Za-z0-9]/g, '').slice(0, 20).toUpperCase())
                     }
                     sonek={kimlikBulButonu}
+                    onEnter={kimlikBulEnter}
                   />
                 ) : kimlikModu === 'gercek' ? (
                   <CariOutlinedVergiNo
@@ -362,6 +365,7 @@ export function CariKart({
                     disabled={saltOkunur}
                     onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
                     sonek={kimlikBulButonu}
+                    onEnter={kimlikBulEnter}
                   />
                 ) : kimlikModu === 'tuzel' ? (
                   <>
@@ -377,6 +381,7 @@ export function CariKart({
                       disabled={saltOkunur}
                       onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
                       sonek={kimlikBulButonu}
+                      onEnter={kimlikBulEnter}
                     />
                   </>
                 ) : null}

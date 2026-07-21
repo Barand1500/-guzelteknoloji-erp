@@ -10,6 +10,7 @@ export function CariOutlinedVergiNo({
   disabled = false,
   className,
   sonek,
+  onEnter,
 }: {
   etiket: string;
   deger: string;
@@ -18,6 +19,7 @@ export function CariOutlinedVergiNo({
   disabled?: boolean;
   className?: string;
   sonek?: ReactNode;
+  onEnter?: () => void;
 }) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
@@ -40,6 +42,12 @@ export function CariOutlinedVergiNo({
           onBlur={() => setFocused(false)}
           placeholder={focused ? `Yalnızca rakam, ${maxHane} hane` : undefined}
           onChange={(e) => onChange(yalnizcaRakam(e.target.value, maxHane))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onEnter) {
+              e.preventDefault();
+              onEnter();
+            }
+          }}
         />
         {sayacGoster || sonek ? (
           <div className="cari-outlined-sonek">

@@ -18,6 +18,7 @@ interface CariOutlinedGirdiProps {
   buyukHarf?: boolean;
   disabled?: boolean;
   sonek?: ReactNode;
+  onEnter?: () => void;
 }
 
 export function CariOutlinedEtiket({
@@ -55,6 +56,7 @@ export function CariOutlinedGirdi({
   buyukHarf,
   disabled = false,
   sonek,
+  onEnter,
 }: CariOutlinedGirdiProps) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
@@ -81,6 +83,12 @@ export function CariOutlinedGirdi({
                 : alanDegeriniFiltrele(kural, e.target.value);
             if (buyukHarf) sonraki = sonraki.toLocaleUpperCase('tr');
             onChange(sonraki);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onEnter) {
+              e.preventDefault();
+              onEnter();
+            }
           }}
           maxLength={limit}
           required={zorunlu}
