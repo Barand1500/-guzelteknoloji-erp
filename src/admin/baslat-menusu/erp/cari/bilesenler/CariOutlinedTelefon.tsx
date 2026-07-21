@@ -6,10 +6,12 @@ export function CariOutlinedTelefon({
   deger,
   onChange,
   disabled = false,
+  etiket = 'Telefon',
 }: {
   deger: string;
   onChange: (deger: string) => void;
   disabled?: boolean;
+  etiket?: string;
 }) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
@@ -18,7 +20,7 @@ export function CariOutlinedTelefon({
     <div
       className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}${disabled ? ' cari-outlined-field--pasif' : ''}`}
     >
-      <CariOutlinedEtiket etiket="Telefon" htmlFor={inputId} />
+      <CariOutlinedEtiket etiket={etiket} htmlFor={inputId} />
       <div className="cari-outlined-cerceve">
         <input
           id={inputId}

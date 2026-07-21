@@ -8,7 +8,7 @@ import {
 } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { faturaTipiEtiketi } from '@/admin/baslat-menusu/erp/cari/cariYardimci';
 
-export const CARI_KOLON_GENISLIK_SURUMU = 8;
+export const CARI_KOLON_GENISLIK_SURUMU = 9;
 
 export const CARI_VARSAYILAN_GIZLI: string[] = ['id', 'ustId'];
 
@@ -190,6 +190,7 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
     metinKolon('il', 'İl', 80, (s) => s.il),
     metinKolon('ilce', 'İlçe', 80, (s) => s.ilce),
     metinKolon('telefon', 'Telefon', 100, (s) => s.telefon),
+    metinKolon('gsm', 'GSM', 100, (s) => s.gsm ?? ''),
     metinKolon('eposta', 'E-Posta', 140, (s) => s.eposta),
     metinKolon('web', 'Web', 120, (s) => s.web),
     {
@@ -202,9 +203,9 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
     },
     {
       id: 'earsiv',
-      baslik: 'E-Arşiv',
+      baslik: 'E-İrsaliye',
       tip: 'metin',
-      genislik: 80,
+      genislik: 90,
       siralama: true,
       degerAl: (s) => (s.earsiv ? 'Evet' : 'Hayır'),
     },
@@ -213,7 +214,14 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
       return faturaTipiEtiketi(s.efaturaTipi);
     }),
     metinKolon('alias', 'E-Fatura Alias', 120, (s) => s.alias),
-    metinKolon('earsivAlias', 'E-Arşiv Alias', 120, (s) => s.earsivAlias ?? ''),
+    metinKolon('earsivAlias', 'E-İrsaliye Alias', 120, (s) => s.earsivAlias ?? ''),
+    metinKolon('earsivTeslimSekli', 'E-Arşiv Teslim', 110, (s) => {
+      if (s.efatura) return '';
+      const v = (s.earsivTeslimSekli ?? '').toUpperCase();
+      if (v === 'ELEKTRONIK') return 'Elektronik';
+      if (v === 'KAGIT') return 'Kağıt';
+      return s.earsivTeslimSekli ?? '';
+    }),
     metinKolon('id', 'ID', 72, (s) => s.id),
     metinKolon('ustId', 'Üst ID', 72, (s) => s.ustId),
     olusturmaKolonu(),

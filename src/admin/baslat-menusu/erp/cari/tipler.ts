@@ -17,6 +17,11 @@ export const EFATURA_EVET_HAYIR = [
   { value: 'EVET', label: 'Evet' },
 ] as const;
 
+export const EARSIV_TESLIM_SEKILLERI = [
+  { value: 'ELEKTRONIK', label: 'Elektronik' },
+  { value: 'KAGIT', label: 'Kağıt' },
+] as const;
+
 export const FATURA_TIPLERI = [
   { value: 'TEMEL', label: 'Temel' },
   { value: 'TICARI', label: 'Ticari' },
@@ -92,6 +97,7 @@ export interface AdminCari {
   ilce: string;
   adres: string;
   telefon: string;
+  gsm: string;
   eposta: string;
   web: string;
   efatura: boolean;
@@ -99,6 +105,8 @@ export interface AdminCari {
   efaturaTipi: string;
   alias: string;
   earsivAlias: string;
+  /** E-Fatura hayır iken: Elektronik | Kağıt */
+  earsivTeslimSekli: string;
   aktif: boolean;
   olusturma: string;
   guncelleme: string;
@@ -118,6 +126,7 @@ export interface CariFormDegeri extends CariAdresDegeri {
   vergiDairesi: string;
   vergiNo: string;
   telefon: string;
+  gsm: string;
   eposta: string;
   web: string;
   efatura: boolean;
@@ -126,6 +135,8 @@ export interface CariFormDegeri extends CariAdresDegeri {
   alias: string;
   earsivAlias: string;
   eirsaliyeAlias: string;
+  /** E-Fatura hayır iken: Elektronik | Kağıt */
+  earsivTeslimSekli: string;
   aktif: boolean;
   iletisimKisiler: CariIletisimKisi[];
   dosyaDokuman: CariDosyaDokuman;
@@ -152,6 +163,7 @@ export const bosCariForm: CariFormDegeri = {
   ilce: '',
   adres: '',
   telefon: '',
+  gsm: '',
   eposta: '',
   web: '',
   efatura: false,
@@ -160,6 +172,7 @@ export const bosCariForm: CariFormDegeri = {
   alias: '',
   earsivAlias: '',
   eirsaliyeAlias: '',
+  earsivTeslimSekli: '',
   aktif: true,
   iletisimKisiler: [],
   dosyaDokuman: bosDosyaDokuman,

@@ -30,6 +30,7 @@ import {
 } from '../cariKartTipleri';
 import { caridenForm } from '../cariYardimci';
 import {
+  EARSIV_TESLIM_SEKILLERI,
   EFATURA_EVET_HAYIR,
   FATURA_TIPLERI,
   bosCariForm,
@@ -69,6 +70,7 @@ function apiFormHazirla(form: CariFormDegeri, kartTipiSecim: string, mod: CariKa
     efaturaTipi: form.efatura ? form.efaturaTipi : 'TEMEL',
     alias: form.efatura ? form.alias : '',
     earsivAlias: form.earsiv ? form.earsivAlias : '',
+    earsivTeslimSekli: form.efatura ? '' : form.earsivTeslimSekli,
   };
 }
 
@@ -416,42 +418,24 @@ export function CariKart({
               disabled={saltOkunur}
               onChange={(cariAdi) => setAlan('cariAdi', cariAdi)}
             />
-            <div className="cari-unvan-fiyat-satir cari-alan-tam">
-              <CariOutlinedGirdi
-                etiket="Ünvanı"
-                deger={form.unvan}
-                maxLength={255}
-                buyukHarf
-                odakPlaceholder="Ünvanı yazınız"
-                disabled={saltOkunur}
-                onChange={(unvan) => setAlan('unvan', unvan)}
-              />
-              <CariOutlinedAramaAcilir
-                etiket="Fiyat Tanımı"
-                deger={form.fiyatTanimi}
-                secenekler={stokFiyatAdlariGetir()}
-                disabled={saltOkunur}
-                aramaPlaceholder="Fiyat tanımı ara…"
-                onChange={(fiyatTanimi) => setAlan('fiyatTanimi', fiyatTanimi)}
-                bosMetin=""
-                kutuIciArama
-              />
-            </div>
+            <CariOutlinedGirdi
+              etiket="Ünvanı"
+              deger={form.unvan}
+              className="cari-alan-tam"
+              maxLength={255}
+              buyukHarf
+              odakPlaceholder="Ünvanı yazınız"
+              disabled={saltOkunur}
+              onChange={(unvan) => setAlan('unvan', unvan)}
+            />
             <CariOutlinedGirdi
               etiket="Adres"
               deger={form.adres}
+              className="cari-alan-tam"
               maxLength={500}
               odakPlaceholder="Adresi yazınız"
               disabled={saltOkunur}
               onChange={(adres) => setAlan('adres', adres)}
-            />
-            <CariOutlinedGirdi
-              etiket="Web"
-              deger={form.web}
-              maxLength={120}
-              odakPlaceholder="www.ornek.com"
-              disabled={saltOkunur}
-              onChange={(web) => setAlan('web', web)}
             />
             <CariOutlinedIl
               deger={form.il}
@@ -475,17 +459,33 @@ export function CariKart({
               disabled={saltOkunur}
               onChange={(telefon) => setAlan('telefon', telefon)}
             />
+            <CariOutlinedTelefon
+              etiket="GSM"
+              deger={form.gsm}
+              disabled={saltOkunur}
+              onChange={(gsm) => setAlan('gsm', gsm)}
+            />
             <CariOutlinedEposta
               deger={form.eposta}
               disabled={saltOkunur}
               onChange={(eposta) => setAlan('eposta', eposta)}
             />
-            <div className="cari-efatura-earsiv-satir cari-alan-tam">
+            <CariOutlinedGirdi
+              etiket="Web"
+              deger={form.web}
+              maxLength={120}
+              odakPlaceholder="www.ornek.com"
+              disabled={saltOkunur}
+              onChange={(web) => setAlan('web', web)}
+            />
+            <div className="cari-dortlu-satir">
               <CariOutlinedAcilir
                 etiket="E-Fatura"
                 deger={form.efatura ? 'EVET' : 'HAYIR'}
                 secenekler={EFATURA_EVET_HAYIR}
                 disabled={saltOkunur}
+                sinif="cari-outlined-kucuk"
+                listeMinGenislik={112}
                 onChange={(v) => {
                   const evet = v === 'EVET';
                   setForm((f) => ({
@@ -493,14 +493,17 @@ export function CariKart({
                     efatura: evet,
                     alias: evet ? f.alias : '',
                     efaturaTipi: evet ? f.efaturaTipi || 'TEMEL' : 'TEMEL',
+                    earsivTeslimSekli: evet ? '' : f.earsivTeslimSekli,
                   }));
                 }}
               />
               <CariOutlinedAcilir
-                etiket="E-Arşiv"
+                etiket="E-İrsaliye"
                 deger={form.earsiv ? 'EVET' : 'HAYIR'}
                 secenekler={EFATURA_EVET_HAYIR}
                 disabled={saltOkunur}
+                sinif="cari-outlined-kucuk"
+                listeMinGenislik={112}
                 onChange={(v) => {
                   const evet = v === 'EVET';
                   setForm((f) => ({
@@ -510,9 +513,29 @@ export function CariKart({
                   }));
                 }}
               />
+              <CariOutlinedAcilir
+                etiket="E-Arşiv Teslim Şekli"
+                deger={form.earsivTeslimSekli}
+                secenekler={[...EARSIV_TESLIM_SEKILLERI]}
+                disabled={saltOkunur || form.efatura}
+                sinif="cari-outlined-kucuk"
+                listeMinGenislik={140}
+                tusMetin={form.earsivTeslimSekli ? undefined : 'Seçiniz…'}
+                onChange={(earsivTeslimSekli) => setAlan('earsivTeslimSekli', earsivTeslimSekli)}
+              />
+              <CariOutlinedAramaAcilir
+                etiket="Fiyat Tanımı"
+                deger={form.fiyatTanimi}
+                secenekler={stokFiyatAdlariGetir()}
+                disabled={saltOkunur}
+                aramaPlaceholder="Fiyat tanımı ara…"
+                onChange={(fiyatTanimi) => setAlan('fiyatTanimi', fiyatTanimi)}
+                bosMetin=""
+                kutuIciArama
+              />
             </div>
-            {form.efatura && form.earsiv ? (
-              <div className="cari-efatura-earsiv-satir cari-alan-tam">
+            {form.efatura ? (
+              <>
                 <CariOutlinedGirdi
                   etiket="E-Fatura Alias"
                   deger={form.alias}
@@ -521,41 +544,23 @@ export function CariKart({
                   disabled={saltOkunur}
                   onChange={(alias) => setAlan('alias', alias)}
                 />
-                <CariOutlinedGirdi
-                  etiket="E-Arşiv Alias"
-                  deger={form.earsivAlias}
-                  maxLength={200}
-                  odakPlaceholder="Alias giriniz"
+                <CariOutlinedAcilir
+                  etiket="Fatura Tipi"
+                  deger={form.efaturaTipi || 'TEMEL'}
+                  secenekler={[...FATURA_TIPLERI]}
                   disabled={saltOkunur}
-                  onChange={(earsivAlias) => setAlan('earsivAlias', earsivAlias)}
+                  onChange={(efaturaTipi) => setAlan('efaturaTipi', efaturaTipi)}
                 />
-              </div>
-            ) : form.efatura ? (
+              </>
+            ) : null}
+            {form.earsiv ? (
               <CariOutlinedGirdi
-                etiket="E-Fatura Alias"
-                deger={form.alias}
-                maxLength={200}
-                odakPlaceholder="Alias giriniz"
-                disabled={saltOkunur}
-                onChange={(alias) => setAlan('alias', alias)}
-              />
-            ) : form.earsiv ? (
-              <CariOutlinedGirdi
-                etiket="E-Arşiv Alias"
+                etiket="E-İrsaliye Alias"
                 deger={form.earsivAlias}
                 maxLength={200}
                 odakPlaceholder="Alias giriniz"
                 disabled={saltOkunur}
                 onChange={(earsivAlias) => setAlan('earsivAlias', earsivAlias)}
-              />
-            ) : null}
-            {form.efatura ? (
-              <CariOutlinedAcilir
-                etiket="Fatura Tipi"
-                deger={form.efaturaTipi || 'TEMEL'}
-                secenekler={[...FATURA_TIPLERI]}
-                disabled={saltOkunur}
-                onChange={(efaturaTipi) => setAlan('efaturaTipi', efaturaTipi)}
               />
             ) : null}
 
