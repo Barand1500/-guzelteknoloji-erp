@@ -376,6 +376,7 @@ export function StokKarti({
   return (
     <div className="stok-karti-kabuk">
       <TanimDuzenleEkrani
+        ustGizle
         ustEtiket={ustEtiket}
         baslik={baslik}
         altBaslik={altBaslik}

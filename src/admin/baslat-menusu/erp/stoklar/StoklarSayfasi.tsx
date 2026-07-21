@@ -485,10 +485,22 @@ export function StoklarSayfasi() {
     ];
   }, []);
 
+  const modulBaslik =
+    gorunum === 'kart' && kartModu === 'yeni'
+      ? 'Yeni Stok Kartı'
+      : gorunum === 'kart' && kartModu === 'duzenle'
+        ? 'Stok Kartı Düzenleme'
+        : gorunum === 'kart' && kartModu === 'incele'
+          ? 'Stok Kartı İnceleme'
+          : 'Stoklar';
+
+  const modulAciklama =
+    gorunum === 'liste' ? 'Stok kartlarını listeleyin, arayın ve yönetin.' : undefined;
+
   return (
     <AdminModulKabuk
-      baslik="Stoklar"
-      aciklama="Stok kartlarını listeleyin, arayın ve yönetin."
+      baslik={gorunum === 'kart' ? undefined : modulBaslik}
+      aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-modul-ust-araclar">
@@ -526,6 +538,14 @@ export function StoklarSayfasi() {
       }
     >
       <div className="ap-tanimlar-sayfa">
+        {gorunum === 'kart' ? (
+          <div className="stok-karti-modul-ust">
+            <button type="button" className="ap-tanimlar-duzenle-geri" onClick={listeyeDon}>
+              ← Listeye dön
+            </button>
+            <h2 className="stok-karti-modul-baslik">{modulBaslik}</h2>
+          </div>
+        ) : null}
         {gorunum === 'kart' ? (
           <StokKarti
             mod={kartModu}

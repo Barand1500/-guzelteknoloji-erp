@@ -298,22 +298,25 @@
   border: 1px solid color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
   color: var(--ap-accent, #e85d04);
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
   padding: 0;
-  display: inline-grid;
-  place-items: center;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   pointer-events: auto;
   transition:
     background 0.15s ease,
     transform 0.15s ease;
+  transform: translateY(-1px);
 }
 
 .cari-secili-yonet:hover {
   background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
-  transform: scale(1.05);
+  transform: translateY(-1px) scale(1.05);
 }
 
 .cari-secili-chip-grup {

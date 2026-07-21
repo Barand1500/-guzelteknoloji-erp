@@ -2458,6 +2458,34 @@ button.ap-tanimlar-panel-arka {
 }
 
 /* Stok kartı — tam yükseklik + gizli scrollbar */
+.stok-karti-kabuk .ap-tanimlar-duzenle--ust-gizli {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+.stok-karti-kabuk .ap-tanimlar-duzenle--ust-gizli .ap-tanimlar-duzenle-govde {
+  padding: 0;
+}
+
+.stok-karti-modul-ust {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-shrink: 0;
+  min-width: 0;
+  margin-left: 1.15rem;
+}
+
+.stok-karti-modul-baslik {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ap-heading);
+}
+
 .stok-karti-kabuk {
   flex: 1 1 auto;
   min-height: 0;
@@ -2791,12 +2819,56 @@ button.ap-tanimlar-panel-arka {
   gap: 0.35rem;
 }
 
+.stok-yb-baslik--birim-kolon {
+  align-items: center;
+}
+
+.stok-yb-baslik-grid {
+  display: grid;
+  grid-template-columns: 0.65em auto;
+  column-gap: 0.28rem;
+  row-gap: 0.15rem;
+  align-items: center;
+  justify-items: start;
+  margin-inline: auto;
+}
+
+.stok-yb-baslik-metin-satir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.stok-yb-baslik-oge {
+  display: grid;
+  grid-template-columns: 0.65em auto;
+  column-gap: 0.28rem;
+  align-items: center;
+  justify-items: start;
+  width: max-content;
+  margin-inline: auto;
+}
+
+.stok-yb-baslik-zorunlu {
+  width: 0.65em;
+  text-align: center;
+  color: #ef4444;
+  line-height: 1;
+}
+
+.stok-yb-baslik-zorunlu--bos {
+  visibility: hidden;
+}
+
+.stok-yb-baslik-metin {
+  text-align: left;
+  white-space: nowrap;
+}
+
 .stok-yb-birim-ekle {
-  width: 1rem;
-  height: 1rem;
-  font-size: 0.68rem;
-  display: inline-grid;
-  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 0.75rem;
   padding: 0;
   line-height: 1;
 }
@@ -4203,8 +4275,9 @@ button.ap-tanimlar-panel-arka {
 }
 
 .cari-secili-yonet {
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.15rem;
   height: 1.15rem;
   flex-shrink: 0;
@@ -4212,15 +4285,18 @@ button.ap-tanimlar-panel-arka {
   border: 1px solid color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
   color: var(--ap-accent);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
   padding: 0;
+  margin: 0;
+  transform: translateY(-1px);
 }
 
 .cari-secili-yonet:hover {
   background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
+  transform: translateY(-1px) scale(1.05);
 }
 
 .cari-onay {
