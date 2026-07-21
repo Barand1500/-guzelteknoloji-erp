@@ -789,6 +789,13 @@ export function DataGrid<TRow extends { id: string }>({
     if (el instanceof HTMLInputElement) {
       const len = el.value.length;
       el.setSelectionRange(len, len);
+    } else if (el instanceof HTMLSelectElement) {
+      try {
+        // Enter ile açılan birim/pb seçiminde listeyi hemen göster
+        (el as HTMLSelectElement & { showPicker?: () => void }).showPicker?.();
+      } catch {
+        /* tarayıcı engellerse sessizce geç */
+      }
     }
   }, [duzenleme?.satirId, duzenleme?.kolonId, duzenleme?.birlesikKatman]);
 
@@ -1052,11 +1059,24 @@ export function DataGrid<TRow extends { id: string }>({
 
     // Ctrl+C / Ctrl+V belge düzeyinde (capture) işlenir — burada sadece diğer tuşlar
 
-    // F2: mevcut değeri düzenle (Enter ile açma kaldırıldı)
+    // F2: mevcut değeri düzenle
     if (e.key === 'F2' && !duzenleme) {
       e.preventDefault();
       if (!kolon) return;
       hucreVeyaSatirDuzenle(satir, kolon);
+      return;
+    }
+    // Enter: yalnızca seçenekli hücrelerde (birim, pb vb.) düzenleme aç
+    if (e.key === 'Enter' && !duzenleme) {
+      e.preventDefault();
+      if (!kolon) return;
+      if (kolon.tip === 'toggle' && kolon.degerYaz) {
+        satirGuncelle(kolon.degerYaz(satir, !Boolean(kolon.degerAl(satir))));
+        return;
+      }
+      if (kolon.secenekler?.length) {
+        hucreVeyaSatirDuzenle(satir, kolon);
+      }
       return;
     }
     // Toggle: Space ile değiştir
@@ -1074,9 +1094,15 @@ export function DataGrid<TRow extends { id: string }>({
     if (ctrl) return; // diğer Ctrl kombinasyonlarını ok navigasyonundan ayır
     if (duzenleme) return;
 
-    // Düzenlenebilir hücre: yazılan eklenir (mevcut silinmez); Delete temizler; Backspace sondan siler
-    if (kolon && kolon.duzenlenebilir && kolon.tip !== 'salt-okunur' && !kolon.secenekler?.length) {
-      const sayisal = Boolean(kolonFormulaTipi(kolon));
+    // Sayısal hücre: rakam yazınca düzenle; Delete temizler; Backspace sondan siler
+    // (birim / pb gibi seçenekli hücrelerde yazarak açılmaz — Enter ile açılır)
+    if (
+      kolon &&
+      kolon.duzenlenebilir &&
+      kolon.tip !== 'salt-okunur' &&
+      !kolon.secenekler?.length &&
+      kolonFormulaTipi(kolon)
+    ) {
       const mevcut = hucreHamDegeriAl(satir, kolon);
 
       if (e.key === 'Delete') {
@@ -1090,14 +1116,11 @@ export function DataGrid<TRow extends { id: string }>({
         return;
       }
 
-      const yazilabilir =
+      if (
         e.key.length === 1 &&
         !e.altKey &&
-        (sayisal
-          ? /^[0-9]$/.test(e.key) || e.key === ',' || e.key === '.' || e.key === '-' || e.key === '+'
-          : !/[\u0000-\u001F\u007F]/.test(e.key));
-
-      if (yazilabilir) {
+        (/^[0-9]$/.test(e.key) || e.key === ',' || e.key === '.' || e.key === '-' || e.key === '+')
+      ) {
         e.preventDefault();
         duzenlemeyiBaslat(satir, kolon, 'ust', mevcut + e.key);
         return;
@@ -1454,9 +1477,11 @@ export function DataGrid<TRow extends { id: string }>({
                   <span className="dg-tooltip">
                     {dgTooltipMetni(
                       satirIciDuzenlenebilir
-                        ? kolonFormulaTipi(kolon)
-                          ? 'Düzenlemek için rakam yazın veya çift tıklayın'
-                          : 'Düzenlemek için çift tıklayın veya F2'
+                        ? kolon.secenekler?.length
+                          ? 'Düzenlemek için Enter veya çift tıklayın'
+                          : kolonFormulaTipi(kolon)
+                            ? 'Düzenlemek için rakam yazın veya çift tıklayın'
+                            : 'Düzenlemek için çift tıklayın veya F2'
                         : 'Düzenleme sayfası için çift tıklayın'
                     )}
                   </span>

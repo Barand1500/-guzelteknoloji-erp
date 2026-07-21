@@ -9,17 +9,28 @@ function faturaTipiNormalize(tip: string): string {
 }
 
 function iletisimKisileriniHazirla(c: AdminCari): CariIletisimKisi[] {
-  const kayitli = cariIletisimGetir(c.id);
-  if (kayitli.length > 0) return kayitli;
-
   const yetkili = c.yetkili.trim();
+  const kayitli = cariIletisimGetir(c.id);
+
+  if (kayitli.length > 0) {
+    return kayitli.map((k) => {
+      const ad = k.adSoyad.trim();
+      const gorevi =
+        k.gorevi.trim() ||
+        (yetkili && ad && ad.toLocaleUpperCase('tr') === yetkili.toLocaleUpperCase('tr')
+          ? 'Yetkili'
+          : '');
+      return gorevi === k.gorevi ? k : { ...k, gorevi };
+    });
+  }
+
   if (!yetkili) return [];
 
   return [
     {
       id: `ik-yetkili-${c.id}`,
       adSoyad: yetkili,
-      gorevi: '',
+      gorevi: 'Yetkili',
       eposta: c.eposta.trim(),
       telefon: c.telefon.trim(),
       il: c.il.trim(),

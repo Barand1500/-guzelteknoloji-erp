@@ -570,40 +570,48 @@
   white-space: nowrap;
 }
 
-.cari-ust-baslik-tus {
+.cari-ust-baslik-sec-tus {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  width: fit-content;
-  max-width: min(360px, 42vw);
+  justify-content: center;
   height: 2.05rem;
-  min-height: 2.05rem;
-  max-height: 2.05rem;
+  padding: 0 0.9rem;
+  border: 1.5px solid color-mix(in srgb, var(--ap-accent) 42%, var(--ap-border));
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  color: var(--ap-accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.cari-ust-baslik-sec-tus:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
+  border-color: var(--ap-accent);
+}
+
+.cari-ust-baslik-secici--pasif .cari-ust-baslik-sec-tus,
+.cari-ust-baslik-secici--pasif .cari-ust-baslik-temizle-x {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cari-ust-baslik-secili-kutu {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: min(420px, 48vw);
+  min-width: 0;
+  height: 2.05rem;
+  padding: 0 0.35rem 0 0.7rem;
   border: 1.5px solid var(--ap-border);
   border-radius: 0.55rem;
   background: var(--ap-input-bg);
-  padding: 0 0.65rem;
-  cursor: pointer;
-  text-align: left;
-  overflow: hidden;
-  color: var(--ap-text);
-}
-
-.cari-ust-baslik-tus--bos {
-  max-width: none;
-}
-
-.cari-ust-baslik-tus--secili {
-  min-width: 0;
-}
-
-.cari-ust-baslik-tus:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--ap-border) 55%, var(--ap-text));
-}
-
-.cari-ust-baslik-secici--pasif .cari-ust-baslik-tus {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 .cari-ust-baslik-secili {
@@ -615,10 +623,19 @@
   max-width: 100%;
 }
 
-.cari-ust-baslik-secili-kod,
+.cari-ust-baslik-secili-kod {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ap-accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
 .cari-ust-baslik-secili-ad {
   font-size: 0.84rem;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--ap-text);
   white-space: nowrap;
   overflow: hidden;
@@ -626,120 +643,213 @@
   line-height: 1.2;
 }
 
-.cari-ust-baslik-placeholder {
-  color: var(--ap-text-muted);
-  font-size: 0.84rem;
-  font-weight: 400;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.cari-ust-baslik-ok {
-  color: var(--ap-text-muted);
-  font-size: 0.72rem;
+.cari-ust-baslik-temizle-x {
   flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
 }
 
-.cari-ust-baslik-panel {
-  background: var(--ap-surface);
-  border: 1px solid var(--ap-border);
-  border-radius: 0.6rem;
-  box-shadow: 0 14px 36px color-mix(in srgb, var(--ap-heading) 16%, transparent);
-  overflow: hidden;
+.cari-ust-baslik-temizle-x:hover {
+  background: color-mix(in srgb, #ef4444 14%, var(--ap-surface));
+  color: #ef4444;
+}
+
+/* Üst cari seçim modalı */
+
+.cari-ust-modal-kart {
+  width: min(460px, calc(100vw - 2rem));
+  max-height: min(580px, calc(100vh - 2.5rem));
   display: flex;
   flex-direction: column;
+  padding-bottom: 0.85rem !important;
 }
 
-.cari-ust-baslik-ara {
-  padding: 0.5rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+.cari-ust-modal-govde {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 0;
+  flex: 1;
+  margin-top: 0.45rem;
+  text-align: left;
 }
 
-.cari-ust-baslik-ara-girdi {
+.cari-ust-modal-ara-kutu {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   width: 100%;
-  border: 1px solid var(--ap-border);
-  border-radius: 0.45rem;
-  padding: 0.48rem 0.65rem;
-  font-size: 0.85rem;
-  outline: none;
-  background: var(--ap-input-bg);
-  color: var(--ap-text);
+  min-height: 2.65rem;
+  padding: 0 0.85rem;
+  border: 1.5px solid color-mix(in srgb, var(--ap-border) 85%, var(--ap-text));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-input-bg));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    background 0.14s ease;
 }
 
-.cari-ust-baslik-ara-girdi:focus {
+.cari-ust-modal-ara-kutu:focus-within {
   border-color: var(--ap-accent);
+  background: var(--ap-input-bg);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--ap-accent) 18%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
 }
 
-.cari-ust-baslik-tablo-baslik {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 0.5rem;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.68rem;
+.cari-ust-modal-ara-ikon {
+  flex-shrink: 0;
+  color: var(--ap-text-muted);
+}
+
+.cari-ust-modal-ara-kutu:focus-within .cari-ust-modal-ara-ikon {
+  color: var(--ap-accent);
+}
+
+.cari-ust-modal-ara {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ap-text);
+  font-size: 0.9rem;
   font-weight: 500;
+  padding: 0.55rem 0;
+}
+
+.cari-ust-modal-ara::placeholder {
+  color: var(--ap-text-muted);
+  font-weight: 400;
+}
+
+.cari-ust-modal-ara::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.cari-ust-modal-tablo {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* Modal yan padding'ini kırıp kenardan kenara kapla */
+  margin-left: -1.75rem;
+  margin-right: -1.75rem;
+  width: calc(100% + 3.5rem);
+  max-width: none;
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  border-radius: 0;
+  background: var(--ap-surface);
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.cari-ust-modal-tablo-baslik {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 0.55rem;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.68rem;
+  font-weight: 700;
   color: var(--ap-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  letter-spacing: 0.06em;
+  background: color-mix(in srgb, var(--ap-surface-2) 70%, var(--ap-surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
 }
 
-.cari-ust-baslik-liste {
+.cari-ust-modal-liste {
   list-style: none;
   margin: 0;
-  padding: 0.25rem;
+  padding: 0;
   overflow: auto;
+  max-height: min(300px, 40vh);
 }
 
-.cari-ust-baslik-oge {
+.cari-ust-modal-liste > li + li .cari-ust-modal-oge {
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 55%, transparent);
+}
+
+.cari-ust-modal-oge {
   width: 100%;
   display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 0.5rem;
+  grid-template-columns: 118px 1fr;
+  gap: 0.55rem;
   align-items: center;
   border: 0;
+  border-radius: 0;
   background: transparent;
   text-align: left;
-  padding: 0.5rem 0.55rem;
-  border-radius: 0.45rem;
+  padding: 0.7rem 1.1rem;
   cursor: pointer;
   color: var(--ap-text);
+  transition: background 0.12s ease;
 }
 
-.cari-ust-baslik-oge:hover,
-.cari-ust-baslik-oge--secili {
+.cari-ust-modal-oge:hover {
+  background: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
+}
+
+.cari-ust-modal-oge--odak {
   background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  box-shadow: inset 3px 0 0 var(--ap-accent);
 }
 
-.cari-ust-baslik-oge-kod,
-.cari-ust-baslik-oge-ad {
-  font-size: 0.84rem;
-  font-weight: 400;
-  color: var(--ap-text);
+.cari-ust-modal-oge-kod {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--ap-accent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
 }
 
-.cari-ust-baslik-bos {
-  padding: 0.75rem;
+.cari-ust-modal-oge-ad {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cari-ust-modal-bos {
+  padding: 1.4rem 1.1rem;
+  text-align: center;
   color: var(--ap-text-muted);
-  font-size: 0.84rem;
+  font-size: 0.86rem;
 }
 
-.cari-ust-baslik-temizle {
-  border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
-  background: var(--ap-surface-2);
-  padding: 0.55rem;
-  font-size: 0.8rem;
+.cari-ust-modal-alt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 1.1rem;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  background: color-mix(in srgb, var(--ap-surface-2) 55%, var(--ap-surface));
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--ap-text-muted);
-  cursor: pointer;
 }
 
-.cari-ust-baslik-temizle:hover {
-  color: var(--ap-accent);
+.cari-ust-modal-alt-ipucu {
+  font-weight: 500;
+  opacity: 0.85;
 }
 
 /* ——— Adres / İletişim ——— */
@@ -757,8 +867,8 @@
 .cari-iletisim-baslik-satir {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  justify-content: flex-start;
+  gap: 0.55rem;
   margin-bottom: 0.85rem;
 }
 
@@ -766,20 +876,28 @@
   margin: 0;
   font-size: 0.92rem;
   font-weight: 700;
+  line-height: 1;
   color: var(--ap-heading);
 }
 
 .cari-iletisim-ekle {
-  width: 1.65rem;
-  height: 1.65rem;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
   color: var(--ap-accent);
-  font-size: 1.1rem;
-  font-weight: 700;
-  line-height: 1;
+  line-height: 0;
   cursor: pointer;
+}
+
+.cari-iletisim-ekle svg {
+  display: block;
+  transform: translateX(1px);
 }
 
 .cari-iletisim-ekle:disabled {
@@ -898,7 +1016,7 @@
     grid-template-columns: 1fr;
   }
 
-  .cari-ust-baslik-tus--secili {
+  .cari-ust-baslik-secili-kutu {
     max-width: 100%;
   }
 }
