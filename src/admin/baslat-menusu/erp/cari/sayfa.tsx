@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
+import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import '@/admin/ortak/datagrid/datagrid.css';
 import type { DataGridApi } from '@/admin/ortak/datagrid/types';
@@ -8,12 +9,12 @@ import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
+import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { cariSil, cariGuncelle, carileriGetir } from './api';
 import { CariKart } from './bilesenler/CariKart';
-import { cariEkAlanlariSil } from './cariEkAlanlar';
 import { cariAramaKriteriVarMi, carileriFiltrele } from './cariFiltre';
 import { CARI_KOLON_GENISLIK_SURUMU, cariKolonlari } from './cariKolonlari';
 import { caridenForm, cariSatirEtiketi } from './cariYardimci';
@@ -36,6 +37,7 @@ export function CariSayfasi() {
   const [silme, setSilme] = useState<AdminCari | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
   const gridApiRef = useRef<DataGridApi | null>(null);
+  const sayfaRef = useRef<HTMLDivElement>(null);
   const kaydetRef = useRef<(() => Promise<void>) | null>(null);
 
   const yukle = useCallback(async () => {
@@ -116,7 +118,7 @@ export function CariSayfasi() {
 
   const hizliAraUygula = useCallback(() => {
     if (!cariAramaKriteriVarMi(filtreMetni)) {
-      hataBildir('Aramak için firma kodu veya adı girin.');
+      hataBildir('Aramak için cari kodu veya adı girin.');
       return;
     }
     setUygulananFiltreMetni(filtreMetni);
@@ -147,7 +149,6 @@ export function CariSayfasi() {
     if (!silme) return;
     try {
       await cariSil(silme.id);
-      cariEkAlanlariSil(silme.id);
       basariBildir('Cari silindi.');
       setSilme(null);
       setSeciliIdler((idler) => idler.filter((id) => id !== silme.id));
@@ -181,6 +182,18 @@ export function CariSayfasi() {
 
   const kolonlar = useMemo(() => cariKolonlari(), []);
 
+  const modulBaslik =
+    gorunum === 'kart' && kartModu === 'yeni'
+      ? 'Yeni Cari Kart Ekleme'
+      : gorunum === 'kart' && kartModu === 'duzenle'
+        ? 'Cari Kart Düzenleme'
+        : gorunum === 'kart' && kartModu === 'incele'
+          ? 'Cari Kart İnceleme'
+          : 'Cari Kartlar';
+
+  const modulAciklama =
+    gorunum === 'liste' ? 'Cari kartlarını listeleyin, arayın ve yönetin.' : undefined;
+
   if (!goruntulemeVar) {
     return (
       <YetkisizErisim aciklama="Cari kartları görmek için Görüntüleme yetkisi gerekir." />
@@ -189,8 +202,8 @@ export function CariSayfasi() {
 
   return (
     <AdminModulKabuk
-      baslik="Cari Kartlar"
-      aciklama="Cari kartlarını listeleyin, arayın ve yönetin."
+      baslik={modulBaslik}
+      aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-ikon-grup cari-modul-ust-araclar">
@@ -219,7 +232,6 @@ export function CariSayfasi() {
           <CariKart
             mod={kartModu}
             cariId={aktifCariId}
-            onGeri={listeyeDon}
             onKaydedildi={listeyeDon}
             kaydetRef={kaydetRef}
             onKirliDegistir={setKartKirli}
@@ -227,7 +239,33 @@ export function CariSayfasi() {
         ) : (
           <div className="dg-urun-slayt-kabuk">
             <div className="dg-urun-slayt-tablo">
-              <div className="dg-demo-sayfa">
+              <div ref={sayfaRef} className="dg-demo-sayfa dg-demo-sag-tik-alan">
+                <DatagridSagTikMenu
+                  konteynerRef={sayfaRef}
+                  kolonlar={kolonlar}
+                  satirlar={filtrelenmis}
+                  seciliSatirSayisi={seciliIdler.length}
+                  gridApiRef={gridApiRef}
+                  menuEtiketi="Cari kartlar menüsü"
+                  satirEkleGoster={false}
+                  satirCogaltGoster={false}
+                  onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
+                  onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
+                  seciliSilGoster={false}
+                  satirSilMetniAl={cariSatirEtiketi}
+                  onDegeriYay={(kolonId, deger, gorunenler) => {
+                    const hedefIdler = new Set(gorunenler.map((s) => s.id));
+                    const kolon = kolonlar.find((k) => k.id === kolonId);
+                    if (!kolon?.degerYaz) return;
+                    satirlarDegistir(
+                      kayitlar.map((s) =>
+                        hedefIdler.has(s.id) ? kolon.degerYaz!(s, deger) : s
+                      )
+                    );
+                  }}
+                  onBilgi={basariBildir}
+                />
+
                 <form
                   className="stoklar-liste-ara-cubugu"
                   onSubmit={(e) => {
@@ -242,7 +280,7 @@ export function CariSayfasi() {
                         type="search"
                         value={filtreMetni}
                         onChange={(e) => setFiltreMetni(e.target.value)}
-                        placeholder="Firma kodu veya adı…"
+                        placeholder="Cari kodu veya adı…"
                         aria-label="Cari ara"
                       />
                     </label>
@@ -256,7 +294,7 @@ export function CariSayfasi() {
                   <div className="stoklar-liste-bekleme">
                     <p className="stoklar-liste-bekleme-baslik">Cari arayın</p>
                     <p className="stoklar-liste-bekleme-metin">
-                      Listeyi görmek için firma kodu veya adı yazıp Ara&apos;ya basın. Kayıt
+                      Listeyi görmek için cari kodu veya adı yazıp Ara&apos;ya basın. Kayıt
                       bulunamazsa boş liste açılır; aksiyon çubuğundan Yeni ile ekleyebilirsiniz.
                     </p>
                   </div>

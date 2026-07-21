@@ -48,15 +48,36 @@ export function cariIsletmeTuruEkle(label: string): CariIsletmeTuruSecenek | nul
   return yeni;
 }
 
+export function cariIsletmeTuruGuncelle(value: string, yeniLabel: string): boolean {
+  const ad = yeniLabel.trim();
+  if (!ad) return false;
+  const korunacak = new Set(['TUZEL', 'GERCEK', 'YABANCI']);
+  const mevcut = oku();
+  const hedef = mevcut.find((t) => t.value === value);
+  if (!hedef) return false;
+  if (
+    mevcut.some(
+      (t) =>
+        t.value !== value && t.label.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr')
+    )
+  ) {
+    return false;
+  }
+  yaz(
+    mevcut.map((t) =>
+      t.value === value ? { ...t, label: korunacak.has(value) ? hedef.label : ad } : t
+    )
+  );
+  return true;
+}
+
 export function cariIsletmeTuruSil(value: string): void {
   const korunacak = new Set(['TUZEL', 'GERCEK', 'YABANCI']);
   if (korunacak.has(value)) return;
   yaz(oku().filter((t) => t.value !== value));
 }
 
-export function isletmeTuruKimlikModu(
-  tur: string
-): 'tuzel' | 'gercek' | 'yabanci' {
+export function isletmeTuruKimlikModu(tur: string): 'tuzel' | 'gercek' | 'yabanci' {
   const v = tur.trim().toUpperCase();
   if (v === 'GERCEK') return 'gercek';
   if (v === 'YABANCI') return 'yabanci';

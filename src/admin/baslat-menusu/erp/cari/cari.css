@@ -1,0 +1,386 @@
+/* ——— Cari Kart Form ——— */
+
+.cari-kart-sayfa {
+  padding: 0.15rem 0 1rem;
+}
+
+.cari-kart-kabuk {
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 28px rgb(15 23 42 / 0.05);
+  padding: 1.35rem 1.4rem 1.5rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  max-height: calc(100vh - 10.5rem);
+}
+
+.cari-kart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.1rem;
+  align-items: start;
+}
+
+.cari-kart-grid .cari-alan-tam {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .cari-kart-grid {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .cari-kart-grid .cari-alan-tam {
+    grid-column: auto;
+  }
+}
+
+/* Outlined input — etiket border üstünde, çizgi etiketi kesmez */
+
+.cari-outlined-field {
+  position: relative;
+  min-width: 0;
+  padding-top: 0.42rem;
+}
+
+.cari-outlined-etiket {
+  position: absolute;
+  top: 0;
+  left: 0.7rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: calc(100% - 1.2rem);
+  margin: 0;
+  padding: 0 0.3rem;
+  background: #fff;
+  pointer-events: none;
+}
+
+.cari-outlined-etiket-metin {
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #64748b;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.cari-outlined-field:focus-within .cari-outlined-etiket-metin {
+  color: var(--ap-accent, #e85d04);
+}
+
+.cari-outlined-cerceve {
+  position: relative;
+  z-index: 1;
+  border: 1.5px solid #cfd5df;
+  border-radius: 0.5rem;
+  min-height: 2.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.75rem;
+  background: #fff;
+  transition: border-color 0.16s ease;
+}
+
+.cari-outlined-sonek {
+  flex-shrink: 0;
+}
+
+.cari-outlined-sayac {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.cari-outlined-field--focus .cari-outlined-sayac {
+  color: var(--ap-accent, #e85d04);
+}
+
+.cari-outlined-field:hover .cari-outlined-cerceve {
+  border-color: #b8c0cc;
+}
+
+.cari-outlined-field:focus-within .cari-outlined-cerceve {
+  border-color: var(--ap-accent, #e85d04);
+  box-shadow: inset 0 0 0 1px var(--ap-accent, #e85d04);
+}
+
+.cari-outlined-zorunlu {
+  color: #ef4444;
+}
+
+.cari-outlined-input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--ap-text, #0f172a);
+  padding: 0.5rem 0.1rem;
+}
+
+.cari-outlined-input::placeholder {
+  color: #94a3b8;
+}
+
+.cari-outlined-input:disabled {
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.cari-outlined-cerceve--icerik {
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+}
+
+.cari-outlined-icerik {
+  width: 100%;
+  min-width: 0;
+}
+
+.cari-outlined-field--pasif {
+  opacity: 0.76;
+}
+
+.cari-outlined-acilir .ap-form-acilir-secim,
+.cari-outlined-acilir .ap-form-acilir-secim-tus {
+  width: 100%;
+}
+
+.cari-outlined-acilir .cari-outlined-acilir-tus,
+.cari-outlined-acilir .ap-form-acilir-secim-tus {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0.4rem 0.1rem !important;
+  min-height: unset;
+  border-radius: 0 !important;
+}
+
+.cari-outlined-icerik .ap-input {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0.4rem 0.1rem !important;
+  border-radius: 0 !important;
+}
+
+.cari-outlined-icerik .ap-input:focus,
+.cari-outlined-icerik .ap-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Chip seçim kutuları — outlined ile aynı dil */
+
+.cari-secili-alan {
+  position: relative;
+  min-width: 0;
+  min-height: 2.95rem;
+  padding: 0.82rem 0.75rem 0.62rem;
+  border: 1.5px solid #cfd5df;
+  border-radius: 0.5rem;
+  background: #fff;
+  transition: border-color 0.16s ease;
+}
+
+.cari-secili-alan:hover {
+  border-color: #b8c0cc;
+}
+
+.cari-secili-etiket-satir {
+  position: absolute;
+  top: 0;
+  left: 0.7rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  max-width: calc(100% - 1.2rem);
+  padding: 0 0.3rem;
+  background: #fff;
+}
+
+.cari-secili-etiket {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.cari-secili-yonet {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ap-accent, #e85d04) 50%, #e2e8f0);
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 10%, #fff);
+  color: var(--ap-accent, #e85d04);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.cari-secili-yonet:hover {
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 16%, #fff);
+  transform: scale(1.05);
+}
+
+.cari-secili-chip-grup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+}
+
+.cari-secili-chip {
+  border: 1px solid #dce2ea;
+  background: #f8fafc;
+  color: #475569;
+  border-radius: 999px;
+  padding: 0.34rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.cari-secili-chip:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--ap-accent, #e85d04) 40%, #dce2ea);
+  background: #fff;
+}
+
+.cari-secili-chip--aktif {
+  border-color: var(--ap-accent, #e85d04);
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 11%, #fff);
+  color: #9a3412;
+}
+
+.cari-secili-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.cari-durum-alan {
+  position: relative;
+  min-width: 0;
+  padding: 0.95rem 0.75rem 0.7rem;
+  border: 1.5px solid #cfd5df;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.cari-durum-alan > .cari-secili-etiket {
+  position: absolute;
+  top: 0;
+  left: 0.7rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  padding: 0 0.3rem;
+  background: #fff;
+}
+
+.cari-durum-icerik {
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+}
+
+.cari-kart-tarihler {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #eef1f5;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.cari-kart-tarihler em {
+  font-style: normal;
+  font-weight: 600;
+  color: #475569;
+}
+
+.cari-kart-tarihler-ayrac {
+  opacity: 0.5;
+}
+
+.cari-efatura-secim .cari-secili-chip-grup {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 720px) {
+  .cari-efatura-secim .cari-secili-chip-grup {
+    flex-wrap: wrap;
+  }
+}
+
+.cari-ust-cari-oge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  text-align: left;
+}
+
+.cari-ust-cari-oge-ad {
+  font-weight: 600;
+}
+
+.cari-ust-cari-oge-kod {
+  font-size: 0.72rem;
+  opacity: 0.72;
+}
+
+.cari-kart-kabuk--salt .cari-secili-chip,
+.cari-kart-sayfa--salt .cari-secili-yonet {
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.cari-secenek-liste li.cari-secenek-liste--duzenleniyor {
+  border-color: var(--ap-accent, #e85d04);
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 8%, #fff);
+}
+
+.cari-secenek-liste li {
+  cursor: default;
+}
+
+.cari-secenek-liste li[title] {
+  cursor: pointer;
+}
+
+/* ——— Cari liste tablosu ——— */
+
+.dg-cari-bos-hucre {
+  color: #cbd5e1;
+}
+
+.dg-cari-pasaport {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}

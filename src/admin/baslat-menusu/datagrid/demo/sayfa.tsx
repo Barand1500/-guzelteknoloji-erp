@@ -773,6 +773,17 @@ export function DatagridDemoSayfasi() {
           seciliSatirIdleriRef.current = [];
           setSeciliSatirSayisi(0);
         }}
+        onDegeriYay={(kolonId, deger, gorunenler) => {
+          const hedefIdler = new Set(gorunenler.map((s) => s.id));
+          setSatirlar((onceki) =>
+            onceki.map((s) => {
+              if (!hedefIdler.has(s.id)) return s;
+              const kolon = kolonlar.find((k) => k.id === kolonId);
+              if (!kolon?.degerYaz) return s;
+              return satirHesapla(kolon.degerYaz(s, deger), kdvDahil);
+            })
+          );
+        }}
         onBilgi={logMesajiAyarla}
       />
 

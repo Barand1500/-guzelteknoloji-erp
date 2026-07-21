@@ -3670,6 +3670,38 @@ button.ap-tanimlar-panel-arka {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  max-height: calc(100vh - 9.5rem);
+  padding-bottom: 1.25rem;
+}
+
+.cari-kart-grid {
+  gap: 0.5rem 0.75rem !important;
+}
+
+.cari-kart-grid .cari-alan-tam {
+  grid-column: 1 / -1;
+}
+
+.cari-kart-tarihler {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.5rem 0.15rem 0;
+  font-size: 0.78rem;
+  color: var(--ap-muted, #6b7280);
+}
+
+.cari-kart-tarihler em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ap-text-soft, #4b5563);
+}
+
+.cari-kart-tarihler-ayrac {
+  opacity: 0.5;
 }
 
 .ap-tanimlar-duzenle:has(.cari-kart-kabuk) {
@@ -3705,6 +3737,19 @@ button.ap-tanimlar-panel-arka {
 
 .cari-genel-grid .cari-alan-tam {
   grid-column: 1 / -1;
+}
+
+.cari-durum-alan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.cari-kart-kabuk--salt .cari-secili-chip,
+.cari-kart-kabuk--salt .ap-tanimlar-toggle {
+  pointer-events: none;
+  opacity: 0.72;
 }
 
 .cari-kart-kabuk .ap-tanim-girdi-etiket {
@@ -4078,8 +4123,49 @@ button.ap-tanimlar-panel-arka {
   width: min(28rem, calc(100vw - 2rem));
 }
 
+.cari-secenek-arka {
+  pointer-events: none;
+}
+
 .cari-secenek-kart {
+  position: relative;
   text-align: center;
+  padding-bottom: 1.1rem;
+}
+
+.cari-secenek-kapat {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, #fff);
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.55rem 0.28rem 0.45rem;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.cari-secenek-kapat svg {
+  display: block;
+}
+
+.cari-secenek-kapat:hover {
+  color: var(--ap-accent, #e85d04);
+  border-color: color-mix(in srgb, var(--ap-accent, #e85d04) 40%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 6%, #fff);
 }
 
 .cari-secenek-ikon {
@@ -4100,18 +4186,16 @@ button.ap-tanimlar-panel-arka {
   gap: 0.55rem;
   min-height: 0;
   text-align: left;
-  padding: 0 0.1rem 1.2rem;
+  padding: 0 0.1rem 0.35rem;
   color: var(--ap-text);
 }
 
 .cari-secenek-ekle {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.45rem;
-  align-items: stretch;
+  display: block;
 }
 
 .cari-secenek-ekle input {
+  width: 100%;
   border: 1px solid var(--ap-border);
   border-radius: 0.5rem;
   background: var(--ap-input-bg, var(--ap-surface));
@@ -4126,25 +4210,24 @@ button.ap-tanimlar-panel-arka {
 .cari-secenek-ekle input:focus-visible {
   border-color: var(--ap-accent);
   box-shadow: inset 0 0 0 1px var(--ap-accent);
-  --tw-ring-shadow: 0 0 #0000;
-  --tw-ring-offset-shadow: 0 0 #0000;
 }
 
-.cari-secenek-ekle-tus {
-  appearance: none;
-  border: none;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--ap-accent) 84%, #000000);
-  color: #fff;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  padding: 0.45rem 0.9rem;
-  cursor: pointer;
-  white-space: nowrap;
+.cari-secenek-satir-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--ap-accent);
+  border-radius: 0.35rem;
+  background: #fff;
+  color: var(--ap-text);
+  padding: 0.3rem 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
 }
 
-.cari-secenek-ekle-tus:hover {
-  background: var(--ap-accent);
+.cari-secenek-liste li.cari-secenek-liste--duzenleniyor {
+  border-color: var(--ap-accent, #e85d04);
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 8%, #fff);
 }
 
 .cari-secenek-hata {
@@ -4204,10 +4287,6 @@ button.ap-tanimlar-panel-arka {
   font-weight: 650;
   cursor: pointer;
   padding: 0.15rem 0.25rem;
-}
-
-.cari-secenek-aksiyonlar {
-  grid-template-columns: 1fr 1fr;
 }
 
 .cari-alt-modal {
