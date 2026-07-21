@@ -108,6 +108,23 @@ function SayiInput({
   );
 }
 
+function BaslikOge({
+  zorunlu = false,
+  children,
+}: {
+  zorunlu?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="stok-yb-baslik-oge">
+      <span className="stok-yb-baslik-zorunlu" aria-hidden="true">
+        {zorunlu ? '*' : '\u00a0'}
+      </span>
+      <span className="stok-yb-baslik-metin">{children}</span>
+    </div>
+  );
+}
+
 /**
  * Birimler ve fiyatlar — üstte fiyat adı seçimi (B2B stok listesi mantığı),
  * altta seçili fiyat adına göre birim satırları.
@@ -279,35 +296,50 @@ export function StokYeniBirimler({
 
       <div className="stok-yb-tablo stok-yb-tablo--birimler" role="table" aria-label="Birimler ve fiyatlar">
         <div className="stok-yb-baslik-satir" role="row">
-          <div className="stok-yb-baslik" role="columnheader">
-            <span className="stok-yb-baslik-birim">
-              * Birim
-              <button
-                type="button"
-                className="cari-secili-yonet stok-yb-birim-ekle"
-                onClick={() => setBirimModalAcik(true)}
-                title="Birim yönet"
-                aria-label="Birim yönet"
-              >
-                +
-              </button>
-            </span>
-            <span>Barkod</span>
-            <span>* Çarpan</span>
+          <div className="stok-yb-baslik stok-yb-baslik--birim-kolon" role="columnheader">
+            <div className="stok-yb-baslik-grid">
+              <span className="stok-yb-baslik-zorunlu" aria-hidden="true">
+                *
+              </span>
+              <span className="stok-yb-baslik-metin-satir">
+                <span className="stok-yb-baslik-metin">Birim</span>
+                <button
+                  type="button"
+                  className="cari-secili-yonet stok-yb-birim-ekle"
+                  onClick={() => setBirimModalAcik(true)}
+                  title="Birim yönet"
+                  aria-label="Birim yönet"
+                >
+                  +
+                </button>
+              </span>
+              <span className="stok-yb-baslik-zorunlu stok-yb-baslik-zorunlu--bos" aria-hidden="true">
+                {'\u00a0'}
+              </span>
+              <span className="stok-yb-baslik-metin-satir">
+                <span className="stok-yb-baslik-metin">Barkod</span>
+              </span>
+              <span className="stok-yb-baslik-zorunlu" aria-hidden="true">
+                *
+              </span>
+              <span className="stok-yb-baslik-metin-satir">
+                <span className="stok-yb-baslik-metin">Çarpan</span>
+              </span>
+            </div>
           </div>
           <div className="stok-yb-baslik" role="columnheader">
-            <span>Alış Fiyatı</span>
-            <span>* Satış Fiyatı</span>
+            <BaslikOge>Alış Fiyatı</BaslikOge>
+            <BaslikOge zorunlu>Satış Fiyatı</BaslikOge>
           </div>
           <div className="stok-yb-baslik" role="columnheader">
-            <span>Alış KDV</span>
-            <span>* Satış KDV</span>
-            <span>* KDV Dahil</span>
+            <BaslikOge>Alış KDV</BaslikOge>
+            <BaslikOge zorunlu>Satış KDV</BaslikOge>
+            <BaslikOge zorunlu>KDV Dahil</BaslikOge>
           </div>
           <div className="stok-yb-baslik" role="columnheader">
-            <span>* Ana Birim</span>
-            <span>* Varsayılan</span>
-            <span>* Aktif</span>
+            <BaslikOge zorunlu>Ana Birim</BaslikOge>
+            <BaslikOge zorunlu>Varsayılan</BaslikOge>
+            <BaslikOge zorunlu>Aktif</BaslikOge>
           </div>
         </div>
 

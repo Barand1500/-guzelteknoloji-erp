@@ -16,6 +16,7 @@ interface TanimDuzenleEkraniProps {
   onKaydet?: () => void;
   kaydediliyor?: boolean;
   panel?: boolean;
+  ustGizle?: boolean;
   saltOkunur?: boolean;
   children: ReactNode;
 }
@@ -31,6 +32,7 @@ export function TanimDuzenleEkrani({
   onKaydet,
   kaydediliyor = false,
   panel = false,
+  ustGizle = false,
   saltOkunur = false,
   children,
 }: TanimDuzenleEkraniProps) {
@@ -49,32 +51,34 @@ export function TanimDuzenleEkrani({
   }
 
   return (
-    <div className="ap-tanimlar-duzenle">
-      <header className="ap-tanimlar-duzenle-ust">
-        <button type="button" className="ap-tanimlar-duzenle-geri" onClick={onGeri}>
-          ← Listeye dön
-        </button>
-        <div className="ap-tanimlar-duzenle-baslik-alan">
-          <h3 className="ap-tanimlar-duzenle-baslik">{baslik}</h3>
-          {altBaslik ? <p className="ap-tanimlar-duzenle-alt">{altBaslik}</p> : null}
-          {olusturma || guncelleme ? (
-            <div className="ap-tanimlar-duzenle-tarihler">
-              {olusturma ? (
-                <span>
-                  <em>Kayıt</em> {tarihSaatFormatla(olusturma)}
-                </span>
-              ) : null}
-              {olusturma && guncelleme ? <span className="ap-tanimlar-duzenle-ayrac">·</span> : null}
-              {guncelleme ? (
-                <span>
-                  <em>Güncelleme</em> {tarihSaatFormatla(guncelleme)}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-        <span className="ap-tanimlar-duzenle-rozet">{rozet}</span>
-      </header>
+    <div className={`ap-tanimlar-duzenle${ustGizle ? ' ap-tanimlar-duzenle--ust-gizli' : ''}`}>
+      {!ustGizle ? (
+        <header className="ap-tanimlar-duzenle-ust">
+          <button type="button" className="ap-tanimlar-duzenle-geri" onClick={onGeri}>
+            ← Listeye dön
+          </button>
+          <div className="ap-tanimlar-duzenle-baslik-alan">
+            <h3 className="ap-tanimlar-duzenle-baslik">{baslik}</h3>
+            {altBaslik ? <p className="ap-tanimlar-duzenle-alt">{altBaslik}</p> : null}
+            {olusturma || guncelleme ? (
+              <div className="ap-tanimlar-duzenle-tarihler">
+                {olusturma ? (
+                  <span>
+                    <em>Kayıt</em> {tarihSaatFormatla(olusturma)}
+                  </span>
+                ) : null}
+                {olusturma && guncelleme ? <span className="ap-tanimlar-duzenle-ayrac">·</span> : null}
+                {guncelleme ? (
+                  <span>
+                    <em>Güncelleme</em> {tarihSaatFormatla(guncelleme)}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          <span className="ap-tanimlar-duzenle-rozet">{rozet}</span>
+        </header>
+      ) : null}
       <div className="ap-tanimlar-duzenle-govde">{children}</div>
     </div>
   );
