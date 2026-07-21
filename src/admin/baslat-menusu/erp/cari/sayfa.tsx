@@ -230,6 +230,18 @@ export function CariSayfasi() {
           ? 'Cari Kart İnceleme'
           : 'Cari Kartlar';
 
+  const modulBaslikIcerik =
+    gorunum === 'kart' ? (
+      <div className="cari-kart-baslik-blok">
+        <button type="button" className="cari-listeye-don" onClick={listeyeDon}>
+          Listeye dön
+        </button>
+        <h1 className="ap-heading text-xl font-bold">{modulBaslik}</h1>
+      </div>
+    ) : (
+      modulBaslik
+    );
+
   const modulAciklama =
     gorunum === 'liste' ? 'Cari kartlarını listeleyin, arayın ve yönetin.' : undefined;
 
@@ -241,7 +253,7 @@ export function CariSayfasi() {
 
   return (
     <AdminModulKabuk
-      baslik={modulBaslik}
+      baslik={modulBaslikIcerik}
       aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'kart' ? (
