@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type MutableRefObject } from 'react';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
-import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
 import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
@@ -351,22 +350,14 @@ export function StokKarti({
               disabled
               onChange={() => undefined}
             />
-            <div className="cari-durum-alan stok-karti-durum-alan">
-              <span className="cari-secili-etiket">Durum</span>
-              <div className="cari-durum-icerik">
-                {!saltOkunur ? (
-                  <OrtakDurumAlani aktif={aktif} onChange={setAktif} />
-                ) : (
-                  <span
-                    className={
-                      aktif ? 'ap-tanimlar-aktif-etiket--aktif' : 'ap-tanimlar-aktif-etiket--pasif'
-                    }
-                  >
-                    {aktif ? 'Aktif' : 'Pasif'}
-                  </span>
-                )}
-              </div>
-            </div>
+            <CariOutlinedGirdi
+              etiket="GTIP Kodu"
+              deger={form.gtip}
+              disabled={saltOkunur}
+              maxLength={20}
+              odakPlaceholder="GTIP kodunu yazınız"
+              onChange={(gtip) => setForm((f) => ({ ...f, gtip }))}
+            />
           </div>
         </div>
       </div>

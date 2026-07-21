@@ -1,9 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CariSecenekModal } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariSecenekModal';
+import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
+import {
+  CariOutlinedEtiket,
+  CariOutlinedGirdi,
+  CariOutlinedSarmalayici,
+} from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
+import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
-import { formInputSinifi } from '@/formlar/FormAlani';
 import { bosBirimFiyatSatiri } from './birimMap';
-import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
+import type { StokFiyatDuzenleSatir, StokFiyatKdvTipi } from './fiyatDuzenleTipler';
+import { STOK_FIYAT_PB_SECENEKLERI } from './fiyatDuzenleTipler';
 import {
   stokBirimAdiEkle,
   stokBirimAdiGuncelle,
@@ -21,11 +28,19 @@ import {
   type StokFiyatAdiSecenek,
 } from './stokFiyatAdlari';
 
-/** f001birimler — alis_kdv / satis_kdv (% öneki input içinde) */
-const KDV_SECENEKLERI = ['0', '1', '10', '20'].map((k) => ({ value: k, label: k }));
+const KDV_SECENEKLERI = ['0', '1', '10', '20'].map((k) => ({ value: k, label: `${k} %` }));
+
+type EkVergiTipi = 'oiv' | 'alisOtv' | 'satisOtv' | 'konaklama';
+
+const DIGER_VERGI_SECENEKLERI: { value: EkVergiTipi; label: string }[] = [
+  { value: 'oiv', label: 'ÖİV' },
+  { value: 'alisOtv', label: 'Alış ÖTV' },
+  { value: 'satisOtv', label: 'Satış ÖTV' },
+  { value: 'konaklama', label: 'Konaklama Vergisi' },
+];
 
 function barkodFiltrele(ham: string): string {
-  return ham.replace(/[^a-zA-Z0-9]/g, '').slice(0, 64);
+  return ham.replace(/\D/g, '').slice(0, 64);
 }
 
 function sayiOku(ham: string): number | null {
@@ -64,70 +79,253 @@ function MiniToggle({
   );
 }
 
-function SayiInput({
-  deger,
-  onDegistir,
-  placeholder,
-  onek,
-  ariaLabel,
+function CariToggleAlan({
+  etiket,
+  acik,
+  onChange,
 }: {
-  deger: number | null | undefined;
-  onDegistir: (deger: number | null) => void;
-  placeholder?: string;
-  onek?: string;
-  ariaLabel: string;
+  etiket: string;
+  acik: boolean;
+  onChange: (acik: boolean) => void;
 }) {
-  const girdi = (
-    <input
-      className={`${formInputSinifi} stok-yb-girdi${onek ? ' stok-yb-girdi--onekli' : ''}`}
-      inputMode="decimal"
-      placeholder={placeholder}
-      value={sayiGoster(deger)}
-      onChange={(e) => {
-        const ham = e.target.value;
-        if (!ham.trim()) {
-          onDegistir(null);
-          return;
-        }
-        const n = sayiOku(ham);
-        if (n !== null) onDegistir(n);
-      }}
-      aria-label={ariaLabel}
-    />
-  );
-
-  if (!onek) return girdi;
-
   return (
-    <div className="stok-yb-onekli">
-      <span className="stok-yb-onek" aria-hidden>
-        {onek}
-      </span>
-      {girdi}
+    <div className="cari-durum-alan stok-yb-toggle-alan">
+      <span className="cari-secili-etiket">{etiket}</span>
+      <div className="cari-durum-icerik">
+        <MiniToggle acik={acik} etiket={etiket} onChange={onChange} />
+      </div>
     </div>
   );
 }
 
-function BaslikOge({
-  zorunlu = false,
-  children,
+function KdvTipToggle({
+  tip,
+  onChange,
 }: {
-  zorunlu?: boolean;
-  children: React.ReactNode;
+  tip: StokFiyatKdvTipi;
+  onChange: (tip: StokFiyatKdvTipi) => void;
 }) {
   return (
-    <div className="stok-yb-baslik-oge">
-      <span className="stok-yb-baslik-zorunlu" aria-hidden="true">
-        {zorunlu ? '*' : '\u00a0'}
-      </span>
-      <span className="stok-yb-baslik-metin">{children}</span>
+    <button
+      type="button"
+      className="stok-yb-kdv-tip stok-yb-kdv-tip--kucuk"
+      title={tip === 'dahil' ? 'KDV Dahil' : 'KDV Hariç'}
+      aria-label={tip === 'dahil' ? 'KDV Dahil' : 'KDV Hariç'}
+      onClick={() => onChange(tip === 'dahil' ? 'haric' : 'dahil')}
+    >
+      <span className={tip === 'haric' ? 'stok-yb-kdv-tip--secili' : ''}>H</span>
+      <span className={tip === 'dahil' ? 'stok-yb-kdv-tip--secili' : ''}>D</span>
+    </button>
+  );
+}
+
+function CariOutlinedSayi({
+  etiket,
+  deger,
+  onDegistir,
+  zorunlu,
+  onek,
+  placeholder,
+}: {
+  etiket: string;
+  deger: number | null | undefined;
+  onDegistir: (deger: number | null) => void;
+  zorunlu?: boolean;
+  onek?: string;
+  placeholder?: string;
+}) {
+  const inputId = useId();
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <div
+      className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
+    >
+      <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
+      <div className="cari-outlined-cerceve">
+        {onek ? (
+          <span className="stok-yb-outlined-onek" aria-hidden>
+            {onek}
+          </span>
+        ) : null}
+        <input
+          id={inputId}
+          className={`cari-outlined-input${onek ? ' stok-yb-outlined-input--onekli' : ''}`}
+          inputMode="decimal"
+          placeholder={placeholder}
+          value={sayiGoster(deger)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => {
+            const ham = e.target.value;
+            if (!ham.trim()) {
+              onDegistir(null);
+              return;
+            }
+            const n = sayiOku(ham);
+            if (n !== null) onDegistir(n);
+          }}
+          aria-label={etiket}
+        />
+      </div>
+    </div>
+  );
+}
+
+function CariOutlinedKdv({
+  etiket,
+  deger,
+  onChange,
+  zorunlu,
+}: {
+  etiket: string;
+  deger: number;
+  onChange: (deger: number) => void;
+  zorunlu?: boolean;
+}) {
+  return (
+    <CariOutlinedSarmalayici
+      etiket={etiket}
+      zorunlu={zorunlu}
+      className="cari-outlined-acilir stok-yb-kdv-outlined"
+    >
+      <FormAcilirSecim
+        value={String(deger)}
+        onChange={(v) => onChange(Number(v) || 0)}
+        secenekler={KDV_SECENEKLERI.map((x) => ({ ...x }))}
+        aria-label={etiket}
+        className="cari-outlined-acilir-tus"
+      />
+    </CariOutlinedSarmalayici>
+  );
+}
+
+function CariOutlinedBirim({
+  deger,
+  onChange,
+  secenekler,
+  onYonet,
+}: {
+  deger: string;
+  onChange: (deger: string) => void;
+  secenekler: { value: string; label: string }[];
+  onYonet: () => void;
+}) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <div
+      className={`cari-outlined-field cari-outlined-acilir stok-yb-birim-alan${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
+      }}
+    >
+      <CariOutlinedEtiket etiket="Birim" zorunlu>
+        <button
+          type="button"
+          className="cari-secili-yonet stok-yb-birim-ekle"
+          onClick={onYonet}
+          title="Birim yönet"
+          aria-label="Birim yönet"
+        >
+          +
+        </button>
+      </CariOutlinedEtiket>
+      <div className="cari-outlined-cerceve cari-outlined-cerceve--icerik">
+        <div className="cari-outlined-icerik">
+          <FormAcilirSecim
+            value={deger}
+            onChange={onChange}
+            secenekler={secenekler}
+            aria-label="Birim adı"
+            className="cari-outlined-acilir-tus"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DigerVergiBlok() {
+  const [menuAcik, setMenuAcik] = useState(false);
+  const [liste, setListe] = useState<{ tip: EkVergiTipi; deger: number | null }[]>([]);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuAcik) return;
+    const kapat = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuAcik(false);
+    };
+    document.addEventListener('mousedown', kapat);
+    return () => document.removeEventListener('mousedown', kapat);
+  }, [menuAcik]);
+
+  const eklenebilir = DIGER_VERGI_SECENEKLERI.filter((o) => !liste.some((e) => e.tip === o.value));
+
+  return (
+    <div className="stok-yb-diger-vergi" ref={menuRef}>
+      <div className="stok-yb-diger-vergi-tus-wrap">
+        <button
+          type="button"
+          className="stok-yb-diger-vergi-tus"
+          onClick={() => setMenuAcik((a) => !a)}
+          disabled={eklenebilir.length === 0 && liste.length === 0}
+        >
+          Diğer Vergi Ekle
+          <span className="stok-yb-diger-vergi-ok" aria-hidden>
+            ▾
+          </span>
+        </button>
+        {menuAcik && eklenebilir.length > 0 ? (
+          <div className="stok-yb-diger-vergi-menu" role="menu">
+            {eklenebilir.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="menuitem"
+                className="stok-yb-diger-vergi-menu-oge"
+                onClick={() => {
+                  setListe((l) => [...l, { tip: opt.value, deger: null }]);
+                  setMenuAcik(false);
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      {liste.map((ev, idx) => {
+        const etiket = DIGER_VERGI_SECENEKLERI.find((o) => o.value === ev.tip)?.label ?? ev.tip;
+        return (
+          <div key={`${ev.tip}-${idx}`} className="stok-yb-ek-vergi-satir">
+            <CariOutlinedSayi
+              etiket={etiket}
+              deger={ev.deger}
+              placeholder="0,00"
+              onDegistir={(deger) =>
+                setListe((l) => l.map((x, i) => (i === idx ? { ...x, deger } : x)))
+              }
+            />
+            <button
+              type="button"
+              className="stok-yb-ek-vergi-sil"
+              title={`${etiket} kaldır`}
+              aria-label={`${etiket} kaldır`}
+              onClick={() => setListe((l) => l.filter((_, i) => i !== idx))}
+            >
+              ×
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 /**
- * Birimler ve fiyatlar — üstte fiyat adı seçimi (B2B stok listesi mantığı),
- * altta seçili fiyat adına göre birim satırları.
+ * Birimler ve fiyatlar — ana tanımlar tarzı kart düzeni.
  */
 export function StokYeniBirimler({
   satirlar,
@@ -156,6 +354,11 @@ export function StokYeniBirimler({
   const birimSecenekleri = useMemo(
     () => birimAdlari.map((b) => ({ value: b.label, label: b.label })),
     [birimAdlari]
+  );
+
+  const pbSecenekleri = useMemo(
+    () => STOK_FIYAT_PB_SECENEKLERI.map((p) => ({ value: p.deger, label: p.etiket })),
+    []
   );
 
   const gorunenSatirlar = useMemo(
@@ -214,12 +417,8 @@ export function StokYeniBirimler({
   const digerFiyatlariHesapla = useCallback(() => {
     const liste = gorunenSatirlar;
     const baz =
-      liste.find(
-        (s) => s.anaBirimMi && (s.satisFiyati1 !== null || s.alisFiyati !== null)
-      ) ??
-      liste.find(
-        (s) => s.carpan === 1 && (s.satisFiyati1 !== null || s.alisFiyati !== null)
-      ) ??
+      liste.find((s) => s.anaBirimMi && (s.satisFiyati1 !== null || s.alisFiyati !== null)) ??
+      liste.find((s) => s.carpan === 1 && (s.satisFiyati1 !== null || s.alisFiyati !== null)) ??
       liste.find((s) => s.satisFiyati1 !== null || s.alisFiyati !== null);
 
     if (!baz || liste.length < 2) return;
@@ -244,6 +443,7 @@ export function StokYeniBirimler({
           kdv: baz.kdv,
           alisKdv: baz.alisKdv ?? baz.kdv,
           kdvTipi: baz.kdvTipi,
+          alisKdvTipi: baz.alisKdvTipi ?? baz.kdvTipi,
         };
       })
     );
@@ -283,191 +483,157 @@ export function StokYeniBirimler({
       <div className="stok-yb-araclar">
         <button
           type="button"
-          className="stok-yb-tus stok-yb-tus--hesapla"
+          className="stok-yb-tus stok-yb-tus--ikon stok-yb-tus--hesapla"
           onClick={digerFiyatlariHesapla}
-          title="Ana birim fiyatını çarpan oranına göre diğer birimlere uygular"
+          title="Diğer Fiyatları Hesapla"
+          aria-label="Diğer Fiyatları Hesapla — ana birim fiyatını çarpan oranına göre diğer birimlere uygular"
         >
-          Diğer Fiyatları Hesapla
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <path strokeLinecap="round" d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h4" />
+          </svg>
         </button>
-        <button type="button" className="stok-yb-tus stok-yb-tus--ekle" onClick={fiyatEkle}>
-          Birim Ekle
+        <button
+          type="button"
+          className="stok-yb-tus stok-yb-tus--ikon stok-yb-tus--ekle"
+          onClick={fiyatEkle}
+          title="Birim Ekle"
+          aria-label="Birim Ekle"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+            <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+          </svg>
         </button>
       </div>
 
-      <div className="stok-yb-tablo stok-yb-tablo--birimler" role="table" aria-label="Birimler ve fiyatlar">
-        <div className="stok-yb-baslik-satir" role="row">
-          <div className="stok-yb-baslik stok-yb-baslik--birim-kolon" role="columnheader">
-            <div className="stok-yb-baslik-grid">
-              <span className="stok-yb-baslik-zorunlu" aria-hidden="true">
-                *
-              </span>
-              <span className="stok-yb-baslik-metin-satir">
-                <span className="stok-yb-baslik-metin">Birim</span>
-                <button
-                  type="button"
-                  className="cari-secili-yonet stok-yb-birim-ekle"
-                  onClick={() => setBirimModalAcik(true)}
-                  title="Birim yönet"
-                  aria-label="Birim yönet"
-                >
-                  +
-                </button>
-              </span>
-              <span className="stok-yb-baslik-zorunlu stok-yb-baslik-zorunlu--bos" aria-hidden="true">
-                {'\u00a0'}
-              </span>
-              <span className="stok-yb-baslik-metin-satir">
-                <span className="stok-yb-baslik-metin">Barkod</span>
-              </span>
-              <span className="stok-yb-baslik-zorunlu" aria-hidden="true">
-                *
-              </span>
-              <span className="stok-yb-baslik-metin-satir">
-                <span className="stok-yb-baslik-metin">Çarpan</span>
-              </span>
-            </div>
-          </div>
-          <div className="stok-yb-baslik" role="columnheader">
-            <BaslikOge>Alış Fiyatı</BaslikOge>
-            <BaslikOge zorunlu>Satış Fiyatı</BaslikOge>
-          </div>
-          <div className="stok-yb-baslik" role="columnheader">
-            <BaslikOge>Alış KDV</BaslikOge>
-            <BaslikOge zorunlu>Satış KDV</BaslikOge>
-            <BaslikOge zorunlu>KDV Dahil</BaslikOge>
-          </div>
-          <div className="stok-yb-baslik" role="columnheader">
-            <BaslikOge zorunlu>Ana Birim</BaslikOge>
-            <BaslikOge zorunlu>Varsayılan</BaslikOge>
-            <BaslikOge zorunlu>Aktif</BaslikOge>
-          </div>
-        </div>
-
+      <div className="stok-yb-liste">
         {gorunenSatirlar.length === 0 ? (
-          <div className="stok-yb-bos" role="row">
+          <div className="stok-yb-bos">
             <p>
               <strong>{seciliFiyatAdi}</strong> için birim satırı yok. Birim Ekle ile ekleyin.
             </p>
           </div>
         ) : (
-          gorunenSatirlar.map((satir) => (
-            <div key={satir.id} className="stok-yb-satir" role="row">
-              <div className="stok-yb-hucre">
-                <FormAcilirSecim
-                  value={satir.birim}
-                  onChange={(birim) => satirPatch(satir.id, { birim: birim || 'ADET' })}
-                  secenekler={birimSecenekleri}
-                  aria-label="Birim adı"
-                />
-                <input
-                  className={`${formInputSinifi} stok-yb-girdi`}
-                  placeholder="Barkod"
-                  value={satir.barkod}
-                  onChange={(e) => satirPatch(satir.id, { barkod: barkodFiltrele(e.target.value) })}
-                  aria-label="Barkod"
-                  inputMode="text"
-                  autoComplete="off"
-                />
-                <SayiInput
-                  deger={satir.carpan}
-                  onek="×"
-                  placeholder="1"
-                  ariaLabel="Çarpan"
-                  onDegistir={(carpan) =>
-                    satirPatch(satir.id, { carpan: carpan !== null && carpan > 0 ? carpan : 1 })
-                  }
-                />
-              </div>
-
-              <div className="stok-yb-hucre stok-yb-hucre--fiyat">
-                <SayiInput
-                  deger={satir.alisFiyati}
-                  placeholder="Alış fiyatı"
-                  ariaLabel="Alış fiyatı"
-                  onDegistir={(alisFiyati) => satirPatch(satir.id, { alisFiyati })}
-                />
-                <SayiInput
-                  deger={satir.satisFiyati1}
-                  placeholder="Satış fiyatı"
-                  ariaLabel="Satış fiyatı"
-                  onDegistir={(satisFiyati1) => satirPatch(satir.id, { satisFiyati1 })}
-                />
-              </div>
-
-              <div className="stok-yb-hucre">
-                <div className="stok-yb-onekli">
-                  <span className="stok-yb-onek" aria-hidden>
-                    %
-                  </span>
-                  <FormAcilirSecim
-                    value={String(satir.alisKdv ?? satir.kdv)}
-                    onChange={(v) => satirPatch(satir.id, { alisKdv: Number(v) || 0 })}
-                    secenekler={KDV_SECENEKLERI.map((x) => ({ ...x }))}
-                    aria-label="Alış KDV"
-                  />
-                </div>
-                <div className="stok-yb-onekli">
-                  <span className="stok-yb-onek" aria-hidden>
-                    %
-                  </span>
-                  <FormAcilirSecim
-                    value={String(satir.kdv)}
-                    onChange={(v) => satirPatch(satir.id, { kdv: Number(v) || 0 })}
-                    secenekler={KDV_SECENEKLERI.map((x) => ({ ...x }))}
-                    aria-label="Satış KDV"
-                  />
-                </div>
-                <div className="stok-yb-kdv-satir">
-                  <button
-                    type="button"
-                    className="stok-yb-kdv-tip stok-yb-kdv-tip--genis"
-                    title={satir.kdvTipi === 'dahil' ? 'KDV Dahil' : 'KDV Hariç'}
-                    onClick={() =>
-                      satirPatch(satir.id, {
-                        kdvTipi: satir.kdvTipi === 'dahil' ? 'haric' : 'dahil',
-                      })
-                    }
-                  >
-                    <span className={satir.kdvTipi === 'haric' ? 'stok-yb-kdv-tip--secili' : ''}>H</span>
-                    <span className={satir.kdvTipi === 'dahil' ? 'stok-yb-kdv-tip--secili' : ''}>D</span>
-                    <em>{satir.kdvTipi === 'dahil' ? 'Dahil' : 'Hariç'}</em>
-                  </button>
-                </div>
-              </div>
-
-              <div className="stok-yb-hucre stok-yb-hucre--islem">
-                <MiniToggle
-                  acik={Boolean(satir.anaBirimMi)}
-                  etiket="Ana birim"
-                  onChange={(v) => tekilPatch(satir.id, 'anaBirimMi', v)}
-                />
-                <MiniToggle
-                  acik={Boolean(satir.varsayilanMi)}
-                  etiket="Varsayılan birim"
-                  onChange={(v) => tekilPatch(satir.id, 'varsayilanMi', v)}
-                />
-                <MiniToggle
-                  acik={satir.aktif !== false}
-                  etiket="Aktif"
-                  onChange={(v) => satirPatch(satir.id, { aktif: v })}
-                />
-                <button
-                  type="button"
-                  className="stok-yb-sil"
-                  title="Satırı sil"
-                  aria-label="Satırı sil"
-                  onClick={() => satirSil(satir.id)}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                    <path
-                      strokeLinecap="round"
-                      d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"
+          gorunenSatirlar.map((satir) => {
+            const alisKdvTipi = satir.alisKdvTipi ?? satir.kdvTipi;
+            return (
+              <div key={satir.id} className="stok-yb-kart">
+                <div className="stok-yb-kart-govde">
+                  <div className="stok-yb-kart-sol">
+                    <div className="stok-yb-kart-ust-satir">
+                      <CariOutlinedBirim
+                        deger={satir.birim}
+                        secenekler={birimSecenekleri}
+                        onChange={(birim) => satirPatch(satir.id, { birim: birim || 'ADET' })}
+                        onYonet={() => setBirimModalAcik(true)}
+                      />
+                      <CariOutlinedSayi
+                        etiket="Çarpan"
+                        zorunlu
+                        onek="×"
+                        placeholder="1"
+                        deger={satir.carpan}
+                        onDegistir={(carpan) =>
+                          satirPatch(satir.id, {
+                            carpan: carpan !== null && carpan > 0 ? carpan : 1,
+                          })
+                        }
+                      />
+                    </div>
+                    <CariOutlinedGirdi
+                      etiket="Barkod"
+                      deger={satir.barkod}
+                      inputMode="numeric"
+                      onChange={(barkod) => satirPatch(satir.id, { barkod: barkodFiltrele(barkod) })}
+                      maxLength={64}
+                      odakPlaceholder="Barkod yazınız"
                     />
-                  </svg>
-                </button>
+                    <DigerVergiBlok />
+                  </div>
+
+                  <div className="stok-yb-kart-orta">
+                    <div className="stok-yb-fiyat-satir">
+                      <CariOutlinedSayi
+                        etiket="Alış Fiyatı"
+                        deger={satir.alisFiyati}
+                        placeholder="0,00"
+                        onDegistir={(alisFiyati) => satirPatch(satir.id, { alisFiyati })}
+                      />
+                      <CariOutlinedAcilir
+                        etiket="PB"
+                        deger={satir.pb1}
+                        secenekler={pbSecenekleri}
+                        onChange={(pb1) =>
+                          satirPatch(satir.id, {
+                            pb1: pb1 === 'USD' || pb1 === 'EUR' ? pb1 : 'TL',
+                          })
+                        }
+                      />
+                    </div>
+                    <CariOutlinedSayi
+                      etiket="Satış Fiyatı"
+                      zorunlu
+                      deger={satir.satisFiyati1}
+                      placeholder="0,00"
+                      onDegistir={(satisFiyati1) => satirPatch(satir.id, { satisFiyati1 })}
+                    />
+                    <div className="stok-yb-kdv-grup">
+                      <div className="stok-yb-kdv-satir-compact">
+                        <CariOutlinedKdv
+                          etiket="Alış KDV"
+                          deger={satir.alisKdv ?? satir.kdv}
+                          onChange={(alisKdv) => satirPatch(satir.id, { alisKdv })}
+                        />
+                        <KdvTipToggle
+                          tip={alisKdvTipi}
+                          onChange={(alisKdvTipi) => satirPatch(satir.id, { alisKdvTipi })}
+                        />
+                      </div>
+                      <div className="stok-yb-kdv-satir-compact">
+                        <CariOutlinedKdv
+                          etiket="Satış KDV"
+                          zorunlu
+                          deger={satir.kdv}
+                          onChange={(kdv) => satirPatch(satir.id, { kdv })}
+                        />
+                        <KdvTipToggle
+                          tip={satir.kdvTipi}
+                          onChange={(kdvTipi) => satirPatch(satir.id, { kdvTipi })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="stok-yb-kart-sag">
+                    <CariToggleAlan
+                      etiket="Ana Birim"
+                      acik={Boolean(satir.anaBirimMi)}
+                      onChange={(v) => tekilPatch(satir.id, 'anaBirimMi', v)}
+                    />
+                    <CariToggleAlan
+                      etiket="Varsayılan"
+                      acik={Boolean(satir.varsayilanMi)}
+                      onChange={(v) => tekilPatch(satir.id, 'varsayilanMi', v)}
+                    />
+                    <button
+                      type="button"
+                      className="stok-yb-sil stok-yb-sil--kart"
+                      title="Satırı sil"
+                      aria-label="Satırı sil"
+                      onClick={() => satirSil(satir.id)}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                        <path
+                          strokeLinecap="round"
+                          d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

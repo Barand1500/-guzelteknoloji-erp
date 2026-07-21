@@ -36,6 +36,7 @@ export interface StokFiyatDuzenleSatir {
   satisFiyati6: number | null;
   pb6: StokFiyatPb;
   alisKdv?: number;
+  alisKdvTipi?: StokFiyatKdvTipi;
   aktif?: boolean;
   /* Yeni stok ekranı (F001 birimler karti) — UI alanları */
   isk1?: string;
