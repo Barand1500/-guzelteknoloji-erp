@@ -96,7 +96,7 @@ export interface CariFormDegeri extends CariAdresDegeri {
 export const bosCariForm: CariFormDegeri = {
   ustId: '',
   cariTipi: 'ALICI',
-  isletmeTuru: '',
+  isletmeTuru: 'TUZEL',
   cariKodu: '',
   cariAdi: '',
   unvan: '',

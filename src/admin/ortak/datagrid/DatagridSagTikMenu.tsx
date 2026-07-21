@@ -21,6 +21,7 @@ export type DatagridSagTikIslem =
   | 'degeriYay';
 
 export type SatirEkleKonumu = 'ust' | 'alt';
+export type DegeriYayYon = 'ust' | 'alt';
 
 export interface DatagridSagTikMenuDurum {
   x: number;
@@ -49,7 +50,7 @@ interface DatagridSagTikMenuProps<TRow extends { id: string }> {
   onBilgi?: (mesaj: string) => void;
   hucrePanoyaMetniAl?: (satir: TRow, kolonId: string | null, kolonlar: KolonTanimi<TRow>[]) => string;
   satirSilMetniAl?: (satir: TRow) => string;
-  /** Değeri Yay: kolonId + ham değer verilir; dışarısı yalnızca sağ tıklanan satırın altındaki satırları günceller */
+  /** Değeri Yay: kolonId + ham değer + hedef satırlar (üste veya alta) */
   onDegeriYay?: (kolonId: string, deger: unknown, satirlar: TRow[]) => void;
 }
 
@@ -64,9 +65,16 @@ interface MenuOgesi {
   goster?: boolean;
 }
 
+type FlyoutTip = 'satirEkle' | 'degeriYay';
+
 const SATIR_EKLE_ALT_OGELER: { konum: SatirEkleKonumu; etiket: string; ikon: string }[] = [
-  { konum: 'ust', etiket: 'Satır Üstüne Ekle', ikon: '↑' },
-  { konum: 'alt', etiket: 'Satır Altına Ekle', ikon: '↓' },
+  { konum: 'ust', etiket: 'Üstüne Ekle', ikon: '↑' },
+  { konum: 'alt', etiket: 'Altına Ekle', ikon: '↓' },
+];
+
+const DEGERI_YAY_ALT_OGELER: { yon: DegeriYayYon; etiket: string; ikon: string }[] = [
+  { yon: 'ust', etiket: 'Üste Doğru', ikon: '↑' },
+  { yon: 'alt', etiket: 'Alta Doğru', ikon: '↓' },
 ];
 
 const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', string> = {
@@ -83,6 +91,10 @@ const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', string> = {
 type SilmeOnayDurumu =
   | { tip: 'tek'; satir: { id: string }; metin: string }
   | { tip: 'coklu'; adet: number };
+
+function kisaMetin(metin: string, limit = 28) {
+  return metin.length > limit ? `${metin.slice(0, limit)}…` : metin;
+}
 
 export function DatagridSagTikMenu<TRow extends { id: string }>({
   konteynerRef,
@@ -106,7 +118,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
   onDegeriYay,
 }: DatagridSagTikMenuProps<TRow>) {
   const [menu, setMenu] = useState<DatagridSagTikMenuDurum | null>(null);
-  const [flyout, setFlyout] = useState<'satirEkle' | null>(null);
+  const [flyout, setFlyout] = useState<FlyoutTip | null>(null);
   const [silmeOnay, setSilmeOnay] = useState<SilmeOnayDurumu | null>(null);
   const kokRef = useRef<HTMLDivElement>(null);
   const portalKok = useMemo(
@@ -165,6 +177,24 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
     };
   }, [kapat, menu]);
 
+  function degeriYayCalistir(yon: DegeriYayYon) {
+    if (!menu?.satirId || !menu.kolonId || !onDegeriYay) return;
+    const satir = satirlar.find((s) => s.id === menu.satirId);
+    const kolon = kolonlar.find((k) => k.id === menu.kolonId);
+    if (!satir || !kolon) return;
+
+    const deger = kolon.degerAl(satir);
+    const satirIndeks = satirlar.findIndex((s) => s.id === menu.satirId);
+    if (satirIndeks < 0) return;
+
+    const hedefSatirlar =
+      yon === 'ust' ? satirlar.slice(0, satirIndeks) : satirlar.slice(satirIndeks + 1);
+    if (hedefSatirlar.length === 0) return;
+
+    onDegeriYay(menu.kolonId, deger, hedefSatirlar);
+    onBilgi?.(yon === 'ust' ? 'Değer üst satırlara yayıldı' : 'Değer alt satırlara yayıldı');
+  }
+
   async function islemCalistir(id: DatagridSagTikIslem) {
     if (!menu) return;
     const api = gridApiRef.current;
@@ -191,22 +221,6 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
       case 'csvDisa':
         api?.csvIndir(false);
         break;
-      case 'degeriYay': {
-        if (satir && menu.kolonId && onDegeriYay) {
-          const kolon = kolonlar.find((k) => k.id === menu.kolonId);
-          if (kolon) {
-            const deger = kolon.degerAl(satir);
-            const satirIndeks = satirlar.findIndex((s) => s.id === menu.satirId);
-            const altSatirlar =
-              satirIndeks >= 0 ? satirlar.slice(satirIndeks + 1) : [];
-            if (altSatirlar.length > 0) {
-              onDegeriYay(menu.kolonId, deger, altSatirlar);
-              onBilgi?.('Değer alt satırlara yayıldı');
-            }
-          }
-        }
-        break;
-      }
       case 'satirSil':
         if (satir) {
           if (dahiliSilmeOnay) {
@@ -254,11 +268,20 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
       {menu &&
         createPortal(
           (() => {
-            const kopyaEtiket = menu.kopyaMetni
-              ? menu.kopyaMetni.length > 28
-                ? `${menu.kopyaMetni.slice(0, 28)}…`
-                : menu.kopyaMetni
-              : '';
+            const satirIndeks = menu.satirId
+              ? satirlar.findIndex((s) => s.id === menu.satirId)
+              : -1;
+            const ustteSatirVar = satirIndeks > 0;
+            const alttaSatirVar = satirIndeks >= 0 && satirIndeks < satirlar.length - 1;
+
+            const kolon = menu.kolonId ? kolonlar.find((k) => k.id === menu.kolonId) : null;
+            const degeriYayUygun =
+              !!onDegeriYay &&
+              !!menu.kolonId &&
+              !!menu.satirId &&
+              !!kolon?.degerYaz &&
+              kolon.id !== 'secim' &&
+              kolon.id !== 'islemler';
 
             const ogeler: MenuOgesi[] = [
               {
@@ -286,31 +309,20 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
               {
                 id: 'degeriYay' as const,
                 etiket: (() => {
-                  if (!menu.kolonId || !menu.satirId) return menuBasligi('Değeri yay');
-                  const kolon = kolonlar.find((k) => k.id === menu.kolonId);
-                  if (!kolon || kolon.id === 'secim' || kolon.id === 'islemler' || !kolon.degerYaz) {
-                    return menuBasligi('Değeri yay');
-                  }
-                  const etkt = kolon.baslik || menu.kolonId;
+                  if (!degeriYayUygun || !kolon) return menuBasligi('Değeri yay');
+                  const etkt = kolon.baslik || menu.kolonId!;
                   return menuBasligi(`"${etkt}" değerini yay`);
                 })(),
                 ikon: MENU_IKONLARI.degeriYay,
-                devreDisi: (() => {
-                  if (!menu.kolonId || !menu.satirId || !onDegeriYay) return true;
-                  const kolon = kolonlar.find((k) => k.id === menu.kolonId);
-                  if (!kolon || !kolon.degerYaz || kolon.id === 'secim' || kolon.id === 'islemler') {
-                    return true;
-                  }
-                  const satirIndeks = satirlar.findIndex((s) => s.id === menu.satirId);
-                  return satirIndeks < 0 || satirIndeks >= satirlar.length - 1;
-                })(),
+                flyout: true,
+                devreDisi: !degeriYayUygun || (!ustteSatirVar && !alttaSatirVar),
                 ayiriciOnce: true,
                 goster: !!onDegeriYay,
               },
               {
                 id: 'panoyaKopyala' as const,
-                etiket: kopyaEtiket
-                  ? menuBasligi(`Panoya kopyala — ${kopyaEtiket}`)
+                etiket: menu.kopyaMetni
+                  ? menuBasligi(`"${kisaMetin(menu.kopyaMetni)}" değerini panoya kopyala`)
                   : menuBasligi('Panoya kopyala'),
                 ikon: MENU_IKONLARI.panoyaKopyala,
                 devreDisi: !menu.kopyaMetni,
@@ -359,60 +371,101 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 role="menu"
                 aria-label={menuEtiketi}
               >
-                {ogeler.map((oge) => (
-                  <div key={oge.id}>
-                    {oge.ayiriciOnce && <div className="ap-sag-tik-ayirici" role="separator" />}
-                    {oge.flyout ? (
-                      <div className="ap-sag-tik-flyout-wrap">
+                {ogeler.map((oge) => {
+                  const flyoutTip: FlyoutTip | null =
+                    oge.id === 'satirEkle'
+                      ? 'satirEkle'
+                      : oge.id === 'degeriYay'
+                        ? 'degeriYay'
+                        : null;
+
+                  return (
+                    <div key={oge.id}>
+                      {oge.ayiriciOnce && <div className="ap-sag-tik-ayirici" role="separator" />}
+                      {oge.flyout && flyoutTip ? (
+                        <div
+                          className="ap-sag-tik-flyout-wrap"
+                          onMouseEnter={() => !oge.devreDisi && setFlyout(flyoutTip)}
+                        >
+                          <button
+                            type="button"
+                            className={`ap-sag-tik-oge${flyout === flyoutTip ? ' ap-sag-tik-oge-aktif' : ''}`}
+                            disabled={oge.devreDisi}
+                            onClick={() =>
+                              !oge.devreDisi &&
+                              setFlyout((f) => (f === flyoutTip ? null : flyoutTip))
+                            }
+                          >
+                            <span>{oge.ikon}</span>
+                            <span>{oge.etiket}</span>
+                            <span className="ap-sag-tik-ok">›</span>
+                          </button>
+                          {flyout === 'satirEkle' && flyoutTip === 'satirEkle' && !oge.devreDisi && menu.satirId && (
+                            <div
+                              className="ap-sag-tik-flyout dg-sag-tik-flyout"
+                              role="menu"
+                              aria-label="Satır ekleme seçenekleri"
+                            >
+                              {SATIR_EKLE_ALT_OGELER.map((alt) => (
+                                <button
+                                  key={alt.konum}
+                                  type="button"
+                                  className="ap-sag-tik-oge"
+                                  onClick={() => {
+                                    onSatirEkleBaslat?.(alt.konum, menu.satirId!);
+                                    kapat();
+                                  }}
+                                >
+                                  <span>{alt.ikon}</span>
+                                  <span>{menuBasligi(alt.etiket)}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {flyout === 'degeriYay' && flyoutTip === 'degeriYay' && !oge.devreDisi && (
+                            <div
+                              className="ap-sag-tik-flyout dg-sag-tik-flyout"
+                              role="menu"
+                              aria-label="Değeri yay seçenekleri"
+                            >
+                              {DEGERI_YAY_ALT_OGELER.map((alt) => {
+                                const yonDevreDisi =
+                                  alt.yon === 'ust' ? !ustteSatirVar : !alttaSatirVar;
+                                return (
+                                  <button
+                                    key={alt.yon}
+                                    type="button"
+                                    className="ap-sag-tik-oge"
+                                    disabled={yonDevreDisi}
+                                    onClick={() => {
+                                      if (yonDevreDisi) return;
+                                      degeriYayCalistir(alt.yon);
+                                      kapat();
+                                    }}
+                                  >
+                                    <span>{alt.ikon}</span>
+                                    <span>{menuBasligi(alt.etiket)}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
                         <button
                           type="button"
-                          className={`ap-sag-tik-oge${flyout === 'satirEkle' ? ' ap-sag-tik-oge-aktif' : ''}`}
+                          className={`ap-sag-tik-oge${oge.tehlike ? ' dg-sag-tik-oge--tehlike' : ''}`}
                           disabled={oge.devreDisi}
-                          onMouseEnter={() => !oge.devreDisi && setFlyout('satirEkle')}
-                          onClick={() =>
-                            !oge.devreDisi && setFlyout((f) => (f === 'satirEkle' ? null : 'satirEkle'))
-                          }
+                          onMouseEnter={() => setFlyout(null)}
+                          onClick={() => void islemCalistir(oge.id as DatagridSagTikIslem)}
                         >
                           <span>{oge.ikon}</span>
                           <span>{oge.etiket}</span>
-                          <span className="ap-sag-tik-ok">›</span>
                         </button>
-                        {flyout === 'satirEkle' && !oge.devreDisi && menu.satirId && (
-                          <div
-                            className="ap-sag-tik-flyout dg-sag-tik-flyout"
-                            role="menu"
-                            aria-label="Satır ekleme seçenekleri"
-                          >
-                            {SATIR_EKLE_ALT_OGELER.map((alt) => (
-                              <button
-                                key={alt.konum}
-                                type="button"
-                                className="ap-sag-tik-oge"
-                                onClick={() => {
-                                  onSatirEkleBaslat?.(alt.konum, menu.satirId!);
-                                  kapat();
-                                }}
-                              >
-                                <span>{alt.ikon}</span>
-                                <span>{menuBasligi(alt.etiket)}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className={`ap-sag-tik-oge${oge.tehlike ? ' dg-sag-tik-oge--tehlike' : ''}`}
-                        disabled={oge.devreDisi}
-                        onClick={() => void islemCalistir(oge.id as DatagridSagTikIslem)}
-                      >
-                        <span>{oge.ikon}</span>
-                        <span>{oge.etiket}</span>
-                      </button>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             );
           })(),

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 
 export interface CariSecenekSatir {
   value: string;
@@ -14,6 +15,10 @@ interface CariSecenekModalProps {
   placeholder?: string;
   liste: CariSecenekSatir[];
   sabitDegerler?: string[];
+  /** Silinmek istenen değeri kullanan cari adedi; >0 ise silme engellenir */
+  kullanimSayisiAl?: (value: string) => number;
+  /** Örn. "tipi" / "işletme türünü" */
+  kullanimNesneAdi?: string;
   onEkle: (ad: string) => boolean;
   onGuncelle?: (value: string, yeniAd: string) => boolean;
   onSil: (value: string) => void;
@@ -27,6 +32,8 @@ export function CariSecenekModal({
   placeholder = 'Yeni seçenek adı…',
   liste,
   sabitDegerler = [],
+  kullanimSayisiAl,
+  kullanimNesneAdi = 'tipi',
   onEkle,
   onGuncelle,
   onSil,
@@ -36,6 +43,7 @@ export function CariSecenekModal({
   const [hata, setHata] = useState('');
   const [satirDuzenle, setSatirDuzenle] = useState<string | null>(null);
   const [satirAd, setSatirAd] = useState('');
+  const [silUyari, setSilUyari] = useState<{ etiket: string; adet: number } | null>(null);
   const sabit = new Set(sabitDegerler);
 
   useEffect(() => {
@@ -44,7 +52,20 @@ export function CariSecenekModal({
     setHata('');
     setSatirDuzenle(null);
     setSatirAd('');
+    setSilUyari(null);
   }, [acik]);
+
+  const silDene = useCallback(
+    (value: string, etiket: string) => {
+      const adet = kullanimSayisiAl?.(value) ?? 0;
+      if (adet > 0) {
+        setSilUyari({ etiket, adet });
+        return;
+      }
+      onSil(value);
+    },
+    [kullanimSayisiAl, onSil]
+  );
 
   const ekle = useCallback(() => {
     if (!onEkle(yeniAd)) {
@@ -72,6 +93,10 @@ export function CariSecenekModal({
     function tusHandler(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         e.preventDefault();
+        if (silUyari) {
+          setSilUyari(null);
+          return;
+        }
         if (satirDuzenle) {
           setSatirDuzenle(null);
           setSatirAd('');
@@ -88,7 +113,7 @@ export function CariSecenekModal({
       document.removeEventListener('keydown', tusHandler);
       document.body.style.overflow = '';
     };
-  }, [acik, onKapat, satirDuzenle]);
+  }, [acik, onKapat, satirDuzenle, silUyari]);
 
   if (!acik) return null;
 
@@ -202,7 +227,7 @@ export function CariSecenekModal({
                       <button
                         type="button"
                         className="cari-secenek-liste-sil"
-                        onClick={() => onSil(t.value)}
+                        onClick={() => silDene(t.value, t.label)}
                         aria-label={`${t.label} sil`}
                       >
                         Sil
@@ -215,6 +240,33 @@ export function CariSecenekModal({
           </div>
         </div>
       </DonenAccentCerceve>
+
+      {silUyari ? (
+        <div className="cari-secenek-sil-uyari" role="alertdialog" aria-modal="true" aria-label="Silme uyarısı">
+          <div className="cari-secenek-sil-uyari-arka" aria-hidden="true" onClick={() => setSilUyari(null)} />
+          <div className="cari-secenek-sil-uyari-kart">
+            <div className="cari-secenek-sil-uyari-ikon" aria-hidden>
+              !
+            </div>
+            <h4 className="cari-secenek-sil-uyari-baslik">Silinemez</h4>
+            <p className="cari-secenek-sil-uyari-metin">
+              <strong>{silUyari.etiket}</strong> için dikkat:{' '}
+              <strong>{silUyari.adet} adet cari</strong> bu {kullanimNesneAdi} kullanıyor.
+            </p>
+            <p className="cari-secenek-sil-uyari-alt">
+              Önce ilgili cari kartlarında bu seçimi değiştirin, sonra silmeyi deneyin.
+            </p>
+            <button
+              type="button"
+              className="ap-sil-onay-tus ap-sil-onay-tus--iptal cari-secenek-sil-uyari-tamam"
+              onClick={() => setSilUyari(null)}
+              autoFocus
+            >
+              <ModalTusIcerik metin="Tamam" kisayol="Esc" />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>,
     portalKok
   );

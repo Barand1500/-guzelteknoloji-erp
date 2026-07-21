@@ -4570,6 +4570,78 @@ button.ap-tanimlar-panel-arka {
   padding: 0.15rem 0.25rem;
 }
 
+.cari-secenek-sil-uyari {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.cari-secenek-sil-uyari-arka {
+  position: absolute;
+  inset: 0;
+  background: rgb(15 23 42 / 0.45);
+}
+
+.cari-secenek-sil-uyari-kart {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  border-radius: 0.85rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  box-shadow: 0 18px 40px rgb(15 23 42 / 0.28);
+  padding: 1.15rem 1.2rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.45rem;
+}
+
+.cari-secenek-sil-uyari-ikon {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #b45309;
+  background: color-mix(in srgb, #f59e0b 18%, var(--ap-surface));
+  border: 1px solid color-mix(in srgb, #f59e0b 40%, var(--ap-border));
+}
+
+.cari-secenek-sil-uyari-baslik {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.cari-secenek-sil-uyari-metin {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--ap-text);
+}
+
+.cari-secenek-sil-uyari-alt {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--ap-text-muted);
+}
+
+.cari-secenek-sil-uyari-tamam {
+  margin-top: 0.55rem;
+  min-width: 8.5rem;
+}
+
 .cari-alt-modal {
   position: fixed;
   inset: 0;

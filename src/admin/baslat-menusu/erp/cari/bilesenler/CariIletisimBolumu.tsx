@@ -1,5 +1,6 @@
 import type { CariIletisimKisi } from '../tipler';
 import { bosIletisimKisi, iletisimKisiBosMu } from '../cariIletisimDeposu';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { CariOutlinedEposta } from './CariOutlinedEposta';
 import { CariOutlinedGirdi } from './CariOutlinedGirdi';
 import { CariOutlinedTelefon } from './CariOutlinedTelefon';
@@ -67,10 +68,10 @@ export function CariIletisimBolumu({
                       type="button"
                       className="cari-iletisim-kart-sil"
                       onClick={() => kisiSil(kisi.id)}
-                      aria-label="Kişiyi kaldır"
-                      title="Kişiyi kaldır"
+                      aria-label="İletişim kişisini sil"
+                      title="Sil"
                     >
-                      Kaldır
+                      <DgIkon ad="sil" />
                     </button>
                   ) : null}
                 </div>

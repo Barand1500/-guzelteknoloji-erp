@@ -266,7 +266,13 @@ export function CariKart({
   }, [kaydet, kaydetRef]);
 
   const kimlikModu =
-    form.isletmeTuru === 'GERCEK' ? 'gercek' : form.isletmeTuru === 'YABANCI' ? 'yabanci' : 'tuzel';
+    form.isletmeTuru === 'GERCEK'
+      ? 'gercek'
+      : form.isletmeTuru === 'YABANCI'
+        ? 'yabanci'
+        : form.isletmeTuru
+          ? 'tuzel'
+          : null;
 
   if (yukleniyor && mod !== 'yeni') return <TanimYukleniyor />;
   if (mod !== 'yeni' && !seciliKayit) return <TanimYukleniyor />;
@@ -276,32 +282,74 @@ export function CariKart({
       <div className={`cari-kart-sayfa${saltOkunur ? ' cari-kart-sayfa--salt' : ''}`}>
         <div className={`cari-kart-kabuk${saltOkunur ? ' cari-kart-kabuk--salt' : ''}`}>
           <div className="cari-kart-grid">
-            <CariOutlinedAramaAcilir
-              etiket="Cari Tipi"
-              zorunlu
-              deger={kartTipiSecim}
-              secenekler={kartTipleri}
-              disabled={saltOkunur}
-              aramaPlaceholder="Cari tipi ara…"
-              onYonet={() => setTipModalAcik(true)}
-              onChange={setKartTipiSecim}
-            />
-            <SecimChipleri
-              etiket="İşletme Türü"
-              secenekler={isletmeTurleri}
-              deger={form.isletmeTuru}
-              saltOkunur={saltOkunur}
-              onYonet={() => setIsletmeModalAcik(true)}
-              onDegistir={(isletmeTuru) => {
-                setForm((f) => ({
-                  ...f,
-                  isletmeTuru,
-                  vergiDairesi:
-                    isletmeTuru === 'YABANCI' || isletmeTuru === 'GERCEK' ? '' : f.vergiDairesi,
-                  vergiNo: isletmeTuru === 'YABANCI' || isletmeTuru === 'GERCEK' ? '' : f.vergiNo,
-                }));
-              }}
-            />
+            <div className="cari-kart-ust-satir">
+              <CariOutlinedAramaAcilir
+                etiket="Cari Tipi"
+                zorunlu
+                deger={kartTipiSecim}
+                secenekler={kartTipleri}
+                disabled={saltOkunur}
+                aramaPlaceholder="Cari tipi ara…"
+                onYonet={() => setTipModalAcik(true)}
+                onChange={setKartTipiSecim}
+              />
+              <SecimChipleri
+                etiket="İşletme Türü"
+                secenekler={isletmeTurleri}
+                deger={form.isletmeTuru}
+                saltOkunur={saltOkunur}
+                onYonet={() => setIsletmeModalAcik(true)}
+                onDegistir={(isletmeTuru) => {
+                  setForm((f) => ({
+                    ...f,
+                    isletmeTuru,
+                    vergiDairesi:
+                      isletmeTuru === 'YABANCI' || isletmeTuru === 'GERCEK' ? '' : f.vergiDairesi,
+                    vergiNo: isletmeTuru === 'YABANCI' || isletmeTuru === 'GERCEK' ? '' : f.vergiNo,
+                  }));
+                }}
+              />
+              <div
+                className={`cari-kart-ust-kimlik${kimlikModu === 'tuzel' ? ' cari-kart-ust-kimlik--tuzel' : ''}${!kimlikModu ? ' cari-kart-ust-kimlik--bos' : ''}`}
+              >
+                {kimlikModu === 'yabanci' ? (
+                  <CariOutlinedGirdi
+                    etiket="Pasaport No"
+                    deger={form.vergiNo}
+                    maxLength={20}
+                    buyukHarf
+                    odakPlaceholder="Pasaport numarasını yazınız"
+                    disabled={saltOkunur}
+                    onChange={(vergiNo) =>
+                      setAlan('vergiNo', vergiNo.replace(/[^A-Za-z0-9]/g, '').slice(0, 20).toUpperCase())
+                    }
+                  />
+                ) : kimlikModu === 'gercek' ? (
+                  <CariOutlinedVergiNo
+                    etiket="T.C. Kimlik No"
+                    deger={form.vergiNo}
+                    maxHane={11}
+                    disabled={saltOkunur}
+                    onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
+                  />
+                ) : kimlikModu === 'tuzel' ? (
+                  <>
+                    <CariOutlinedVergiDairesi
+                      deger={form.vergiDairesi}
+                      disabled={saltOkunur}
+                      onChange={(vergiDairesi) => setAlan('vergiDairesi', vergiDairesi)}
+                    />
+                    <CariOutlinedVergiNo
+                      etiket="Vergi No"
+                      deger={form.vergiNo}
+                      maxHane={10}
+                      disabled={saltOkunur}
+                      onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
+                    />
+                  </>
+                ) : null}
+              </div>
+            </div>
             <CariOutlinedGirdi
               etiket="Cari Kodu"
               deger={form.cariKodu}
@@ -330,45 +378,6 @@ export function CariKart({
               disabled={saltOkunur}
               onChange={(unvan) => setAlan('unvan', unvan)}
             />
-
-            {kimlikModu === 'yabanci' ? (
-              <CariOutlinedGirdi
-                etiket="Pasaport No"
-                deger={form.vergiNo}
-                className="cari-alan-tam"
-                maxLength={20}
-                buyukHarf
-                odakPlaceholder="Pasaport numarasını yazınız"
-                disabled={saltOkunur}
-                onChange={(vergiNo) =>
-                  setAlan('vergiNo', vergiNo.replace(/[^A-Za-z0-9]/g, '').slice(0, 20).toUpperCase())
-                }
-              />
-            ) : kimlikModu === 'gercek' ? (
-              <CariOutlinedVergiNo
-                etiket="T.C. Kimlik No"
-                deger={form.vergiNo}
-                className="cari-alan-tam"
-                maxHane={11}
-                disabled={saltOkunur}
-                onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
-              />
-            ) : (
-              <>
-                <CariOutlinedVergiDairesi
-                  deger={form.vergiDairesi}
-                  disabled={saltOkunur}
-                  onChange={(vergiDairesi) => setAlan('vergiDairesi', vergiDairesi)}
-                />
-                <CariOutlinedVergiNo
-                  etiket="Vergi No"
-                  deger={form.vergiNo}
-                  maxHane={10}
-                  disabled={saltOkunur}
-                  onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
-                />
-              </>
-            )}
             <CariOutlinedGirdi
               etiket="Adres"
               deger={form.adres}
@@ -483,6 +492,8 @@ export function CariKart({
         placeholder="Yeni cari tipi adı…"
         liste={kartTipleri}
         sabitDegerler={['ALICI', 'SATICI']}
+        kullanimNesneAdi="tipi"
+        kullanimSayisiAl={(value) => kayitlar.filter((c) => c.cariTipi === value).length}
         onEkle={(ad) => {
           const sonuc = cariKartTipiEkle(ad);
           if (!sonuc) return false;
@@ -508,6 +519,8 @@ export function CariKart({
         placeholder="Yeni işletme türü adı…"
         liste={isletmeTurleri}
         sabitDegerler={['TUZEL', 'GERCEK', 'YABANCI']}
+        kullanimNesneAdi="işletme türünü"
+        kullanimSayisiAl={(value) => kayitlar.filter((c) => c.isletmeTuru === value).length}
         onEkle={(ad) => {
           const sonuc = cariIsletmeTuruEkle(ad);
           if (!sonuc) return false;
