@@ -89,3 +89,52 @@ export function yeniIdGecici(): string {
 export function geciciIdMi(id: string): boolean {
   return id.startsWith('yeni-');
 }
+
+export function bosBirimFiyatSatiri(secenek?: {
+  anaBirimMi?: boolean;
+  varsayilanMi?: boolean;
+}): StokFiyatDuzenleSatir {
+  return {
+    id: yeniIdGecici(),
+    fiyatAdi: 'FİYAT',
+    birim: 'ADET',
+    carpan: 1,
+    barkod: '',
+    kdv: 10,
+    kdvTipi: 'dahil',
+    alisFiyati: null,
+    satisFiyati1: null,
+    pb1: 'TL',
+    satisFiyati2: null,
+    pb2: 'TL',
+    satisFiyati3: null,
+    pb3: 'TL',
+    satisFiyati4: null,
+    pb4: 'TL',
+    satisFiyati5: null,
+    pb5: 'TL',
+    satisFiyati6: null,
+    pb6: 'TL',
+    alisKdv: 10,
+    aktif: true,
+    anaBirimMi: secenek?.anaBirimMi ?? false,
+    varsayilanMi: secenek?.varsayilanMi ?? false,
+  };
+}
+
+/** Satır, boş şablondan (id hariç) hiç değiştirilmemiş mi? */
+export function birimSatiriBosMu(s: StokFiyatDuzenleSatir): boolean {
+  return (
+    s.fiyatAdi === 'FİYAT' &&
+    s.birim === 'ADET' &&
+    s.carpan === 1 &&
+    s.barkod === '' &&
+    s.kdv === 10 &&
+    s.kdvTipi === 'dahil' &&
+    s.alisFiyati === null &&
+    s.satisFiyati1 === null &&
+    (s.alisKdv === undefined || s.alisKdv === 10) &&
+    !s.anaBirimMi &&
+    !s.varsayilanMi
+  );
+}

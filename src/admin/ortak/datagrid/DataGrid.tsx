@@ -20,6 +20,7 @@ import {
 import { FormulaRehberiIcerik } from './FormulaRehberi';
 import { bosGosterim, csvIndir, dgTooltipMetni, paraFormatla, tarihFormatla, yuzdeFormatla } from './formatYardimci';
 import { DgIkon } from './DgIkonlar';
+import { DgSecimUstKutu } from './DgSecimUstKutu';
 import { EtiketHucre } from './EtiketHucre';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import './datagrid.css';
@@ -324,6 +325,7 @@ export function DataGrid<TRow extends { id: string }>({
   ustAracGoster = true,
   topluBarModu = 'ust',
   topluBarGoster = true,
+  topluDurumTuslariGoster = true,
   satirPanelModu = 'sheet',
 }: DataGridProps<TRow>) {
   const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar, kolonGenislikSurumu);
@@ -1932,7 +1934,18 @@ export function DataGrid<TRow extends { id: string }>({
   const ustBarSolVar = Boolean(tabloBaslik) || solAraclarAcik;
   const ustBarSagKdv = Boolean(kdvDahilGoster && onKdvDahilDegistir);
   const ustBarSagIkon = ustSagAraclarGoster;
-  const ustBarGoster = ustBarSolVar || ustBarSagKdv || ustBarSagIkon;
+  const ustSecimKutusu =
+    topluBarGoster && topluBarModu === 'ust' && dg.seciliIdler.size > 0 ? (
+      <DgSecimUstKutu
+        sayi={dg.seciliIdler.size}
+        durumTuslari={topluDurumTuslariGoster}
+        onAktif={() => topluDurum(true)}
+        onPasif={() => topluDurum(false)}
+        onDisaAktar={() => csvAktar(true)}
+        onTemizle={dg.secimiTemizle}
+      />
+    ) : null;
+  const ustBarGoster = ustBarSolVar || ustBarSagKdv || ustBarSagIkon || Boolean(ustSecimKutusu);
 
   return (
     <div className={`dg-kabuk${kompakt ? ' dg-kompakt' : ''}`} ref={kabukRef}>
@@ -1985,6 +1998,7 @@ export function DataGrid<TRow extends { id: string }>({
           ) : null}
         </div>
         <div className="dg-ust-sag">
+          {ustSecimKutusu}
           {ustBarSagKdv && (
             <div className="dg-kdv-kapsul">
               <span className="dg-kdv-etiket">KDV Dahil</span>
@@ -2051,41 +2065,18 @@ export function DataGrid<TRow extends { id: string }>({
       </div>
       ) : null}
 
-      {topluBarGoster &&
-        dg.seciliIdler.size > 0 &&
-        (topluBarModu === 'cubuk' ? (
-          <TopluBarCubukKapak>
-            <span>{dg.seciliIdler.size} kayıt seçili</span>
-            <button type="button" className="dg-tus" onClick={() => topluDurum(true)}>
-              Aktif Yap
-            </button>
-            <button type="button" className="dg-tus" onClick={() => topluDurum(false)}>
-              Pasif Yap
-            </button>
-            <button type="button" className="dg-tus" onClick={() => csvAktar(true)}>
-              Dışa Aktar
-            </button>
-            <button type="button" className="dg-tus" onClick={dg.secimiTemizle}>
-              Seçimi Temizle
-            </button>
-          </TopluBarCubukKapak>
-        ) : (
-          <div className="dg-toplu-bar">
-            <span>{dg.seciliIdler.size} kayıt seçili</span>
-            <button type="button" className="dg-tus" onClick={() => topluDurum(true)}>
-              Aktif Yap
-            </button>
-            <button type="button" className="dg-tus" onClick={() => topluDurum(false)}>
-              Pasif Yap
-            </button>
-            <button type="button" className="dg-tus" onClick={() => csvAktar(true)}>
-              Dışa Aktar
-            </button>
-            <button type="button" className="dg-tus" onClick={dg.secimiTemizle}>
-              Seçimi Temizle
-            </button>
-          </div>
-        ))}
+      {topluBarGoster && dg.seciliIdler.size > 0 && topluBarModu === 'cubuk' ? (
+        <TopluBarCubukKapak>
+          <DgSecimUstKutu
+            sayi={dg.seciliIdler.size}
+            durumTuslari={topluDurumTuslariGoster}
+            onAktif={() => topluDurum(true)}
+            onPasif={() => topluDurum(false)}
+            onDisaAktar={() => csvAktar(true)}
+            onTemizle={dg.secimiTemizle}
+          />
+        </TopluBarCubukKapak>
+      ) : null}
 
       {hata && <div className="dg-hata">{hata}</div>}
 

@@ -4,6 +4,7 @@ import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/Tanim
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+import { DgSecimUstKutu } from '@/admin/ortak/datagrid/DgSecimUstKutu';
 import '@/admin/ortak/datagrid/datagrid.css';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
@@ -12,7 +13,7 @@ import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
-import { stokSil, stoklariGetir } from './api';
+import { stokGuncelle, stokSil, stoklariGetir } from './api';
 import { StokGelismisArama } from './StokGelismisArama';
 import { StokFiyatDuzenle } from './StokFiyatDuzenle';
 import { StokBirimListesi } from './StokBirimListesi';
@@ -62,7 +63,7 @@ export function StoklarSayfasi() {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler();
   const [gorunum, setGorunum] = useState<Gorunum>('liste');
-  const [kartModu, setKartModu] = useState<StokKartModu>('yeni');
+  const [kartModu, setKartModu] = useState<StokKartModu>('duzenle');
   const [kayitlar, setKayitlar] = useState<AdminStok[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [filtreMetni, setFiltreMetni] = useState('');
@@ -363,6 +364,50 @@ export function StoklarSayfasi() {
     }
   }, [basariBildir, gorunum, hataBildir, listeyeDon, silme, yukle]);
 
+  const topluDurumAyarla = useCallback(
+    async (aktif: boolean) => {
+      if (!duzenlemeVar) {
+        hataBildir('Durum değiştirme yetkiniz yok.');
+        return;
+      }
+      if (seciliIdler.length === 0) {
+        hataBildir('Durum değiştirmek için en az bir stok seçin.');
+        return;
+      }
+      try {
+        await Promise.all(
+          seciliIdler.map(async (id) => {
+            const s = stokBul(id);
+            if (!s) return;
+            await stokGuncelle(id, {
+              ustId: s.ustId,
+              urunTipi: s.urunTipi,
+              urunNevi: s.urunNevi,
+              urunKodu: s.urunKodu,
+              marka: s.marka,
+              urunAdi: s.urunAdi,
+              anaBirim: s.anaBirim,
+              varsayilanBirim: s.varsayilanBirim,
+              mensei: s.mensei,
+              aktif,
+            });
+          })
+        );
+        basariBildir(
+          aktif
+            ? `${seciliIdler.length} stok aktif yapıldı.`
+            : `${seciliIdler.length} stok pasif yapıldı.`
+        );
+        gridApiRef.current?.secimAyarla([]);
+        setSeciliIdler([]);
+        await yukle();
+      } catch (e) {
+        hataBildir(e instanceof Error ? e.message : 'Durum güncellenemedi');
+      }
+    },
+    [basariBildir, duzenlemeVar, hataBildir, seciliIdler, stokBul, yukle]
+  );
+
   const kolonlar = useMemo((): KolonTanimi<AdminStok>[] => {
     return [
       secimKolonu(),
@@ -446,23 +491,36 @@ export function StoklarSayfasi() {
       aciklama="Stok kartlarını listeleyin, arayın ve yönetin."
       ustAksiyon={
         gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
-          <div className="dg-ikon-grup stoklar-modul-ust-araclar">
-            <button
-              type="button"
-              className="dg-tus dg-tus-ikon"
-              title="Sütun görünürlüğü"
-              onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
-            >
-              <DgIkon ad="sutun" />
-            </button>
-            <button
-              type="button"
-              className="dg-tus dg-tus-ikon"
-              title="CSV indir"
-              onClick={() => gridApiRef.current?.csvIndir()}
-            >
-              <DgIkon ad="indir" />
-            </button>
+          <div className="dg-modul-ust-araclar">
+            <DgSecimUstKutu
+              sayi={seciliIdler.length}
+              durumTuslari={duzenlemeVar}
+              onAktif={() => void topluDurumAyarla(true)}
+              onPasif={() => void topluDurumAyarla(false)}
+              onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
+              onTemizle={() => {
+                gridApiRef.current?.secimAyarla([]);
+                setSeciliIdler([]);
+              }}
+            />
+            <div className="dg-ikon-grup dg-modul-ust-ikonlar">
+              <button
+                type="button"
+                className="dg-tus dg-tus-ikon"
+                title="Sütun görünürlüğü"
+                onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
+              >
+                <DgIkon ad="sutun" />
+              </button>
+              <button
+                type="button"
+                className="dg-tus dg-tus-ikon"
+                title="CSV indir"
+                onClick={() => gridApiRef.current?.csvIndir()}
+              >
+                <DgIkon ad="indir" />
+              </button>
+            </div>
           </div>
         ) : null
       }
@@ -481,7 +539,6 @@ export function StoklarSayfasi() {
           <StokFiyatAnaliz
             stok={fiyatAnalizStok}
             onGeri={listeyeDon}
-            onYeni={yeniAc}
             onDuzenle={() => duzenleAc(fiyatAnalizStok.id)}
             onIncele={() => inceleAc(fiyatAnalizStok.id)}
             kaydetRef={kaydetRef}
@@ -493,7 +550,6 @@ export function StoklarSayfasi() {
           <StokEnvanterAnaliz
             stok={envanterAnalizStok}
             onGeri={listeyeDon}
-            onYeni={yeniAc}
             onDuzenle={() => duzenleAc(envanterAnalizStok.id)}
             onIncele={() => inceleAc(envanterAnalizStok.id)}
             onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
@@ -503,7 +559,6 @@ export function StoklarSayfasi() {
           <StokBirimListesi
             stok={birimListesiStok}
             onGeri={listeyeDon}
-            onYeni={yeniAc}
             onDuzenle={() => duzenleAc(birimListesiStok.id)}
             onIncele={() => inceleAc(birimListesiStok.id)}
             kaydetRef={kaydetRef}
@@ -515,7 +570,6 @@ export function StoklarSayfasi() {
           <StokFiyatDuzenle
             stok={fiyatDuzenleStok}
             onGeri={listeyeDon}
-            onYeni={yeniAc}
             onDuzenle={() => duzenleAc(fiyatDuzenleStok.id)}
             onIncele={() => inceleAc(fiyatDuzenleStok.id)}
             kaydetRef={kaydetRef}
@@ -566,7 +620,7 @@ export function StoklarSayfasi() {
                     <p className="stoklar-liste-bekleme-baslik">Stok arayın</p>
                     <p className="stoklar-liste-bekleme-metin">
                       Listeyi görmek için stok kodu veya adı yazıp Ara&apos;ya basın. Kayıt
-                      bulunamazsa boş liste açılır; aksiyon çubuğundan Yeni ile ekleyebilirsiniz.
+                      bulunamazsa boş liste açılır.
                     </p>
                   </div>
                 ) : yukleniyor ? (
@@ -575,9 +629,7 @@ export function StoklarSayfasi() {
                   <div ref={sayfaRef} className="dg-demo-sag-tik-alan stoklar-tablo-alan">
                     <StoklarSagTikMenu
                       konteynerRef={sayfaRef}
-                      eklemeVar={eklemeVar}
                       duzenlemeVar={duzenlemeVar}
-                      onYeni={yeniAc}
                       onDuzenle={sagTikDuzenle}
                       onIncele={(id) => stokSatirSec(id)}
                       onSatirSec={stokSatirSec}
@@ -593,7 +645,7 @@ export function StoklarSayfasi() {
                       kolonlar={kolonlar}
                       satirlar={filtrelenmis}
                       depolamaAnahtari="stoklar_kayitlar_v2"
-                      bosMesaj="Aramanızla eşleşen stok bulunamadı. Yeni ile stok kartı ekleyebilirsiniz."
+                      bosMesaj="Aramanızla eşleşen stok bulunamadı."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => stokSatirSec(s.id)}
                       onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
@@ -603,7 +655,7 @@ export function StoklarSayfasi() {
                       ustSolAraclarGoster={false}
                       ustSagAraclarGoster={false}
                       ustAracGoster={false}
-                      topluBarModu="cubuk"
+                      topluBarGoster={false}
                     />
                   </div>
                 )}

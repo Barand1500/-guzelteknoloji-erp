@@ -37,6 +37,14 @@ export interface StokFiyatDuzenleSatir {
   pb6: StokFiyatPb;
   alisKdv?: number;
   aktif?: boolean;
+  /* Yeni stok ekranı (F001 birimler karti) — UI alanları */
+  isk1?: string;
+  isk2?: string;
+  isk3?: string;
+  desi?: string;
+  agirlikKg?: string;
+  anaBirimMi?: boolean;
+  varsayilanMi?: boolean;
 }
 
 export const STOK_FIYAT_PB_SECENEKLERI: { deger: StokFiyatPb; etiket: string }[] = [

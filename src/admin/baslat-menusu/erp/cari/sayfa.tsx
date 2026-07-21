@@ -3,6 +3,7 @@ import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+import { DgSecimUstKutu } from '@/admin/ortak/datagrid/DgSecimUstKutu';
 import '@/admin/ortak/datagrid/datagrid.css';
 import type { DataGridApi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -185,6 +186,39 @@ export function CariSayfasi() {
     [hataBildir, kayitlar, yukle]
   );
 
+  const topluDurumAyarla = useCallback(
+    async (aktif: boolean) => {
+      if (!duzenlemeVar) {
+        hataBildir('Durum değiştirme yetkiniz yok.');
+        return;
+      }
+      if (seciliIdler.length === 0) {
+        hataBildir('Durum değiştirmek için en az bir cari seçin.');
+        return;
+      }
+      try {
+        await Promise.all(
+          seciliIdler.map(async (id) => {
+            const c = kayitlar.find((k) => k.id === id);
+            if (!c) return;
+            await cariGuncelle(id, { ...caridenForm(c), aktif });
+          })
+        );
+        basariBildir(
+          aktif
+            ? `${seciliIdler.length} cari aktif yapıldı.`
+            : `${seciliIdler.length} cari pasif yapıldı.`
+        );
+        gridApiRef.current?.secimAyarla([]);
+        setSeciliIdler([]);
+        await yukle();
+      } catch (e) {
+        hataBildir(e instanceof Error ? e.message : 'Durum güncellenemedi');
+      }
+    },
+    [basariBildir, duzenlemeVar, hataBildir, kayitlar, seciliIdler, yukle]
+  );
+
   const kolonlar = useMemo(() => cariKolonlari(), []);
 
   const modulBaslik =
@@ -213,23 +247,36 @@ export function CariSayfasi() {
         gorunum === 'kart' ? (
           kartUstAksiyon
         ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
-          <div className="dg-ikon-grup cari-modul-ust-araclar">
-            <button
-              type="button"
-              className="dg-tus dg-tus-ikon"
-              title="Sütun görünürlüğü"
-              onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
-            >
-              <DgIkon ad="sutun" />
-            </button>
-            <button
-              type="button"
-              className="dg-tus dg-tus-ikon"
-              title="CSV indir"
-              onClick={() => gridApiRef.current?.csvIndir()}
-            >
-              <DgIkon ad="indir" />
-            </button>
+          <div className="dg-modul-ust-araclar">
+            <DgSecimUstKutu
+              sayi={seciliIdler.length}
+              durumTuslari={duzenlemeVar}
+              onAktif={() => void topluDurumAyarla(true)}
+              onPasif={() => void topluDurumAyarla(false)}
+              onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
+              onTemizle={() => {
+                gridApiRef.current?.secimAyarla([]);
+                setSeciliIdler([]);
+              }}
+            />
+            <div className="dg-ikon-grup dg-modul-ust-ikonlar">
+              <button
+                type="button"
+                className="dg-tus dg-tus-ikon"
+                title="Sütun görünürlüğü"
+                onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
+              >
+                <DgIkon ad="sutun" />
+              </button>
+              <button
+                type="button"
+                className="dg-tus dg-tus-ikon"
+                title="CSV indir"
+                onClick={() => gridApiRef.current?.csvIndir()}
+              >
+                <DgIkon ad="indir" />
+              </button>
+            </div>
           </div>
         ) : null
       }
@@ -329,7 +376,8 @@ export function CariSayfasi() {
                       formulMenuGoster={false}
                       ustSolAraclarGoster={false}
                       ustSagAraclarGoster={false}
-                      topluBarModu="cubuk"
+                      ustAracGoster={false}
+                      topluBarGoster={false}
                     />
                   </div>
                 )}

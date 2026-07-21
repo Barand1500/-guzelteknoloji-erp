@@ -78,7 +78,6 @@ function paraVeyaBos(deger: number | null): string {
 export function StokEnvanterAnaliz({
   stok,
   onGeri,
-  onYeni,
   onDuzenle,
   onIncele,
   onGorunumDuzenle,
@@ -86,14 +85,13 @@ export function StokEnvanterAnaliz({
 }: {
   stok: AdminStok;
   onGeri: () => void;
-  onYeni: () => void;
   onDuzenle: () => void;
   onIncele: () => void;
   onGorunumDuzenle?: () => void;
   onGorunumKaydet?: () => void;
 }) {
   const { hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar } = useYetkiler();
+  const { duzenlemeVar } = useYetkiler();
   const tabloRef = useRef<HTMLDivElement | null>(null);
   const [satirlar, setSatirlar] = useState<StokEnvanterAnalizSatir[]>([]);
   const [fiyatOzet, setFiyatOzet] = useState<StokEnvanterFiyatOzeti>({
@@ -179,9 +177,7 @@ export function StokEnvanterAnaliz({
             >
               <StoklarSagTikMenu
                 konteynerRef={tabloRef}
-                eklemeVar={eklemeVar}
                 duzenlemeVar={duzenlemeVar}
-                onYeni={onYeni}
                 onDuzenle={() => onDuzenle()}
                 onIncele={() => onIncele()}
                 onGorunumDuzenle={onGorunumDuzenle ?? (() => undefined)}

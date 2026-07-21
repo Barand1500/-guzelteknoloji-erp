@@ -284,27 +284,6 @@ export const bosStokGelismisFiltre = (): StokGelismisFiltre => ({
 
 export type StokKartModu = 'yeni' | 'duzenle' | 'incele';
 
-export type StokKartSekmeId =
-  | 'stok-bilgileri'
-  | 'birim-fiyatlar'
-  | 'ozel-kodlar'
-  | 'muhasebe'
-  | 'resim'
-  | 'analiz'
-  | 'istihbarat'
-  | 'e-donusum';
-
-export const STOK_KART_SEKMELERI: { id: StokKartSekmeId; ad: string; aktif: boolean }[] = [
-  { id: 'stok-bilgileri', ad: 'Stok Bilgileri', aktif: true },
-  { id: 'birim-fiyatlar', ad: 'Birim ve Fiyatlar', aktif: true },
-  { id: 'ozel-kodlar', ad: 'Özel Kodlar', aktif: true },
-  { id: 'muhasebe', ad: 'Muhasebe', aktif: true },
-  { id: 'resim', ad: 'Resim', aktif: true },
-  { id: 'analiz', ad: 'Analiz', aktif: true },
-  { id: 'istihbarat', ad: 'İstihbarat / Diğer', aktif: true },
-  { id: 'e-donusum', ad: 'E-Dönüşüm', aktif: true },
-];
-
 export const STOK_PB_SECENEKLERI = [
   { value: 'TL', label: 'TL' },
   { value: 'USD', label: 'USD' },

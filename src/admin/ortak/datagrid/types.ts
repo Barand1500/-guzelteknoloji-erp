@@ -153,10 +153,12 @@ export interface DataGridProps<TRow extends { id: string }> {
   ustSagAraclarGoster?: boolean;
   /** false ise sayfa boyutu / Kayıt / Çizgi kontrolleri gizlenir (başlık kalır; ustSolAraclarGoster ile AND) */
   ustAracGoster?: boolean;
-  /** 'cubuk' modunda seçim (toplu) çubuğu aksiyon butonlarının üstünden açılır */
+  /** 'ust' = tablo üst barında seçim kutusu (varsayılan); 'cubuk' = alt aksiyon çubuğu üstü */
   topluBarModu?: 'ust' | 'cubuk';
-  /** false ise seçimdeki "N kayıt seçili / Aktif Yap / …" toplu bar gizlenir */
+  /** false ise seçimdeki "Aktif Yap / N kayıt seçili / …" kutusu gizlenir */
   topluBarGoster?: boolean;
+  /** false ise seçim kutusundaki Aktif Yap / Pasif Yap düğmeleri gizlenir */
+  topluDurumTuslariGoster?: boolean;
   /** 'cubuk' modunda satır düzenle paneli aksiyon çubuğunun üstünden açılır */
   satirPanelModu?: 'sheet' | 'cubuk';
 }

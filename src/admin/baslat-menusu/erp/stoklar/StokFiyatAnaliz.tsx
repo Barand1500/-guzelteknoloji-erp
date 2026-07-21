@@ -177,7 +177,6 @@ const DONEM_SECENEKLERI = ['2026', '2025', '2024'].map((y) => ({ value: y, label
 export function StokFiyatAnaliz({
   stok,
   onGeri,
-  onYeni,
   onDuzenle,
   onIncele,
   kaydetRef,
@@ -187,7 +186,6 @@ export function StokFiyatAnaliz({
 }: {
   stok: AdminStok;
   onGeri: () => void;
-  onYeni: () => void;
   onDuzenle: () => void;
   onIncele: () => void;
   kaydetRef?: MutableRefObject<(() => Promise<void>) | null>;
@@ -196,7 +194,7 @@ export function StokFiyatAnaliz({
   onGorunumKaydet?: () => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar } = useYetkiler();
+  const { duzenlemeVar } = useYetkiler();
   const tabloRef = useRef<HTMLDivElement | null>(null);
   const [islemFiltre, setIslemFiltre] = useState<FiyatAnalizIslemFiltre>('giris');
   const [donem, setDonem] = useState('2026');
@@ -350,9 +348,7 @@ export function StokFiyatAnaliz({
             >
               <StoklarSagTikMenu
                 konteynerRef={tabloRef}
-                eklemeVar={eklemeVar}
                 duzenlemeVar={duzenlemeVar}
-                onYeni={onYeni}
                 onDuzenle={() => onDuzenle()}
                 onIncele={() => onIncele()}
                 onSatirSec={satirSec}

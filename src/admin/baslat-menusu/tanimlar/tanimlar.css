@@ -1653,6 +1653,20 @@ button.ap-tanimlar-panel-arka {
   box-shadow: 0 4px 12px color-mix(in srgb, var(--ap-accent) 28%, transparent);
 }
 
+.dg-modul-ust-araclar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.dg-modul-ust-ikonlar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .stoklar-liste-bekleme {
   flex: 1 1 auto;
   min-height: 12rem;
@@ -2477,32 +2491,76 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-karti-ana-tanimlar {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 1.15rem;
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .stok-karti-ana-tanimlar .stok-karti-yatay {
   grid-template-columns: 7.5rem minmax(0, 1fr);
 }
 
-/* Sol kolon (Stok Kodu/Adı) sağdaki 3 satırlık kolonla aynı yükseklikte dağılır */
+/* Üst satır: Stok Kodu dar (~yarı), Stok Adı geniş — alt kolonlarla aynı hiza */
 .stok-karti-ana-ust {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 0.6rem;
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.5fr) minmax(0, 1.5fr);
+  gap: 0.5rem 1.15rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
 }
 
-.stok-karti-ana-alt {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+/* Alt bölüm: sol kolon Stok Kodu ile aynı darlıkta */
+.stok-karti-ana-govde {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.5fr) minmax(0, 1.5fr);
+  gap: 0.5rem 1.15rem;
+  align-items: start;
 }
 
-.stok-karti-ana-alt .stok-karti-yatay {
-  grid-template-columns: 7.5rem minmax(0, 1fr);
+.stok-karti-ana-kolon {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.stok-karti-durum-satir {
+  min-height: 2rem;
+}
+
+/* Ana Tanımlar — farklı input tarzı: dolgulu gövde + alt vurgu çizgisi */
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-input,
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-form-acilir-secim-tus {
+  background: color-mix(in srgb, var(--ap-hover) 55%, var(--ap-surface));
+  border: 1px solid transparent;
+  border-bottom: 2px solid color-mix(in srgb, var(--ap-border) 95%, transparent);
+  border-radius: 0.55rem 0.55rem 0.2rem 0.2rem;
+  box-shadow: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-input:hover,
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-form-acilir-secim-tus:hover {
+  border-bottom-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+}
+
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-input:focus,
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-input:focus-visible,
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-form-acilir-secim-tus:focus,
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-form-acilir-secim-tus:focus-visible {
+  border-color: transparent;
+  border-bottom-color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 7%, var(--ap-surface));
+  box-shadow: none;
+  outline: none;
+  --tw-ring-color: transparent;
+  --tw-ring-shadow: 0 0 #0000;
+}
+
+.stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-input[readonly] {
+  background: color-mix(in srgb, var(--ap-hover) 30%, var(--ap-surface));
+  border-bottom-style: dashed;
+  color: var(--ap-text-muted);
 }
 
 .stok-karti-satir--3 .stok-karti-yatay {
@@ -2670,7 +2728,7 @@ button.ap-tanimlar-panel-arka {
   .stok-karti-satir--2,
   .stok-karti-satir--3,
   .stok-karti-ana-ust,
-  .stok-karti-ana-alt {
+  .stok-karti-ana-govde {
     grid-template-columns: 1fr;
   }
 
@@ -2680,6 +2738,229 @@ button.ap-tanimlar-panel-arka {
 
   .stok-karti-fiyat-pb {
     grid-template-columns: minmax(0, 1fr) 4.5rem;
+  }
+}
+
+/* ── Yeni Stok — F001 Birimler kartı ── */
+.stok-yb-kabuk {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.stok-yb-araclar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.stok-yb-tus {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.08s ease;
+}
+
+.stok-yb-tus:hover {
+  filter: brightness(1.08);
+}
+
+.stok-yb-tus:active {
+  transform: scale(0.98);
+}
+
+.stok-yb-tus--hesapla {
+  background: #6d5ce7;
+}
+
+.stok-yb-tus--ekle {
+  background: #22a558;
+}
+
+.stok-yb-tablo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.65rem;
+  overflow-x: auto;
+}
+
+.stok-yb-baslik-satir,
+.stok-yb-satir {
+  display: grid;
+  grid-template-columns:
+    minmax(9rem, 1.1fr) minmax(9.5rem, 1.2fr) minmax(9.5rem, 1.2fr)
+    minmax(6.5rem, 0.75fr);
+  gap: 0 0.75rem;
+  padding: 0.6rem 0.75rem;
+  min-width: 42rem;
+}
+
+.stok-yb-tablo--f001 .stok-yb-baslik-satir,
+.stok-yb-tablo--f001 .stok-yb-satir {
+  grid-template-columns:
+    minmax(9rem, 1.15fr) minmax(10rem, 1.25fr) minmax(9.5rem, 1.15fr)
+    minmax(6.5rem, 0.7fr);
+  min-width: 40rem;
+}
+
+.stok-yb-baslik-satir {
+  border-bottom: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-hover) 45%, var(--ap-surface));
+}
+
+.stok-yb-satir + .stok-yb-satir {
+  border-top: 1px dashed color-mix(in srgb, var(--ap-border) 80%, transparent);
+}
+
+.stok-yb-baslik {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+}
+
+.stok-yb-hucre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.stok-yb-hucre .ap-input,
+.stok-yb-hucre .ap-form-acilir-secim-tus {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.stok-yb-onekli {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.stok-yb-onek {
+  position: absolute;
+  left: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-muted);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.stok-yb-girdi--onekli,
+.stok-yb-onekli .ap-input,
+.stok-yb-onekli .ap-form-acilir-secim-tus {
+  width: 100%;
+  padding-left: 1.45rem !important;
+}
+
+.stok-yb-onekli--kdv {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.stok-yb-kdv-satir {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.stok-yb-kdv-tip {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.2rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.4rem;
+  background: var(--ap-surface);
+  padding: 0.3rem 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ap-muted);
+  cursor: pointer;
+}
+
+.stok-yb-kdv-tip--genis {
+  width: 100%;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.stok-yb-kdv-tip--genis em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+}
+
+.stok-yb-kdv-tip--secili {
+  color: var(--ap-accent);
+}
+
+.stok-yb-hucre--islem {
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.stok-yb-toggle {
+  transform: scale(0.85);
+}
+
+.stok-yb-sil {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 1.6rem;
+  border: none;
+  border-radius: 0.4rem;
+  background: #e2504c;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.stok-yb-sil:hover {
+  filter: brightness(1.1);
+}
+
+.stok-yb-sil svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .stok-yb-baslik-satir {
+    display: none;
+  }
+
+  .stok-yb-baslik-satir,
+  .stok-yb-satir {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem 0.75rem;
+    min-width: 0;
   }
 }
 

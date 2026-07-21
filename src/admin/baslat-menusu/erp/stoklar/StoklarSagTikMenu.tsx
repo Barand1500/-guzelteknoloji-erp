@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export type StokSagTikIslem =
-  | 'yeni'
   | 'duzenle'
   | 'incele'
   | 'gorunumDuzenle'
@@ -10,9 +9,7 @@ export type StokSagTikIslem =
 
 interface StoklarSagTikMenuProps {
   konteynerRef: React.RefObject<HTMLElement | null>;
-  eklemeVar: boolean;
   duzenlemeVar: boolean;
-  onYeni: () => void;
   onDuzenle: (satirId: string) => void;
   onIncele: (satirId: string) => void;
   onSatirSec?: (satirId: string) => void;
@@ -33,9 +30,7 @@ const MENU_OGELERI: {
   ayiriciOnce?: boolean;
   satirGerekli?: boolean;
   duzenlemeGerekli?: boolean;
-  eklemeGerekli?: boolean;
 }[] = [
-  { id: 'yeni', etiket: 'Yeni', ikon: '➕', eklemeGerekli: true },
   { id: 'duzenle', etiket: 'Düzenle', ikon: '✏️', satirGerekli: true, duzenlemeGerekli: true },
   { id: 'incele', etiket: 'İncele', ikon: '👁️', satirGerekli: true },
   { id: 'gorunumDuzenle', etiket: 'Görünümü Düzenle', ikon: '🎛️', ayiriciOnce: true },
@@ -44,9 +39,7 @@ const MENU_OGELERI: {
 
 export function StoklarSagTikMenu({
   konteynerRef,
-  eklemeVar,
   duzenlemeVar,
-  onYeni,
   onDuzenle,
   onIncele,
   onSatirSec,
@@ -107,9 +100,6 @@ export function StoklarSagTikMenu({
   function islemCalistir(id: StokSagTikIslem) {
     if (!menu) return;
     switch (id) {
-      case 'yeni':
-        onYeni();
-        break;
       case 'duzenle':
         if (menu.satirId) onDuzenle(menu.satirId);
         break;
@@ -143,8 +133,7 @@ export function StoklarSagTikMenu({
     >
       {MENU_OGELERI.map((oge) => {
         const satirEksik = oge.satirGerekli && !menu.satirId;
-        const yetkiEksik =
-          (oge.eklemeGerekli && !eklemeVar) || (oge.duzenlemeGerekli && !duzenlemeVar);
+        const yetkiEksik = oge.duzenlemeGerekli && !duzenlemeVar;
         const devreDisi = satirEksik || yetkiEksik;
 
         return (

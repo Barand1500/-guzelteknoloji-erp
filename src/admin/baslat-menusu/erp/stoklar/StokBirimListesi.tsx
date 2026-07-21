@@ -64,7 +64,6 @@ function KdvHucre({ satir }: { satir: StokBirimListeSatir }) {
 export function StokBirimListesi({
   stok,
   onGeri,
-  onYeni,
   onDuzenle,
   onIncele,
   kaydetRef,
@@ -74,7 +73,6 @@ export function StokBirimListesi({
 }: {
   stok: AdminStok;
   onGeri: () => void;
-  onYeni: () => void;
   onDuzenle: () => void;
   onIncele: () => void;
   kaydetRef?: MutableRefObject<(() => Promise<void>) | null>;
@@ -83,7 +81,7 @@ export function StokBirimListesi({
   onGorunumKaydet?: () => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const { eklemeVar, duzenlemeVar } = useYetkiler();
+  const { duzenlemeVar } = useYetkiler();
   const tabloRef = useRef<HTMLDivElement | null>(null);
   const [satirlar, setSatirlar] = useState<StokBirimListeSatir[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -255,9 +253,7 @@ export function StokBirimListesi({
             >
               <StoklarSagTikMenu
                 konteynerRef={tabloRef}
-                eklemeVar={eklemeVar}
                 duzenlemeVar={duzenlemeVar}
-                onYeni={onYeni}
                 onDuzenle={() => onDuzenle()}
                 onIncele={() => onIncele()}
                 onSatirSec={(id) => setSeciliIdler([id])}

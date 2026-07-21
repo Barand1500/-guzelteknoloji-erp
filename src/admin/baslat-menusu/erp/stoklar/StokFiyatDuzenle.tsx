@@ -172,7 +172,6 @@ export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<Stok
 export function StokFiyatDuzenle({
   stok,
   onGeri,
-  onYeni,
   onDuzenle,
   onIncele,
   kaydetRef,
@@ -182,7 +181,6 @@ export function StokFiyatDuzenle({
 }: {
   stok: AdminStok;
   onGeri: () => void;
-  onYeni: () => void;
   onDuzenle: () => void;
   onIncele: () => void;
   kaydetRef?: MutableRefObject<(() => Promise<void>) | null>;
@@ -324,9 +322,7 @@ export function StokFiyatDuzenle({
             <div ref={tabloRef} className="stok-fiyat-duzenle-tablo stok-fiyat-duzenle-tablo--sayfa dg-demo-sag-tik-alan">
               <StoklarSagTikMenu
                 konteynerRef={tabloRef}
-                eklemeVar={eklemeVar}
                 duzenlemeVar={duzenlemeVar}
-                onYeni={onYeni}
                 onDuzenle={() => onDuzenle()}
                 onIncele={() => onIncele()}
                 onSatirSec={(id) => setSeciliIdler([id])}

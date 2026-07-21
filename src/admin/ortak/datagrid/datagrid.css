@@ -482,7 +482,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: flex-end;
+  gap: 0.45rem;
   margin-left: auto;
 }
 
@@ -2545,6 +2546,54 @@ td.dg-hucre--sabit,
   border-bottom: 1px solid color-mix(in srgb, var(--ap-accent) 15%, var(--ap-border));
   font-size: 0.75rem;
   flex-shrink: 0;
+}
+
+/* Üst seçim kutusu — tüm grid ekranlarında aynı görünüm */
+.dg-secim-ust-kutu {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--ap-hover) 55%, var(--ap-surface));
+}
+
+.dg-secim-ust-ayrac {
+  display: inline-block;
+  width: 1px;
+  height: 1.1rem;
+  margin: 0 0.15rem;
+  background: color-mix(in srgb, var(--ap-border) 90%, transparent);
+}
+
+.dg-secim-ust-metin {
+  padding: 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  white-space: nowrap;
+}
+
+.dg-secim-ust-tus {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dg-modul-ust-araclar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.dg-modul-ust-ikonlar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .dg-toplu-bar-cubuk-wrap {
