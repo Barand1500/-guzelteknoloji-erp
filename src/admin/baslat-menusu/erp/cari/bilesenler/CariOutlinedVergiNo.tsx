@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { yalnizcaRakam } from '../cariFormatYardimci';
 import { CariOutlinedEtiket } from './CariOutlinedGirdi';
 
@@ -9,6 +9,7 @@ export function CariOutlinedVergiNo({
   maxHane,
   disabled = false,
   className,
+  sonek,
 }: {
   etiket: string;
   deger: string;
@@ -16,10 +17,12 @@ export function CariOutlinedVergiNo({
   maxHane: number;
   disabled?: boolean;
   className?: string;
+  sonek?: ReactNode;
 }) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
   const hane = deger.replace(/\D/g, '').length;
+  const sayacGoster = focused || hane > 0;
 
   return (
     <div
@@ -38,10 +41,15 @@ export function CariOutlinedVergiNo({
           placeholder={focused ? `Yalnızca rakam, ${maxHane} hane` : undefined}
           onChange={(e) => onChange(yalnizcaRakam(e.target.value, maxHane))}
         />
-        {focused || hane > 0 ? (
-          <span className="cari-outlined-sonek cari-outlined-sayac" aria-hidden>
-            {hane}/{maxHane}
-          </span>
+        {sayacGoster || sonek ? (
+          <div className="cari-outlined-sonek">
+            {sayacGoster ? (
+              <span className="cari-outlined-sayac" aria-hidden>
+                {hane}/{maxHane}
+              </span>
+            ) : null}
+            {sonek}
+          </div>
         ) : null}
       </div>
     </div>

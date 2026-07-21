@@ -15,6 +15,13 @@ export function cariVergiNoGecerliMi(deger: string, isletmeTuru: string): boolea
   return /^\d{10}$/.test(v);
 }
 
+/** Boş olmayan ve işletme türüne göre kurallara uyan kimlik / vergi no */
+export function cariVergiNoDoluVeGecerliMi(deger: string, isletmeTuru: string): boolean {
+  const v = deger.trim();
+  if (!v) return false;
+  return cariVergiNoGecerliMi(v, isletmeTuru);
+}
+
 export function cariFormDogrula(form: CariFormDegeri): string | null {
   if (!form.cariTipi) return 'Cari tipi zorunludur';
   if (!cariKodGecerliMi(form.cariKodu)) return 'Cari kodu zorunludur (en fazla 30 karakter)';

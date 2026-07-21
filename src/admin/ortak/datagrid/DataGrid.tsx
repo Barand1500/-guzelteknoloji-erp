@@ -782,8 +782,15 @@ export function DataGrid<TRow extends { id: string }>({
   }, [hizliGirisApi, hizliGirisApiRef]);
 
   useEffect(() => {
-    if (duzenleme) girdiRef.current?.focus();
-  }, [duzenleme]);
+    if (!duzenleme) return;
+    const el = girdiRef.current;
+    if (!el) return;
+    el.focus();
+    if (el instanceof HTMLInputElement) {
+      const len = el.value.length;
+      el.setSelectionRange(len, len);
+    }
+  }, [duzenleme?.satirId, duzenleme?.kolonId, duzenleme?.birlesikKatman]);
 
   useEffect(() => {
     if (!resize) return;
@@ -993,12 +1000,14 @@ export function DataGrid<TRow extends { id: string }>({
   const duzenlemeyiBaslat = (
     satir: TRow,
     kolon: KolonTanimi<TRow>,
-    birlesikKatman: 'ust' | 'alt' = 'ust'
+    birlesikKatman: 'ust' | 'alt' = 'ust',
+    baslangicHam?: string
   ) => {
     if (!kolon.duzenlenebilir || kolon.tip === 'salt-okunur') return false;
     const deger = kolon.degerAl(satir);
     let ham = '';
-    if (kolon.tip === 'iskonto') ham = String((deger as { yuzde: number }).yuzde);
+    if (baslangicHam !== undefined) ham = baslangicHam;
+    else if (kolon.tip === 'iskonto') ham = String((deger as { yuzde: number }).yuzde);
     else if (kolon.tip === 'birlesik' && birlesikKatman === 'alt' && kolon.birlesikDuzenle?.altDegerAl) {
       ham = String(kolon.birlesikDuzenle.altDegerAl(satir) ?? '');
     } else if (kolon.tip === 'birlesik') ham = String((deger as { ust: string }).ust ?? '');
@@ -1006,6 +1015,16 @@ export function DataGrid<TRow extends { id: string }>({
     setDuzenleme({ satirId: satir.id, kolonId: kolon.id, hamDeger: ham, birlesikKatman });
     setOdak({ satirId: satir.id, kolonId: kolon.id });
     return true;
+  };
+
+  const hucreHamDegeriAl = (satir: TRow, kolon: KolonTanimi<TRow>, birlesikKatman: 'ust' | 'alt' = 'ust') => {
+    const deger = kolon.degerAl(satir);
+    if (kolon.tip === 'iskonto') return String((deger as { yuzde: number }).yuzde ?? '');
+    if (kolon.tip === 'birlesik' && birlesikKatman === 'alt' && kolon.birlesikDuzenle?.altDegerAl) {
+      return String(kolon.birlesikDuzenle.altDegerAl(satir) ?? '');
+    }
+    if (kolon.tip === 'birlesik') return String((deger as { ust: string }).ust ?? '');
+    return String(deger ?? '');
   };
 
   /** Hücre satır-içi düzenlenebilirse onu açar; değilse satır düzenleme paneli / sayfasına gider. */
@@ -1033,14 +1052,17 @@ export function DataGrid<TRow extends { id: string }>({
 
     // Ctrl+C / Ctrl+V belge düzeyinde (capture) işlenir — burada sadece diğer tuşlar
 
-    if ((e.key === 'Enter' || e.key === 'F2') && !duzenleme) {
+    // F2: mevcut değeri düzenle (Enter ile açma kaldırıldı)
+    if (e.key === 'F2' && !duzenleme) {
       e.preventDefault();
       if (!kolon) return;
-      if (e.key === 'Enter' && kolon.tip === 'toggle' && kolon.degerYaz) {
-        satirGuncelle(kolon.degerYaz(satir, !Boolean(kolon.degerAl(satir))));
-        return;
-      }
       hucreVeyaSatirDuzenle(satir, kolon);
+      return;
+    }
+    // Toggle: Space ile değiştir
+    if (e.key === ' ' && !duzenleme && kolon?.tip === 'toggle' && kolon.degerYaz) {
+      e.preventDefault();
+      satirGuncelle(kolon.degerYaz(satir, !Boolean(kolon.degerAl(satir))));
       return;
     }
     if (e.key === 'Escape' && duzenleme) {
@@ -1051,6 +1073,36 @@ export function DataGrid<TRow extends { id: string }>({
     }
     if (ctrl) return; // diğer Ctrl kombinasyonlarını ok navigasyonundan ayır
     if (duzenleme) return;
+
+    // Düzenlenebilir hücre: yazılan eklenir (mevcut silinmez); Delete temizler; Backspace sondan siler
+    if (kolon && kolon.duzenlenebilir && kolon.tip !== 'salt-okunur' && !kolon.secenekler?.length) {
+      const sayisal = Boolean(kolonFormulaTipi(kolon));
+      const mevcut = hucreHamDegeriAl(satir, kolon);
+
+      if (e.key === 'Delete') {
+        e.preventDefault();
+        duzenlemeyiBaslat(satir, kolon, 'ust', '');
+        return;
+      }
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        duzenlemeyiBaslat(satir, kolon, 'ust', mevcut.slice(0, -1));
+        return;
+      }
+
+      const yazilabilir =
+        e.key.length === 1 &&
+        !e.altKey &&
+        (sayisal
+          ? /^[0-9]$/.test(e.key) || e.key === ',' || e.key === '.' || e.key === '-' || e.key === '+'
+          : !/[\u0000-\u001F\u007F]/.test(e.key));
+
+      if (yazilabilir) {
+        e.preventDefault();
+        duzenlemeyiBaslat(satir, kolon, 'ust', mevcut + e.key);
+        return;
+      }
+    }
 
     let yeniSatirIdx = satirIdx;
     let yeniKolonIdx = kolonIdx;
@@ -1402,8 +1454,10 @@ export function DataGrid<TRow extends { id: string }>({
                   <span className="dg-tooltip">
                     {dgTooltipMetni(
                       satirIciDuzenlenebilir
-                        ? 'Düzenlemek için çift tıklayın veya Enter'
-                        : 'Düzenleme sayfası için çift tıklayın veya Enter'
+                        ? kolonFormulaTipi(kolon)
+                          ? 'Düzenlemek için rakam yazın veya çift tıklayın'
+                          : 'Düzenlemek için çift tıklayın veya F2'
+                        : 'Düzenleme sayfası için çift tıklayın'
                     )}
                   </span>
                 )}
@@ -1915,7 +1969,7 @@ export function DataGrid<TRow extends { id: string }>({
         <div className="dg-sutun-menu-baslik">
           <div>
             <h3>Sayı Formülleri</h3>
-            <p>Fiyat ve miktar alanında çift tıklayıp yazın; Enter veya dışarı tıklayınca hesaplanır.</p>
+            <p>Fiyat ve miktar alanında rakam yazın veya çift tıklayın; Enter veya dışarı tıklayınca hesaplanır.</p>
           </div>
         </div>
         <div className="dg-sutun-menu-liste dg-formul-menu-liste ap-scroll">

@@ -142,6 +142,9 @@
 
 .cari-outlined-sonek {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .cari-outlined-sayac {

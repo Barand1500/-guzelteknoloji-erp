@@ -1,4 +1,4 @@
-import type { AdminCari, CariFormDegeri, CariTipi, IsletmeTuru } from '@/admin/baslat-menusu/erp/cari/tipler';
+import type { AdminCari, CariFormDegeri, CariIletisimKisi, CariTipi, IsletmeTuru } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { bosCariForm } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { cariIletisimGetir } from '@/admin/baslat-menusu/erp/cari/cariIletisimDeposu';
 
@@ -6,6 +6,27 @@ function faturaTipiNormalize(tip: string): string {
   const v = tip.trim().toUpperCase();
   if (v === 'TICARI' || v === 'TICARI FATURA') return 'TICARI';
   return 'TEMEL';
+}
+
+function iletisimKisileriniHazirla(c: AdminCari): CariIletisimKisi[] {
+  const kayitli = cariIletisimGetir(c.id);
+  if (kayitli.length > 0) return kayitli;
+
+  const yetkili = c.yetkili.trim();
+  if (!yetkili) return [];
+
+  return [
+    {
+      id: `ik-yetkili-${c.id}`,
+      adSoyad: yetkili,
+      gorevi: '',
+      eposta: c.eposta.trim(),
+      telefon: c.telefon.trim(),
+      il: c.il.trim(),
+      ilce: c.ilce.trim(),
+      adres: c.adres.trim(),
+    },
+  ];
 }
 
 export function caridenForm(c: AdminCari): CariFormDegeri {
@@ -29,7 +50,7 @@ export function caridenForm(c: AdminCari): CariFormDegeri {
     efaturaTipi: c.efatura ? faturaTipiNormalize(c.efaturaTipi) : 'TEMEL',
     alias: c.alias,
     aktif: c.aktif,
-    iletisimKisiler: cariIletisimGetir(c.id),
+    iletisimKisiler: iletisimKisileriniHazirla(c),
   };
 }
 

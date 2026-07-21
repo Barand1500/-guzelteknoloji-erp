@@ -11,7 +11,7 @@ import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/Tanim
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { cariOlustur, cariGuncelle, carileriGetir } from '../api';
-import { cariFormDogrula } from '../alanKurallari';
+import { cariFormDogrula, cariVergiNoDoluVeGecerliMi } from '../alanKurallari';
 import { cariIletisimKaydet } from '../cariIletisimDeposu';
 import {
   cariIsletmeTuruEkle,
@@ -275,6 +275,52 @@ export function CariKart({
           ? 'tuzel'
           : null;
 
+  const kimlikBulGoster =
+    mod === 'yeni' &&
+    !saltOkunur &&
+    !!kimlikModu &&
+    cariVergiNoDoluVeGecerliMi(form.vergiNo, form.isletmeTuru);
+
+  const kimlikIleBul = useCallback(async () => {
+    const aranan = form.vergiNo.trim().toLocaleUpperCase('tr');
+    if (!aranan || !cariVergiNoDoluVeGecerliMi(form.vergiNo, form.isletmeTuru)) return;
+
+    let liste = kayitlar;
+    try {
+      liste = await carileriGetir();
+      setKayitlar(liste);
+    } catch {
+      // Eldeki listeyle devam et
+    }
+
+    const bulunan = liste.find(
+      (k) => k.vergiNo.trim().toLocaleUpperCase('tr') === aranan
+    );
+    if (!bulunan) {
+      hataBildir('Bu numaraya ait kayıtlı cari bulunamadı.');
+      return;
+    }
+
+    const dolu = caridenForm(bulunan);
+    setForm({
+      ...dolu,
+      vergiNo: form.vergiNo.trim(),
+    });
+    setKartTipiSecim(bulunan.cariTipi);
+    basariBildir(`Kayıt bulundu: ${bulunan.cariAdi || bulunan.cariKodu}`);
+  }, [basariBildir, form.isletmeTuru, form.vergiNo, hataBildir, kayitlar]);
+
+  const kimlikBulButonu = kimlikBulGoster ? (
+    <button
+      type="button"
+      className="cari-adres-cek"
+      onClick={() => void kimlikIleBul()}
+      title="Bu numaraya ait kayıtlı cariyi getir"
+    >
+      Bul
+    </button>
+  ) : null;
+
   if (yukleniyor && mod !== 'yeni') return <TanimYukleniyor />;
   if (mod !== 'yeni' && !seciliKayit) return <TanimYukleniyor />;
 
@@ -324,6 +370,7 @@ export function CariKart({
                     onChange={(vergiNo) =>
                       setAlan('vergiNo', vergiNo.replace(/[^A-Za-z0-9]/g, '').slice(0, 20).toUpperCase())
                     }
+                    sonek={kimlikBulButonu}
                   />
                 ) : kimlikModu === 'gercek' ? (
                   <CariOutlinedVergiNo
@@ -332,6 +379,7 @@ export function CariKart({
                     maxHane={11}
                     disabled={saltOkunur}
                     onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
+                    sonek={kimlikBulButonu}
                   />
                 ) : kimlikModu === 'tuzel' ? (
                   <>
@@ -346,6 +394,7 @@ export function CariKart({
                       maxHane={10}
                       disabled={saltOkunur}
                       onChange={(vergiNo) => setAlan('vergiNo', vergiNo)}
+                      sonek={kimlikBulButonu}
                     />
                   </>
                 ) : null}

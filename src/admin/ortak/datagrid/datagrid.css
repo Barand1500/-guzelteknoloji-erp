@@ -1078,13 +1078,35 @@ td.dg-hucre--sabit,
 }
 
 .dg-hucre-girdi {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
-  padding: 0.15rem 0.3rem;
-  border: 1px solid var(--ap-accent);
-  border-radius: 0.2rem;
-  background: var(--ap-input-bg);
-  color: var(--ap-text);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   font-size: inherit;
+  font-weight: inherit;
+  font-variant-numeric: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+}
+
+.dg-hucre-girdi:focus {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+
+.dg-hucre--sayi .dg-hucre-girdi {
+  text-align: right;
 }
 
 .dg-hucre-secim {
@@ -1198,12 +1220,22 @@ td.dg-hucre--sabit,
 }
 
 .dg-hucre[data-kolon-id='miktar'] .dg-hucre-girdi {
-  width: 2rem;
+  display: inline-block;
+  width: auto;
+  min-width: 1.1rem;
+  height: 1.1rem;
   max-width: 100%;
   margin: 0 auto;
-  display: block;
+  padding: 0 0.22rem;
+  border: none;
+  border-radius: 0.3rem;
+  background: var(--ap-surface-2);
+  color: var(--ap-heading);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.1rem;
   text-align: center;
-  padding: 0.12rem 0.2rem;
+  field-sizing: content;
 }
 
 .dg-hucre[data-kolon-id='birim'],
@@ -1267,9 +1299,15 @@ td.dg-hucre--sabit,
   max-width: 100%;
   margin: 0 auto;
   display: block;
-  padding: 0.08rem 0.1rem;
-  font-size: 0.625rem;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
   text-align: center;
+  color: color-mix(in srgb, var(--ap-accent) 70%, var(--ap-text));
 }
 
 .dg-hucre[data-kolon-id='birim'] .dg-hucre-girdi {
@@ -1277,8 +1315,15 @@ td.dg-hucre--sabit,
   max-width: 100%;
   margin: 0 auto;
   display: block;
-  padding: 0.08rem 0.2rem;
-  font-size: 0.625rem;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--ap-accent);
 }
 
 .dg-hucre[data-kolon-id='birim'] .dg-hucre-girdi.dg-hucre-secim {
