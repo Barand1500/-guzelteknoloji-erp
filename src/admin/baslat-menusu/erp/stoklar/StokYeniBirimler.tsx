@@ -239,7 +239,6 @@ export function StokYeniBirimler({
       id: string,
       taraf: 'alis' | 'satis',
       patch: {
-        tur?: 'agirlik' | 'hacim' | '';
         birim?: 'g' | 'kg' | 'desi' | '';
         deger?: number | null;
       }
@@ -247,25 +246,28 @@ export function StokYeniBirimler({
       const mevcut = satirlarRef.current.find((s) => s.id === id);
       if (!mevcut) return;
       if (taraf === 'alis') {
-        const alisOlcuTur = patch.tur !== undefined ? patch.tur : mevcut.alisOlcuTur ?? '';
-        const alisOlcuBirim = patch.birim !== undefined ? patch.birim : mevcut.alisOlcuBirim ?? '';
+        const alisOlcuBirim =
+          patch.birim !== undefined
+            ? patch.birim === 'g'
+              ? 'g'
+              : 'kg'
+            : mevcut.alisOlcuBirim === 'g'
+              ? 'g'
+              : 'kg';
         const alisOlcuDeger = patch.deger !== undefined ? patch.deger : mevcut.alisOlcuDeger;
-        satirPatch(id, { alisOlcuTur, alisOlcuBirim, alisOlcuDeger });
+        satirPatch(id, {
+          alisOlcuTur: 'agirlik',
+          alisOlcuBirim,
+          alisOlcuDeger,
+        });
         return;
       }
-      const satisOlcuTur = patch.tur !== undefined ? patch.tur : mevcut.satisOlcuTur ?? '';
-      const satisOlcuBirim = patch.birim !== undefined ? patch.birim : mevcut.satisOlcuBirim ?? '';
       const satisOlcuDeger = patch.deger !== undefined ? patch.deger : mevcut.satisOlcuDeger;
       satirPatch(id, {
-        satisOlcuTur,
-        satisOlcuBirim,
+        satisOlcuTur: 'hacim',
+        satisOlcuBirim: 'desi',
         satisOlcuDeger,
-        desi:
-          satisOlcuTur === 'hacim' || satisOlcuBirim === 'desi'
-            ? satisOlcuDeger == null
-              ? ''
-              : String(satisOlcuDeger)
-            : mevcut.desi,
+        desi: satisOlcuDeger == null ? '' : String(satisOlcuDeger),
       });
     },
     [satirPatch]
@@ -524,21 +526,12 @@ export function StokYeniBirimler({
                       onTipChange={(alisKdvTipi) => satirPatch(satir.id, { alisKdvTipi })}
                     />
                     <CariOutlinedOlcu
-                      tur={satir.alisOlcuTur ?? ''}
-                      birim={satir.alisOlcuBirim ?? ''}
+                      tur="agirlik"
+                      birim={satir.alisOlcuBirim ?? 'kg'}
                       deger={satir.alisOlcuDeger}
-                      onTurDegistir={(tur) =>
-                        olcuPatch(satir.id, 'alis', {
-                          tur,
-                          birim: tur === 'hacim' ? 'desi' : satir.alisOlcuBirim === 'g' ? 'g' : 'kg',
-                        })
-                      }
                       onBirimDegistir={(birim) => olcuPatch(satir.id, 'alis', { birim })}
                       onDegerDegistir={(deger) => olcuPatch(satir.id, 'alis', { deger })}
-                      onHesapModal={() => {
-                        if (!satir.alisOlcuTur) olcuPatch(satir.id, 'alis', { tur: 'agirlik', birim: 'kg' });
-                        setOlcuModal({ satirId: satir.id, taraf: 'alis' });
-                      }}
+                      onHesapModal={() => setOlcuModal({ satirId: satir.id, taraf: 'alis' })}
                     />
                     <CariToggleAlan
                       etiket="Ana Birim"
@@ -614,21 +607,12 @@ export function StokYeniBirimler({
                       listeDikeyBosluk={4}
                     />
                     <CariOutlinedOlcu
-                      tur={satir.satisOlcuTur ?? ''}
-                      birim={satir.satisOlcuBirim ?? ''}
+                      tur="hacim"
+                      birim="desi"
                       deger={satir.satisOlcuDeger}
-                      onTurDegistir={(tur) =>
-                        olcuPatch(satir.id, 'satis', {
-                          tur,
-                          birim: tur === 'hacim' ? 'desi' : satir.satisOlcuBirim === 'g' ? 'g' : 'kg',
-                        })
-                      }
                       onBirimDegistir={(birim) => olcuPatch(satir.id, 'satis', { birim })}
                       onDegerDegistir={(deger) => olcuPatch(satir.id, 'satis', { deger })}
-                      onHesapModal={() => {
-                        if (!satir.satisOlcuTur) olcuPatch(satir.id, 'satis', { tur: 'agirlik', birim: 'kg' });
-                        setOlcuModal({ satirId: satir.id, taraf: 'satis' });
-                      }}
+                      onHesapModal={() => setOlcuModal({ satirId: satir.id, taraf: 'satis' })}
                     />
                     <CariToggleAlan
                       etiket="Varsayılan"
@@ -748,41 +732,9 @@ export function StokYeniBirimler({
       {olcuModal && olcuModalSatir ? (
         <StokOlcuHesapModal
           acik
-          tur={
-            (olcuModal.taraf === 'alis'
-              ? olcuModalSatir.alisOlcuTur
-              : olcuModalSatir.satisOlcuTur) === 'hacim'
-              ? 'hacim'
-              : 'agirlik'
-          }
-          birim={(() => {
-            const tur =
-              olcuModal.taraf === 'alis'
-                ? olcuModalSatir.alisOlcuTur
-                : olcuModalSatir.satisOlcuTur;
-            const birim =
-              olcuModal.taraf === 'alis'
-                ? olcuModalSatir.alisOlcuBirim
-                : olcuModalSatir.satisOlcuBirim;
-            if (tur === 'hacim') return 'desi';
-            return birim === 'g' ? 'g' : 'kg';
-          })()}
-          onUygula={(deger) => {
-            const tur =
-              (olcuModal.taraf === 'alis'
-                ? olcuModalSatir.alisOlcuTur
-                : olcuModalSatir.satisOlcuTur) === 'hacim'
-                ? 'hacim'
-                : 'agirlik';
-            const mevcutBirim =
-              olcuModal.taraf === 'alis'
-                ? olcuModalSatir.alisOlcuBirim
-                : olcuModalSatir.satisOlcuBirim;
-            olcuPatch(olcuModalSatir.id, olcuModal.taraf, {
-              tur,
-              birim: tur === 'hacim' ? 'desi' : mevcutBirim === 'g' ? 'g' : 'kg',
-              deger,
-            });
+          tur={olcuModal.taraf === 'alis' ? 'agirlik' : 'hacim'}
+          onUygula={({ deger, birim }) => {
+            olcuPatch(olcuModalSatir.id, olcuModal.taraf, { deger, birim });
           }}
           onKapat={() => setOlcuModal(null)}
         />

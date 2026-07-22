@@ -523,15 +523,14 @@ export function CariOutlinedOlcu({
   tur,
   birim,
   deger,
-  onTurDegistir,
   onBirimDegistir,
   onDegerDegistir,
   onHesapModal,
 }: {
-  tur: 'agirlik' | 'hacim' | '';
+  /** Üst satır: ağırlık — Alt satır: hacim (sabit) */
+  tur: 'agirlik' | 'hacim';
   birim: 'g' | 'kg' | 'desi' | '';
   deger: number | null | undefined;
-  onTurDegistir: (tur: 'agirlik' | 'hacim') => void;
   onBirimDegistir: (birim: 'g' | 'kg' | 'desi') => void;
   onDegerDegistir: (deger: number | null) => void;
   onHesapModal: () => void;
@@ -540,9 +539,8 @@ export function CariOutlinedOlcu({
   const [focused, setFocused] = useState(false);
   const [ham, setHam] = useState('');
 
-  const etiket = tur === 'hacim' ? 'Hacim' : tur === 'agirlik' ? 'Ağırlık' : 'Ölçü';
-  const aktifTur = tur || 'agirlik';
-  const aktifBirim = birim || (aktifTur === 'hacim' ? 'desi' : 'kg');
+  const etiket = tur === 'hacim' ? 'Hacim' : 'Ağırlık';
+  const aktifBirim = tur === 'hacim' ? 'desi' : birim === 'g' ? 'g' : 'kg';
 
   useEffect(() => {
     if (!focused) setHam(deger !== null && deger !== undefined ? sayiGoster(deger) : '');
@@ -550,9 +548,7 @@ export function CariOutlinedOlcu({
 
   const alanOdakIci = (hedef: EventTarget | null) => {
     const kok = hedef as HTMLElement | null;
-    return Boolean(
-      kok?.closest?.('.stok-yb-olcu-tur-liste') || kok?.closest?.('.stok-yb-olcu-birim-liste')
-    );
+    return Boolean(kok?.closest?.('.stok-yb-olcu-birim-liste'));
   };
 
   return (
@@ -609,44 +605,14 @@ export function CariOutlinedOlcu({
           }}
           aria-label={etiket}
         />
-        <div className="stok-yb-olcu-tur ap-form-acilir-secim-liste-anchor">
-          <FormAcilirSecim
-            value={aktifTur}
-            onChange={(v) => {
-              onTurDegistir(v === 'hacim' ? 'hacim' : 'agirlik');
-            }}
-            secenekler={[
-              { value: 'agirlik', label: 'Ağırlık' },
-              { value: 'hacim', label: 'Hacim' },
-            ]}
-            aria-label="Ölçü türü"
-            className="stok-yb-olcu-tur-secim"
-            listeSinifi="stok-yb-olcu-tur-liste"
-            listeAnchor="self"
-            listeYonu="yukari"
-            listeDikeyBosluk={4}
-            listeMinGenislik={96}
-            tusMetin={aktifTur === 'hacim' ? 'Hacim' : 'Ağırlık'}
-          />
-        </div>
         <div className="stok-yb-olcu-birim ap-form-acilir-secim-liste-anchor">
-          {aktifTur === 'hacim' ? (
-            <FormAcilirSecim
-              value="desi"
-              onChange={() => onBirimDegistir('desi')}
-              secenekler={[{ value: 'desi', label: 'desi' }]}
-              aria-label="Hacim birimi"
-              className="stok-yb-olcu-birim-secim"
-              listeSinifi="stok-yb-olcu-birim-liste"
-              listeAnchor="self"
-              listeYonu="yukari"
-              listeDikeyBosluk={4}
-              listeMinGenislik={56}
-              tusMetin="desi"
-            />
+          {tur === 'hacim' ? (
+            <span className="stok-yb-olcu-birim-sabit" aria-label="Birim desi">
+              desi
+            </span>
           ) : (
             <FormAcilirSecim
-              value={aktifBirim === 'g' ? 'g' : 'kg'}
+              value={aktifBirim}
               onChange={(v) => onBirimDegistir(v === 'g' ? 'g' : 'kg')}
               secenekler={[
                 { value: 'kg', label: 'kg' },
@@ -659,7 +625,7 @@ export function CariOutlinedOlcu({
               listeYonu="yukari"
               listeDikeyBosluk={4}
               listeMinGenislik={56}
-              tusMetin={aktifBirim === 'g' ? 'g' : 'kg'}
+              tusMetin={aktifBirim}
             />
           )}
         </div>

@@ -127,7 +127,7 @@ export function stokPbEtiketi(kod: StokFiyatPb | string): string {
 }
 
 export const STOK_BARKOD_TIP_SECENEKLERI: { deger: StokBarkodTipi; etiket: string }[] = [
-  { deger: '', etiket: '—' },
+  { deger: '', etiket: 'Hiçbiri' },
   { deger: 'EAN8', etiket: 'EAN8' },
   { deger: 'EAN13', etiket: 'EAN13' },
   { deger: 'UPC', etiket: 'UPC' },

@@ -283,8 +283,8 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                           ) : (
                             <>
                               <td className="stok-coklu-barkod-tablo-sira">{oge.sira}</td>
-                              <td className="stok-coklu-barkod-tablo-adi">{oge.deger || '—'}</td>
-                              <td className="stok-coklu-barkod-tablo-kodu">{oge.tip || '—'}</td>
+                              <td className="stok-coklu-barkod-tablo-adi">{oge.deger || ''}</td>
+                              <td className="stok-coklu-barkod-tablo-kodu">{oge.tip || 'Hiçbiri'}</td>
                               {satirDuzenle === null ? (
                                 <td className="stok-coklu-barkod-tablo-islem">
                                   <button

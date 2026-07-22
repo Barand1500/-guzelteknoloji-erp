@@ -3470,43 +3470,32 @@ button.ap-tanimlar-panel-arka {
   padding-right: 0.35rem !important;
 }
 
-.stok-yb-olcu-tur,
 .stok-yb-olcu-birim {
   flex: 0 0 auto;
   align-self: stretch;
   display: flex;
   align-items: stretch;
+  width: 3.2rem;
+  min-width: 3.2rem;
   border-left: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-text) 3%, var(--ap-input-bg));
   z-index: 4;
 }
 
-.stok-yb-olcu-tur {
-  width: 4.65rem;
-  min-width: 4.65rem;
-}
-
-.stok-yb-olcu-birim {
-  width: 3.55rem;
-  min-width: 3.55rem;
-}
-
-.stok-yb-olcu-tur.ap-form-acilir-secim-liste-anchor:has(.ap-form-acilir-secim-tus[aria-expanded='true']),
 .stok-yb-olcu-birim.ap-form-acilir-secim-liste-anchor:has(.ap-form-acilir-secim-tus[aria-expanded='true']) {
   z-index: 30;
 }
 
-.stok-yb-olcu-tur .ap-form-acilir-secim,
 .stok-yb-olcu-birim .ap-form-acilir-secim {
   width: 100%;
   height: 100%;
 }
 
-.stok-yb-olcu-tur-secim.ap-form-acilir-secim-tus,
 .stok-yb-olcu-birim-secim.ap-form-acilir-secim-tus {
   display: inline-flex !important;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.12rem;
+  justify-content: center;
+  gap: 0.1rem;
   width: 100%;
   height: 100%;
   min-height: 100%;
@@ -3514,42 +3503,49 @@ button.ap-tanimlar-panel-arka {
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
-  padding: 0 0.28rem 0 0.32rem;
+  padding: 0 0.2rem;
   font-size: 0.68rem;
   font-weight: 650;
   color: var(--ap-text-muted);
 }
 
-.stok-yb-olcu-tur-secim.ap-form-acilir-secim-tus:hover,
 .stok-yb-olcu-birim-secim.ap-form-acilir-secim-tus:hover,
-.stok-yb-olcu-tur-secim.ap-form-acilir-secim-tus[aria-expanded='true'],
 .stok-yb-olcu-birim-secim.ap-form-acilir-secim-tus[aria-expanded='true'],
-.cari-outlined-field:focus-within .stok-yb-olcu-tur-secim.ap-form-acilir-secim-tus,
 .cari-outlined-field:focus-within .stok-yb-olcu-birim-secim.ap-form-acilir-secim-tus {
   color: var(--ap-accent);
-  background: color-mix(in srgb, var(--ap-accent) 6%, transparent) !important;
+  background: transparent !important;
 }
 
-.stok-yb-olcu-tur-secim .ap-form-acilir-secim-tus-metin,
 .stok-yb-olcu-birim-secim .ap-form-acilir-secim-tus-metin {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: 0.68rem;
   font-weight: 650;
-  text-align: left;
+  text-align: center;
+  color: inherit;
 }
 
-.stok-yb-olcu-tur-secim .ap-form-acilir-secim-ok,
 .stok-yb-olcu-birim-secim .ap-form-acilir-secim-ok {
   flex: 0 0 auto;
-  width: 0.7rem;
-  opacity: 0.7;
+  width: 0.55rem;
+  font-size: 0.55rem;
+  opacity: 0.55;
+  color: inherit;
 }
 
-.stok-yb-olcu-tur-liste,
+.stok-yb-olcu-birim-sabit {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--ap-text-muted);
+  background: transparent;
+}
+
 .stok-yb-olcu-birim-liste {
   z-index: 80;
   min-width: 0;
@@ -3560,7 +3556,6 @@ button.ap-tanimlar-panel-arka {
   box-shadow: 0 8px 22px color-mix(in srgb, #000 14%, transparent);
 }
 
-.stok-yb-olcu-tur-liste .ap-form-acilir-secim-oge,
 .stok-yb-olcu-birim-liste .ap-form-acilir-secim-oge {
   font-size: 0.72rem;
   font-weight: 600;
@@ -3576,6 +3571,47 @@ button.ap-tanimlar-panel-arka {
   flex-direction: column;
   gap: 0.75rem;
   padding-top: 0.35rem;
+}
+
+.stok-olcu-hesap-bolge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.15rem 0 0.05rem;
+}
+
+.stok-olcu-hesap-bolge-oge {
+  margin: 0;
+  border: none;
+  background: transparent;
+  padding: 0.1rem 0.05rem;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 650;
+  color: var(--ap-muted);
+  line-height: 1.2;
+  text-underline-offset: 0.22em;
+}
+
+.stok-olcu-hesap-bolge-oge:hover {
+  color: var(--ap-text);
+}
+
+.stok-olcu-hesap-bolge-oge--aktif {
+  color: var(--ap-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.22em;
+}
+
+.stok-olcu-hesap-bolge-ayirici {
+  color: var(--ap-border);
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1;
+  user-select: none;
 }
 
 .stok-olcu-hesap-sekil-grup {
@@ -4536,7 +4572,7 @@ button.ap-tanimlar-panel-arka {
     minmax(2.65rem, 0.4fr)
     minmax(3.35rem, 0.55fr)
     minmax(4.35rem, 0.78fr)
-    minmax(10rem, 1.4fr)
+    minmax(6.5rem, 0.95fr)
     minmax(2.7rem, 0.48fr);
   column-gap: 0.32rem;
   row-gap: 0.4rem;

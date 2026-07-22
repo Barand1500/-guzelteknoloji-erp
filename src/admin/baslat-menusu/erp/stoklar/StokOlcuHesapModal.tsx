@@ -8,12 +8,12 @@ import { sayiGoster, sayiOku } from './stokYeniBirimlerYardimci';
 
 export type StokOlcuTur = 'agirlik' | 'hacim';
 export type StokOlcuBirim = 'g' | 'kg' | 'desi';
+export type DesiBolge = 'yurtIci' | 'yurtDisi';
 
 interface StokOlcuHesapModalProps {
   acik: boolean;
   tur: StokOlcuTur;
-  birim: StokOlcuBirim;
-  onUygula: (deger: number) => void;
+  onUygula: (sonuc: { deger: number; birim: StokOlcuBirim }) => void;
   onKapat: () => void;
 }
 
@@ -24,6 +24,11 @@ const AGIRLIK_SEKILLERI: { value: AgirlikSekil; etiket: string }[] = [
   { value: 'kup', etiket: 'Küp' },
   { value: 'silindir', etiket: 'Silindir' },
 ];
+
+const DESI_BOLEN: Record<DesiBolge, number> = {
+  yurtIci: 3000,
+  yurtDisi: 5000,
+};
 
 function yuvarla(n: number): number {
   return Math.round(n * 10000) / 10000;
@@ -100,7 +105,7 @@ function MiniSayi({
   );
 }
 
-export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: StokOlcuHesapModalProps) {
+export function StokOlcuHesapModal({ acik, tur, onUygula, onKapat }: StokOlcuHesapModalProps) {
   const sekme = useAdminSekmeKabuk();
   const portalKok = useMemo(
     () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
@@ -108,6 +113,7 @@ export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: Stok
   );
 
   const [sekil, setSekil] = useState<AgirlikSekil>('prizma');
+  const [bolge, setBolge] = useState<DesiBolge>('yurtIci');
   const [en, setEn] = useState<number | null>(null);
   const [boy, setBoy] = useState<number | null>(null);
   const [yukseklik, setYukseklik] = useState<number | null>(null);
@@ -127,6 +133,7 @@ export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: Stok
     if (acilisRef.current) return;
     acilisRef.current = true;
     setSekil('prizma');
+    setBolge('yurtIci');
     setEn(null);
     setBoy(null);
     setYukseklik(null);
@@ -155,22 +162,29 @@ export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: Stok
     return () => document.removeEventListener('keydown', tusHandler);
   }, [acik, onKapat, portalKok]);
 
-  const sonuc = useMemo(() => {
+  const hesap = useMemo(() => {
     if (tur === 'hacim') {
       if (en == null || boy == null || yukseklik == null) return null;
-      return yuvarla((en * boy * yukseklik) / 3000);
+      const bolen = DESI_BOLEN[bolge];
+      return {
+        deger: yuvarla((en * boy * yukseklik) / bolen),
+        birim: 'desi' as const,
+      };
     }
+
     const cm3 = hacimCm3(sekil, en, boy, yukseklik, yaricap);
     if (cm3 == null || yogunluk == null) return null;
     const gram = yuvarla(cm3 * yogunluk);
-    if (birim === 'kg') return yuvarla(gram / 1000);
-    return gram;
-  }, [tur, birim, sekil, en, boy, yukseklik, yaricap, yogunluk]);
+    if (gram >= 1000) {
+      return { deger: yuvarla(gram / 1000), birim: 'kg' as const };
+    }
+    return { deger: gram, birim: 'g' as const };
+  }, [tur, bolge, sekil, en, boy, yukseklik, yaricap, yogunluk]);
 
   const sonucMetin =
-    sonuc === null
+    hesap === null
       ? ''
-      : `${sonuc.toLocaleString('tr-TR', { maximumFractionDigits: 4 })} ${birim}`.trim();
+      : `${hesap.deger.toLocaleString('tr-TR', { maximumFractionDigits: 4 })} ${hesap.birim}`.trim();
 
   const sonucuKopyala = async () => {
     if (!sonucMetin) return;
@@ -201,7 +215,29 @@ export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: Stok
           <ModalSolBaslik baslik={baslik} ikon={<ModalListeIkon />} onKapat={onKapat} />
 
           <div className="cari-secenek-govde stok-olcu-hesap-govde">
-            {tur === 'agirlik' ? (
+            {tur === 'hacim' ? (
+              <div className="stok-olcu-hesap-bolge" role="radiogroup" aria-label="Desi bölgesi">
+                <button
+                  type="button"
+                  className={`stok-olcu-hesap-bolge-oge${bolge === 'yurtIci' ? ' stok-olcu-hesap-bolge-oge--aktif' : ''}`}
+                  aria-pressed={bolge === 'yurtIci'}
+                  onClick={() => setBolge('yurtIci')}
+                >
+                  Yurt İçi
+                </button>
+                <span className="stok-olcu-hesap-bolge-ayirici" aria-hidden>
+                  |
+                </span>
+                <button
+                  type="button"
+                  className={`stok-olcu-hesap-bolge-oge${bolge === 'yurtDisi' ? ' stok-olcu-hesap-bolge-oge--aktif' : ''}`}
+                  aria-pressed={bolge === 'yurtDisi'}
+                  onClick={() => setBolge('yurtDisi')}
+                >
+                  Yurt Dışı
+                </button>
+              </div>
+            ) : (
               <div className="stok-olcu-hesap-sekil-grup" role="radiogroup" aria-label="Şekil">
                 {AGIRLIK_SEKILLERI.map((o) => (
                   <button
@@ -220,7 +256,7 @@ export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: Stok
                   </button>
                 ))}
               </div>
-            ) : null}
+            )}
 
             <div className="stok-olcu-hesap-mini-satir">
               {tur === 'hacim' || sekil === 'prizma' ? (
@@ -250,9 +286,13 @@ export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: Stok
             </div>
 
             {tur === 'hacim' ? (
-              <p className="stok-olcu-hesap-ipucu">Desi = (En × Boy × Yükseklik) ÷ 3000</p>
+              <p className="stok-olcu-hesap-ipucu">
+                Desi = (En × Boy × Yükseklik) {bolge === 'yurtDisi' ? '÷ 5000' : '÷ 3000'}
+              </p>
             ) : (
-              <p className="stok-olcu-hesap-ipucu">Ağırlık = hacim (cm³) × yoğunluk (g/cm³)</p>
+              <p className="stok-olcu-hesap-ipucu">
+                Ağırlık = hacim (cm³) × yoğunluk — 1000 g ve üzeri otomatik kg
+              </p>
             )}
 
             <div className="stok-olcu-hesap-sonuc-satir">
@@ -276,10 +316,10 @@ export function StokOlcuHesapModal({ acik, tur, birim, onUygula, onKapat }: Stok
                 <button
                   type="button"
                   className="stok-olcu-hesap-uygula"
-                  disabled={sonuc === null}
+                  disabled={hesap === null}
                   onClick={() => {
-                    if (sonuc === null) return;
-                    onUygula(sonuc);
+                    if (hesap === null) return;
+                    onUygula(hesap);
                     onKapat();
                   }}
                 >
