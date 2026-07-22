@@ -426,34 +426,29 @@ export function StokKarti({
             />
           </div>
         </div>
-        <div className="stok-karti-gtip-diger-vergi-satir">
+        <div className="stok-karti-gtip-marka-satir">
           <CariOutlinedGirdi
             etiket="GTIP Kodu"
             deger={form.gtip}
             disabled={saltOkunur}
             maxLength={20}
             buyukHarf
-            className="stok-karti-kisa-alan"
             odakPlaceholder="GTIP kodunu yazınız"
             onChange={(gtip) => setForm((f) => ({ ...f, gtip }))}
           />
-          <StokDigerVergiBlok />
-        </div>
-        <div className="stok-karti-marka-mensei-satir">
-          <div className="stok-karti-marka-alan">
+          <div className="stok-karti-marka-mensei-cift">
             <CariOutlinedMarka
               deger={form.marka}
               disabled={saltOkunur}
               onChange={(marka) => setForm((f) => ({ ...f, marka }))}
             />
-          </div>
-          <div className="stok-karti-mensei-alan">
             <CariOutlinedMensei
               deger={form.mensei}
               disabled={saltOkunur}
               onChange={(mensei) => setForm((f) => ({ ...f, mensei }))}
             />
           </div>
+          <StokDigerVergiBlok />
         </div>
         <div className="stok-karti-tarih-bilgi">
           <span>
