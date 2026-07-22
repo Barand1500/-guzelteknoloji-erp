@@ -453,7 +453,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                             setIskontoOdak(false);
                             setHata('');
                           }}
-                          title="Düzenlemek için çift tıklayın"
+                          title="Düzenlemek için çift tıklayınız."
                         >
                           {duzenleniyor ? (
                             <td colSpan={6} className="stok-coklu-fiyat-tablo-duzenle-hucre">
@@ -508,10 +508,6 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                 </tbody>
               </table>
             </div>
-          </div>
-
-          <div className="cari-secenek-alt">
-            <p className="cari-secenek-ipucu">Düzenlemek için çift tıklayınız.</p>
           </div>
         </div>
       </DonenAccentCerceve>

@@ -52,7 +52,6 @@ export function cariKartTipiEkle(label: string): CariKartTipiSecenek | null {
 export function cariKartTipiGuncelle(value: string, yeniLabel: string): boolean {
   const ad = yeniLabel.trim();
   if (!ad) return false;
-  const korunacak = new Set(['ALICI', 'SATICI']);
   const mevcut = oku();
   const hedef = mevcut.find((t) => t.value === value);
   if (!hedef) return false;
@@ -64,17 +63,11 @@ export function cariKartTipiGuncelle(value: string, yeniLabel: string): boolean 
   ) {
     return false;
   }
-  yaz(
-    mevcut.map((t) =>
-      t.value === value ? { ...t, label: korunacak.has(value) ? hedef.label : ad } : t
-    )
-  );
+  yaz(mevcut.map((t) => (t.value === value ? { ...t, label: ad } : t)));
   return true;
 }
 
 export function cariKartTipiSil(value: string): void {
-  const korunacak = new Set(['ALICI', 'SATICI']);
-  if (korunacak.has(value)) return;
   yaz(oku().filter((t) => t.value !== value));
 }
 

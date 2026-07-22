@@ -643,8 +643,9 @@ export function CariKart({
         }}
         onSil={(value) => {
           cariKartTipiSil(value);
-          setKartTipleri(cariKartTipleriGetir());
-          if (kartTipiSecim === value) setKartTipiSecim('ALICI');
+          const kalan = cariKartTipleriGetir();
+          setKartTipleri(kalan);
+          if (kartTipiSecim === value) setKartTipiSecim(kalan[0]?.value ?? 'ALICI');
         }}
         onKapat={() => setTipModalAcik(false)}
       />

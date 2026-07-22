@@ -21,7 +21,7 @@ interface StokKdvDepartmanModalProps {
 function yuzdeGoster(yuzde: string): string {
   const temiz = yuzde.trim();
   if (!temiz) return '—';
-  return `%${temiz.replace('.', ',')}`;
+  return temiz.replace('.', ',');
 }
 
 export function StokKdvDepartmanModal({
@@ -137,9 +137,9 @@ export function StokKdvDepartmanModal({
                   className="ap-input stok-kdv-departman-yuzde"
                   value={yeniYuzde}
                   onChange={(e) => setYeniYuzde(kdvYuzdeFiltrele(e.target.value))}
-                  placeholder="%"
+                  placeholder="oran"
                   inputMode="decimal"
-                  aria-label="KDV yüzdesi"
+                  aria-label="KDV oranı"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -164,7 +164,7 @@ export function StokKdvDepartmanModal({
                 <thead>
                   <tr>
                     <th>Adı</th>
-                    <th>%</th>
+                    <th>oran</th>
                     <th>İşlemler</th>
                   </tr>
                 </thead>
@@ -189,7 +189,6 @@ export function StokKdvDepartmanModal({
                             setSatirYuzde(oge.yuzde);
                             setHata('');
                           }}
-                          title="Düzenlemek için çift tıklayın"
                         >
                           {duzenleniyor ? (
                             <>
@@ -225,7 +224,7 @@ export function StokKdvDepartmanModal({
                                   value={satirYuzde}
                                   inputMode="decimal"
                                   aria-label={`${oge.label} yüzdesi`}
-                                  placeholder="%"
+                                  placeholder="oran"
                                   onChange={(e) => setSatirYuzde(kdvYuzdeFiltrele(e.target.value))}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
@@ -248,7 +247,12 @@ export function StokKdvDepartmanModal({
                             </>
                           ) : (
                             <>
-                              <td className="stok-coklu-barkod-tablo-adi">{oge.label || '—'}</td>
+                              <td
+                                className="stok-coklu-barkod-tablo-adi"
+                                title="Düzenlemek için çift tıklayınız."
+                              >
+                                {oge.label || '—'}
+                              </td>
                               <td className="stok-coklu-barkod-tablo-kodu stok-kdv-departman-tablo-yuzde">
                                 {yuzdeGoster(oge.yuzde)}
                               </td>
@@ -271,10 +275,6 @@ export function StokKdvDepartmanModal({
                 </tbody>
               </table>
             </div>
-          </div>
-
-          <div className="cari-secenek-alt">
-            <p className="cari-secenek-ipucu">Düzenlemek için çift tıklayınız.</p>
           </div>
         </div>
       </DonenAccentCerceve>

@@ -95,6 +95,22 @@ export interface StokFiyatDuzenleSatir {
   anaBirimMi?: boolean;
   varsayilanMi?: boolean;
   birimAciklama?: string;
+  alisIskonto?: string;
+  alisNetFiyat?: number | null;
+  satisIskonto?: string;
+  satisNetFiyat?: number | null;
+  hacim?: number | null;
+  alan?: number | null;
+  litre?: number | null;
+  olcuTuru?: 'hacim' | 'alan' | 'litre' | 'agirlik' | '';
+  /** Ölçü türüne göre şekil kodu */
+  olcuSekil?: string;
+  olcuTaban?: number | null;
+  olcuGenislik?: number | null;
+  olcuYukseklik?: number | null;
+  olcuYaricap?: number | null;
+  /** Ağırlık: kg/L veya g/cm³ */
+  olcuYogunluk?: number | null;
 }
 
 export const STOK_FIYAT_PB_SECENEKLERI: {

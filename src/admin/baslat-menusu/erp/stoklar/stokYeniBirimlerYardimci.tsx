@@ -23,18 +23,128 @@ export function sayiGosterFormatli(deger: number | null | undefined): string {
   });
 }
 
+/**
+ * Canlı/formatlı fiyattan ham değere çevirir.
+ * TR formatta `.` binlik, `,` ondalıktır. Formatlı metindeki noktalar
+ * ondalık sayılmaz; kullanıcı ondalık için `,` (veya sonda `.`) yazar.
+ */
 function fiyatHamFiltrele(ham: string): string {
+  let t = ham;
+  if (!t.includes(',') && t.endsWith('.')) {
+    // "564." → kullanıcı ondalık noktası yazmış
+    t = `${t.slice(0, -1).replace(/\./g, '')},`;
+  } else {
+    // Binlik noktalarını at (canlı format veya yapıştırma)
+    t = t.replace(/\./g, '');
+  }
+
   let sonuc = '';
   let virgulVar = false;
-  for (const ch of ham) {
+  for (const ch of t) {
     if (ch >= '0' && ch <= '9') {
       sonuc += ch;
-    } else if ((ch === ',' || ch === '.') && !virgulVar) {
+    } else if (ch === ',' && !virgulVar) {
       virgulVar = true;
       sonuc += ',';
     }
   }
   return sonuc;
+}
+
+export { fiyatHamFiltrele };
+
+export function sayiGosterCanli(ham: string): string {
+  const filtre = fiyatHamFiltrele(ham);
+  if (!filtre) return '';
+
+  const virgulIdx = filtre.indexOf(',');
+  let tamKisim = virgulIdx >= 0 ? filtre.slice(0, virgulIdx) : filtre;
+  const ondalikKisim = virgulIdx >= 0 ? filtre.slice(virgulIdx + 1) : '';
+
+  if (tamKisim.length > 1) {
+    tamKisim = tamKisim.replace(/^0+/, '') || '0';
+  }
+
+  const formatliTam =
+    tamKisim === ''
+      ? '0'
+      : Number(tamKisim).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+
+  if (virgulIdx < 0) return formatliTam;
+  if (filtre.endsWith(',')) return `${formatliTam},`;
+  return `${formatliTam},${ondalikKisim}`;
+}
+
+export function fiyatImlecSolRakamSayisi(metin: string, konum: number): number {
+  let n = 0;
+  const sinir = Math.min(konum, metin.length);
+  for (let i = 0; i < sinir; i += 1) {
+    const ch = metin[i];
+    if (ch >= '0' && ch <= '9') n += 1;
+  }
+  return n;
+}
+
+export function fiyatImlecKonumu(metin: string, solRakamSayisi: number): number {
+  if (solRakamSayisi <= 0) return 0;
+  let rakam = 0;
+  for (let i = 0; i < metin.length; i += 1) {
+    const ch = metin[i];
+    if (ch >= '0' && ch <= '9') {
+      rakam += 1;
+      if (rakam >= solRakamSayisi) return i + 1;
+    }
+  }
+  return metin.length;
+}
+
+/** "20+20+10" gibi bileşik iskonto; sadece rakam, virgül/nokta ve + */
+export function iskontoHamFiltrele(ham: string): string {
+  let sonuc = '';
+  let sonArtı = true;
+  let virgulVar = false;
+  for (const ch of ham) {
+    if (ch >= '0' && ch <= '9') {
+      sonuc += ch;
+      sonArtı = false;
+    } else if ((ch === ',' || ch === '.') && !virgulVar && !sonArtı) {
+      sonuc += ',';
+      virgulVar = true;
+      sonArtı = false;
+    } else if (ch === '+' && !sonArtı) {
+      sonuc += '+';
+      sonArtı = true;
+      virgulVar = false;
+    }
+  }
+  return sonuc;
+}
+
+function iskontoOranlari(ham: string | null | undefined): number[] {
+  if (!ham?.trim()) return [];
+  return ham
+    .split('+')
+    .map((p) => Number(p.trim().replace(',', '.')))
+    .filter((n) => Number.isFinite(n) && n >= 0);
+}
+
+/** Bileşik iskonto: 100, "20+20" → 64 (önce %20, sonra kalan üzerinden %20) */
+export function netFiyatHesapla(
+  fiyat: number | null | undefined,
+  iskonto: string | number | null | undefined
+): number | null {
+  if (fiyat === null || fiyat === undefined) return null;
+  const oranlar =
+    typeof iskonto === 'number'
+      ? Number.isFinite(iskonto) && iskonto >= 0
+        ? [iskonto]
+        : []
+      : iskontoOranlari(iskonto);
+  let n = fiyat;
+  for (const oran of oranlar) {
+    n *= 1 - oran / 100;
+  }
+  return Math.round(n * 10000) / 10000;
 }
 
 export function barkodFiltrele(ham: string): string {

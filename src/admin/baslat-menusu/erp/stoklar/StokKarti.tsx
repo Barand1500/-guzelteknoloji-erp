@@ -33,6 +33,7 @@ import {
   stokKdvDepartmaniGosterimEtiketi,
   stokKdvDepartmaniSil,
   stokKdvDepartmanlariGetir,
+  kdvYuzdeFiltrele,
   type StokKdvDepartmaniSecenek,
 } from './stokKdvDepartmanlari';
 import { StokKdvDepartmanModal } from './StokKdvDepartmanModal';
@@ -383,7 +384,17 @@ export function StokKarti({
               bosMetin="KDV Departmanı"
               kutuIciArama
               onYonet={() => setKdvModalAcik(true)}
-              onChange={(kdvDepartmani) => setForm((f) => ({ ...f, kdvDepartmani }))}
+              onChange={(kdvDepartmani) => {
+                setForm((f) => ({ ...f, kdvDepartmani }));
+                const dep = kdvDepartmanlari.find((d) => d.value === kdvDepartmani);
+                const ham = dep?.yuzde?.trim();
+                if (!ham) return;
+                const yuzde = Number(ham.replace(',', '.'));
+                if (!Number.isFinite(yuzde)) return;
+                setBirimSatirlari((onceki) =>
+                  onceki.map((s) => ({ ...s, kdv: yuzde, alisKdv: yuzde }))
+                );
+              }}
             />
           </div>
           <div className="stok-karti-nevi-alan">
@@ -479,7 +490,17 @@ export function StokKarti({
             </fieldset>
 
             <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
-              <StokYeniBirimler satirlar={birimSatirlari} onChange={birimSatirlariAyarla} />
+              <StokYeniBirimler
+                satirlar={birimSatirlari}
+                onChange={birimSatirlariAyarla}
+                kdvDepartmanYuzde={(() => {
+                  const dep = kdvDepartmanlari.find((d) => d.value === form.kdvDepartmani);
+                  const ham = dep?.yuzde?.trim();
+                  if (!ham) return null;
+                  const n = Number(ham.replace(',', '.'));
+                  return Number.isFinite(n) ? n : null;
+                })()}
+              />
             </fieldset>
           </div>
         </TanimDuzenleEkrani>
@@ -493,11 +514,27 @@ export function StokKarti({
           if (!sonuc) return false;
           setKdvDepartmanlari(stokKdvDepartmanlariGetir());
           setForm((f) => ({ ...f, kdvDepartmani: sonuc.value }));
+          const n = Number(sonuc.yuzde.replace(',', '.'));
+          if (Number.isFinite(n)) {
+            setBirimSatirlari((onceki) =>
+              onceki.map((s) => ({ ...s, kdv: n, alisKdv: n }))
+            );
+          }
           return true;
         }}
         onGuncelle={(value, ad, yuzde) => {
           const ok = stokKdvDepartmaniGuncelle(value, ad, yuzde);
-          if (ok) setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+          if (ok) {
+            setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+            if (form.kdvDepartmani === value) {
+              const n = Number(kdvYuzdeFiltrele(yuzde).replace(',', '.'));
+              if (Number.isFinite(n) && kdvYuzdeFiltrele(yuzde).trim()) {
+                setBirimSatirlari((onceki) =>
+                  onceki.map((s) => ({ ...s, kdv: n, alisKdv: n }))
+                );
+              }
+            }
+          }
           return ok;
         }}
         onSil={(value) => {
@@ -530,8 +567,11 @@ export function StokKarti({
         }}
         onSil={(value) => {
           stokTipiSil(value);
-          setStokTipleri(stokTipleriGetir());
-          if (form.urunTipi === value) setForm((f) => ({ ...f, urunTipi: 'EMTIA' }));
+          const kalan = stokTipleriGetir();
+          setStokTipleri(kalan);
+          if (form.urunTipi === value) {
+            setForm((f) => ({ ...f, urunTipi: kalan[0]?.value ?? '' }));
+          }
         }}
         onKapat={() => setTipModalAcik(false)}
       />
@@ -558,8 +598,11 @@ export function StokKarti({
         }}
         onSil={(value) => {
           stokNeviSil(value);
-          setStokNevileri(stokNevileriGetir());
-          if (form.urunNevi === value) setForm((f) => ({ ...f, urunNevi: '' }));
+          const kalan = stokNevileriGetir();
+          setStokNevileri(kalan);
+          if (form.urunNevi === value) {
+            setForm((f) => ({ ...f, urunNevi: kalan[0]?.value ?? '' }));
+          }
         }}
         onKapat={() => setNeviModalAcik(false)}
       />

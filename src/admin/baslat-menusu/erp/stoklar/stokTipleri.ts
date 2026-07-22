@@ -56,7 +56,6 @@ export function stokTipiEkle(label: string): StokTipiSecenek | null {
 export function stokTipiGuncelle(value: string, yeniLabel: string): boolean {
   const ad = yeniLabel.trim();
   if (!ad) return false;
-  const korunacak = new Set(['EMTIA', 'HIZMET']);
   const mevcut = oku();
   const hedef = mevcut.find((t) => t.value === value);
   if (!hedef) return false;
@@ -68,17 +67,11 @@ export function stokTipiGuncelle(value: string, yeniLabel: string): boolean {
   ) {
     return false;
   }
-  yaz(
-    mevcut.map((t) =>
-      t.value === value ? { ...t, label: korunacak.has(value) ? hedef.label : ad } : t
-    )
-  );
+  yaz(mevcut.map((t) => (t.value === value ? { ...t, label: ad } : t)));
   return true;
 }
 
 export function stokTipiSil(value: string): void {
-  const korunacak = new Set(['EMTIA', 'HIZMET']);
-  if (korunacak.has(value)) return;
   yaz(oku().filter((t) => t.value !== value));
 }
 

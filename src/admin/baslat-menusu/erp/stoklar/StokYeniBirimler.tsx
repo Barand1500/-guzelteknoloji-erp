@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CariSecenekModal } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariSecenekModal';
 import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
 import {
+  CariOutlinedEtiket,
   CariOutlinedGirdi,
   CariOutlinedSarmalayici,
 } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
@@ -10,7 +11,7 @@ import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { bosBirimFiyatSatiri } from './birimMap';
-import type { StokBarkodTipi, StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
+import type { StokBarkodTipi, StokFiyatDuzenleSatir, StokFiyatKdvTipi } from './fiyatDuzenleTipler';
 import { STOK_FIYAT_PB_SECENEKLERI, stokPbSembolu } from './fiyatDuzenleTipler';
 import {
   stokBirimAdiEkle,
@@ -34,17 +35,31 @@ import {
   CariOutlinedCarpan,
   CariOutlinedSayi,
   CariToggleAlan,
-  KdvTipSegment,
+  iskontoHamFiltrele,
+  netFiyatHesapla,
 } from './stokYeniBirimlerYardimci';
 import { StokCokluBarkodModal } from './StokCokluBarkodModal';
 import { StokCokluFiyatModal } from './StokCokluFiyatModal';
 
-const KDV_SECENEKLERI = ['0', '1', '10', '20'].map((k) => ({ value: k, label: `% ${k}` }));
+const KDV_TABAN = ['0', '1', '10', '20'];
+
+function kdvSecenekleriOlustur(ekstra?: number | null): { value: string; label: string }[] {
+  const degerler = new Set(KDV_TABAN);
+  if (ekstra !== null && ekstra !== undefined && Number.isFinite(ekstra)) {
+    degerler.add(String(ekstra));
+  }
+  return [...degerler]
+    .sort((a, b) => Number(a) - Number(b))
+    .map((k) => ({ value: k, label: `% ${k}` }));
+}
 
 function CariOutlinedKdv({
   etiket,
   deger,
   onChange,
+  tip,
+  onTipChange,
+  ekstraYuzde,
   zorunlu,
   listeYonu,
   listeDikeyBosluk,
@@ -52,36 +67,502 @@ function CariOutlinedKdv({
   etiket: string;
   deger: number;
   onChange: (deger: number) => void;
+  tip: StokFiyatKdvTipi;
+  onTipChange: (tip: StokFiyatKdvTipi) => void;
+  ekstraYuzde?: number | null;
   zorunlu?: boolean;
   listeYonu?: 'asagi' | 'yukari';
   listeDikeyBosluk?: number;
 }) {
+  const secenekler = useMemo(() => kdvSecenekleriOlustur(ekstraYuzde ?? deger), [ekstraYuzde, deger]);
   return (
     <CariOutlinedSarmalayici
       etiket={etiket}
       zorunlu={zorunlu}
-      className={`cari-outlined-acilir stok-yb-kdv-outlined${listeYonu === 'yukari' ? ' stok-yb-kdv-outlined--yukari' : ''}`.trim()}
+      className={`cari-outlined-acilir stok-yb-kdv-outlined stok-yb-kdv-outlined--dh${listeYonu === 'yukari' ? ' stok-yb-kdv-outlined--yukari' : ''}`.trim()}
     >
       <FormAcilirSecim
         value={String(deger)}
         onChange={(v) => onChange(Number(v) || 0)}
-        secenekler={KDV_SECENEKLERI.map((x) => ({ ...x }))}
+        secenekler={secenekler}
         aria-label={etiket}
-        className="cari-outlined-acilir-tus"
+        className="cari-outlined-acilir-tus stok-yb-kdv-outlined-tus"
         listeSinifi="stok-yb-kdv-outlined-liste"
         listeYonu={listeYonu}
         listeDikeyBosluk={listeDikeyBosluk}
       />
+      <div className="stok-yb-kdv-dh" role="group" aria-label="KDV dahil / hariç">
+        <button
+          type="button"
+          className={`stok-yb-kdv-dh-oge${tip === 'dahil' ? ' stok-yb-kdv-dh-oge--aktif' : ''}`}
+          onClick={() => onTipChange('dahil')}
+          title="Dahil"
+          aria-pressed={tip === 'dahil'}
+        >
+          D
+        </button>
+        <button
+          type="button"
+          className={`stok-yb-kdv-dh-oge${tip === 'haric' ? ' stok-yb-kdv-dh-oge--aktif' : ''}`}
+          onClick={() => onTipChange('haric')}
+          title="Hariç"
+          aria-pressed={tip === 'haric'}
+        >
+          H
+        </button>
+      </div>
     </CariOutlinedSarmalayici>
+  );
+}
+
+function CariOutlinedIskonto({
+  etiket,
+  deger,
+  onDegistir,
+}: {
+  etiket: string;
+  deger: string;
+  onDegistir: (deger: string) => void;
+}) {
+  const inputId = useId();
+  return (
+    <div className="cari-outlined-field">
+      <CariOutlinedEtiket etiket={etiket} htmlFor={inputId} />
+      <div className="cari-outlined-cerceve stok-yb-yuzde-cerceve">
+        <div className="stok-yb-yuzde-grup">
+          <span className="stok-yb-yuzde-onek" aria-hidden>
+            %
+          </span>
+          <input
+            id={inputId}
+            className="cari-outlined-input stok-yb-yuzde-input cari-outlined-input--saga"
+            inputMode="decimal"
+            placeholder="20+20"
+            value={deger}
+            aria-label={etiket}
+            onChange={(e) => onDegistir(iskontoHamFiltrele(e.target.value))}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const OLCU_SECENEKLERI: { value: 'hacim' | 'alan' | 'litre' | 'agirlik'; etiket: string }[] = [
+  { value: 'hacim', etiket: 'Hacim' },
+  { value: 'alan', etiket: 'Alan' },
+  { value: 'litre', etiket: 'Litre' },
+  { value: 'agirlik', etiket: 'Ağırlık' },
+];
+
+/** alan.hesaplama.net */
+const ALAN_SEKILLERI = [
+  { value: 'ucgen', etiket: 'Üçgen' },
+  { value: 'kare', etiket: 'Kare' },
+  { value: 'dikdortgen', etiket: 'Dikdörtgen' },
+  { value: 'daire', etiket: 'Daire' },
+] as const;
+
+/** hacim.hesaplama.net */
+const HACIM_SEKILLERI = [
+  { value: 'prizma', etiket: 'Prizma' },
+  { value: 'kup', etiket: 'Küp' },
+  { value: 'kure', etiket: 'Küre' },
+  { value: 'silindir', etiket: 'Silindir' },
+  { value: 'koni', etiket: 'Koni' },
+  { value: 'piramit', etiket: 'Kare Piramit' },
+] as const;
+
+type OlcuTur = 'hacim' | 'alan' | 'litre' | 'agirlik';
+
+function yuvarlaOlcu(n: number): number {
+  return Math.round(n * 10000) / 10000;
+}
+
+/** cm³ cinsinden hacim (hacim.hesaplama.net formülleri) */
+function hacimCm3Hesapla(
+  sekil: string,
+  a: number | null | undefined,
+  b: number | null | undefined,
+  h: number | null | undefined,
+  r: number | null | undefined
+): number | null {
+  if (sekil === 'kup') {
+    if (a == null) return null;
+    return yuvarlaOlcu(a * a * a);
+  }
+  if (sekil === 'prizma') {
+    if (a == null || b == null || h == null) return null;
+    return yuvarlaOlcu(a * b * h);
+  }
+  if (sekil === 'kure') {
+    if (r == null) return null;
+    return yuvarlaOlcu((4 / 3) * Math.PI * r * r * r);
+  }
+  if (sekil === 'silindir') {
+    if (r == null || h == null) return null;
+    return yuvarlaOlcu(Math.PI * r * r * h);
+  }
+  if (sekil === 'koni') {
+    if (r == null || h == null) return null;
+    return yuvarlaOlcu((1 / 3) * Math.PI * r * r * h);
+  }
+  if (sekil === 'piramit') {
+    if (a == null || h == null) return null;
+    return yuvarlaOlcu((1 / 3) * a * a * h);
+  }
+  return null;
+}
+
+/** alan.hesaplama.net formülleri */
+function alanHesapla(
+  sekil: string,
+  a: number | null | undefined,
+  h: number | null | undefined,
+  r: number | null | undefined
+): number | null {
+  if (sekil === 'kare') {
+    if (a == null) return null;
+    return yuvarlaOlcu(a * a);
+  }
+  if (sekil === 'dikdortgen') {
+    if (a == null || h == null) return null;
+    return yuvarlaOlcu(a * h);
+  }
+  if (sekil === 'ucgen') {
+    if (a == null || h == null) return null;
+    return yuvarlaOlcu((a * h) / 2);
+  }
+  if (sekil === 'daire') {
+    if (r == null) return null;
+    return yuvarlaOlcu(Math.PI * r * r);
+  }
+  return null;
+}
+
+function olcuSonucHesapla(satir: StokFiyatDuzenleSatir): number | null {
+  const tur = satir.olcuTuru ?? '';
+  const sekil = satir.olcuSekil ?? '';
+  const a = satir.olcuTaban;
+  const b = satir.olcuGenislik;
+  const h = satir.olcuYukseklik;
+  const r = satir.olcuYaricap;
+  const yogunluk = satir.olcuYogunluk;
+
+  if (tur === 'alan') return alanHesapla(sekil, a, h, r);
+
+  if (tur === 'hacim') return hacimCm3Hesapla(sekil, a, b, h, r);
+
+  // Litre: cm ölçüleriyle hacim → litre (1 L = 1000 cm³)
+  if (tur === 'litre') {
+    const cm3 = hacimCm3Hesapla(sekil, a, b, h, r);
+    return cm3 === null ? null : yuvarlaOlcu(cm3 / 1000);
+  }
+
+  // Ağırlık: hacim (L) × yoğunluk (kg/L) = kg
+  if (tur === 'agirlik') {
+    const cm3 = hacimCm3Hesapla(sekil, a, b, h, r);
+    if (cm3 === null || yogunluk == null) return null;
+    const litre = cm3 / 1000;
+    return yuvarlaOlcu(litre * yogunluk);
+  }
+
+  return null;
+}
+
+function olcuPatch(tur: OlcuTur, deger: number | null): Partial<StokFiyatDuzenleSatir> {
+  if (tur === 'hacim') return { hacim: deger };
+  if (tur === 'alan') return { alan: deger };
+  if (tur === 'litre') return { litre: deger };
+  return { agirlikKg: deger === null ? '' : String(deger) };
+}
+
+function olcuSekilleri(tur: OlcuTur) {
+  if (tur === 'alan') return ALAN_SEKILLERI;
+  return HACIM_SEKILLERI;
+}
+
+function sonucBirimi(tur: OlcuTur): string {
+  if (tur === 'alan') return '';
+  if (tur === 'hacim') return 'cm³';
+  if (tur === 'litre') return 'L';
+  return 'kg';
+}
+
+function StokOlcuSecim({
+  name,
+  satir,
+  onPatch,
+}: {
+  name: string;
+  satir: StokFiyatDuzenleSatir;
+  onPatch: (patch: Partial<StokFiyatDuzenleSatir>) => void;
+}) {
+  const kokRef = useRef<HTMLDivElement>(null);
+  const [panelAcik, setPanelAcik] = useState(false);
+  const tur = (satir.olcuTuru ?? '') as OlcuTur | '';
+  const sekil = satir.olcuSekil ?? '';
+  const sonuc = olcuSonucHesapla(satir);
+  const sekiller = tur ? olcuSekilleri(tur) : [];
+
+  useEffect(() => {
+    if (!panelAcik) return;
+    function disariTikla(e: MouseEvent) {
+      const hedef = e.target as Node;
+      if (kokRef.current?.contains(hedef)) return;
+      setPanelAcik(false);
+    }
+    document.addEventListener('mousedown', disariTikla);
+    return () => document.removeEventListener('mousedown', disariTikla);
+  }, [panelAcik]);
+
+  const yaz = (patch: Partial<StokFiyatDuzenleSatir>) => {
+    const sonraki = { ...satir, ...patch };
+    const hesap = olcuSonucHesapla(sonraki);
+    const olcuYazisi = (sonraki.olcuTuru as OlcuTur | '')
+      ? olcuPatch(sonraki.olcuTuru as OlcuTur, hesap)
+      : {};
+    onPatch({ ...patch, ...olcuYazisi });
+  };
+
+  const hacimAlanlari =
+    tur === 'hacim' || tur === 'litre' || tur === 'agirlik'
+      ? (
+          <>
+            {sekil === 'kup' ? (
+              <CariOutlinedSayi
+                etiket="Kenar (a)"
+                deger={satir.olcuTaban}
+                placeholder="cm"
+                sagaHizali
+                onDegistir={(olcuTaban) => yaz({ olcuTaban })}
+              />
+            ) : null}
+            {sekil === 'prizma' ? (
+              <>
+                <CariOutlinedSayi
+                  etiket="Uzunluk (a)"
+                  deger={satir.olcuTaban}
+                  placeholder="cm"
+                  sagaHizali
+                  onDegistir={(olcuTaban) => yaz({ olcuTaban })}
+                />
+                <CariOutlinedSayi
+                  etiket="Genişlik (b)"
+                  deger={satir.olcuGenislik}
+                  placeholder="cm"
+                  sagaHizali
+                  onDegistir={(olcuGenislik) => yaz({ olcuGenislik })}
+                />
+                <CariOutlinedSayi
+                  etiket="Yükseklik (h)"
+                  deger={satir.olcuYukseklik}
+                  placeholder="cm"
+                  sagaHizali
+                  onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
+                />
+              </>
+            ) : null}
+            {sekil === 'kure' ? (
+              <CariOutlinedSayi
+                etiket="Yarıçap (r)"
+                deger={satir.olcuYaricap}
+                placeholder="cm"
+                sagaHizali
+                onDegistir={(olcuYaricap) => yaz({ olcuYaricap })}
+              />
+            ) : null}
+            {sekil === 'silindir' || sekil === 'koni' ? (
+              <>
+                <CariOutlinedSayi
+                  etiket="Yarıçap (r)"
+                  deger={satir.olcuYaricap}
+                  placeholder="cm"
+                  sagaHizali
+                  onDegistir={(olcuYaricap) => yaz({ olcuYaricap })}
+                />
+                <CariOutlinedSayi
+                  etiket="Yükseklik (h)"
+                  deger={satir.olcuYukseklik}
+                  placeholder="cm"
+                  sagaHizali
+                  onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
+                />
+              </>
+            ) : null}
+            {sekil === 'piramit' ? (
+              <>
+                <CariOutlinedSayi
+                  etiket="Taban kenar (a)"
+                  deger={satir.olcuTaban}
+                  placeholder="cm"
+                  sagaHizali
+                  onDegistir={(olcuTaban) => yaz({ olcuTaban })}
+                />
+                <CariOutlinedSayi
+                  etiket="Yükseklik (h)"
+                  deger={satir.olcuYukseklik}
+                  placeholder="cm"
+                  sagaHizali
+                  onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
+                />
+              </>
+            ) : null}
+            {tur === 'agirlik' && sekil ? (
+              <CariOutlinedSayi
+                etiket="Yoğunluk"
+                deger={satir.olcuYogunluk}
+                placeholder="kg/L"
+                sagaHizali
+                onDegistir={(olcuYogunluk) => yaz({ olcuYogunluk })}
+              />
+            ) : null}
+          </>
+        )
+      : null;
+
+  const alanAlanlari =
+    tur === 'alan' ? (
+      <>
+        {sekil === 'kare' ? (
+          <CariOutlinedSayi
+            etiket="Kenar (a)"
+            deger={satir.olcuTaban}
+            placeholder="0"
+            sagaHizali
+            onDegistir={(olcuTaban) => yaz({ olcuTaban })}
+          />
+        ) : null}
+        {sekil === 'dikdortgen' || sekil === 'ucgen' ? (
+          <>
+            <CariOutlinedSayi
+              etiket="Taban (a)"
+              deger={satir.olcuTaban}
+              placeholder="0"
+              sagaHizali
+              onDegistir={(olcuTaban) => yaz({ olcuTaban })}
+            />
+            <CariOutlinedSayi
+              etiket="Yükseklik (h)"
+              deger={satir.olcuYukseklik}
+              placeholder="0"
+              sagaHizali
+              onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
+            />
+          </>
+        ) : null}
+        {sekil === 'daire' ? (
+          <CariOutlinedSayi
+            etiket="Yarıçap (r)"
+            deger={satir.olcuYaricap}
+            placeholder="0"
+            sagaHizali
+            onDegistir={(olcuYaricap) => yaz({ olcuYaricap })}
+          />
+        ) : null}
+      </>
+    ) : null;
+
+  return (
+    <div className="stok-yb-olcu-sutun" ref={kokRef}>
+      <CariOutlinedSarmalayici etiket="Ölçü" className="stok-yb-olcu-outlined">
+        <div className="stok-yb-olcu-radyo-grup" role="radiogroup" aria-label="Ölçü türü">
+          {OLCU_SECENEKLERI.map((o) => (
+            <label
+              key={o.value}
+              className={`stok-yb-olcu-radyo${tur === o.value ? ' stok-yb-olcu-radyo--aktif' : ''}`}
+            >
+              <input
+                type="radio"
+                name={name}
+                checked={tur === o.value}
+                onClick={() => {
+                  if (tur === o.value) {
+                    setPanelAcik((a) => !a);
+                    return;
+                  }
+                  setPanelAcik(true);
+                  yaz({
+                    olcuTuru: o.value,
+                    olcuSekil: '',
+                    olcuTaban: null,
+                    olcuGenislik: null,
+                    olcuYukseklik: null,
+                    olcuYaricap: null,
+                    olcuYogunluk: null,
+                  });
+                }}
+                onChange={() => {
+                  /* onClick ile yönetilir */
+                }}
+              />
+              <span>{o.etiket}</span>
+            </label>
+          ))}
+        </div>
+      </CariOutlinedSarmalayici>
+
+      {tur && panelAcik ? (
+        <div className="stok-yb-olcu-hesap">
+          <CariOutlinedSarmalayici etiket="Şekil" className="stok-yb-olcu-outlined stok-yb-olcu-sekil">
+            <div className="stok-yb-olcu-radyo-grup" role="radiogroup" aria-label="Şekil">
+              {sekiller.map((o) => (
+                <label
+                  key={o.value}
+                  className={`stok-yb-olcu-radyo${sekil === o.value ? ' stok-yb-olcu-radyo--aktif' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name={`${name}-sekil`}
+                    checked={sekil === o.value}
+                    onChange={() =>
+                      yaz({
+                        olcuSekil: o.value,
+                        olcuTaban: null,
+                        olcuGenislik: null,
+                        olcuYukseklik: null,
+                        olcuYaricap: null,
+                      })
+                    }
+                  />
+                  <span>{o.etiket}</span>
+                </label>
+              ))}
+            </div>
+          </CariOutlinedSarmalayici>
+
+          {alanAlanlari}
+          {hacimAlanlari}
+
+          {sekil ? (
+            <div className="cari-outlined-field stok-yb-olcu-sonuc">
+              <CariOutlinedEtiket etiket="Sonuç" />
+              <div className="cari-outlined-cerceve">
+                <span className="stok-yb-olcu-sonuc-deger">
+                  {sonuc === null
+                    ? '—'
+                    : `${sonuc.toLocaleString('tr-TR', { maximumFractionDigits: 4 })}${
+                        sonucBirimi(tur) ? ` ${sonucBirimi(tur)}` : ''
+                      }`}
+                </span>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
 export function StokYeniBirimler({
   satirlar,
   onChange,
+  kdvDepartmanYuzde = null,
 }: {
   satirlar: StokFiyatDuzenleSatir[];
   onChange: (satirlar: StokFiyatDuzenleSatir[]) => void;
+  /** Üstteki KDV departmanından gelen yüzde (ör. Yiyecek %12 → 12) */
+  kdvDepartmanYuzde?: number | null;
 }) {
   const satirlarRef = useRef(satirlar);
   satirlarRef.current = satirlar;
@@ -105,6 +586,17 @@ export function StokYeniBirimler({
   useEffect(() => {
     setBirimAdlari(stokBirimAdlariGetir());
   }, [birimModalAcik]);
+
+  // Üst KDV departmanı seçilince alış/satış KDV'ye yüzdeyi yaz
+  useEffect(() => {
+    if (kdvDepartmanYuzde === null || kdvDepartmanYuzde === undefined || !Number.isFinite(kdvDepartmanYuzde)) {
+      return;
+    }
+    const yuzde = kdvDepartmanYuzde;
+    const mevcut = satirlarRef.current;
+    if (mevcut.every((s) => s.kdv === yuzde && (s.alisKdv ?? s.kdv) === yuzde)) return;
+    onChange(mevcut.map((s) => ({ ...s, kdv: yuzde, alisKdv: yuzde })));
+  }, [kdvDepartmanYuzde, onChange]);
 
   const birimSecenekleri = useMemo(
     () => birimAdlari.map((b) => ({ value: b.label, label: b.label })),
@@ -335,7 +827,12 @@ export function StokYeniBirimler({
                       placeholder="0,00"
                       sagaHizali
                       formatli
-                      onDegistir={(alisFiyati) => satirPatch(satir.id, { alisFiyati })}
+                      onDegistir={(alisFiyati) =>
+                        satirPatch(satir.id, {
+                          alisFiyati,
+                          alisNetFiyat: netFiyatHesapla(alisFiyati, satir.alisIskonto),
+                        })
+                      }
                       onUcNokta={() => setCokluFiyatModal({ satirId: satir.id, tur: 'alis' })}
                     />
                     <CariOutlinedAcilir
@@ -352,19 +849,41 @@ export function StokYeniBirimler({
                         })
                       }
                     />
+                    <CariOutlinedIskonto
+                      etiket="İskonto"
+                      deger={satir.alisIskonto == null ? '' : String(satir.alisIskonto)}
+                      onDegistir={(alisIskonto) =>
+                        satirPatch(satir.id, {
+                          alisIskonto,
+                          alisNetFiyat: netFiyatHesapla(satir.alisFiyati, alisIskonto),
+                        })
+                      }
+                    />
+                    <CariOutlinedSayi
+                      etiket="Net Fiyat"
+                      deger={satir.alisNetFiyat}
+                      placeholder="0,00"
+                      sagaHizali
+                      formatli
+                      onDegistir={(alisNetFiyat) => satirPatch(satir.id, { alisNetFiyat })}
+                    />
                     <CariOutlinedKdv
                       etiket="Alış KDV"
                       deger={satir.alisKdv ?? satir.kdv}
-                      onChange={(alisKdv) => satirPatch(satir.id, { alisKdv })}
-                    />
-                    <KdvTipSegment
                       tip={alisKdvTipi}
-                      onChange={(alisKdvTipi) => satirPatch(satir.id, { alisKdvTipi })}
+                      ekstraYuzde={kdvDepartmanYuzde}
+                      onChange={(alisKdv) => satirPatch(satir.id, { alisKdv })}
+                      onTipChange={(alisKdvTipi) => satirPatch(satir.id, { alisKdvTipi })}
                     />
                     <CariToggleAlan
                       etiket="Ana Birim"
                       acik={Boolean(satir.anaBirimMi)}
                       onChange={(v) => tekilPatch(satir.id, 'anaBirimMi', v)}
+                    />
+                    <StokOlcuSecim
+                      name={`olcu-${satir.id}`}
+                      satir={satir}
+                      onPatch={(patch) => satirPatch(satir.id, patch)}
                     />
                   </div>
                   <div className="stok-yb-kart-grup stok-yb-kart-grup--satis">
@@ -383,7 +902,12 @@ export function StokYeniBirimler({
                       placeholder="0,00"
                       sagaHizali
                       formatli
-                      onDegistir={(satisFiyati1) => satirPatch(satir.id, { satisFiyati1 })}
+                      onDegistir={(satisFiyati1) =>
+                        satirPatch(satir.id, {
+                          satisFiyati1,
+                          satisNetFiyat: netFiyatHesapla(satisFiyati1, satir.satisIskonto),
+                        })
+                      }
                       onUcNokta={() => setCokluFiyatModal({ satirId: satir.id, tur: 'satis' })}
                     />
                     <CariOutlinedAcilir
@@ -400,17 +924,34 @@ export function StokYeniBirimler({
                         })
                       }
                     />
+                    <CariOutlinedIskonto
+                      etiket="İskonto"
+                      deger={satir.satisIskonto == null ? '' : String(satir.satisIskonto)}
+                      onDegistir={(satisIskonto) =>
+                        satirPatch(satir.id, {
+                          satisIskonto,
+                          satisNetFiyat: netFiyatHesapla(satir.satisFiyati1, satisIskonto),
+                        })
+                      }
+                    />
+                    <CariOutlinedSayi
+                      etiket="Net Fiyat"
+                      deger={satir.satisNetFiyat}
+                      placeholder="0,00"
+                      sagaHizali
+                      formatli
+                      onDegistir={(satisNetFiyat) => satirPatch(satir.id, { satisNetFiyat })}
+                    />
                     <CariOutlinedKdv
                       etiket="Satış KDV"
                       zorunlu
                       deger={satir.kdv}
+                      tip={satisKdvTipi}
+                      ekstraYuzde={kdvDepartmanYuzde}
                       onChange={(kdv) => satirPatch(satir.id, { kdv })}
+                      onTipChange={(kdvTipi) => satirPatch(satir.id, { kdvTipi })}
                       listeYonu="yukari"
                       listeDikeyBosluk={4}
-                    />
-                    <KdvTipSegment
-                      tip={satisKdvTipi}
-                      onChange={(kdvTipi) => satirPatch(satir.id, { kdvTipi })}
                     />
                     <CariToggleAlan
                       etiket="Varsayılan"

@@ -240,7 +240,7 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                             setSatirTip(oge.tip);
                             setHata('');
                           }}
-                          title="Düzenlemek için çift tıklayın"
+                          title="Düzenlemek için çift tıklayınız."
                         >
                           {duzenleniyor ? (
                             <td colSpan={3} className="stok-coklu-barkod-tablo-duzenle-hucre">
@@ -308,10 +308,6 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                 </tbody>
               </table>
             </div>
-          </div>
-
-          <div className="cari-secenek-alt">
-            <p className="cari-secenek-ipucu">Düzenlemek için çift tıklayınız.</p>
           </div>
         </div>
       </DonenAccentCerceve>

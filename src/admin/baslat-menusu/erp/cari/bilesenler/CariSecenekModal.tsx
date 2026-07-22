@@ -36,7 +36,7 @@ export function CariSecenekModal({
   baslik,
   placeholder = 'Yeni seçenek adı…',
   liste,
-  sabitDegerler = [],
+  sabitDegerler: _sabitDegerler = [],
   kullanimSayisiAl,
   kullanimNesneAdi = 'tipi',
   onEkle,
@@ -49,7 +49,6 @@ export function CariSecenekModal({
   const [satirDuzenle, setSatirDuzenle] = useState<string | null>(null);
   const [satirAd, setSatirAd] = useState('');
   const [silUyari, setSilUyari] = useState<{ etiket: string; adet: number } | null>(null);
-  const sabit = new Set(sabitDegerler);
   const sekme = useAdminSekmeKabuk();
   const portalKok = useMemo(
     () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
@@ -165,12 +164,11 @@ export function CariSecenekModal({
                     key={t.value}
                     className={duzenleniyor ? 'cari-secenek-liste--duzenleniyor' : undefined}
                     onDoubleClick={() => {
-                      if (!onGuncelle || sabit.has(t.value)) return;
+                      if (!onGuncelle) return;
                       setSatirDuzenle(t.value);
                       setSatirAd(t.label);
                       setHata('');
                     }}
-                    title={onGuncelle && !sabit.has(t.value) ? 'Düzenlemek için çift tıklayın' : undefined}
                   >
                     {duzenleniyor ? (
                       <input
@@ -196,31 +194,26 @@ export function CariSecenekModal({
                         onBlur={() => satirKaydet()}
                       />
                     ) : (
-                      <span className="cari-secenek-liste-ad">{t.label}</span>
-                    )}
-                    {sabit.has(t.value) ? (
-                      <em className="cari-secenek-liste-sabit">sabit</em>
-                    ) : (
-                      <button
-                        type="button"
-                        className="cari-secenek-liste-sil"
-                        onClick={() => silDene(t.value, t.label)}
-                        aria-label={`${t.label} sil`}
+                      <span
+                        className="cari-secenek-liste-ad"
+                        title={onGuncelle ? 'Düzenlemek için çift tıklayınız.' : undefined}
                       >
-                        Sil
-                      </button>
+                        {t.label}
+                      </span>
                     )}
+                    <button
+                      type="button"
+                      className="cari-secenek-liste-sil"
+                      onClick={() => silDene(t.value, t.label)}
+                      aria-label={`${t.label} sil`}
+                    >
+                      Sil
+                    </button>
                   </li>
                 );
               })}
             </ul>
           </div>
-
-          {onGuncelle ? (
-            <div className="cari-secenek-alt">
-              <p className="cari-secenek-ipucu">Düzenlemek için çift tıklayınız.</p>
-            </div>
-          ) : null}
         </div>
       </DonenAccentCerceve>
 
