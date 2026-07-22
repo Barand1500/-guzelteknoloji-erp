@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { ModalListeIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from '@/araclar/sekmePortal';
@@ -137,7 +138,7 @@ export function StokKdvDepartmanModal({
                   className="ap-input stok-kdv-departman-yuzde"
                   value={yeniYuzde}
                   onChange={(e) => setYeniYuzde(kdvYuzdeFiltrele(e.target.value))}
-                  placeholder="oran"
+                  placeholder="Oran"
                   inputMode="decimal"
                   aria-label="KDV oranı"
                   onKeyDown={(e) => {
@@ -164,8 +165,8 @@ export function StokKdvDepartmanModal({
                 <thead>
                   <tr>
                     <th>Adı</th>
-                    <th>oran</th>
-                    <th>İşlemler</th>
+                    <th>Oran</th>
+                    <th>İşlem</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -224,7 +225,7 @@ export function StokKdvDepartmanModal({
                                   value={satirYuzde}
                                   inputMode="decimal"
                                   aria-label={`${oge.label} yüzdesi`}
-                                  placeholder="oran"
+                                  placeholder="Oran"
                                   onChange={(e) => setSatirYuzde(kdvYuzdeFiltrele(e.target.value))}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
@@ -262,8 +263,9 @@ export function StokKdvDepartmanModal({
                                   className="stok-coklu-barkod-tablo-sil"
                                   onClick={() => onSil(oge.value)}
                                   aria-label={`${oge.label} sil`}
+                                  title="Sil"
                                 >
-                                  Sil
+                                  <DgIkon ad="sil" />
                                 </button>
                               </td>
                             </>

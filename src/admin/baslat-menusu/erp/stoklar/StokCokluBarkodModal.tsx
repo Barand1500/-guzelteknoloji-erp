@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { ModalBarkodIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from '@/araclar/sekmePortal';
@@ -168,6 +169,7 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
           <div className="cari-secenek-govde">
             <div className="cari-secenek-ekle stok-coklu-fiyat-ekle">
               <div className="stok-coklu-fiyat-input-grup stok-coklu-barkod-input-grup">
+                <span className="stok-coklu-fiyat-sira-spacer" aria-hidden="true" />
                 <input
                   ref={barkodInputRef}
                   type="text"
@@ -294,8 +296,9 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                                       onKaydet(stokCokluBarkodSil(oge.sira, satir));
                                     }}
                                     aria-label={`${oge.etiket} sil`}
+                                    title="Sil"
                                   >
-                                    Sil
+                                    <DgIkon ad="sil" />
                                   </button>
                                 </td>
                               ) : null}

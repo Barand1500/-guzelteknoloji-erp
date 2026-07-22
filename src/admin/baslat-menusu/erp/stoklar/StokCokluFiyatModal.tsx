@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { ModalListeIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from '@/araclar/sekmePortal';
@@ -316,7 +317,9 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
           <span className="stok-coklu-fiyat-no" aria-hidden="true">
             {opts.siraGoster}
           </span>
-        ) : null}
+        ) : (
+          <span className="stok-coklu-fiyat-sira-spacer" aria-hidden="true" />
+        )}
         <input
           ref={opts.autoFocus && opts.siraGoster === undefined ? aciklamaInputRef : undefined}
           type="text"
@@ -494,8 +497,9 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                                     className="stok-coklu-fiyat-tablo-sil"
                                     onClick={() => onKaydet(stokCokluFiyatSil(tur, oge.sira, satir))}
                                     aria-label={`${oge.etiket} sil`}
+                                    title="Sil"
                                   >
-                                    Sil
+                                    <DgIkon ad="sil" />
                                   </button>
                                 </td>
                               ) : null}

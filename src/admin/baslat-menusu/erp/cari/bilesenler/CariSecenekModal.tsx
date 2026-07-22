@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { ModalListeIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
@@ -206,8 +207,9 @@ export function CariSecenekModal({
                       className="cari-secenek-liste-sil"
                       onClick={() => silDene(t.value, t.label)}
                       aria-label={`${t.label} sil`}
+                      title="Sil"
                     >
-                      Sil
+                      <DgIkon ad="sil" />
                     </button>
                   </li>
                 );
