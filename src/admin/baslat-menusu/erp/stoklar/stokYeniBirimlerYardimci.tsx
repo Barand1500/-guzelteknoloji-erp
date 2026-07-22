@@ -519,6 +519,155 @@ export function CariToggleAlan({
   );
 }
 
+export function CariOutlinedOlcu({
+  tur,
+  birim,
+  deger,
+  onTurDegistir,
+  onBirimDegistir,
+  onDegerDegistir,
+  onHesapModal,
+}: {
+  tur: 'agirlik' | 'hacim' | '';
+  birim: 'g' | 'kg' | 'desi' | '';
+  deger: number | null | undefined;
+  onTurDegistir: (tur: 'agirlik' | 'hacim') => void;
+  onBirimDegistir: (birim: 'g' | 'kg' | 'desi') => void;
+  onDegerDegistir: (deger: number | null) => void;
+  onHesapModal: () => void;
+}) {
+  const inputId = useId();
+  const [focused, setFocused] = useState(false);
+  const [ham, setHam] = useState('');
+
+  const etiket = tur === 'hacim' ? 'Hacim' : tur === 'agirlik' ? 'Ağırlık' : 'Ölçü';
+  const aktifTur = tur || 'agirlik';
+  const aktifBirim = birim || (aktifTur === 'hacim' ? 'desi' : 'kg');
+
+  useEffect(() => {
+    if (!focused) setHam(deger !== null && deger !== undefined ? sayiGoster(deger) : '');
+  }, [deger, focused]);
+
+  const alanOdakIci = (hedef: EventTarget | null) => {
+    const kok = hedef as HTMLElement | null;
+    return Boolean(
+      kok?.closest?.('.stok-yb-olcu-tur-liste') || kok?.closest?.('.stok-yb-olcu-birim-liste')
+    );
+  };
+
+  return (
+    <div
+      className={`cari-outlined-field stok-yb-olcu-alan${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(e) => {
+        const sonraki = e.relatedTarget as Node | null;
+        if (sonraki && e.currentTarget.contains(sonraki)) return;
+        if (alanOdakIci(sonraki)) return;
+        setFocused(false);
+      }}
+    >
+      <CariOutlinedEtiket etiket={etiket} htmlFor={inputId} />
+      <div className="cari-outlined-cerceve stok-yb-olcu-cerceve">
+        <button
+          type="button"
+          className="stok-yb-olcu-hesap-btn"
+          onClick={onHesapModal}
+          title="Hesapla"
+          aria-label={`${etiket} hesapla`}
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden>
+            <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="1.7" />
+            <path d="M8 8h8M8 12h8M8 16h3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+        </button>
+        <input
+          id={inputId}
+          className="cari-outlined-input stok-yb-olcu-input cari-outlined-input--saga"
+          inputMode="decimal"
+          value={focused ? ham : sayiGoster(deger)}
+          placeholder={focused ? '0' : undefined}
+          onFocus={() => {
+            setFocused(true);
+            setHam(deger !== null && deger !== undefined ? sayiGoster(deger) : '');
+          }}
+          onBlur={() => {
+            setFocused(false);
+            if (!ham.trim()) {
+              onDegerDegistir(null);
+              return;
+            }
+            onDegerDegistir(sayiOku(ham));
+          }}
+          onChange={(e) => {
+            const sonraki = e.target.value.replace(/[^\d.,]/g, '');
+            setHam(sonraki);
+            if (!sonraki.trim()) {
+              onDegerDegistir(null);
+              return;
+            }
+            onDegerDegistir(sayiOku(sonraki));
+          }}
+          aria-label={etiket}
+        />
+        <div className="stok-yb-olcu-tur ap-form-acilir-secim-liste-anchor">
+          <FormAcilirSecim
+            value={aktifTur}
+            onChange={(v) => {
+              onTurDegistir(v === 'hacim' ? 'hacim' : 'agirlik');
+            }}
+            secenekler={[
+              { value: 'agirlik', label: 'Ağırlık' },
+              { value: 'hacim', label: 'Hacim' },
+            ]}
+            aria-label="Ölçü türü"
+            className="stok-yb-olcu-tur-secim"
+            listeSinifi="stok-yb-olcu-tur-liste"
+            listeAnchor="self"
+            listeYonu="yukari"
+            listeDikeyBosluk={4}
+            listeMinGenislik={96}
+            tusMetin={aktifTur === 'hacim' ? 'Hacim' : 'Ağırlık'}
+          />
+        </div>
+        <div className="stok-yb-olcu-birim ap-form-acilir-secim-liste-anchor">
+          {aktifTur === 'hacim' ? (
+            <FormAcilirSecim
+              value="desi"
+              onChange={() => onBirimDegistir('desi')}
+              secenekler={[{ value: 'desi', label: 'desi' }]}
+              aria-label="Hacim birimi"
+              className="stok-yb-olcu-birim-secim"
+              listeSinifi="stok-yb-olcu-birim-liste"
+              listeAnchor="self"
+              listeYonu="yukari"
+              listeDikeyBosluk={4}
+              listeMinGenislik={56}
+              tusMetin="desi"
+            />
+          ) : (
+            <FormAcilirSecim
+              value={aktifBirim === 'g' ? 'g' : 'kg'}
+              onChange={(v) => onBirimDegistir(v === 'g' ? 'g' : 'kg')}
+              secenekler={[
+                { value: 'kg', label: 'kg' },
+                { value: 'g', label: 'g' },
+              ]}
+              aria-label="Ağırlık birimi"
+              className="stok-yb-olcu-birim-secim"
+              listeSinifi="stok-yb-olcu-birim-liste"
+              listeAnchor="self"
+              listeYonu="yukari"
+              listeDikeyBosluk={4}
+              listeMinGenislik={56}
+              tusMetin={aktifBirim === 'g' ? 'g' : 'kg'}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function KdvTipSegment({
   tip,
   onChange,

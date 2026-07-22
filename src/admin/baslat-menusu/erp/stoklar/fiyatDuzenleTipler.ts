@@ -91,6 +91,14 @@ export interface StokFiyatDuzenleSatir {
   isk2?: string;
   isk3?: string;
   desi?: string;
+  /** Alış ölçü: ağırlık veya hacim (desi) */
+  alisOlcuTur?: 'agirlik' | 'hacim' | '';
+  alisOlcuBirim?: 'g' | 'kg' | 'desi' | '';
+  alisOlcuDeger?: number | null;
+  /** Satış ölçü: ağırlık veya hacim (desi) */
+  satisOlcuTur?: 'agirlik' | 'hacim' | '';
+  satisOlcuBirim?: 'g' | 'kg' | 'desi' | '';
+  satisOlcuDeger?: number | null;
   anaBirimMi?: boolean;
   varsayilanMi?: boolean;
   birimAciklama?: string;
