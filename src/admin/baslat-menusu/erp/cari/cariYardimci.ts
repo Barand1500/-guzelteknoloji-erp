@@ -58,6 +58,7 @@ function iletisimKisileriniHazirla(c: AdminCari): CariIletisimKisi[] {
 }
 
 export function caridenForm(c: AdminCari): CariFormDegeri {
+  const eski = (c as AdminCari & { fiyatTanimi?: string }).fiyatTanimi?.trim() ?? '';
   return {
     ustId: c.ustId,
     cariTipi: c.cariTipi,
@@ -65,7 +66,10 @@ export function caridenForm(c: AdminCari): CariFormDegeri {
     cariKodu: c.cariKodu,
     cariAdi: c.cariAdi,
     unvan: c.unvan,
-    fiyatTanimi: c.fiyatTanimi ?? '',
+    alisFiyatTanimi: c.alisFiyatTanimi?.trim() || eski,
+    alisFiyatSecimi: c.alisFiyatSecimi?.trim() ?? '',
+    satisFiyatTanimi: c.satisFiyatTanimi?.trim() || eski,
+    satisFiyatSecimi: c.satisFiyatSecimi?.trim() ?? '',
     yetkili: c.yetkili,
     vergiDairesi: c.vergiDairesi,
     vergiNo: c.vergiNo,
@@ -110,7 +114,10 @@ export function hizliGirisdenForm(degerler: Record<string, string>): CariFormDeg
     cariTipi: gecerliCariTipi(degerler.cariTipi ?? '', 'ALICI'),
     isletmeTuru: gecerliIsletmeTuru(degerler.isletmeTuru ?? '', ''),
     unvan: degerler.unvan?.trim() ?? '',
-    fiyatTanimi: degerler.fiyatTanimi?.trim() ?? '',
+    alisFiyatTanimi: degerler.alisFiyatTanimi?.trim() ?? '',
+    alisFiyatSecimi: degerler.alisFiyatSecimi?.trim() ?? '',
+    satisFiyatTanimi: degerler.satisFiyatTanimi?.trim() ?? '',
+    satisFiyatSecimi: degerler.satisFiyatSecimi?.trim() ?? '',
     yetkili: degerler.yetkili?.trim() ?? '',
     vergiDairesi: degerler.vergiDairesi?.trim() ?? '',
     vergiNo: degerler.vergiNo?.trim() ?? '',
@@ -134,4 +141,9 @@ export function hizliGirisdenForm(degerler: Record<string, string>): CariFormDeg
 
 export function cariSatirEtiketi(c: AdminCari): string {
   return `${c.cariAdi} (${c.cariKodu})`;
+}
+
+/** Boş seçim = stok standart fiyat adı (FİYAT) */
+export function cariFiyatTanimiCoz(secilen: string): string {
+  return secilen.trim() || 'FIYAT';
 }

@@ -185,31 +185,137 @@
   grid-template-columns: minmax(7.25rem, 8.75rem);
 }
 
-/* E-Fatura | E-İrsaliye | E-Arşiv Teslim | Fiyat Tanımı — eşit genişlik */
-.cari-dortlu-satir {
+/* E-Posta altında: E-Fatura | E-İrsaliye — Web altında: E-Arşiv | Alış | Satış */
+.cari-besli-satir {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.9rem 1.05rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem 1.1rem;
   align-items: stretch;
   min-width: 0;
 }
 
-.cari-dortlu-satir > * {
+.cari-besli-sol,
+.cari-besli-sag {
+  display: grid;
+  gap: 0.75rem 0.85rem;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.cari-besli-sol {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* E-Arşiv | Alış | Satış — eşit genişlik */
+.cari-besli-sag {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cari-besli-sol > *,
+.cari-besli-sag > * {
   min-width: 0;
   width: 100%;
 }
 
-.cari-dortlu-satir .cari-outlined-field,
-.cari-dortlu-satir .cari-outlined-kucuk {
+.cari-besli-satir .cari-outlined-field,
+.cari-besli-satir .cari-outlined-kucuk {
   width: 100%;
 }
 
-/* Alias satırı — üstteki 4’lü ile aynı sütun genişlikleri */
+/* Alış/Satış Fiyat Tanımı — kompakt input grup */
+.cari-fiyat-tanim-grup .cari-outlined-cerceve--icerik {
+  padding: 0;
+  overflow: hidden;
+}
+
+.cari-fiyat-tanim-grup .cari-outlined-icerik {
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.cari-fiyat-tanim-grup-icerik {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) auto minmax(0, 0.7fr);
+  align-items: stretch;
+  min-width: 0;
+  width: 100%;
+}
+
+.cari-fiyat-tanim-grup-ayirici {
+  width: 1px;
+  align-self: stretch;
+  background: color-mix(in srgb, var(--ap-border, #3a3a3a) 85%, transparent);
+  margin: 0.28rem 0;
+}
+
+.cari-fiyat-tanim-grup-hucre {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+}
+
+.cari-fiyat-tanim-grup-hucre .ap-form-acilir-secim {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.cari-fiyat-tanim-grup .cari-fiyat-tanim-grup-tanim,
+.cari-fiyat-tanim-grup .cari-fiyat-tanim-grup-fiyat,
+.cari-fiyat-tanim-grup .ap-form-acilir-secim {
+  width: 100%;
+  min-width: 0;
+}
+
+.cari-fiyat-tanim-grup .cari-outlined-etiket-metin {
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+}
+
+.cari-fiyat-tanim-grup .cari-outlined-cerceve {
+  min-height: 2.35rem;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.cari-fiyat-tanim-grup .cari-outlined-acilir-tus,
+.cari-fiyat-tanim-grup .ap-form-acilir-secim-tus {
+  min-height: 2rem;
+  width: 100%;
+  padding: 0.28rem 0.28rem;
+  font-size: 0.75rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.cari-fiyat-tanim-grup .ap-form-acilir-secim-tus:hover,
+.cari-fiyat-tanim-grup .ap-form-acilir-secim-tus:focus,
+.cari-fiyat-tanim-grup .ap-form-acilir-secim-tus:focus-visible {
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.cari-fiyat-tanim-grup .ap-form-acilir-secim-tus-metin {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cari-fiyat-tanim-grup .ap-form-acilir-secim-ok {
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+/* Alias satırı — üstteki 3’lü ile aynı sütun genişlikleri */
 .cari-alias-fatura-satir {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem 1.05rem;
   align-items: start;
   min-width: 0;
@@ -238,33 +344,6 @@
   grid-column: 3;
 }
 
-/* Fiyat Tanımı yüksekliği E-Fatura / E-İrsaliye / Teslim ile aynı */
-.cari-dortlu-satir .cari-arama-acilir .cari-outlined-cerceve,
-.cari-dortlu-satir .cari-arama-acilir-cerceve {
-  min-height: 2.55rem;
-  padding: 0 0.45rem !important;
-  box-sizing: border-box;
-}
-
-.cari-dortlu-satir .cari-arama-acilir-tus,
-.cari-dortlu-satir .cari-arama-acilir-kutu-girdi {
-  min-height: 2.2rem;
-  padding: 0.35rem 0.2rem;
-  font-size: 0.8125rem;
-  box-sizing: border-box;
-}
-
-.cari-dortlu-satir .cari-arama-acilir-tus .ap-form-acilir-secim-ok,
-.cari-dortlu-satir .cari-arama-acilir-kutu-satir .ap-form-acilir-secim-ok {
-  font-size: 0.92rem;
-}
-
-.cari-fiyat-tanimi-kucuk {
-  max-width: 16rem;
-  min-width: 0;
-  width: 100%;
-}
-
 .cari-earsiv-teslim {
   max-width: 12rem;
 }
@@ -286,9 +365,13 @@
 }
 
 @media (max-width: 980px) {
-  .cari-dortlu-satir,
+  .cari-besli-satir,
   .cari-alias-fatura-satir {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .cari-besli-sag {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .cari-alias-efatura {
@@ -311,7 +394,9 @@
   .cari-web-efatura-satir,
   .cari-efatura-kucuk-grup,
   .cari-efatura-kucuk-grup--tek,
-  .cari-dortlu-satir,
+  .cari-besli-satir,
+  .cari-besli-sol,
+  .cari-besli-sag,
   .cari-alias-fatura-satir {
     grid-template-columns: 1fr;
   }

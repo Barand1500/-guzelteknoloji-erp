@@ -24,6 +24,7 @@ import {
   stokCokluFiyatSil,
   type StokCokluFiyatTur,
 } from './stokCokluFiyatYardimci';
+import { stokCokluFiyatAdiKaydet } from './stokCokluFiyatAdlari';
 
 interface StokCokluFiyatModalProps {
   acik: boolean;
@@ -159,8 +160,11 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
     setSatirDuzenle(null);
     setDuzenle(BOS_FORM);
     setIskontoOdak(false);
+    for (const oge of stokCokluFiyatListesi(satir, tur)) {
+      if (oge.aciklama.trim()) stokCokluFiyatAdiKaydet(satir.fiyatAdi, tur, oge.aciklama);
+    }
     requestAnimationFrame(() => aciklamaInputRef.current?.focus());
-  }, [acik, satir.id, tur]);
+  }, [acik, satir, tur]);
 
   const fiyatDegisti = useCallback((ham: string, onceki: FiyatFormAlan): FiyatFormAlan => {
     const fiyat = fiyatYazarkenFormatla(ham);
@@ -231,6 +235,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
       return;
     }
     onKaydet(stokCokluFiyatEkle(tur, kayit, satir));
+    if (kayit.aciklama) stokCokluFiyatAdiKaydet(satir.fiyatAdi, tur, kayit.aciklama);
     setYeni(BOS_FORM);
     setIskontoOdak(false);
     setHata('');
@@ -256,6 +261,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
       return;
     }
     onKaydet(stokCokluFiyatGuncelle(tur, satirDuzenle, kayit, satir));
+    if (kayit.aciklama) stokCokluFiyatAdiKaydet(satir.fiyatAdi, tur, kayit.aciklama);
     setSatirDuzenle(null);
     setDuzenle(BOS_FORM);
     setIskontoOdak(false);

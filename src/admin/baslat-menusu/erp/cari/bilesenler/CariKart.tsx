@@ -40,7 +40,9 @@ import {
   type CariKartModu,
 } from '../tipler';
 import { stokFiyatAdlariGetir } from '@/admin/baslat-menusu/erp/stoklar/stokFiyatAdlari';
+import { stokCokluFiyatAdlariGetir } from '@/admin/baslat-menusu/erp/stoklar/stokCokluFiyatAdlari';
 import { CariDosyaDokumanBolumu } from './CariDosyaDokumanBolumu';
+import { CariFiyatTanimiGrup } from './CariFiyatTanimiGrup';
 import { CariIletisimBolumu } from './CariIletisimBolumu';
 import { CariOutlinedAcilir } from './CariOutlinedAcilir';
 import { CariOutlinedAramaAcilir } from './CariOutlinedAramaAcilir';
@@ -192,6 +194,14 @@ export function CariKart({
     () => !formlarEsit(form, baslangic) || kartTipiSecim !== baslangicKartTipi,
     [baslangic, baslangicKartTipi, form, kartTipiSecim]
   );
+
+  const cariFiyatTanimiSecenekleri = [
+    { value: '', label: 'Standart' },
+    ...stokFiyatAdlariGetir(),
+  ];
+
+  const alisFiyatSecimSecenekleri = stokCokluFiyatAdlariGetir(form.alisFiyatTanimi, 'alis');
+  const satisFiyatSecimSecenekleri = stokCokluFiyatAdlariGetir(form.satisFiyatTanimi, 'satis');
 
   useEffect(() => {
     onKirliDegistir(kirli);
@@ -481,61 +491,87 @@ export function CariKart({
               disabled={saltOkunur}
               onChange={(web) => setAlan('web', web)}
             />
-            <div className="cari-dortlu-satir">
-              <CariOutlinedAcilir
-                etiket="E-Fatura"
-                deger={form.efatura ? 'EVET' : 'HAYIR'}
-                secenekler={EFATURA_EVET_HAYIR}
-                disabled={saltOkunur}
-                sinif="cari-outlined-kucuk"
-                listeMinGenislik={112}
-                onChange={(v) => {
-                  const evet = v === 'EVET';
-                  setForm((f) => ({
-                    ...f,
-                    efatura: evet,
-                    alias: evet ? f.alias : '',
-                    efaturaTipi: evet ? f.efaturaTipi || 'TEMEL' : 'TEMEL',
-                    earsivTeslimSekli: evet ? '' : f.earsivTeslimSekli,
-                  }));
-                }}
-              />
-              <CariOutlinedAcilir
-                etiket="E-İrsaliye"
-                deger={form.earsiv ? 'EVET' : 'HAYIR'}
-                secenekler={EFATURA_EVET_HAYIR}
-                disabled={saltOkunur}
-                sinif="cari-outlined-kucuk"
-                listeMinGenislik={112}
-                onChange={(v) => {
-                  const evet = v === 'EVET';
-                  setForm((f) => ({
-                    ...f,
-                    earsiv: evet,
-                    earsivAlias: evet ? f.earsivAlias : '',
-                  }));
-                }}
-              />
-              <CariOutlinedAcilir
-                etiket="E-Arşiv Teslim Şekli"
-                deger={form.earsivTeslimSekli}
-                secenekler={[...EARSIV_TESLIM_SEKILLERI]}
-                disabled={saltOkunur || form.efatura}
-                sinif="cari-outlined-kucuk"
-                listeMinGenislik={140}
-                tusMetin={form.earsivTeslimSekli ? undefined : 'Seçiniz…'}
-                onChange={(earsivTeslimSekli) => setAlan('earsivTeslimSekli', earsivTeslimSekli)}
-              />
-              <CariOutlinedAramaAcilir
-                etiket="Fiyat Tanımı"
-                deger={form.fiyatTanimi}
-                secenekler={stokFiyatAdlariGetir()}
-                disabled={saltOkunur}
-                aramaPlaceholder="Fiyat tanımı ara…"
-                onChange={(fiyatTanimi) => setAlan('fiyatTanimi', fiyatTanimi)}
-                bosMetin=""
-                kutuIciArama
-              />
+            <div className="cari-besli-satir">
+              <div className="cari-besli-sol">
+                <CariOutlinedAcilir
+                  etiket="E-Fatura"
+                  deger={form.efatura ? 'EVET' : 'HAYIR'}
+                  secenekler={EFATURA_EVET_HAYIR}
+                  disabled={saltOkunur}
+                  sinif="cari-outlined-kucuk"
+                  listeMinGenislik={112}
+                  onChange={(v) => {
+                    const evet = v === 'EVET';
+                    setForm((f) => ({
+                      ...f,
+                      efatura: evet,
+                      alias: evet ? f.alias : '',
+                      efaturaTipi: evet ? f.efaturaTipi || 'TEMEL' : 'TEMEL',
+                      earsivTeslimSekli: evet ? '' : f.earsivTeslimSekli,
+                    }));
+                  }}
+                />
+                <CariOutlinedAcilir
+                  etiket="E-İrsaliye"
+                  deger={form.earsiv ? 'EVET' : 'HAYIR'}
+                  secenekler={EFATURA_EVET_HAYIR}
+                  disabled={saltOkunur}
+                  sinif="cari-outlined-kucuk"
+                  listeMinGenislik={112}
+                  onChange={(v) => {
+                    const evet = v === 'EVET';
+                    setForm((f) => ({
+                      ...f,
+                      earsiv: evet,
+                      earsivAlias: evet ? f.earsivAlias : '',
+                    }));
+                  }}
+                />
+              </div>
+              <div className="cari-besli-sag">
+                <CariOutlinedAcilir
+                  etiket="E-Arşiv Teslim Şekli"
+                  deger={form.earsivTeslimSekli}
+                  secenekler={[...EARSIV_TESLIM_SEKILLERI]}
+                  disabled={saltOkunur || form.efatura}
+                  sinif="cari-outlined-kucuk"
+                  listeMinGenislik={140}
+                  tusMetin={form.earsivTeslimSekli ? undefined : 'Seçiniz…'}
+                  onChange={(earsivTeslimSekli) => setAlan('earsivTeslimSekli', earsivTeslimSekli)}
+                />
+                <CariFiyatTanimiGrup
+                  etiket="Alış Fiyat Tanımı"
+                  tanimDeger={form.alisFiyatTanimi}
+                  tanimSecenekler={cariFiyatTanimiSecenekleri}
+                  onTanimChange={(alisFiyatTanimi) => {
+                    setForm((f) => ({
+                      ...f,
+                      alisFiyatTanimi,
+                      alisFiyatSecimi: '',
+                    }));
+                  }}
+                  fiyatDeger={form.alisFiyatSecimi}
+                  fiyatSecenekler={alisFiyatSecimSecenekleri}
+                  onFiyatChange={(alisFiyatSecimi) => setAlan('alisFiyatSecimi', alisFiyatSecimi)}
+                  disabled={saltOkunur}
+                />
+                <CariFiyatTanimiGrup
+                  etiket="Satış Fiyat Tanımı"
+                  tanimDeger={form.satisFiyatTanimi}
+                  tanimSecenekler={cariFiyatTanimiSecenekleri}
+                  onTanimChange={(satisFiyatTanimi) => {
+                    setForm((f) => ({
+                      ...f,
+                      satisFiyatTanimi,
+                      satisFiyatSecimi: '',
+                    }));
+                  }}
+                  fiyatDeger={form.satisFiyatSecimi}
+                  fiyatSecenekler={satisFiyatSecimSecenekleri}
+                  onFiyatChange={(satisFiyatSecimi) => setAlan('satisFiyatSecimi', satisFiyatSecimi)}
+                  disabled={saltOkunur}
+                />
+              </div>
             </div>
             {form.efatura || form.earsiv ? (
               <div

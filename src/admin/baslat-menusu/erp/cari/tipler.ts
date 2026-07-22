@@ -88,8 +88,14 @@ export interface AdminCari {
   cariKodu: string;
   cariAdi: string;
   unvan: string;
-  /** Stok fiyat tanımı (FİYAT, PERAKENDE, TOPTAN…) */
-  fiyatTanimi: string;
+  /** Stok alış fiyat tanımı (boş = Standart / FİYAT) */
+  alisFiyatTanimi: string;
+  /** Seçilen alış tanımı içindeki fiyat (boş = Ana Fiyat) */
+  alisFiyatSecimi: string;
+  /** Stok satış fiyat tanımı (boş = Standart / FİYAT) */
+  satisFiyatTanimi: string;
+  /** Seçilen satış tanımı içindeki fiyat (boş = Ana Fiyat) */
+  satisFiyatSecimi: string;
   yetkili: string;
   vergiDairesi: string;
   vergiNo: string;
@@ -120,8 +126,14 @@ export interface CariFormDegeri extends CariAdresDegeri {
   cariKodu: string;
   cariAdi: string;
   unvan: string;
-  /** Stok fiyat tanımı (FİYAT, PERAKENDE, TOPTAN…) */
-  fiyatTanimi: string;
+  /** Stok alış fiyat tanımı (boş = Standart / FİYAT) */
+  alisFiyatTanimi: string;
+  /** Seçilen alış tanımı içindeki fiyat (boş = Ana Fiyat) */
+  alisFiyatSecimi: string;
+  /** Stok satış fiyat tanımı (boş = Standart / FİYAT) */
+  satisFiyatTanimi: string;
+  /** Seçilen satış tanımı içindeki fiyat (boş = Ana Fiyat) */
+  satisFiyatSecimi: string;
   yetkili: string;
   vergiDairesi: string;
   vergiNo: string;
@@ -155,7 +167,10 @@ export const bosCariForm: CariFormDegeri = {
   cariKodu: '',
   cariAdi: '',
   unvan: '',
-  fiyatTanimi: '',
+  alisFiyatTanimi: '',
+  alisFiyatSecimi: '',
+  satisFiyatTanimi: '',
+  satisFiyatSecimi: '',
   yetkili: '',
   vergiDairesi: '',
   vergiNo: '',
