@@ -464,7 +464,7 @@ export function CariKart({
               deger={form.gsm}
               disabled={saltOkunur}
               dogrulaAktif
-              ulkeKoduGoster={false}
+              gsmMi
               onChange={(gsm) => setAlan('gsm', gsm)}
             />
             <CariOutlinedEposta

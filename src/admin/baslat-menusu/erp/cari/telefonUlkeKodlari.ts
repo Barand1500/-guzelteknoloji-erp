@@ -122,7 +122,8 @@ export function ulusalTelefonFormatla(ham: string, ulke: TelefonUlke): string {
 }
 
 export function telefonKayitDegeri(ulke: TelefonUlke, ulusalHam: string): string {
-  const rakamlar = yalnizcaRakam(ulusalHam, ulke.maxHane);
+  let rakamlar = yalnizcaRakam(ulusalHam, ulke.maxHane);
+  if (ulke.trFormat) rakamlar = trUlusalSifirsiz(rakamlar).slice(0, 10);
   if (!rakamlar) return '';
   const bicimli = ulusalTelefonFormatla(rakamlar, ulke);
   return `+${ulke.dial} ${bicimli}`.trim();
@@ -143,7 +144,8 @@ export function telefonDegeriniParcala(deger: string): { ulke: TelefonUlke; ulus
       .filter((u) => dial === u.dial || dial.startsWith(u.dial))
       .sort((a, b) => b.dial.length - a.dial.length)[0];
     if (eslesen && dial === eslesen.dial) {
-      const ulusalRakam = yalnizcaRakam(arti[2] || rakamlarHepsi.slice(eslesen.dial.length), eslesen.maxHane);
+      let ulusalRakam = yalnizcaRakam(arti[2] || rakamlarHepsi.slice(eslesen.dial.length), eslesen.maxHane);
+      if (eslesen.trFormat) ulusalRakam = trUlusalSifirsiz(ulusalRakam).slice(0, 10);
       return { ulke: eslesen, ulusal: ulusalTelefonFormatla(ulusalRakam, eslesen) };
     }
   }
@@ -153,19 +155,57 @@ export function telefonDegeriniParcala(deger: string): { ulke: TelefonUlke; ulus
     .filter((u) => rakamlarHepsi.startsWith(u.dial) && rakamlarHepsi.length > u.dial.length + 4)
     .sort((a, b) => b.dial.length - a.dial.length)[0];
   if (dialEslesen) {
-    const ulusalRakam = rakamlarHepsi.slice(dialEslesen.dial.length).slice(0, dialEslesen.maxHane);
+    let ulusalRakam = rakamlarHepsi.slice(dialEslesen.dial.length).slice(0, dialEslesen.maxHane);
+    if (dialEslesen.trFormat) ulusalRakam = trUlusalSifirsiz(ulusalRakam).slice(0, 10);
     return { ulke: dialEslesen, ulusal: ulusalTelefonFormatla(ulusalRakam, dialEslesen) };
   }
 
-  // Varsayılan TR ulusal
+  // Varsayılan TR ulusal (ülke kodu yoksa 0 ile başlayabilir)
   return {
     ulke: VARSAYILAN_TELEFON_ULKE,
     ulusal: ulusalTelefonFormatla(rakamlarHepsi, VARSAYILAN_TELEFON_ULKE),
   };
 }
 
-export function telefonPlaceholder(ulke: TelefonUlke): string {
-  if (ulke.trFormat) return '0xxx xxx xx xx';
+/** Ülke kodu varken TR ulusal numaradan baştaki 0'ı atar */
+export function trUlusalSifirsiz(rakamlar: string): string {
+  return rakamlar.startsWith('0') ? rakamlar.slice(1) : rakamlar;
+}
+
+/**
+ * Ulusal hane sınırlar ve kurallar:
+ * - TR + ülke kodu: baştaki 0 yok (max 10)
+ * - GSM (TR): 5 ile başlamalı, max 10
+ */
+export function ulusalRakamlariDuzenle(
+  ham: string,
+  ulke: TelefonUlke,
+  secenek?: { ulkeKoduVar?: boolean; gsm?: boolean }
+): string | null {
+  let rakamlar = yalnizcaRakam(ham, ulke.maxHane + 1);
+  if (ulke.trFormat && secenek?.ulkeKoduVar) {
+    rakamlar = trUlusalSifirsiz(rakamlar).slice(0, 10);
+  } else {
+    rakamlar = rakamlar.slice(0, ulke.maxHane);
+  }
+
+  if (secenek?.gsm && ulke.trFormat) {
+    if (!rakamlar) return '';
+    if (!rakamlar.startsWith('5')) return null;
+    return rakamlar.slice(0, 10);
+  }
+
+  return rakamlar;
+}
+
+export function telefonPlaceholder(
+  ulke: TelefonUlke,
+  secenek?: { gsm?: boolean }
+): string {
+  if (ulke.trFormat) {
+    if (secenek?.gsm) return '5xx xxx xx xx';
+    return 'xxx xxx xx xx';
+  }
   if (ulke.id === 'US' || ulke.id === 'CA') return '(xxx) xxx-xxxx';
   return 'xxx xxx xx xx';
 }

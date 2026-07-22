@@ -41,12 +41,14 @@ export function CariOutlinedEposta({
   const [listeStil, setListeStil] = useState<CSSProperties>({});
   const [asama, setAsama] = useState<DogrulaAsama>('alan');
   const [kod, setKod] = useState('');
-  const [dogrulandi, setDogrulandi] = useState(false);
+  const [dogrulananAnahtar, setDogrulananAnahtar] = useState<string | null>(null);
   const [gecis, setGecis] = useState(false);
   const [basariAnim, setBasariAnim] = useState(false);
-  const oncekiDeger = useRef(deger);
 
-  const epostaGirildi = deger.trim().length > 0;
+  const epostaAnahtar = deger.trim().toLocaleLowerCase('tr');
+  const epostaGirildi = epostaAnahtar.length > 0;
+  const dogrulandi =
+    dogrulananAnahtar !== null && dogrulananAnahtar === epostaAnahtar && epostaGirildi;
   const dogrulaButonuGoster =
     dogrulaAktif && !disabled && (asama === 'kod' || dogrulandi || epostaGirildi);
 
@@ -89,13 +91,9 @@ export function CariOutlinedEposta({
   }, [acik]);
 
   useEffect(() => {
-    if (!dogrulaAktif) return;
-    if (oncekiDeger.current !== deger && asama === 'alan') {
-      setDogrulandi(false);
-      setBasariAnim(false);
-    }
-    oncekiDeger.current = deger;
-  }, [deger, dogrulaAktif, asama]);
+    if (dogrulandi || !basariAnim) return;
+    setBasariAnim(false);
+  }, [dogrulandi, basariAnim]);
 
   useEffect(() => {
     if (asama === 'kod' && !disabled) {
@@ -127,7 +125,7 @@ export function CariOutlinedEposta({
       inputRef.current?.focus();
       return;
     }
-    setDogrulandi(true);
+    setDogrulananAnahtar(epostaAnahtar);
     setBasariAnim(true);
     setKod('');
     setAcik(false);

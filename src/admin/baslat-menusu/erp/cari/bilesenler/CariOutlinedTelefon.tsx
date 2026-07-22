@@ -7,6 +7,7 @@ import {
   telefonPlaceholder,
   telefonUlkeAra,
   telefonUlkeBul,
+  ulusalRakamlariDuzenle,
   ulusalTelefonFormatla,
   type TelefonUlke,
   VARSAYILAN_TELEFON_ULKE,
@@ -26,15 +27,18 @@ export function CariOutlinedTelefon({
   etiket = 'Telefon',
   dogrulaAktif = false,
   ulkeKoduGoster = true,
+  gsmMi = false,
 }: {
   deger: string;
   onChange: (deger: string) => void;
   disabled?: boolean;
   etiket?: string;
-  /** GSM için Doğrula butonu ve kod girişi akışı */
+  /** Doğrula butonu ve kod girişi akışı */
   dogrulaAktif?: boolean;
-  /** false ise ülke kodu seçici gösterilmez (GSM) */
+  /** false ise ülke kodu seçici gösterilmez */
   ulkeKoduGoster?: boolean;
+  /** GSM: TR'de 5 ile başlamalı */
+  gsmMi?: boolean;
 }) {
   const inputId = useId();
   const listeId = useId();
@@ -44,10 +48,9 @@ export function CariOutlinedTelefon({
   const [focused, setFocused] = useState(false);
   const [asama, setAsama] = useState<DogrulaAsama>('alan');
   const [kod, setKod] = useState('');
-  const [dogrulandi, setDogrulandi] = useState(false);
+  const [dogrulananAnahtar, setDogrulananAnahtar] = useState<string | null>(null);
   const [gecis, setGecis] = useState(false);
   const [basariAnim, setBasariAnim] = useState(false);
-  const oncekiDeger = useRef(deger);
   const sonYazilanRef = useRef(deger);
 
   const parcali = telefonDegeriniParcala(deger);
@@ -61,7 +64,11 @@ export function CariOutlinedTelefon({
   const [arama, setArama] = useState('');
   const [listeStil, setListeStil] = useState<CSSProperties>({});
 
-  const rakamSayisi = yalnizcaRakam(ulkeKoduGoster ? ulusal : deger, 11).length;
+  const ulusalRakam = yalnizcaRakam(ulkeKoduGoster ? ulusal : deger);
+  const guncelAnahtar = ulkeKoduGoster ? `${ulke.dial}|${ulusalRakam}` : ulusalRakam;
+  const dogrulandi =
+    dogrulananAnahtar !== null && dogrulananAnahtar === guncelAnahtar && ulusalRakam.length > 0;
+  const rakamSayisi = ulusalRakam.length;
   const dogrulaButonuGoster =
     dogrulaAktif && !disabled && (asama === 'kod' || dogrulandi || rakamSayisi > 0);
 
@@ -78,13 +85,9 @@ export function CariOutlinedTelefon({
   }, [deger, ulkeKoduGoster]);
 
   useEffect(() => {
-    if (!dogrulaAktif) return;
-    if (oncekiDeger.current !== deger && asama === 'alan') {
-      setDogrulandi(false);
-      setBasariAnim(false);
-    }
-    oncekiDeger.current = deger;
-  }, [deger, dogrulaAktif, asama]);
+    if (dogrulandi || !basariAnim) return;
+    setBasariAnim(false);
+  }, [dogrulandi, basariAnim]);
 
   useEffect(() => {
     if (asama === 'kod' && !disabled) {
@@ -132,13 +135,19 @@ export function CariOutlinedTelefon({
   const filtreliUlkeler = telefonUlkeAra(arama);
 
   const ulusalYaz = (yeniUlusal: string, hedefUlke: TelefonUlke = ulke) => {
+    const duzenli = ulusalRakamlariDuzenle(yeniUlusal, hedefUlke, {
+      ulkeKoduVar: ulkeKoduGoster,
+      gsm: gsmMi,
+    });
+    if (duzenli === null) return;
+
     if (!ulkeKoduGoster) {
-      const kayit = telefonFormatla(yalnizcaRakam(yeniUlusal, 11));
+      const kayit = telefonFormatla(duzenli);
       sonYazilanRef.current = kayit;
       onChange(kayit);
       return;
     }
-    const bicimli = ulusalTelefonFormatla(yeniUlusal, hedefUlke);
+    const bicimli = ulusalTelefonFormatla(duzenli, hedefUlke);
     setUlusal(bicimli);
     const kayit = telefonKayitDegeri(hedefUlke, bicimli);
     sonYazilanRef.current = kayit;
@@ -149,8 +158,16 @@ export function CariOutlinedTelefon({
     setUlke(secilen);
     setListeAcik(false);
     setArama('');
-    const rakamlar = yalnizcaRakam(ulusal, secilen.maxHane);
-    ulusalYaz(rakamlar, secilen);
+    const rakamlar = ulusalRakamlariDuzenle(ulusal, secilen, {
+      ulkeKoduVar: ulkeKoduGoster,
+      gsm: gsmMi,
+    });
+    if (rakamlar !== null) ulusalYaz(rakamlar, secilen);
+    else {
+      setUlusal('');
+      sonYazilanRef.current = '';
+      onChange('');
+    }
     inputRef.current?.focus();
   };
 
@@ -169,7 +186,7 @@ export function CariOutlinedTelefon({
       inputRef.current?.focus();
       return;
     }
-    setDogrulandi(true);
+    setDogrulananAnahtar(guncelAnahtar);
     setBasariAnim(true);
     setKod('');
     animasyonluGecis('alan', () => {
@@ -252,9 +269,7 @@ export function CariOutlinedTelefon({
             focused
               ? asama === 'kod'
                 ? '····'
-                : ulkeKoduGoster
-                  ? telefonPlaceholder(ulke)
-                  : '0xxx xxx xx xx'
+                : telefonPlaceholder(ulke, { gsm: gsmMi })
               : undefined
           }
           onChange={(e) => {
