@@ -36,15 +36,27 @@
   transform: scaleX(-1);
 }
 
+.cari-kart-gezin-grup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
 .cari-kart-modul-baslik {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.45rem;
   min-width: 0;
+}
+
+.cari-kart-modul-baslik .cari-listeye-don-ikon {
+  flex-shrink: 0;
 }
 
 .cari-kart-modul-baslik .ap-heading {
   margin: 0;
+  margin-left: 0.2rem;
 }
 
 .cari-kart-sayfa {
@@ -242,8 +254,9 @@
   box-sizing: border-box;
 }
 
-.cari-dortlu-satir .cari-arama-acilir-ok {
-  font-size: 0.7rem;
+.cari-dortlu-satir .cari-arama-acilir-tus .ap-form-acilir-secim-ok,
+.cari-dortlu-satir .cari-arama-acilir-kutu-satir .ap-form-acilir-secim-ok {
+  font-size: 0.92rem;
 }
 
 .cari-fiyat-tanimi-kucuk {
@@ -797,9 +810,13 @@
   color: var(--ap-text-muted);
 }
 
-.cari-arama-acilir-ok {
-  color: var(--ap-text-muted);
-  font-size: 0.75rem;
+.cari-arama-acilir-tus .ap-form-acilir-secim-ok,
+.cari-arama-acilir-kutu-satir .ap-form-acilir-secim-ok {
+  flex-shrink: 0;
+  font-size: 0.92rem;
+  line-height: 1;
+  opacity: 0.82;
+  color: var(--ap-text);
 }
 
 .cari-arama-acilir-panel {
@@ -851,10 +868,21 @@
   color: var(--ap-text);
 }
 
-.cari-arama-acilir-oge:hover,
+/* Stok Nevi / FormAcilirSecim ile aynı hover & seçim */
+.cari-arama-acilir-oge:hover {
+  background: color-mix(in srgb, var(--ap-accent) 88%, #fff);
+  color: #fff;
+}
+
 .cari-arama-acilir-oge--secili {
   background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
   color: var(--ap-accent);
+  font-weight: 600;
+}
+
+.cari-arama-acilir-oge--secili:hover {
+  background: color-mix(in srgb, var(--ap-accent) 88%, #fff);
+  color: #fff;
 }
 
 .cari-arama-acilir-bos {
@@ -868,8 +896,19 @@
   z-index: 3;
 }
 
-.cari-arama-acilir-kutu-girdi {
+.cari-arama-acilir-kutu-satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   width: 100%;
+  min-width: 0;
+}
+
+.cari-arama-acilir-kutu-girdi {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
   border: 0;
   outline: none;
   background: transparent;

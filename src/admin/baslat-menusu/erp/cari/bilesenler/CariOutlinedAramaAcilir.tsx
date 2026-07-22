@@ -135,32 +135,37 @@ export function CariOutlinedAramaAcilir({
       </CariOutlinedEtiket>
       <div className="cari-outlined-cerceve cari-arama-acilir-cerceve">
         {kutuIciArama && acik && !disabled ? (
-          <input
-            ref={araRef}
-            id={inputId}
-            type="search"
-            className="cari-arama-acilir-kutu-girdi"
-            value={arama}
-            placeholder={aramaPlaceholder}
-            disabled={disabled}
-            aria-autocomplete="list"
-            aria-expanded
-            aria-controls={listeId}
-            onChange={(e) => setArama(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && filtrelenmis.length === 1) {
-                e.preventDefault();
-                sec(filtrelenmis[0].value);
-              }
-              if (e.key === 'Escape') {
-                e.preventDefault();
-                setAcik(false);
-                setArama('');
-              }
-            }}
-          />
+          <div className="cari-arama-acilir-kutu-satir">
+            <input
+              ref={araRef}
+              id={inputId}
+              type="search"
+              className="cari-arama-acilir-kutu-girdi"
+              value={arama}
+              placeholder={aramaPlaceholder}
+              disabled={disabled}
+              aria-autocomplete="list"
+              aria-expanded
+              aria-controls={listeId}
+              onChange={(e) => setArama(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && filtrelenmis.length === 1) {
+                  e.preventDefault();
+                  sec(filtrelenmis[0].value);
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setAcik(false);
+                  setArama('');
+                }
+              }}
+            />
+            <span className="ap-form-acilir-secim-ok" aria-hidden>
+              ▾
+            </span>
+          </div>
         ) : (
           <button
             id={inputId}
@@ -185,7 +190,7 @@ export function CariOutlinedAramaAcilir({
             >
               {secili?.label ?? bosMetin}
             </span>
-            <span className="cari-arama-acilir-ok" aria-hidden>
+            <span className="ap-form-acilir-secim-ok" aria-hidden>
               ▾
             </span>
           </button>

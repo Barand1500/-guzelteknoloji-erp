@@ -57,6 +57,33 @@ function CariGezinOk({
   );
 }
 
+function CariListelemeTus({ onGit }: { onGit: () => void }) {
+  return (
+    <button
+      type="button"
+      className="cari-listeye-don-ikon cari-listeye-don-ikon--liste"
+      onClick={onGit}
+      title="Listeleme"
+      aria-label="Cari kartlar listesine dön"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+        <path
+          d="M8 6h12M8 12h12M8 18h12"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M4 6h.01M4 12h.01M4 18h.01"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
 export function CariSayfasi() {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { goruntulemeVar, eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('cari');
@@ -132,11 +159,17 @@ export function CariSayfasi() {
   const baglamCariId = tekSeciliId ?? aktifCariId;
 
   const listeyeDon = useCallback(() => {
+    if (kartKirli) {
+      const onay = window.confirm(
+        'Kaydedilmemiş değişiklikler var. Yine de listeye dönmek istiyor musunuz?'
+      );
+      if (!onay) return;
+    }
     setGorunum('liste');
     setAktifCariId(null);
     setKartKirli(false);
     void yukle();
-  }, [yukle]);
+  }, [kartKirli, yukle]);
 
   const cariyeGit = useCallback(
     (hedef: AdminCari) => {
@@ -320,28 +353,23 @@ export function CariSayfasi() {
 
   return (
     <AdminModulKabuk
-      baslik={
+      baslik={modulBaslik}
+      aciklama={modulAciklama}
+      ustAksiyon={
         gorunum === 'kart' ? (
-          <div className="cari-kart-modul-baslik">
+          <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
+            <CariListelemeTus onGit={listeyeDon} />
             <CariGezinOk
               yon="geri"
               hedef={oncekiCari}
               onGit={() => oncekiCari && cariyeGit(oncekiCari)}
             />
-            <h1 className="ap-heading text-xl font-bold">{modulBaslik}</h1>
+            <CariGezinOk
+              yon="ileri"
+              hedef={sonrakiCari}
+              onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
+            />
           </div>
-        ) : (
-          modulBaslik
-        )
-      }
-      aciklama={modulAciklama}
-      ustAksiyon={
-        gorunum === 'kart' ? (
-          <CariGezinOk
-            yon="ileri"
-            hedef={sonrakiCari}
-            onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
-          />
         ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-modul-ust-araclar">
             <DgSecimUstKutu

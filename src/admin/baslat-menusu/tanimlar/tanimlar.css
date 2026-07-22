@@ -3769,7 +3769,7 @@ button.ap-tanimlar-panel-arka {
 .stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal):not(.stok-kdv-departman-modal) {
   --scf-col-sira: 2.5rem;
   --scf-col-fiyat: 6.75rem;
-  --scf-col-iskonto: 3.55rem;
+  --scf-col-iskonto: 5rem;
   --scf-col-net: 6.75rem;
   --scf-col-pb: 3.35rem;
   --scf-col-islem: 2.85rem;
@@ -4197,7 +4197,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-coklu-fiyat-tablo-col-iskonto {
-  width: var(--scf-col-iskonto, 3.55rem);
+  width: var(--scf-col-iskonto, 5rem);
 }
 
 .stok-coklu-fiyat-tablo-col-net {

@@ -36,6 +36,78 @@ import {
 
 type Gorunum = 'liste' | 'kart' | 'fiyatAnaliz' | 'envanterAnaliz' | 'birimListesi' | 'fiyatDuzenle';
 
+function stokSatirEtiketi(s: AdminStok): string {
+  const kod = s.urunKodu?.trim() || '';
+  const ad = s.urunAdi?.trim() || '';
+  if (kod && ad) return `${kod} — ${ad}`;
+  return kod || ad || 'Stok';
+}
+
+function StokGezinOk({
+  yon,
+  hedef,
+  disabled,
+  onGit,
+}: {
+  yon: 'geri' | 'ileri';
+  hedef: AdminStok | null;
+  disabled?: boolean;
+  onGit: () => void;
+}) {
+  const etiket = hedef
+    ? stokSatirEtiketi(hedef)
+    : yon === 'geri'
+      ? 'Önceki stok yok'
+      : 'Sonraki stok yok';
+  return (
+    <button
+      type="button"
+      className={`cari-listeye-don-ikon${yon === 'ileri' ? ' cari-listeye-don-ikon--ileri' : ''}`}
+      onClick={onGit}
+      disabled={disabled || !hedef}
+      title={etiket}
+      aria-label={hedef ? `${yon === 'geri' ? 'Önceki' : 'Sonraki'}: ${etiket}` : etiket}
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+        <path
+          d="M15 6l-6 6 6 6"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
+function StokListelemeTus({ onGit }: { onGit: () => void }) {
+  return (
+    <button
+      type="button"
+      className="cari-listeye-don-ikon cari-listeye-don-ikon--liste"
+      onClick={onGit}
+      title="Listeleme"
+      aria-label="Stok listesine dön"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+        <path
+          d="M8 6h12M8 12h12M8 18h12"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M4 6h.01M4 12h.01M4 18h.01"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
 function secimKolonu(): KolonTanimi<AdminStok> {
   return {
     id: 'secim',
@@ -106,6 +178,34 @@ export function StoklarSayfasi() {
     [kayitlar, uygulananFiltreMetni, gelismisFiltre]
   );
 
+  /** Datagrid sırasına göre kart gezinmesi (uçlarda döngü) */
+  const gezinmeListesi = useMemo(
+    () => (aramaGosterildi && filtrelenmis.length > 0 ? filtrelenmis : kayitlar),
+    [aramaGosterildi, filtrelenmis, kayitlar]
+  );
+
+  const gezinmeIdx = useMemo(() => {
+    if (!aktifStokId) return -1;
+    const id = String(aktifStokId);
+    return gezinmeListesi.findIndex((s) => String(s.id) === id);
+  }, [aktifStokId, gezinmeListesi]);
+
+  const oncekiStok = useMemo(() => {
+    const n = gezinmeListesi.length;
+    if (n === 0) return null;
+    if (n === 1) return gezinmeIdx === 0 ? null : gezinmeListesi[0] ?? null;
+    if (gezinmeIdx < 0) return gezinmeListesi[n - 1] ?? null;
+    return gezinmeListesi[(gezinmeIdx - 1 + n) % n] ?? null;
+  }, [gezinmeIdx, gezinmeListesi]);
+
+  const sonrakiStok = useMemo(() => {
+    const n = gezinmeListesi.length;
+    if (n === 0) return null;
+    if (n === 1) return gezinmeIdx === 0 ? null : gezinmeListesi[0] ?? null;
+    if (gezinmeIdx < 0) return gezinmeListesi[0] ?? null;
+    return gezinmeListesi[(gezinmeIdx + 1) % n] ?? null;
+  }, [gezinmeIdx, gezinmeListesi]);
+
   const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
 
   /** Liste secimi veya alt ekrandaki stok — aksiyon cubugu baglami */
@@ -129,6 +229,12 @@ export function StoklarSayfasi() {
   }, []);
 
   const listeyeDon = useCallback(() => {
+    if (kartKirli || altKirli) {
+      const onay = window.confirm(
+        'Kaydedilmemiş değişiklikler var. Yine de listeye dönmek istiyor musunuz?'
+      );
+      if (!onay) return;
+    }
     setGorunum('liste');
     setAktifStokId(null);
     setFiyatAnalizStok(null);
@@ -138,7 +244,24 @@ export function StoklarSayfasi() {
     setKartKirli(false);
     setAltKirli(false);
     void yukle();
-  }, [yukle]);
+  }, [altKirli, kartKirli, yukle]);
+
+  const stokyeGit = useCallback(
+    (hedef: AdminStok) => {
+      if (kartKirli) {
+        const onay = window.confirm(
+          'Kaydedilmemiş değişiklikler var. Yine de diğer stoka geçmek istiyor musunuz?'
+        );
+        if (!onay) return;
+      }
+      setSeciliIdler([hedef.id]);
+      setAktifStokId(hedef.id);
+      setKartModu(duzenlemeVar ? 'duzenle' : 'incele');
+      setKartKirli(false);
+      setGorunum('kart');
+    },
+    [duzenlemeVar, kartKirli]
+  );
 
   const yeniAc = useCallback(() => {
     if (!eklemeVar) return;
@@ -504,23 +627,19 @@ export function StoklarSayfasi() {
       aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'kart' ? (
-          <button
-            type="button"
-            className="cari-listeye-don-ikon"
-            onClick={listeyeDon}
-            title="Geri Dön"
-            aria-label="Geri Dön"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
-              <path
-                d="M15 6l-6 6 6 6"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
+            <StokListelemeTus onGit={listeyeDon} />
+            <StokGezinOk
+              yon="geri"
+              hedef={oncekiStok}
+              onGit={() => oncekiStok && stokyeGit(oncekiStok)}
+            />
+            <StokGezinOk
+              yon="ileri"
+              hedef={sonrakiStok}
+              onGit={() => sonrakiStok && stokyeGit(sonrakiStok)}
+            />
+          </div>
         ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
           <div className="dg-modul-ust-araclar">
             <DgSecimUstKutu
