@@ -116,10 +116,19 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
     requestAnimationFrame(() => barkodInputRef.current?.focus());
   }, [acik, ilkBosSira, satir.id]);
 
+  const ustSiraGuncelle = useCallback((sonrakiSatir: StokFiyatDuzenleSatir) => {
+    const bos = stokCokluBarkodIlkBosSira(sonrakiSatir);
+    setYeniSira(String(bos ?? 1));
+  }, []);
+
   const ekle = useCallback(() => {
     const sira = Number(yeniSira);
     if (!stokCokluBarkodSiraGecerliMi(sira)) {
       setHata('Sıra numarası 1–6 arasında olmalı.');
+      return;
+    }
+    if (stokCokluBarkodDoluMu(satir, sira)) {
+      setHata(`${sira}. sıra zaten var.`);
       return;
     }
     const ham = barkodFiltrele(yeniBarkod.trim());
@@ -131,9 +140,9 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
     const sonrakiSatir = { ...satir, ...stokCokluBarkodPatch(sira, ham, yeniTip) };
     setYeniBarkod('');
     setYeniTip('EAN13');
-    setYeniSira(String(stokCokluBarkodIlkBosSira(sonrakiSatir) ?? sira));
+    ustSiraGuncelle(sonrakiSatir);
     setHata('');
-  }, [onKaydet, satir, yeniBarkod, yeniSira, yeniTip]);
+  }, [onKaydet, satir, ustSiraGuncelle, yeniBarkod, yeniSira, yeniTip]);
 
   const satirKaydet = useCallback(() => {
     if (satirDuzenle === null) return;
@@ -148,23 +157,22 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
       return;
     }
     const temiz = barkodFiltrele(satirBarkod.trim());
+    let patch: Partial<StokFiyatDuzenleSatir>;
     if (!temiz) {
-      onKaydet(stokCokluBarkodPatch(eskiSira, ''));
-      setSatirDuzenle(null);
-      setHata('');
-      return;
-    }
-    if (yeniSiraNo !== eskiSira) {
-      onKaydet(stokCokluBarkodTasi(eskiSira, yeniSiraNo, temiz, satirTip));
+      patch = stokCokluBarkodPatch(eskiSira, '');
+    } else if (yeniSiraNo !== eskiSira) {
+      patch = stokCokluBarkodTasi(eskiSira, yeniSiraNo, temiz, satirTip);
     } else {
-      onKaydet(stokCokluBarkodPatch(eskiSira, temiz, satirTip));
+      patch = stokCokluBarkodPatch(eskiSira, temiz, satirTip);
     }
+    onKaydet(patch);
+    ustSiraGuncelle({ ...satir, ...patch });
     setSatirDuzenle(null);
     setSatirSira('');
     setSatirBarkod('');
     setSatirTip('EAN13');
     setHata('');
-  }, [onKaydet, satir, satirBarkod, satirDuzenle, satirSira, satirTip]);
+  }, [onKaydet, satir, satirBarkod, satirDuzenle, satirSira, satirTip, ustSiraGuncelle]);
 
   useEffect(() => {
     if (!acik || !portalKok) return;
@@ -355,7 +363,11 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                                 <button
                                   type="button"
                                   className="stok-coklu-barkod-tablo-sil"
-                                  onClick={() => onKaydet(stokCokluBarkodPatch(oge.sira, ''))}
+                                  onClick={() => {
+                                    const patch = stokCokluBarkodPatch(oge.sira, '');
+                                    onKaydet(patch);
+                                    ustSiraGuncelle({ ...satir, ...patch });
+                                  }}
                                   aria-label={`${oge.etiket} sil`}
                                 >
                                   Sil
