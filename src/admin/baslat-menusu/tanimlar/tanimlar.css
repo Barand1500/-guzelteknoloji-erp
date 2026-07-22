@@ -2549,21 +2549,63 @@ button.ap-tanimlar-panel-arka {
 
 .stok-karti-ana-grid > .cari-outlined-field,
 .stok-karti-ana-grid > .cari-outlined-acilir,
-.stok-karti-ana-grid > .stok-karti-ana-nevi-satir,
-.stok-karti-ana-grid > .stok-karti-gtip-envanter-satir {
+.stok-karti-ana-grid > .stok-karti-kdv-nevi-envanter-satir,
+.stok-karti-ana-grid > .stok-karti-gtip-diger-vergi-satir,
+.stok-karti-ana-grid > .stok-karti-marka-mensei-satir,
+.stok-karti-ana-grid > .stok-karti-ust-satir {
   min-width: 0;
 }
 
-.stok-karti-gtip-envanter-satir {
+.stok-karti-ust-satir {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns:
     minmax(9.5rem, 0.72fr)
-    var(--stok-karti-kisa-alan-genislik)
-    minmax(0, 1fr)
-    minmax(0, 1.15fr);
+    minmax(10rem, 0.85fr)
+    minmax(0, 1.6fr);
   gap: 1rem 1.1rem;
   align-items: start;
+}
+
+.stok-karti-ust-satir > * {
+  min-width: 0;
+}
+
+.stok-karti-kdv-nevi-envanter-satir {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns:
+    minmax(10.5rem, 13.25rem)
+    minmax(7.5rem, 8.75rem)
+    minmax(0, 1.45fr);
+  gap: 1rem 1.1rem;
+  align-items: start;
+}
+
+.stok-karti-kdv-nevi-envanter-satir > * {
+  min-width: 0;
+}
+
+.stok-karti-kdv-alan {
+  width: 100%;
+  max-width: 13.25rem;
+  min-width: 0;
+}
+
+.stok-karti-kdv-alan > .cari-outlined-field {
+  width: 100%;
+}
+
+.stok-karti-nevi-alan {
+  width: 100%;
+  max-width: 8.75rem;
+  min-width: 0;
+  justify-self: start;
+}
+
+.stok-karti-nevi-alan > .cari-outlined-field,
+.stok-karti-nevi-alan > .cari-outlined-acilir {
+  width: 100%;
 }
 
 .stok-karti-envanter-blok {
@@ -2574,7 +2616,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-karti-envanter-blok[data-detay='0'] {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(9.5rem, 14rem);
 }
 
 .stok-karti-envanter-blok[data-detay='2'] {
@@ -2589,26 +2631,65 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
 }
 
-.stok-karti-gtip-envanter-satir > * {
+.stok-karti-gtip-diger-vergi-satir,
+.stok-karti-marka-mensei-satir {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: var(--stok-karti-kisa-alan-genislik) minmax(0, 1fr);
+  gap: 1rem 1.1rem;
+  align-items: start;
+}
+
+.stok-karti-gtip-diger-vergi-satir > *,
+.stok-karti-marka-mensei-satir > * {
   min-width: 0;
 }
 
-.stok-karti-gtip-envanter-satir > .stok-karti-kisa-alan {
+.stok-karti-gtip-diger-vergi-satir > .stok-karti-kisa-alan,
+.stok-karti-marka-mensei-satir > .stok-karti-marka-alan {
   width: var(--stok-karti-kisa-alan-genislik);
   max-width: var(--stok-karti-kisa-alan-genislik);
   justify-self: start;
 }
 
-.stok-karti-ana-nevi-satir {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(10rem, 0.5fr) minmax(0, 1.5fr);
-  gap: 1rem 1.1rem;
-  align-items: start;
+.stok-karti-marka-mensei-satir > .stok-karti-mensei-alan {
+  width: var(--stok-karti-kisa-alan-genislik);
+  max-width: var(--stok-karti-kisa-alan-genislik);
+  justify-self: start;
 }
 
-.stok-karti-ana-nevi-satir > * {
-  min-width: 0;
+.stok-karti-marka-alan > .cari-outlined-field,
+.stok-karti-marka-alan > .cari-outlined-acilir,
+.stok-karti-mensei-alan > .cari-outlined-field,
+.stok-karti-mensei-alan > .cari-outlined-acilir {
+  width: 100%;
+}
+
+.stok-karti-tarih-bilgi {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 0.35rem 0.55rem;
+  margin-top: 0.15rem;
+  padding: 0.2rem 0.1rem 0.05rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--ap-muted);
+  text-align: right;
+}
+
+.stok-karti-tarih-bilgi em {
+  font-style: normal;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--ap-text) 62%, var(--ap-muted));
+  margin-right: 0.2rem;
+}
+
+.stok-karti-tarih-bilgi-ayrac {
+  opacity: 0.55;
 }
 
 .stok-karti-ana-grid > .stok-karti-kisa-alan {

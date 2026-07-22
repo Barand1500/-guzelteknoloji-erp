@@ -337,28 +337,7 @@ export function StokKarti({
   const anaTanimlar = (
     <div className="stok-karti-ana-tanimlar stok-karti-bolum-panel">
       <div className="stok-karti-ana-grid">
-        <CariOutlinedGirdi
-          etiket="Stok Kodu"
-          deger={form.urunKodu}
-          kural="stokKod"
-          zorunlu
-          maxLength={30}
-          buyukHarf
-          disabled={saltOkunur}
-          odakPlaceholder="Stok kodunu yazınız"
-          onChange={(urunKodu) => setForm((f) => ({ ...f, urunKodu }))}
-        />
-        <CariOutlinedGirdi
-          etiket="Stok Adı"
-          deger={form.urunAdi}
-          zorunlu
-          maxLength={255}
-          buyukHarf
-          disabled={saltOkunur}
-          odakPlaceholder="Stok adını yazınız"
-          onChange={(urunAdi) => setForm((f) => ({ ...f, urunAdi }))}
-        />
-        <div className="stok-karti-gtip-envanter-satir">
+        <div className="stok-karti-ust-satir">
           <CariOutlinedAcilir
             etiket="Stok Tipi"
             zorunlu
@@ -369,29 +348,54 @@ export function StokKarti({
             onChange={(urunTipi) => setForm((f) => ({ ...f, urunTipi }))}
           />
           <CariOutlinedGirdi
-            etiket="GTIP Kodu"
-            deger={form.gtip}
-            disabled={saltOkunur}
-            maxLength={20}
+            etiket="Stok Kodu"
+            deger={form.urunKodu}
+            kural="stokKod"
+            zorunlu
+            maxLength={30}
             buyukHarf
-            className="stok-karti-kisa-alan"
-            odakPlaceholder="GTIP kodunu yazınız"
-            onChange={(gtip) => setForm((f) => ({ ...f, gtip }))}
-          />
-          <CariOutlinedAramaAcilir
-            etiket="KDV Departmanı"
-            deger={form.kdvDepartmani}
             disabled={saltOkunur}
-            secenekler={kdvDepartmanlari.map((x) => ({
-              value: x.value,
-              label: stokKdvDepartmaniGosterimEtiketi(x),
-            }))}
-            aramaPlaceholder="KDV departmanı ara…"
-            bosMetin="KDV Departmanı"
-            kutuIciArama
-            onYonet={() => setKdvModalAcik(true)}
-            onChange={(kdvDepartmani) => setForm((f) => ({ ...f, kdvDepartmani }))}
+            odakPlaceholder="Stok kodunu yazınız"
+            onChange={(urunKodu) => setForm((f) => ({ ...f, urunKodu }))}
           />
+          <CariOutlinedGirdi
+            etiket="Stok Adı"
+            deger={form.urunAdi}
+            zorunlu
+            maxLength={255}
+            buyukHarf
+            disabled={saltOkunur}
+            odakPlaceholder="Stok adını yazınız"
+            onChange={(urunAdi) => setForm((f) => ({ ...f, urunAdi }))}
+          />
+        </div>
+        <div className="stok-karti-kdv-nevi-envanter-satir">
+          <div className="stok-karti-kdv-alan">
+            <CariOutlinedAramaAcilir
+              etiket="KDV Departmanı"
+              deger={form.kdvDepartmani}
+              disabled={saltOkunur}
+              secenekler={kdvDepartmanlari.map((x) => ({
+                value: x.value,
+                label: stokKdvDepartmaniGosterimEtiketi(x),
+              }))}
+              aramaPlaceholder="KDV departmanı ara…"
+              bosMetin="KDV Departmanı"
+              kutuIciArama
+              onYonet={() => setKdvModalAcik(true)}
+              onChange={(kdvDepartmani) => setForm((f) => ({ ...f, kdvDepartmani }))}
+            />
+          </div>
+          <div className="stok-karti-nevi-alan">
+            <CariOutlinedAcilir
+              etiket="Stok Nevi"
+              deger={form.urunNevi}
+              disabled={saltOkunur}
+              secenekler={[{ value: '', label: 'Seçilmedi' }, ...stokNevileri.map((x) => ({ ...x }))]}
+              onYonet={() => setNeviModalAcik(true)}
+              onChange={(urunNevi) => setForm((f) => ({ ...f, urunNevi }))}
+            />
+          </div>
           <div
             className="stok-karti-envanter-blok"
             data-detay={envanterDetayKolonSayisi(form.envanterTakibi || 'YOK')}
@@ -411,39 +415,44 @@ export function StokKarti({
             />
           </div>
         </div>
-        <div className="stok-karti-ana-nevi-satir">
-          <CariOutlinedAcilir
-            etiket="Stok Nevi"
-            deger={form.urunNevi}
+        <div className="stok-karti-gtip-diger-vergi-satir">
+          <CariOutlinedGirdi
+            etiket="GTIP Kodu"
+            deger={form.gtip}
             disabled={saltOkunur}
-            secenekler={[{ value: '', label: 'Seçilmedi' }, ...stokNevileri.map((x) => ({ ...x }))]}
-            onYonet={() => setNeviModalAcik(true)}
-            onChange={(urunNevi) => setForm((f) => ({ ...f, urunNevi }))}
+            maxLength={20}
+            buyukHarf
+            className="stok-karti-kisa-alan"
+            odakPlaceholder="GTIP kodunu yazınız"
+            onChange={(gtip) => setForm((f) => ({ ...f, gtip }))}
           />
           <StokDigerVergiBlok />
         </div>
-        <CariOutlinedMarka
-          deger={form.marka}
-          disabled={saltOkunur}
-          onChange={(marka) => setForm((f) => ({ ...f, marka }))}
-        />
-        <CariOutlinedGirdi
-          etiket="Güncelleme Tarihi"
-          deger={guncellemeGoster}
-          disabled
-          onChange={() => undefined}
-        />
-        <CariOutlinedMensei
-          deger={form.mensei}
-          disabled={saltOkunur}
-          onChange={(mensei) => setForm((f) => ({ ...f, mensei }))}
-        />
-        <CariOutlinedGirdi
-          etiket="Kayıt Tarihi"
-          deger={kayitGoster}
-          disabled
-          onChange={() => undefined}
-        />
+        <div className="stok-karti-marka-mensei-satir">
+          <div className="stok-karti-marka-alan">
+            <CariOutlinedMarka
+              deger={form.marka}
+              disabled={saltOkunur}
+              onChange={(marka) => setForm((f) => ({ ...f, marka }))}
+            />
+          </div>
+          <div className="stok-karti-mensei-alan">
+            <CariOutlinedMensei
+              deger={form.mensei}
+              disabled={saltOkunur}
+              onChange={(mensei) => setForm((f) => ({ ...f, mensei }))}
+            />
+          </div>
+        </div>
+        <div className="stok-karti-tarih-bilgi">
+          <span>
+            <em>Kayıt Tarihi</em> {kayitGoster}
+          </span>
+          <span className="stok-karti-tarih-bilgi-ayrac">·</span>
+          <span>
+            <em>Güncelleme Tarihi</em> {guncellemeGoster}
+          </span>
+        </div>
       </div>
     </div>
   );
