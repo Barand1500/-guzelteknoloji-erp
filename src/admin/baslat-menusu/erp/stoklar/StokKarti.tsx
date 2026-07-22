@@ -31,10 +31,12 @@ import { StokEnvanterTakibiDetay } from './StokEnvanterTakibiDetay';
 import {
   stokKdvDepartmaniEkle,
   stokKdvDepartmaniGuncelle,
+  stokKdvDepartmaniGosterimEtiketi,
   stokKdvDepartmaniSil,
   stokKdvDepartmanlariGetir,
   type StokKdvDepartmaniSecenek,
 } from './stokKdvDepartmanlari';
+import { StokKdvDepartmanModal } from './StokKdvDepartmanModal';
 import {
   stokTipiEkle,
   stokTipiGuncelle,
@@ -368,7 +370,10 @@ export function StokKarti({
             etiket="KDV Departmanı"
             deger={form.kdvDepartmani}
             disabled={saltOkunur}
-            secenekler={kdvDepartmanlari.map((x) => ({ ...x }))}
+            secenekler={kdvDepartmanlari.map((x) => ({
+              value: x.value,
+              label: stokKdvDepartmaniGosterimEtiketi(x),
+            }))}
             aramaPlaceholder="KDV departmanı ara…"
             bosMetin="KDV Departmanı"
             kutuIciArama
@@ -458,23 +463,18 @@ export function StokKarti({
         </TanimDuzenleEkrani>
       </div>
 
-      <CariSecenekModal
+      <StokKdvDepartmanModal
         acik={kdvModalAcik}
-        baslik="KDV Departmanı"
-        placeholder="Yeni KDV departmanı adı…"
-        liste={kdvDepartmanlari.map((d) => ({ value: d.value, label: d.label }))}
-        sabitDegerler={['ICECEKLER', 'YIYECEKLER', 'MERCH', 'CEKIRDEK_KAHVE']}
-        kullanimNesneAdi="KDV departmanını"
-        kullanimSayisiAl={() => 0}
-        onEkle={(ad) => {
-          const sonuc = stokKdvDepartmaniEkle(ad);
+        liste={kdvDepartmanlari}
+        onEkle={(ad, yuzde) => {
+          const sonuc = stokKdvDepartmaniEkle(ad, yuzde);
           if (!sonuc) return false;
           setKdvDepartmanlari(stokKdvDepartmanlariGetir());
           setForm((f) => ({ ...f, kdvDepartmani: sonuc.value }));
           return true;
         }}
-        onGuncelle={(value, ad) => {
-          const ok = stokKdvDepartmaniGuncelle(value, ad);
+        onGuncelle={(value, ad, yuzde) => {
+          const ok = stokKdvDepartmaniGuncelle(value, ad, yuzde);
           if (ok) setKdvDepartmanlari(stokKdvDepartmanlariGetir());
           return ok;
         }}

@@ -3620,6 +3620,68 @@ button.ap-tanimlar-panel-arka {
   text-align: center;
 }
 
+.stok-kdv-departman-input-grup .stok-kdv-departman-yuzde {
+  flex: 0 0 4.25rem;
+  width: 4.25rem;
+  min-width: 4.25rem;
+  max-width: 4.25rem;
+  text-align: center;
+}
+
+.stok-kdv-departman-tablo-col-adi {
+  width: 58%;
+}
+
+.stok-kdv-departman-tablo-col-yuzde {
+  width: 5.5rem;
+}
+
+.stok-kdv-departman-tablo-col-islem {
+  width: 4.75rem;
+}
+
+.stok-kdv-departman-tablo thead th:first-child {
+  text-align: left;
+}
+
+.stok-kdv-departman-tablo thead th:nth-child(2),
+.stok-kdv-departman-tablo tbody td.stok-kdv-departman-tablo-yuzde,
+.stok-kdv-departman-tablo-duzenle-yuzde {
+  text-align: center;
+}
+
+.stok-kdv-departman-tablo-duzenle-hucre {
+  padding: 0.3rem 0.35rem !important;
+  vertical-align: middle;
+}
+
+.stok-kdv-departman-tablo-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.35rem;
+  background: var(--ap-input-bg, var(--ap-surface));
+  color: var(--ap-text);
+  padding: 0.28rem 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  outline: none;
+  min-width: 0;
+}
+
+.stok-kdv-departman-tablo-input--yuzde {
+  text-align: center;
+  font-weight: 700;
+  color: var(--ap-heading, var(--ap-text));
+}
+
+.stok-kdv-departman-tablo-input:focus,
+.stok-kdv-departman-tablo-input:focus-visible {
+  border-color: var(--ap-accent);
+  box-shadow: inset 0 0 0 1px var(--ap-accent);
+}
+
 .stok-coklu-fiyat-sil-btn {
   flex-shrink: 0;
   border: 0;
@@ -5854,6 +5916,14 @@ button.ap-tanimlar-panel-arka {
   flex: 1 1 auto;
   min-width: 3.5rem;
   width: auto;
+}
+
+.cari-secenek-ekle .stok-coklu-fiyat-input-grup .stok-kdv-departman-yuzde {
+  flex: 0 0 4.25rem;
+  width: 4.25rem;
+  min-width: 4.25rem;
+  max-width: 4.25rem;
+  text-align: center;
 }
 
 .cari-secenek-ekle input:focus,
