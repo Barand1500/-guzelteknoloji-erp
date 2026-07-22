@@ -1658,8 +1658,12 @@
 }
 
 .cari-telefon-ulke-bayrak {
-  font-size: 0.95rem;
-  line-height: 1;
+  display: block;
+  width: 1.125rem;
+  height: 0.85rem;
+  object-fit: cover;
+  border-radius: 0.12rem;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-heading) 12%, transparent);
 }
 
 .cari-telefon-ulke-kod {
@@ -1737,8 +1741,12 @@
 
 .cari-telefon-ulke-oge-bayrak {
   flex-shrink: 0;
-  font-size: 1rem;
-  line-height: 1;
+  display: block;
+  width: 1.25rem;
+  height: 0.95rem;
+  object-fit: cover;
+  border-radius: 0.12rem;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-heading) 12%, transparent);
 }
 
 .cari-telefon-ulke-oge-ad {

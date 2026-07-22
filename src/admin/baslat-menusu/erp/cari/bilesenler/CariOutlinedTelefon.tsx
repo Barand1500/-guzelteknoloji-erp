@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties
 import { createPortal } from 'react-dom';
 import { telefonFormatla, yalnizcaRakam } from '../cariFormatYardimci';
 import {
+  telefonBayrakUrl,
   telefonDegeriniParcala,
   telefonKayitDegeri,
   telefonPlaceholder,
@@ -15,6 +16,32 @@ import {
 import { CariOutlinedEtiket } from './CariOutlinedGirdi';
 
 type DogrulaAsama = 'alan' | 'kod';
+
+function UlkeBayrakGorsel({
+  ulkeId,
+  className,
+  kucuk = false,
+}: {
+  ulkeId: string;
+  className?: string;
+  kucuk?: boolean;
+}) {
+  const w = kucuk ? 18 : 20;
+  const h = Math.round(w * 0.75);
+  return (
+    <img
+      className={className}
+      src={telefonBayrakUrl(ulkeId, 40)}
+      srcSet={`${telefonBayrakUrl(ulkeId, 80)} 2x`}
+      width={w}
+      height={h}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      draggable={false}
+    />
+  );
+}
 
 function portalHedefiBul(): HTMLElement {
   return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
@@ -244,9 +271,7 @@ export function CariOutlinedTelefon({
               setListeAcik((a) => !a);
             }}
           >
-            <span className="cari-telefon-ulke-bayrak" aria-hidden>
-              {ulke.bayrak}
-            </span>
+            <UlkeBayrakGorsel ulkeId={ulke.id} className="cari-telefon-ulke-bayrak" kucuk />
             <span className="cari-telefon-ulke-kod">+{ulke.dial}</span>
             <span className="cari-telefon-ulke-ok" aria-hidden>
               ▾
@@ -339,9 +364,7 @@ export function CariOutlinedTelefon({
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => ulkeSec(telefonUlkeBul(u.id))}
                       >
-                        <span className="cari-telefon-ulke-oge-bayrak" aria-hidden>
-                          {u.bayrak}
-                        </span>
+                        <UlkeBayrakGorsel ulkeId={u.id} className="cari-telefon-ulke-oge-bayrak" />
                         <span className="cari-telefon-ulke-oge-ad">{u.ad}</span>
                         <span className="cari-telefon-ulke-oge-dial">+{u.dial}</span>
                       </button>
