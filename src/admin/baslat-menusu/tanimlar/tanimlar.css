@@ -2652,7 +2652,8 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-karti-diger-vergi-acilir .ap-form-acilir-secim-ok {
-  font-size: 0.58rem;
+  font-size: 0.92rem;
+  opacity: 0.82;
 }
 
 .stok-karti-diger-vergi-ek {
@@ -3114,6 +3115,285 @@ button.ap-tanimlar-panel-arka {
   line-height: 1;
 }
 
+.cari-outlined-cerceve--ic-uc-nokta {
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.stok-yb-outlined-input--uc-nokta {
+  padding-left: 0.45rem !important;
+}
+
+.stok-yb-fiyat-uc-nokta--ic {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 1.75rem;
+  min-width: 1.75rem;
+  margin: 0;
+  padding: 0 0 0 0.42rem;
+  border: 0;
+  border-right: 1px solid var(--ap-border);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-input-bg));
+  color: var(--ap-accent);
+  cursor: pointer;
+}
+
+.stok-yb-fiyat-uc-nokta--ic svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.stok-yb-fiyat-uc-nokta--ic:hover {
+  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-input-bg));
+}
+
+.stok-yb-barkod-cerceve {
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.stok-yb-barkod-ikon {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 1.75rem;
+  min-width: 1.75rem;
+  margin: 0;
+  padding: 0 0 0 0.38rem;
+  border: 0;
+  border-right: 1px solid var(--ap-border);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-input-bg));
+  color: var(--ap-accent);
+  cursor: pointer;
+}
+
+.stok-yb-barkod-ikon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.stok-yb-barkod-ikon:hover {
+  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-input-bg));
+}
+
+.stok-yb-barkod-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 0.5rem !important;
+  padding-right: 0.35rem !important;
+}
+
+.stok-yb-barkod-tip {
+  flex: 0 0 4.5rem;
+  width: 4.5rem;
+  max-width: 4.5rem;
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  margin-left: auto;
+  border-left: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-text) 4%, var(--ap-input-bg));
+  padding: 0;
+}
+
+.stok-yb-barkod-tip.ap-form-acilir-secim-liste-anchor {
+  position: relative;
+}
+
+.stok-yb-barkod-tip .ap-form-acilir-secim {
+  position: relative;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100%;
+}
+
+.stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 1.15rem 0.35rem 0.3rem !important;
+  justify-content: flex-end !important;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.stok-yb-barkod-tip-secim .ap-form-acilir-secim-tus-metin {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  color: var(--ap-text);
+}
+
+.stok-yb-barkod-tip-secim .ap-form-acilir-secim-ok {
+  position: absolute;
+  right: 0.28rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  height: auto;
+  font-size: 0.78rem;
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.stok-yb-barkod-tip-liste {
+  z-index: 40;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 0 0 0.5rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+  border-top: 1px solid var(--ap-border);
+  box-shadow:
+    0 6px 18px color-mix(in srgb, var(--ap-heading) 20%, transparent),
+    0 1px 0 color-mix(in srgb, var(--ap-border) 80%, transparent);
+  padding-bottom: 0.15rem;
+}
+
+.stok-yb-barkod-tip-liste .ap-form-acilir-secim-oge {
+  font-size: 0.68rem;
+  padding: 0.38rem 0.55rem;
+  white-space: nowrap;
+}
+
+.stok-yb-barkod-tip-liste li:last-child .ap-form-acilir-secim-oge {
+  border-radius: 0 0 0.42rem 0.42rem;
+}
+
+.stok-coklu-fiyat-ekle {
+  width: 100%;
+}
+
+.stok-coklu-fiyat-input-grup {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 2rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.45rem;
+  overflow: hidden;
+  background: var(--ap-input-bg, var(--ap-surface));
+}
+
+.stok-coklu-fiyat-input-grup:focus-within {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 16%, transparent);
+}
+
+.stok-coklu-fiyat-no {
+  flex: 0 0 2.15rem;
+  width: 2.15rem;
+  min-width: 2.15rem;
+  border: 0 !important;
+  border-right: 1px solid var(--ap-border) !important;
+  border-radius: 0 !important;
+  padding: 0.28rem 0.2rem !important;
+  min-height: 0 !important;
+  font-size: 0.78rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface)) !important;
+  box-shadow: none !important;
+}
+
+.stok-coklu-fiyat-ekle-input,
+.stok-coklu-fiyat-satir-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0 !important;
+  padding: 0.28rem 0.45rem !important;
+  font-size: 0.8rem;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.stok-coklu-fiyat-ekle-btn {
+  flex-shrink: 0;
+  border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  border-radius: 0;
+  padding: 0.28rem 0.55rem;
+  min-width: 2.7rem;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.stok-coklu-fiyat-ekle-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-accent) 20%, var(--ap-surface));
+}
+
+.stok-coklu-fiyat-ekle-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.stok-coklu-fiyat-sil-btn {
+  flex-shrink: 0;
+  border: 0;
+  border-left: 1px solid color-mix(in srgb, #b91c1c 30%, var(--ap-border));
+  border-radius: 0;
+  padding: 0.28rem 0.55rem;
+  min-width: 2.7rem;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b91c1c;
+  background: color-mix(in srgb, #b91c1c 8%, var(--ap-surface));
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.stok-coklu-fiyat-sil-btn:hover {
+  background: color-mix(in srgb, #b91c1c 14%, var(--ap-surface));
+}
+
+.stok-coklu-fiyat-satir {
+  display: block;
+  width: 100%;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.stok-coklu-fiyat-input-grup--satir {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.stok-coklu-fiyat-bos {
+  justify-content: center;
+  color: var(--ap-muted);
+  font-size: 0.78rem;
+  border-style: dashed;
+  cursor: default;
+}
+
 .stok-yb-bos {
   padding: 1rem 0.75rem;
   font-size: 0.8125rem;
@@ -3427,13 +3707,13 @@ button.ap-tanimlar-panel-arka {
 
 .stok-yb-pb-acilir .ap-form-acilir-secim-ok {
   position: absolute;
-  right: 0.08rem;
+  right: 0.2rem;
   top: 50%;
   transform: translateY(-50%);
   flex-shrink: 0;
-  font-size: 0.55rem;
+  font-size: 0.92rem;
   line-height: 1;
-  opacity: 0.72;
+  opacity: 0.82;
   pointer-events: none;
 }
 
@@ -3550,6 +3830,39 @@ button.ap-tanimlar-panel-arka {
 
 .stok-yb-kdv-outlined .ap-form-acilir-secim-tus-metin {
   text-align: right;
+}
+
+.stok-yb-kdv-outlined .ap-form-acilir-secim-ok {
+  position: absolute;
+  right: 0.28rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.92rem;
+  line-height: 1;
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.stok-yb-kabuk .ap-form-acilir-secim-tus {
+  position: relative;
+}
+
+.stok-yb-kabuk .ap-form-acilir-secim-ok {
+  font-size: 0.92rem;
+  line-height: 1;
+  opacity: 0.82;
+}
+
+.stok-yb-kabuk .cari-outlined-acilir .ap-form-acilir-secim-tus {
+  padding-right: 1.35rem !important;
+}
+
+.stok-yb-birim-alan .ap-form-acilir-secim-ok {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .stok-yb-kdv-outlined-liste .ap-form-acilir-secim-oge {

@@ -11,7 +11,7 @@ import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { bosBirimFiyatSatiri } from './birimMap';
-import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
+import type { StokBarkodTipi, StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
 import { STOK_FIYAT_PB_SECENEKLERI, stokPbSembolu } from './fiyatDuzenleTipler';
 import {
   stokBirimAdiEkle,
@@ -31,11 +31,14 @@ import {
 } from './stokFiyatAdlari';
 import {
   barkodFiltrele,
+  CariOutlinedBarkod,
   CariOutlinedCarpan,
   CariOutlinedSayi,
   CariToggleAlan,
   KdvTipSegment,
 } from './stokYeniBirimlerYardimci';
+import { StokCokluBarkodModal } from './StokCokluBarkodModal';
+import { StokCokluFiyatModal } from './StokCokluFiyatModal';
 
 const KDV_SECENEKLERI = ['0', '1', '10', '20'].map((k) => ({ value: k, label: `% ${k}` }));
 
@@ -133,6 +136,11 @@ export function StokYeniBirimler({
   const [birimAdlari, setBirimAdlari] = useState<StokBirimAdiSecenek[]>(() => stokBirimAdlariGetir());
   const [birimModalAcik, setBirimModalAcik] = useState(false);
   const [silinecekSatirId, setSilinecekSatirId] = useState<string | null>(null);
+  const [cokluFiyatModal, setCokluFiyatModal] = useState<{
+    satirId: string;
+    tur: 'alis' | 'satis';
+  } | null>(null);
+  const [cokluBarkodModalSatirId, setCokluBarkodModalSatirId] = useState<string | null>(null);
 
   useEffect(() => {
     setFiyatAdlari(stokFiyatAdlariGetir());
@@ -214,6 +222,14 @@ export function StokYeniBirimler({
 
   const silinecekSatir = silinecekSatirId
     ? satirlar.find((s) => s.id === silinecekSatirId) ?? null
+    : null;
+
+  const cokluFiyatSatir = cokluFiyatModal
+    ? satirlar.find((s) => s.id === cokluFiyatModal.satirId) ?? null
+    : null;
+
+  const cokluBarkodSatir = cokluBarkodModalSatirId
+    ? satirlar.find((s) => s.id === cokluBarkodModalSatirId) ?? null
     : null;
 
   const digerFiyatlariHesapla = useCallback(() => {
@@ -350,7 +366,7 @@ export function StokYeniBirimler({
                           satirPatch(satir.id, { carpan: 1 });
                           return;
                         }
-                        satirPatch(satir.id, { carpan });
+                        satirPatch(satir.id, { carpan: carpan ?? 1 });
                       }}
                     />
                     <CariOutlinedSayi
@@ -360,6 +376,7 @@ export function StokYeniBirimler({
                       sagaHizali
                       formatli
                       onDegistir={(alisFiyati) => satirPatch(satir.id, { alisFiyati })}
+                      onUcNokta={() => setCokluFiyatModal({ satirId: satir.id, tur: 'alis' })}
                     />
                     <CariOutlinedAcilir
                       etiket="PB"
@@ -391,13 +408,13 @@ export function StokYeniBirimler({
                     />
                   </div>
                   <div className="stok-yb-kart-grup stok-yb-kart-grup--satis">
-                    <CariOutlinedGirdi
+                    <CariOutlinedBarkod
                       etiket="Barkod"
                       deger={satir.barkod}
-                      inputMode="numeric"
-                      onChange={(barkod) => satirPatch(satir.id, { barkod: barkodFiltrele(barkod) })}
-                      maxLength={64}
-                      odakPlaceholder="Barkod yazınız"
+                      tip={(satir.barkodTip ?? 'EAN13') as StokBarkodTipi}
+                      onBarkodDegistir={(barkod) => satirPatch(satir.id, { barkod: barkodFiltrele(barkod) })}
+                      onTipDegistir={(barkodTip) => satirPatch(satir.id, { barkodTip })}
+                      onBarkodModal={() => setCokluBarkodModalSatirId(satir.id)}
                     />
                     <CariOutlinedSayi
                       etiket="Satış Fiyatı"
@@ -407,6 +424,7 @@ export function StokYeniBirimler({
                       sagaHizali
                       formatli
                       onDegistir={(satisFiyati1) => satirPatch(satir.id, { satisFiyati1 })}
+                      onUcNokta={() => setCokluFiyatModal({ satirId: satir.id, tur: 'satis' })}
                     />
                     <CariOutlinedAcilir
                       etiket="PB"
@@ -527,6 +545,25 @@ export function StokYeniBirimler({
         }
         ariaLabel="Birim satırı silme onayı"
       />
+
+      {cokluFiyatModal && cokluFiyatSatir ? (
+        <StokCokluFiyatModal
+          acik
+          tur={cokluFiyatModal.tur}
+          satir={cokluFiyatSatir}
+          onKaydet={(patch) => satirPatch(cokluFiyatSatir.id, patch)}
+          onKapat={() => setCokluFiyatModal(null)}
+        />
+      ) : null}
+
+      {cokluBarkodModalSatirId && cokluBarkodSatir ? (
+        <StokCokluBarkodModal
+          acik
+          satir={cokluBarkodSatir}
+          onKaydet={(patch) => satirPatch(cokluBarkodSatir.id, patch)}
+          onKapat={() => setCokluBarkodModalSatirId(null)}
+        />
+      ) : null}
     </div>
   );
 }

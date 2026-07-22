@@ -1,7 +1,8 @@
 import { useEffect, useId, useState } from 'react';
 import { CariOutlinedEtiket } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
-import type { StokFiyatKdvTipi } from './fiyatDuzenleTipler';
-
+import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
+import type { StokFiyatKdvTipi, StokBarkodTipi } from './fiyatDuzenleTipler';
+import { STOK_BARKOD_TIP_SECENEKLERI } from './fiyatDuzenleTipler';
 export function sayiOku(ham: string): number | null {
   const t = ham.trim();
   if (!t) return null;
@@ -65,6 +66,7 @@ export function CariOutlinedSayi({
   sagaHizali,
   yuzde,
   formatli,
+  onUcNokta,
 }: {
   etiket: string;
   deger: number | null | undefined;
@@ -78,6 +80,8 @@ export function CariOutlinedSayi({
   yuzde?: boolean;
   /** Blur'da binlik ayırıcılı tr-TR format (ör. 1.234,56) */
   formatli?: boolean;
+  /** Sol köşede ⋯ menü */
+  onUcNokta?: () => void;
 }) {
   const inputId = useId();
   const [focused, setFocused] = useState(false);
@@ -106,7 +110,7 @@ export function CariOutlinedSayi({
   const sayiInput = (
     <input
       id={inputId}
-      className={`cari-outlined-input${gosterilenOnek ? ' stok-yb-outlined-input--onekli' : ''}${gosterilenSonek ? ' stok-yb-outlined-input--sonekli' : ''}${yuzde ? ' stok-yb-yuzde-input' : ''}${sagaHizali || yuzde || formatli ? ' cari-outlined-input--saga' : ''}`.trim()}
+      className={`cari-outlined-input${gosterilenOnek ? ' stok-yb-outlined-input--onekli' : ''}${gosterilenSonek ? ' stok-yb-outlined-input--sonekli' : ''}${onUcNokta ? ' stok-yb-outlined-input--uc-nokta' : ''}${yuzde ? ' stok-yb-yuzde-input' : ''}${sagaHizali || yuzde || formatli ? ' cari-outlined-input--saga' : ''}`.trim()}
       inputMode={yuzde ? 'numeric' : 'decimal'}
       placeholder={placeholder}
       value={gosterilenDeger}
@@ -171,9 +175,24 @@ export function CariOutlinedSayi({
   );
 
   return (
-    <div className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}>
+    <div className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}${onUcNokta ? ' cari-outlined-field--ic-uc-nokta' : ''}`.trim()}>
       <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
-      <div className={`cari-outlined-cerceve${yuzde ? ' stok-yb-yuzde-cerceve' : ''}`.trim()}>
+      <div className={`cari-outlined-cerceve${onUcNokta ? ' cari-outlined-cerceve--ic-uc-nokta' : ''}${yuzde ? ' stok-yb-yuzde-cerceve' : ''}`.trim()}>
+        {onUcNokta ? (
+          <button
+            type="button"
+            className="stok-yb-fiyat-uc-nokta stok-yb-fiyat-uc-nokta--ic"
+            onClick={onUcNokta}
+            title="Ek fiyatlar"
+            aria-label={`${etiket} ek fiyatlar`}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden>
+              <circle cx="12" cy="5" r="1.6" />
+              <circle cx="12" cy="12" r="1.6" />
+              <circle cx="12" cy="19" r="1.6" />
+            </svg>
+          </button>
+        ) : null}
         {gosterilenOnek ? (
           <span className="stok-yb-outlined-onek" aria-hidden>
             {gosterilenOnek}
@@ -194,6 +213,74 @@ export function CariOutlinedSayi({
             {gosterilenSonek}
           </span>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+export function CariOutlinedBarkod({
+  etiket,
+  deger,
+  tip,
+  onBarkodDegistir,
+  onTipDegistir,
+  onBarkodModal,
+  zorunlu,
+}: {
+  etiket: string;
+  deger: string;
+  tip: StokBarkodTipi;
+  onBarkodDegistir: (deger: string) => void;
+  onTipDegistir: (tip: StokBarkodTipi) => void;
+  onBarkodModal: () => void;
+  zorunlu?: boolean;
+}) {
+  const inputId = useId();
+  const [focused, setFocused] = useState(false);
+  const tipSecenekleri = STOK_BARKOD_TIP_SECENEKLERI.map((s) => ({ value: s.deger, label: s.etiket }));
+
+  return (
+    <div className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}>
+      <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
+      <div className="cari-outlined-cerceve stok-yb-barkod-cerceve">
+        <button
+          type="button"
+          className="stok-yb-barkod-ikon"
+          onClick={onBarkodModal}
+          title="Ek barkodlar"
+          aria-label={`${etiket} ek barkodlar`}
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden>
+            <path
+              d="M4 6v12M7 6v12M10 4v16M13 7v10M16 5v14M19 8v8M22 6v12"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+        <input
+          id={inputId}
+          className="cari-outlined-input stok-yb-barkod-input"
+          value={deger}
+          inputMode="numeric"
+          placeholder={focused ? 'Barkod yazınız' : undefined}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(e) => onBarkodDegistir(barkodFiltrele(e.target.value))}
+          aria-label={etiket}
+        />
+        <div className="stok-yb-barkod-tip ap-form-acilir-secim-liste-anchor">
+          <FormAcilirSecim
+            value={tip}
+            onChange={(v) => onTipDegistir(v as StokBarkodTipi)}
+            secenekler={tipSecenekleri}
+            aria-label="Barkod tipi"
+            className="stok-yb-barkod-tip-secim"
+            listeSinifi="stok-yb-barkod-tip-liste"
+            listeAnchor="self"
+          />
+        </div>
       </div>
     </div>
   );

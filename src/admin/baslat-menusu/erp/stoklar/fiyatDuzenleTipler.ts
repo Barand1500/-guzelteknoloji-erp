@@ -2,6 +2,16 @@ export type StokFiyatPb = 'TL' | 'USD' | 'EUR';
 
 export type StokFiyatKdvTipi = 'dahil' | 'haric';
 
+export type StokBarkodTipi =
+  | 'EAN8'
+  | 'EAN13'
+  | 'UPC'
+  | 'CODE39'
+  | 'CODE93'
+  | 'CODE128'
+  | 'GRAMAJ'
+  | 'ADET';
+
 /** İşaretli alan — diğer fiyatları buna göre kopyalamak için */
 export type IsaretliFiyatAlani =
   | 'satisFiyati1'
@@ -20,9 +30,20 @@ export interface StokFiyatDuzenleSatir {
   birim: string;
   carpan: number;
   barkod: string;
+  barkodTip?: StokBarkodTipi;
+  barkod2?: string;
+  barkod3?: string;
+  barkod4?: string;
+  barkod5?: string;
+  barkod6?: string;
   kdv: number;
   kdvTipi: StokFiyatKdvTipi;
   alisFiyati: number | null;
+  alisFiyati2?: number | null;
+  alisFiyati3?: number | null;
+  alisFiyati4?: number | null;
+  alisFiyati5?: number | null;
+  alisFiyati6?: number | null;
   satisFiyati1: number | null;
   pb1: StokFiyatPb;
   satisFiyati2: number | null;
@@ -66,6 +87,17 @@ export function stokPbSembolu(kod: StokFiyatPb | string): string {
 export function stokPbEtiketi(kod: StokFiyatPb | string): string {
   return STOK_FIYAT_PB_SECENEKLERI.find((p) => p.deger === kod)?.etiket ?? kod;
 }
+
+export const STOK_BARKOD_TIP_SECENEKLERI: { deger: StokBarkodTipi; etiket: string }[] = [
+  { deger: 'EAN8', etiket: 'EAN8' },
+  { deger: 'EAN13', etiket: 'EAN13' },
+  { deger: 'UPC', etiket: 'UPC' },
+  { deger: 'CODE39', etiket: 'CODE39' },
+  { deger: 'CODE93', etiket: 'CODE93' },
+  { deger: 'CODE128', etiket: 'CODE128' },
+  { deger: 'GRAMAJ', etiket: 'GRAMAJ' },
+  { deger: 'ADET', etiket: 'ADET' },
+];
 
 export const STOK_FIYAT_KDV_TIPI_SECENEKLERI: { deger: StokFiyatKdvTipi; etiket: string }[] = [
   { deger: 'dahil', etiket: 'D' },

@@ -12093,9 +12093,9 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-form-acilir-secim-ok {
   flex-shrink: 0;
-  font-size: 0.7rem;
+  font-size: 0.92rem;
   line-height: 1;
-  opacity: 0.7;
+  opacity: 0.82;
 }
 
 .ap-form-acilir-secim-liste {
