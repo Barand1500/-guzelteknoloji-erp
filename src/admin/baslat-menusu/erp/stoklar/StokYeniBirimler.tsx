@@ -98,19 +98,17 @@ function CariOutlinedKdv({
           type="button"
           className={`stok-yb-kdv-dh-oge${tip === 'haric' ? ' stok-yb-kdv-dh-oge--aktif stok-yb-kdv-dh-oge--haric' : ''}`}
           onClick={() => onTipChange('haric')}
-          title="Hariç"
           aria-pressed={tip === 'haric'}
         >
-          H
+          Hariç
         </button>
         <button
           type="button"
           className={`stok-yb-kdv-dh-oge${tip === 'dahil' ? ' stok-yb-kdv-dh-oge--aktif stok-yb-kdv-dh-oge--dahil' : ''}`}
           onClick={() => onTipChange('dahil')}
-          title="Dahil"
           aria-pressed={tip === 'dahil'}
         >
-          D
+          Dahil
         </button>
       </div>
     </CariOutlinedSarmalayici>
