@@ -3107,14 +3107,6 @@ button.ap-tanimlar-panel-arka {
   white-space: nowrap;
 }
 
-.stok-yb-birim-ekle {
-  width: 1.15rem;
-  height: 1.15rem;
-  font-size: 0.75rem;
-  padding: 0;
-  line-height: 1;
-}
-
 .cari-outlined-cerceve--ic-uc-nokta {
   gap: 0 !important;
   padding: 0 !important;
@@ -3539,17 +3531,9 @@ button.ap-tanimlar-panel-arka {
   height: 1.05rem;
 }
 
-.stok-yb-birim-alan .cari-outlined-etiket {
+.stok-yb-birim-kisa.cari-outlined-acilir .cari-outlined-etiket {
   gap: 0.32rem;
   max-width: calc(100% - 0.6rem);
-}
-
-.stok-yb-birim-alan .stok-yb-birim-ekle {
-  transform: none;
-  width: 1.05rem;
-  height: 1.05rem;
-  font-size: 0.68rem;
-  flex-shrink: 0;
 }
 
 /* ── Birim kart düzeni (ana tanımlar tarzı) ── */
@@ -3944,7 +3928,7 @@ button.ap-tanimlar-panel-arka {
   padding-right: 1.35rem !important;
 }
 
-.stok-yb-birim-alan .ap-form-acilir-secim-ok {
+.stok-yb-birim-kisa.cari-outlined-acilir .ap-form-acilir-secim-ok {
   position: absolute;
   right: 0.35rem;
   top: 50%;

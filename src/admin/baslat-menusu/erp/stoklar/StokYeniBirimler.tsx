@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CariSecenekModal } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariSecenekModal';
 import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
 import {
-  CariOutlinedEtiket,
   CariOutlinedGirdi,
   CariOutlinedSarmalayici,
 } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
@@ -68,55 +67,6 @@ function CariOutlinedKdv({
         listeSinifi="stok-yb-kdv-outlined-liste"
       />
     </CariOutlinedSarmalayici>
-  );
-}
-
-function CariOutlinedBirim({
-  deger,
-  onChange,
-  secenekler,
-  onYonet,
-  sinif,
-}: {
-  deger: string;
-  onChange: (deger: string) => void;
-  secenekler: { value: string; label: string }[];
-  onYonet: () => void;
-  sinif?: string;
-}) {
-  const [focused, setFocused] = useState(false);
-
-  return (
-    <div
-      className={`cari-outlined-field cari-outlined-acilir stok-yb-birim-alan${sinif ? ` ${sinif}` : ''}${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
-      onFocusCapture={() => setFocused(true)}
-      onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
-      }}
-    >
-      <CariOutlinedEtiket etiket="Birim" zorunlu>
-        <button
-          type="button"
-          className="cari-secili-yonet stok-yb-birim-ekle"
-          onClick={onYonet}
-          title="Birim yönet"
-          aria-label="Birim yönet"
-        >
-          +
-        </button>
-      </CariOutlinedEtiket>
-      <div className="cari-outlined-cerceve cari-outlined-cerceve--icerik">
-        <div className="cari-outlined-icerik">
-          <FormAcilirSecim
-            value={deger}
-            onChange={onChange}
-            secenekler={secenekler}
-            aria-label="Birim adı"
-            className="cari-outlined-acilir-tus"
-          />
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -349,7 +299,9 @@ export function StokYeniBirimler({
                 </button>
                 <div className="stok-yb-kart">
                   <div className="stok-yb-kart-grup stok-yb-kart-grup--alis">
-                    <CariOutlinedBirim
+                    <CariOutlinedAcilir
+                      etiket="Birim"
+                      zorunlu
                       sinif="stok-yb-birim-kisa"
                       deger={satir.birim}
                       secenekler={birimSecenekleri}
