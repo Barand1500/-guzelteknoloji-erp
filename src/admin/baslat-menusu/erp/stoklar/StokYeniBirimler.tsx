@@ -37,6 +37,8 @@ import {
   CariToggleAlan,
   iskontoHamFiltrele,
   netFiyatHesapla,
+  sayiGoster,
+  sayiOku,
 } from './stokYeniBirimlerYardimci';
 import { StokCokluBarkodModal } from './StokCokluBarkodModal';
 import { StokCokluFiyatModal } from './StokCokluFiyatModal';
@@ -94,7 +96,7 @@ function CariOutlinedKdv({
       <div className="stok-yb-kdv-dh" role="group" aria-label="KDV dahil / hariç">
         <button
           type="button"
-          className={`stok-yb-kdv-dh-oge${tip === 'dahil' ? ' stok-yb-kdv-dh-oge--aktif' : ''}`}
+          className={`stok-yb-kdv-dh-oge${tip === 'dahil' ? ' stok-yb-kdv-dh-oge--aktif stok-yb-kdv-dh-oge--dahil' : ''}`}
           onClick={() => onTipChange('dahil')}
           title="Dahil"
           aria-pressed={tip === 'dahil'}
@@ -103,7 +105,7 @@ function CariOutlinedKdv({
         </button>
         <button
           type="button"
-          className={`stok-yb-kdv-dh-oge${tip === 'haric' ? ' stok-yb-kdv-dh-oge--aktif' : ''}`}
+          className={`stok-yb-kdv-dh-oge${tip === 'haric' ? ' stok-yb-kdv-dh-oge--aktif stok-yb-kdv-dh-oge--haric' : ''}`}
           onClick={() => onTipChange('haric')}
           title="Hariç"
           aria-pressed={tip === 'haric'}
@@ -125,8 +127,15 @@ function CariOutlinedIskonto({
   onDegistir: (deger: string) => void;
 }) {
   const inputId = useId();
+  const [focused, setFocused] = useState(false);
   return (
-    <div className="cari-outlined-field">
+    <div
+      className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
+      }}
+    >
       <CariOutlinedEtiket etiket={etiket} htmlFor={inputId} />
       <div className="cari-outlined-cerceve stok-yb-yuzde-cerceve">
         <div className="stok-yb-yuzde-grup">
@@ -137,7 +146,7 @@ function CariOutlinedIskonto({
             id={inputId}
             className="cari-outlined-input stok-yb-yuzde-input cari-outlined-input--saga"
             inputMode="decimal"
-            placeholder="20+20"
+            placeholder={focused ? '20+20' : undefined}
             value={deger}
             aria-label={etiket}
             onChange={(e) => onDegistir(iskontoHamFiltrele(e.target.value))}
@@ -289,32 +298,103 @@ function sonucBirimi(tur: OlcuTur): string {
   return 'kg';
 }
 
+function OlcuMiniAlan({
+  etiket,
+  deger,
+  birim,
+  onDegistir,
+}: {
+  etiket: string;
+  deger: number | null | undefined;
+  birim?: string;
+  onDegistir: (deger: number | null) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const [ham, setHam] = useState('');
+
+  useEffect(() => {
+    if (!focused) setHam(deger !== null && deger !== undefined ? sayiGoster(deger) : '');
+  }, [deger, focused]);
+
+  return (
+    <label className="stok-yb-olcu-mini">
+      <span className="stok-yb-olcu-mini-etiket">{etiket}</span>
+      <input
+        className="stok-yb-olcu-mini-input"
+        inputMode="decimal"
+        value={focused ? ham : sayiGoster(deger)}
+        placeholder="0"
+        onFocus={() => {
+          setFocused(true);
+          setHam(deger !== null && deger !== undefined ? sayiGoster(deger) : '');
+        }}
+        onBlur={() => {
+          setFocused(false);
+          if (!ham.trim()) {
+            onDegistir(null);
+            return;
+          }
+          onDegistir(sayiOku(ham));
+        }}
+        onChange={(e) => {
+          const sonraki = e.target.value.replace(/[^\d.,]/g, '');
+          setHam(sonraki);
+          onDegistir(sayiOku(sonraki));
+        }}
+      />
+      {birim ? <span className="stok-yb-olcu-mini-birim">{birim}</span> : null}
+    </label>
+  );
+}
+
 function StokOlcuSecim({
-  name,
   satir,
   onPatch,
 }: {
-  name: string;
   satir: StokFiyatDuzenleSatir;
   onPatch: (patch: Partial<StokFiyatDuzenleSatir>) => void;
 }) {
-  const kokRef = useRef<HTMLDivElement>(null);
-  const [panelAcik, setPanelAcik] = useState(false);
+  type OlcuAdim = 'tur' | 'sekil' | 'olcu';
   const tur = (satir.olcuTuru ?? '') as OlcuTur | '';
   const sekil = satir.olcuSekil ?? '';
   const sonuc = olcuSonucHesapla(satir);
   const sekiller = tur ? olcuSekilleri(tur) : [];
 
+  const [adim, setAdim] = useState<OlcuAdim>(() => (sekil ? 'olcu' : tur ? 'sekil' : 'tur'));
+  const [kopyalandi, setKopyalandi] = useState(false);
+  const kopyaZamanRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (!panelAcik) return;
-    function disariTikla(e: MouseEvent) {
-      const hedef = e.target as Node;
-      if (kokRef.current?.contains(hedef)) return;
-      setPanelAcik(false);
+    if (sekil) setAdim('olcu');
+    else if (tur) setAdim('sekil');
+    else setAdim('tur');
+  }, [tur, sekil]);
+
+  useEffect(
+    () => () => {
+      if (kopyaZamanRef.current != null) window.clearTimeout(kopyaZamanRef.current);
+    },
+    [],
+  );
+
+  const sonucMetin =
+    sonuc === null
+      ? ''
+      : `${sonuc.toLocaleString('tr-TR', { maximumFractionDigits: 4 })}${
+          tur ? ` ${sonucBirimi(tur)}` : ''
+        }`.trim();
+
+  const sonucuKopyala = async () => {
+    if (!sonucMetin) return;
+    try {
+      await navigator.clipboard.writeText(sonucMetin);
+      setKopyalandi(true);
+      if (kopyaZamanRef.current != null) window.clearTimeout(kopyaZamanRef.current);
+      kopyaZamanRef.current = window.setTimeout(() => setKopyalandi(false), 1400);
+    } catch {
+      /* pano reddedildi */
     }
-    document.addEventListener('mousedown', disariTikla);
-    return () => document.removeEventListener('mousedown', disariTikla);
-  }, [panelAcik]);
+  };
 
   const yaz = (patch: Partial<StokFiyatDuzenleSatir>) => {
     const sonraki = { ...satir, ...patch };
@@ -325,231 +405,212 @@ function StokOlcuSecim({
     onPatch({ ...patch, ...olcuYazisi });
   };
 
-  const hacimAlanlari =
-    tur === 'hacim' || tur === 'litre' || tur === 'agirlik'
-      ? (
-          <>
-            {sekil === 'kup' ? (
-              <CariOutlinedSayi
-                etiket="Kenar (a)"
-                deger={satir.olcuTaban}
-                placeholder="cm"
-                sagaHizali
-                onDegistir={(olcuTaban) => yaz({ olcuTaban })}
-              />
-            ) : null}
-            {sekil === 'prizma' ? (
-              <>
-                <CariOutlinedSayi
-                  etiket="Uzunluk (a)"
-                  deger={satir.olcuTaban}
-                  placeholder="cm"
-                  sagaHizali
-                  onDegistir={(olcuTaban) => yaz({ olcuTaban })}
-                />
-                <CariOutlinedSayi
-                  etiket="Genişlik (b)"
-                  deger={satir.olcuGenislik}
-                  placeholder="cm"
-                  sagaHizali
-                  onDegistir={(olcuGenislik) => yaz({ olcuGenislik })}
-                />
-                <CariOutlinedSayi
-                  etiket="Yükseklik (h)"
-                  deger={satir.olcuYukseklik}
-                  placeholder="cm"
-                  sagaHizali
-                  onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
-                />
-              </>
-            ) : null}
-            {sekil === 'kure' ? (
-              <CariOutlinedSayi
-                etiket="Yarıçap (r)"
-                deger={satir.olcuYaricap}
-                placeholder="cm"
-                sagaHizali
-                onDegistir={(olcuYaricap) => yaz({ olcuYaricap })}
-              />
-            ) : null}
-            {sekil === 'silindir' || sekil === 'koni' ? (
-              <>
-                <CariOutlinedSayi
-                  etiket="Yarıçap (r)"
-                  deger={satir.olcuYaricap}
-                  placeholder="cm"
-                  sagaHizali
-                  onDegistir={(olcuYaricap) => yaz({ olcuYaricap })}
-                />
-                <CariOutlinedSayi
-                  etiket="Yükseklik (h)"
-                  deger={satir.olcuYukseklik}
-                  placeholder="cm"
-                  sagaHizali
-                  onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
-                />
-              </>
-            ) : null}
-            {sekil === 'piramit' ? (
-              <>
-                <CariOutlinedSayi
-                  etiket="Taban kenar (a)"
-                  deger={satir.olcuTaban}
-                  placeholder="cm"
-                  sagaHizali
-                  onDegistir={(olcuTaban) => yaz({ olcuTaban })}
-                />
-                <CariOutlinedSayi
-                  etiket="Yükseklik (h)"
-                  deger={satir.olcuYukseklik}
-                  placeholder="cm"
-                  sagaHizali
-                  onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
-                />
-              </>
-            ) : null}
-            {tur === 'agirlik' && sekil ? (
-              <CariOutlinedSayi
-                etiket="Yoğunluk"
-                deger={satir.olcuYogunluk}
-                placeholder="kg/L"
-                sagaHizali
-                onDegistir={(olcuYogunluk) => yaz({ olcuYogunluk })}
-              />
-            ) : null}
-          </>
-        )
-      : null;
+  const geri = () => {
+    if (adim === 'olcu') {
+      yaz({
+        olcuSekil: '',
+        olcuTaban: null,
+        olcuGenislik: null,
+        olcuYukseklik: null,
+        olcuYaricap: null,
+        olcuYogunluk: null,
+      });
+      setAdim('sekil');
+      return;
+    }
+    if (adim === 'sekil') {
+      yaz({
+        olcuTuru: '',
+        olcuSekil: '',
+        olcuTaban: null,
+        olcuGenislik: null,
+        olcuYukseklik: null,
+        olcuYaricap: null,
+        olcuYogunluk: null,
+        hacim: null,
+        alan: null,
+        litre: null,
+        agirlikKg: '',
+      });
+      setAdim('tur');
+    }
+  };
 
-  const alanAlanlari =
-    tur === 'alan' ? (
-      <>
-        {sekil === 'kare' ? (
-          <CariOutlinedSayi
-            etiket="Kenar (a)"
-            deger={satir.olcuTaban}
-            placeholder="0"
-            sagaHizali
-            onDegistir={(olcuTaban) => yaz({ olcuTaban })}
-          />
-        ) : null}
-        {sekil === 'dikdortgen' || sekil === 'ucgen' ? (
-          <>
-            <CariOutlinedSayi
-              etiket="Taban (a)"
-              deger={satir.olcuTaban}
-              placeholder="0"
-              sagaHizali
-              onDegistir={(olcuTaban) => yaz({ olcuTaban })}
-            />
-            <CariOutlinedSayi
-              etiket="Yükseklik (h)"
-              deger={satir.olcuYukseklik}
-              placeholder="0"
-              sagaHizali
-              onDegistir={(olcuYukseklik) => yaz({ olcuYukseklik })}
-            />
-          </>
-        ) : null}
-        {sekil === 'daire' ? (
-          <CariOutlinedSayi
-            etiket="Yarıçap (r)"
-            deger={satir.olcuYaricap}
-            placeholder="0"
-            sagaHizali
-            onDegistir={(olcuYaricap) => yaz({ olcuYaricap })}
-          />
-        ) : null}
-      </>
-    ) : null;
+  const turEtiket = OLCU_SECENEKLERI.find((o) => o.value === tur)?.etiket ?? '';
+  const sekilEtiket = sekiller.find((o) => o.value === sekil)?.etiket ?? '';
+  const cm = tur === 'alan' ? undefined : 'cm';
+
+  const miniAlanlar: { etiket: string; deger: number | null | undefined; birim?: string; onDegistir: (v: number | null) => void }[] = [];
+
+  if (tur === 'alan') {
+    if (sekil === 'kare') {
+      miniAlanlar.push({ etiket: 'Kenar', deger: satir.olcuTaban, onDegistir: (olcuTaban) => yaz({ olcuTaban }) });
+    } else if (sekil === 'dikdortgen' || sekil === 'ucgen') {
+      miniAlanlar.push(
+        { etiket: 'Taban', deger: satir.olcuTaban, onDegistir: (olcuTaban) => yaz({ olcuTaban }) },
+        { etiket: 'Yükseklik', deger: satir.olcuYukseklik, onDegistir: (olcuYukseklik) => yaz({ olcuYukseklik }) },
+      );
+    } else if (sekil === 'daire') {
+      miniAlanlar.push({ etiket: 'Yarıçap', deger: satir.olcuYaricap, onDegistir: (olcuYaricap) => yaz({ olcuYaricap }) });
+    }
+  } else if (tur === 'hacim' || tur === 'litre' || tur === 'agirlik') {
+    if (sekil === 'kup') {
+      miniAlanlar.push({ etiket: 'Kenar', deger: satir.olcuTaban, birim: cm, onDegistir: (olcuTaban) => yaz({ olcuTaban }) });
+    } else if (sekil === 'prizma') {
+      miniAlanlar.push(
+        { etiket: 'Uzunluk', deger: satir.olcuTaban, birim: cm, onDegistir: (olcuTaban) => yaz({ olcuTaban }) },
+        { etiket: 'Genişlik', deger: satir.olcuGenislik, birim: cm, onDegistir: (olcuGenislik) => yaz({ olcuGenislik }) },
+        { etiket: 'Yükseklik', deger: satir.olcuYukseklik, birim: cm, onDegistir: (olcuYukseklik) => yaz({ olcuYukseklik }) },
+      );
+    } else if (sekil === 'kure') {
+      miniAlanlar.push({ etiket: 'Yarıçap', deger: satir.olcuYaricap, birim: cm, onDegistir: (olcuYaricap) => yaz({ olcuYaricap }) });
+    } else if (sekil === 'silindir' || sekil === 'koni') {
+      miniAlanlar.push(
+        { etiket: 'Yarıçap', deger: satir.olcuYaricap, birim: cm, onDegistir: (olcuYaricap) => yaz({ olcuYaricap }) },
+        { etiket: 'Yükseklik', deger: satir.olcuYukseklik, birim: cm, onDegistir: (olcuYukseklik) => yaz({ olcuYukseklik }) },
+      );
+    } else if (sekil === 'piramit') {
+      miniAlanlar.push(
+        { etiket: 'Taban', deger: satir.olcuTaban, birim: cm, onDegistir: (olcuTaban) => yaz({ olcuTaban }) },
+        { etiket: 'Yükseklik', deger: satir.olcuYukseklik, birim: cm, onDegistir: (olcuYukseklik) => yaz({ olcuYukseklik }) },
+      );
+    }
+    if (tur === 'agirlik' && sekil) {
+      miniAlanlar.push({
+        etiket: 'Yoğunluk',
+        deger: satir.olcuYogunluk,
+        birim: 'kg/L',
+        onDegistir: (olcuYogunluk) => yaz({ olcuYogunluk }),
+      });
+    }
+  }
 
   return (
-    <div className="stok-yb-olcu-sutun" ref={kokRef}>
-      <CariOutlinedSarmalayici etiket="Ölçü" className="stok-yb-olcu-outlined">
-        <div className="stok-yb-olcu-radyo-grup" role="radiogroup" aria-label="Ölçü türü">
-          {OLCU_SECENEKLERI.map((o) => (
-            <label
-              key={o.value}
-              className={`stok-yb-olcu-radyo${tur === o.value ? ' stok-yb-olcu-radyo--aktif' : ''}`}
-            >
-              <input
-                type="radio"
-                name={name}
-                checked={tur === o.value}
-                onClick={() => {
-                  if (tur === o.value) {
-                    setPanelAcik((a) => !a);
-                    return;
-                  }
-                  setPanelAcik(true);
-                  yaz({
-                    olcuTuru: o.value,
-                    olcuSekil: '',
-                    olcuTaban: null,
-                    olcuGenislik: null,
-                    olcuYukseklik: null,
-                    olcuYaricap: null,
-                    olcuYogunluk: null,
-                  });
-                }}
-                onChange={() => {
-                  /* onClick ile yönetilir */
-                }}
-              />
-              <span>{o.etiket}</span>
-            </label>
-          ))}
-        </div>
-      </CariOutlinedSarmalayici>
+    <div
+      className={`stok-yb-olcu-sutun${adim !== 'tur' ? ' stok-yb-olcu-sutun--acik' : ''}`.trim()}
+    >
+      <CariOutlinedSarmalayici
+        etiket="Ölçü"
+        className={`stok-yb-olcu-outlined${adim !== 'tur' ? ' stok-yb-olcu-outlined--adim' : ''}${
+          adim === 'olcu' ? ' stok-yb-olcu-outlined--olcu' : ''
+        }`.trim()}
+      >
+        <div className="stok-yb-olcu-adim">
+          <div className="stok-yb-olcu-adim-govde">
+            {adim === 'tur' ? (
+              <div className="stok-yb-olcu-radyo-grup" role="radiogroup" aria-label="Ölçü türü">
+                {OLCU_SECENEKLERI.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    className={`stok-yb-olcu-radyo${tur === o.value ? ' stok-yb-olcu-radyo--aktif' : ''}`}
+                    onClick={() => {
+                      yaz({
+                        olcuTuru: o.value,
+                        olcuSekil: '',
+                        olcuTaban: null,
+                        olcuGenislik: null,
+                        olcuYukseklik: null,
+                        olcuYaricap: null,
+                        olcuYogunluk: null,
+                      });
+                      setAdim('sekil');
+                    }}
+                  >
+                    {o.etiket}
+                  </button>
+                ))}
+              </div>
+            ) : null}
 
-      {tur && panelAcik ? (
-        <div className="stok-yb-olcu-hesap">
-          <CariOutlinedSarmalayici etiket="Şekil" className="stok-yb-olcu-outlined stok-yb-olcu-sekil">
-            <div className="stok-yb-olcu-radyo-grup" role="radiogroup" aria-label="Şekil">
-              {sekiller.map((o) => (
-                <label
-                  key={o.value}
-                  className={`stok-yb-olcu-radyo${sekil === o.value ? ' stok-yb-olcu-radyo--aktif' : ''}`}
-                >
-                  <input
-                    type="radio"
-                    name={`${name}-sekil`}
-                    checked={sekil === o.value}
-                    onChange={() =>
+            {adim === 'sekil' ? (
+              <div className="stok-yb-olcu-radyo-grup" role="radiogroup" aria-label="Şekil">
+                {sekiller.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    className={`stok-yb-olcu-radyo${sekil === o.value ? ' stok-yb-olcu-radyo--aktif' : ''}`}
+                    onClick={() => {
                       yaz({
                         olcuSekil: o.value,
                         olcuTaban: null,
                         olcuGenislik: null,
                         olcuYukseklik: null,
                         olcuYaricap: null,
-                      })
-                    }
-                  />
-                  <span>{o.etiket}</span>
-                </label>
-              ))}
-            </div>
-          </CariOutlinedSarmalayici>
-
-          {alanAlanlari}
-          {hacimAlanlari}
-
-          {sekil ? (
-            <div className="cari-outlined-field stok-yb-olcu-sonuc">
-              <CariOutlinedEtiket etiket="Sonuç" />
-              <div className="cari-outlined-cerceve">
-                <span className="stok-yb-olcu-sonuc-deger">
-                  {sonuc === null
-                    ? '—'
-                    : `${sonuc.toLocaleString('tr-TR', { maximumFractionDigits: 4 })}${
-                        sonucBirimi(tur) ? ` ${sonucBirimi(tur)}` : ''
-                      }`}
-                </span>
+                      });
+                      setAdim('olcu');
+                    }}
+                  >
+                    {o.etiket}
+                  </button>
+                ))}
               </div>
-            </div>
+            ) : null}
+
+            {adim === 'olcu' ? (
+              <div className="stok-yb-olcu-olcu-adim">
+                <div className="stok-yb-olcu-ust">
+                  <span className="stok-yb-olcu-adim-ozet">
+                    {turEtiket}
+                    {sekilEtiket ? ` · ${sekilEtiket}` : ''}
+                  </span>
+                  <div className="stok-yb-olcu-sonuc-sag">
+                    <span
+                      className={`stok-yb-olcu-sonuc-deger${kopyalandi ? ' stok-yb-olcu-sonuc-deger--kopyalandi' : ''}`}
+                    >
+                      {kopyalandi ? 'Kopyalandı' : sonucMetin || '—'}
+                    </span>
+                    <button
+                      type="button"
+                      className={`stok-yb-olcu-kopyala${kopyalandi ? ' stok-yb-olcu-kopyala--ok' : ''}`}
+                      onClick={() => void sonucuKopyala()}
+                      disabled={!sonucMetin}
+                      title={kopyalandi ? 'Kopyalandı' : 'Sonucu kopyala'}
+                      aria-label={kopyalandi ? 'Kopyalandı' : 'Sonucu kopyala'}
+                    >
+                      {kopyalandi ? (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+                          <rect x="9" y="9" width="11" height="11" rx="1.5" />
+                          <path strokeLinecap="round" d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="stok-yb-olcu-mini-satir">
+                  {miniAlanlar.map((a) => (
+                    <OlcuMiniAlan
+                      key={a.etiket}
+                      etiket={a.etiket}
+                      deger={a.deger}
+                      birim={a.birim}
+                      onDegistir={a.onDegistir}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {adim !== 'tur' ? (
+            <button
+              type="button"
+              className="stok-yb-olcu-geri"
+              onClick={geri}
+              title="Geri"
+              aria-label="Önceki ölçü adımına dön"
+            >
+              <span className="stok-yb-olcu-geri-ok" aria-hidden>
+                ‹
+              </span>
+            </button>
           ) : null}
         </div>
-      ) : null}
+      </CariOutlinedSarmalayici>
     </div>
   );
 }
@@ -881,7 +942,6 @@ export function StokYeniBirimler({
                       onChange={(v) => tekilPatch(satir.id, 'anaBirimMi', v)}
                     />
                     <StokOlcuSecim
-                      name={`olcu-${satir.id}`}
                       satir={satir}
                       onPatch={(patch) => satirPatch(satir.id, patch)}
                     />

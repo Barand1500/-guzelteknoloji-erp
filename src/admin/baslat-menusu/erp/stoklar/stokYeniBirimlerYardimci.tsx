@@ -530,14 +530,14 @@ export function KdvTipSegment({
     <div className="stok-yb-kdv-tip-segment" role="group" aria-label="KDV dahil / hariç">
       <button
         type="button"
-        className={`stok-yb-kdv-tip-segment-oge${tip === 'haric' ? ' stok-yb-kdv-tip-segment-oge--aktif' : ''}`}
+        className={`stok-yb-kdv-tip-segment-oge${tip === 'haric' ? ' stok-yb-kdv-tip-segment-oge--aktif stok-yb-kdv-tip-segment-oge--haric' : ''}`}
         onClick={() => onChange('haric')}
       >
         Hariç
       </button>
       <button
         type="button"
-        className={`stok-yb-kdv-tip-segment-oge${tip === 'dahil' ? ' stok-yb-kdv-tip-segment-oge--aktif' : ''}`}
+        className={`stok-yb-kdv-tip-segment-oge${tip === 'dahil' ? ' stok-yb-kdv-tip-segment-oge--aktif stok-yb-kdv-tip-segment-oge--dahil' : ''}`}
         onClick={() => onChange('dahil')}
       >
         Dahil
