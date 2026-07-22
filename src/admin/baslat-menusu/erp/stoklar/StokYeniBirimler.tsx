@@ -96,21 +96,21 @@ function CariOutlinedKdv({
       <div className="stok-yb-kdv-dh" role="group" aria-label="KDV dahil / hariç">
         <button
           type="button"
-          className={`stok-yb-kdv-dh-oge${tip === 'dahil' ? ' stok-yb-kdv-dh-oge--aktif stok-yb-kdv-dh-oge--dahil' : ''}`}
-          onClick={() => onTipChange('dahil')}
-          title="Dahil"
-          aria-pressed={tip === 'dahil'}
-        >
-          D
-        </button>
-        <button
-          type="button"
           className={`stok-yb-kdv-dh-oge${tip === 'haric' ? ' stok-yb-kdv-dh-oge--aktif stok-yb-kdv-dh-oge--haric' : ''}`}
           onClick={() => onTipChange('haric')}
           title="Hariç"
           aria-pressed={tip === 'haric'}
         >
           H
+        </button>
+        <button
+          type="button"
+          className={`stok-yb-kdv-dh-oge${tip === 'dahil' ? ' stok-yb-kdv-dh-oge--aktif stok-yb-kdv-dh-oge--dahil' : ''}`}
+          onClick={() => onTipChange('dahil')}
+          title="Dahil"
+          aria-pressed={tip === 'dahil'}
+        >
+          D
         </button>
       </div>
     </CariOutlinedSarmalayici>
@@ -597,7 +597,6 @@ export function StokYeniBirimler({
                     />
                     <CariOutlinedKdv
                       etiket="Satış KDV"
-                      zorunlu
                       deger={satir.kdv}
                       tip={satisKdvTipi}
                       ekstraYuzde={kdvDepartmanYuzde}
