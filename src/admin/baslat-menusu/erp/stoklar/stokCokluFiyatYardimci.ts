@@ -1,8 +1,12 @@
-import type { StokFiyatDuzenleSatir, StokFiyatPb, StokFiyatPbAlani } from './fiyatDuzenleTipler';
+import type {
+  StokCokluFiyatKayit,
+  StokFiyatDuzenleSatir,
+  StokFiyatPb,
+} from './fiyatDuzenleTipler';
 
 export type StokCokluFiyatTur = 'alis' | 'satis';
 
-const ALIS_ALANLARI = [
+const ALIS_LEGACY = [
   'alisFiyati',
   'alisFiyati2',
   'alisFiyati3',
@@ -11,7 +15,7 @@ const ALIS_ALANLARI = [
   'alisFiyati6',
 ] as const;
 
-const SATIS_ALANLARI = [
+const SATIS_LEGACY = [
   'satisFiyati1',
   'satisFiyati2',
   'satisFiyati3',
@@ -20,46 +24,133 @@ const SATIS_ALANLARI = [
   'satisFiyati6',
 ] as const;
 
-export const STOK_COKLU_FIYAT_ADET = 6;
+const PB_LEGACY = ['pb1', 'pb2', 'pb3', 'pb4', 'pb5', 'pb6'] as const;
+
+/** Üst sınır — pratik limit (sıra girişi) */
+export const STOK_COKLU_FIYAT_MAX_SIRA = 99;
+
+/** Eski sabit 6 limit — UI geriye dönük uyumluluk için */
+export const STOK_COKLU_FIYAT_ADET = STOK_COKLU_FIYAT_MAX_SIRA;
+
+function legacyFiyatListesi(
+  satir: StokFiyatDuzenleSatir,
+  tur: StokCokluFiyatTur
+): StokCokluFiyatKayit[] {
+  const liste: StokCokluFiyatKayit[] = [];
+  const alanlar = tur === 'alis' ? ALIS_LEGACY : SATIS_LEGACY;
+  for (let i = 0; i < alanlar.length; i += 1) {
+    const deger = satir[alanlar[i] as keyof StokFiyatDuzenleSatir] as number | null | undefined;
+    if (deger === null || deger === undefined) continue;
+    const pb =
+      tur === 'alis'
+        ? satir.pb2
+        : ((satir[PB_LEGACY[i] as keyof StokFiyatDuzenleSatir] as StokFiyatPb | undefined) ?? 'TL');
+    liste.push({ sira: i + 1, deger, pb });
+  }
+  return liste;
+}
+
+export function stokCokluFiyatListesi(
+  satir: StokFiyatDuzenleSatir,
+  tur: StokCokluFiyatTur
+): StokCokluFiyatKayit[] {
+  const kaynak = tur === 'alis' ? satir.alisFiyatListesi : satir.satisFiyatListesi;
+  if (Array.isArray(kaynak)) {
+    return [...kaynak].sort((a, b) => a.sira - b.sira);
+  }
+  return legacyFiyatListesi(satir, tur);
+}
+
+function legacyAlanlarinaYaz(
+  tur: StokCokluFiyatTur,
+  liste: StokCokluFiyatKayit[]
+): Partial<StokFiyatDuzenleSatir> {
+  const patch: Record<string, unknown> = {};
+  const alanlar = tur === 'alis' ? ALIS_LEGACY : SATIS_LEGACY;
+  for (let i = 0; i < alanlar.length; i += 1) {
+    const kayit = liste.find((x) => x.sira === i + 1);
+    patch[alanlar[i]] = kayit?.deger ?? null;
+    if (tur === 'satis') {
+      patch[PB_LEGACY[i]] = kayit?.pb ?? 'TL';
+    }
+  }
+  if (tur === 'alis') {
+    const birincil = liste.find((x) => x.sira === 1);
+    patch.pb2 = birincil?.pb ?? 'TL';
+  }
+  return patch as Partial<StokFiyatDuzenleSatir>;
+}
+
+function listePatch(
+  tur: StokCokluFiyatTur,
+  liste: StokCokluFiyatKayit[]
+): Partial<StokFiyatDuzenleSatir> {
+  const sirali = [...liste].sort((a, b) => a.sira - b.sira);
+  const birincil = sirali.find((x) => x.sira === 1);
+  if (tur === 'alis') {
+    return {
+      alisFiyatListesi: sirali,
+      alisFiyati: birincil?.deger ?? null,
+      ...legacyAlanlarinaYaz(tur, sirali),
+    };
+  }
+  return {
+    satisFiyatListesi: sirali,
+    satisFiyati1: birincil?.deger ?? null,
+    pb1: birincil?.pb ?? 'TL',
+    ...legacyAlanlarinaYaz(tur, sirali),
+  };
+}
 
 export function stokCokluFiyatDegeri(
   satir: StokFiyatDuzenleSatir,
   tur: StokCokluFiyatTur,
   sira: number
 ): number | null {
-  if (sira < 1 || sira > STOK_COKLU_FIYAT_ADET) return null;
-  const alan = tur === 'alis' ? ALIS_ALANLARI[sira - 1] : SATIS_ALANLARI[sira - 1];
-  return (satir[alan as keyof StokFiyatDuzenleSatir] as number | null | undefined) ?? null;
+  return stokCokluFiyatListesi(satir, tur).find((x) => x.sira === sira)?.deger ?? null;
 }
 
 export function stokCokluFiyatPatch(
   tur: StokCokluFiyatTur,
   sira: number,
-  deger: number | null
+  deger: number | null,
+  mevcut?: StokFiyatDuzenleSatir,
+  pb?: StokFiyatPb
 ): Partial<StokFiyatDuzenleSatir> {
-  if (sira < 1 || sira > STOK_COKLU_FIYAT_ADET) return {};
-  const alan = tur === 'alis' ? ALIS_ALANLARI[sira - 1] : SATIS_ALANLARI[sira - 1];
-  return { [alan]: deger } as Partial<StokFiyatDuzenleSatir>;
+  if (!stokCokluFiyatSiraGecerliMi(sira)) return {};
+  const kaynak = mevcut ? stokCokluFiyatListesi(mevcut, tur) : [];
+  const kalan = kaynak.filter((x) => x.sira !== sira);
+  if (deger !== null) {
+    const oncekiPb = kaynak.find((x) => x.sira === sira)?.pb ?? pb ?? 'TL';
+    kalan.push({ sira, deger, pb: pb ?? oncekiPb });
+  }
+  return listePatch(tur, kalan);
 }
 
-/** Fiyatı başka sıra numarasına taşır (eski slot temizlenir). */
 export function stokCokluFiyatTasi(
   tur: StokCokluFiyatTur,
   eskiSira: number,
   yeniSira: number,
-  deger: number | null
+  deger: number | null,
+  mevcut: StokFiyatDuzenleSatir,
+  pb?: StokFiyatPb
 ): Partial<StokFiyatDuzenleSatir> {
-  if (eskiSira < 1 || eskiSira > STOK_COKLU_FIYAT_ADET) return {};
-  if (yeniSira < 1 || yeniSira > STOK_COKLU_FIYAT_ADET) return {};
-  if (eskiSira === yeniSira) return stokCokluFiyatPatch(tur, yeniSira, deger);
-  return {
-    ...stokCokluFiyatPatch(tur, eskiSira, null),
-    ...stokCokluFiyatPatch(tur, yeniSira, deger),
-  };
+  if (!stokCokluFiyatSiraGecerliMi(eskiSira) || !stokCokluFiyatSiraGecerliMi(yeniSira)) {
+    return {};
+  }
+  const kaynak = stokCokluFiyatListesi(mevcut, tur).filter(
+    (x) => x.sira !== eskiSira && x.sira !== yeniSira
+  );
+  if (deger !== null) {
+    const oncekiPb =
+      stokCokluFiyatListesi(mevcut, tur).find((x) => x.sira === eskiSira)?.pb ?? pb ?? 'TL';
+    kaynak.push({ sira: yeniSira, deger, pb: pb ?? oncekiPb });
+  }
+  return listePatch(tur, kaynak);
 }
 
 export function stokCokluFiyatSiraGecerliMi(sira: number): boolean {
-  return Number.isInteger(sira) && sira >= 1 && sira <= STOK_COKLU_FIYAT_ADET;
+  return Number.isInteger(sira) && sira >= 1 && sira <= STOK_COKLU_FIYAT_MAX_SIRA;
 }
 
 export function stokCokluFiyatEtiketi(tur: StokCokluFiyatTur, sira: number): string {
@@ -71,28 +162,18 @@ export function stokCokluFiyatDoluSiralar(
   satir: StokFiyatDuzenleSatir,
   tur: StokCokluFiyatTur
 ): number[] {
-  const siralar: number[] = [];
-  for (let sira = 1; sira <= STOK_COKLU_FIYAT_ADET; sira += 1) {
-    if (stokCokluFiyatDegeri(satir, tur, sira) !== null) siralar.push(sira);
-  }
-  return siralar;
+  return stokCokluFiyatListesi(satir, tur).map((x) => x.sira);
 }
 
 export function stokCokluFiyatIlkBosSira(
   satir: StokFiyatDuzenleSatir,
   tur: StokCokluFiyatTur
-): number | null {
-  for (let sira = 1; sira <= STOK_COKLU_FIYAT_ADET; sira += 1) {
-    if (stokCokluFiyatDegeri(satir, tur, sira) === null) return sira;
+): number {
+  const dolu = new Set(stokCokluFiyatListesi(satir, tur).map((x) => x.sira));
+  for (let sira = 1; sira <= STOK_COKLU_FIYAT_MAX_SIRA; sira += 1) {
+    if (!dolu.has(sira)) return sira;
   }
-  return null;
-}
-
-/** Alış fiyatları ana satırdaki PB ile aynı alanı (pb2) kullanır; satışta sıra = pb indeksi. */
-export function stokCokluFiyatPbAlani(tur: StokCokluFiyatTur, sira: number): StokFiyatPbAlani {
-  if (tur === 'alis') return 'pb2';
-  const guvenli = Math.min(Math.max(sira, 1), STOK_COKLU_FIYAT_ADET);
-  return `pb${guvenli}` as StokFiyatPbAlani;
+  return STOK_COKLU_FIYAT_MAX_SIRA;
 }
 
 export function stokCokluFiyatPbDegeri(
@@ -100,28 +181,17 @@ export function stokCokluFiyatPbDegeri(
   tur: StokCokluFiyatTur,
   sira: number
 ): StokFiyatPb {
-  return satir[stokCokluFiyatPbAlani(tur, sira)];
-}
-
-export function stokCokluFiyatPbPatch(
-  tur: StokCokluFiyatTur,
-  sira: number,
-  pb: StokFiyatPb
-): Partial<StokFiyatDuzenleSatir> {
-  const alan = stokCokluFiyatPbAlani(tur, sira);
-  return { [alan]: pb } as Partial<StokFiyatDuzenleSatir>;
+  return stokCokluFiyatListesi(satir, tur).find((x) => x.sira === sira)?.pb ?? 'TL';
 }
 
 export function stokCokluFiyatKaydetPatch(
   tur: StokCokluFiyatTur,
   sira: number,
   deger: number | null,
-  pb?: StokFiyatPb
+  pb?: StokFiyatPb,
+  mevcut?: StokFiyatDuzenleSatir
 ): Partial<StokFiyatDuzenleSatir> {
-  return {
-    ...stokCokluFiyatPatch(tur, sira, deger),
-    ...(pb !== undefined ? stokCokluFiyatPbPatch(tur, sira, pb) : {}),
-  };
+  return stokCokluFiyatPatch(tur, sira, deger, mevcut, pb);
 }
 
 export function stokCokluFiyatTasiKaydetPatch(
@@ -129,11 +199,10 @@ export function stokCokluFiyatTasiKaydetPatch(
   eskiSira: number,
   yeniSira: number,
   deger: number | null,
-  pb?: StokFiyatPb
+  pb?: StokFiyatPb,
+  mevcut?: StokFiyatDuzenleSatir
 ): Partial<StokFiyatDuzenleSatir> {
-  if (eskiSira === yeniSira) return stokCokluFiyatKaydetPatch(tur, yeniSira, deger, pb);
-  return {
-    ...stokCokluFiyatTasi(tur, eskiSira, yeniSira, deger),
-    ...(pb !== undefined ? stokCokluFiyatPbPatch(tur, yeniSira, pb) : {}),
-  };
+  if (!mevcut) return {};
+  if (eskiSira === yeniSira) return stokCokluFiyatKaydetPatch(tur, yeniSira, deger, pb, mevcut);
+  return stokCokluFiyatTasi(tur, eskiSira, yeniSira, deger, mevcut, pb);
 }

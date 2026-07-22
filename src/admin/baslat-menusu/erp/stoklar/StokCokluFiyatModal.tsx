@@ -7,13 +7,14 @@ import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import type { StokFiyatDuzenleSatir, StokFiyatPb } from './fiyatDuzenleTipler';
 import { STOK_FIYAT_PB_SECENEKLERI, stokPbSembolu } from './fiyatDuzenleTipler';
-import { sayiGoster, sayiOku } from './stokYeniBirimlerYardimci';
+import { sayiGosterFormatli, sayiOku } from './stokYeniBirimlerYardimci';
 import {
-  STOK_COKLU_FIYAT_ADET,
+  STOK_COKLU_FIYAT_MAX_SIRA,
   stokCokluFiyatDegeri,
   stokCokluFiyatEtiketi,
   stokCokluFiyatIlkBosSira,
   stokCokluFiyatKaydetPatch,
+  stokCokluFiyatListesi,
   stokCokluFiyatPbDegeri,
   stokCokluFiyatPatch,
   stokCokluFiyatSiraGecerliMi,
@@ -30,11 +31,12 @@ interface StokCokluFiyatModalProps {
 }
 
 function fiyatHamFiltrele(ham: string): string {
+  const temiz = ham.replace(/\./g, '');
   let sonuc = '';
   let virgulVar = false;
-  for (const ch of ham) {
+  for (const ch of temiz) {
     if (ch >= '0' && ch <= '9') sonuc += ch;
-    else if ((ch === ',' || ch === '.') && !virgulVar) {
+    else if (ch === ',' && !virgulVar) {
       virgulVar = true;
       sonuc += ',';
     }
@@ -42,8 +44,16 @@ function fiyatHamFiltrele(ham: string): string {
   return sonuc;
 }
 
+function fiyatYazarkenFormatla(ham: string): string {
+  const filtre = fiyatHamFiltrele(ham);
+  if (!filtre) return '';
+  const [tam, ondalik] = filtre.split(',');
+  const tamFormatli = tam.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return ondalik !== undefined ? `${tamFormatli},${ondalik}` : tamFormatli;
+}
+
 function siraHamFiltrele(ham: string): string {
-  return ham.replace(/\D/g, '').slice(0, 1);
+  return ham.replace(/\D/g, '').slice(0, 2);
 }
 
 function pbNormalize(pb: string): StokFiyatPb {
@@ -101,18 +111,16 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
 
   const baslik = tur === 'alis' ? 'Alış Fiyatları' : 'Satış Fiyatları';
 
-  const liste = useMemo(() => {
-    const siralar: number[] = [];
-    for (let sira = 1; sira <= STOK_COKLU_FIYAT_ADET; sira += 1) {
-      if (stokCokluFiyatDegeri(satir, tur, sira) !== null) siralar.push(sira);
-    }
-    return siralar.map((sira) => ({
-      sira,
-      etiket: stokCokluFiyatEtiketi(tur, sira),
-      deger: stokCokluFiyatDegeri(satir, tur, sira),
-      pb: stokCokluFiyatPbDegeri(satir, tur, sira),
-    }));
-  }, [satir, tur]);
+  const liste = useMemo(
+    () =>
+      stokCokluFiyatListesi(satir, tur).map((oge) => ({
+        sira: oge.sira,
+        etiket: stokCokluFiyatEtiketi(tur, oge.sira),
+        deger: oge.deger,
+        pb: oge.pb,
+      })),
+    [satir, tur]
+  );
 
   const ilkBosSira = useMemo(() => stokCokluFiyatIlkBosSira(satir, tur), [satir, tur]);
 
@@ -124,7 +132,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
     const anahtar = `${satir.id}-${tur}`;
     if (acilisAnahtarRef.current === anahtar) return;
     acilisAnahtarRef.current = anahtar;
-    const sira = ilkBosSira ?? 1;
+    const sira = ilkBosSira;
     setYeniSira(String(sira));
     setYeniFiyat('');
     setYeniPb(stokCokluFiyatPbDegeri(satir, tur, sira));
@@ -136,10 +144,23 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
     requestAnimationFrame(() => fiyatInputRef.current?.focus());
   }, [acik, ilkBosSira, satir, tur]);
 
+  const ustSiraGuncelle = useCallback(
+    (sonrakiSatir: StokFiyatDuzenleSatir) => {
+      const sira = stokCokluFiyatIlkBosSira(sonrakiSatir, tur);
+      setYeniSira(String(sira));
+      setYeniPb(stokCokluFiyatPbDegeri(sonrakiSatir, tur, sira));
+    },
+    [tur]
+  );
+
   const ekle = useCallback(() => {
     const sira = Number(yeniSira);
     if (!stokCokluFiyatSiraGecerliMi(sira)) {
-      setHata('Sıra numarası 1–6 arasında olmalı.');
+      setHata(`Sıra numarası 1–${STOK_COKLU_FIYAT_MAX_SIRA} arasında olmalı.`);
+      return;
+    }
+    if (stokCokluFiyatDegeri(satir, tur, sira) !== null) {
+      setHata(`${sira}. sıra zaten var.`);
       return;
     }
     const ham = yeniFiyat.trim();
@@ -152,50 +173,48 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
       setHata('Geçerli bir fiyat girin.');
       return;
     }
-    onKaydet(stokCokluFiyatKaydetPatch(tur, sira, deger, yeniPb));
-    const yeniSatir = { ...satir, ...stokCokluFiyatKaydetPatch(tur, sira, deger, yeniPb) };
-    const sonrakiSira = stokCokluFiyatIlkBosSira(yeniSatir, tur) ?? sira;
+    const patch = stokCokluFiyatKaydetPatch(tur, sira, deger, yeniPb, satir);
+    onKaydet(patch);
     setYeniFiyat('');
-    setYeniSira(String(sonrakiSira));
-    setYeniPb(stokCokluFiyatPbDegeri(yeniSatir, tur, sonrakiSira));
+    ustSiraGuncelle({ ...satir, ...patch });
     setHata('');
-  }, [onKaydet, satir, tur, yeniFiyat, yeniPb, yeniSira]);
+  }, [onKaydet, satir, tur, ustSiraGuncelle, yeniFiyat, yeniPb, yeniSira]);
 
   const satirKaydet = useCallback(() => {
     if (satirDuzenle === null) return;
     const eskiSira = satirDuzenle;
     const yeniSiraNo = Number(satirSira);
     if (!stokCokluFiyatSiraGecerliMi(yeniSiraNo)) {
-      setHata('Sıra numarası 1–6 arasında olmalı.');
+      setHata(`Sıra numarası 1–${STOK_COKLU_FIYAT_MAX_SIRA} arasında olmalı.`);
       return;
     }
     if (yeniSiraNo !== eskiSira && stokCokluFiyatDegeri(satir, tur, yeniSiraNo) !== null) {
-      setHata(`${yeniSiraNo}. sıra zaten dolu.`);
+      setHata(`${yeniSiraNo}. sıra zaten var.`);
       return;
     }
     const ham = satirFiyat.trim();
+    let patch: Partial<StokFiyatDuzenleSatir>;
     if (!ham) {
-      onKaydet(stokCokluFiyatPatch(tur, eskiSira, null));
-      setSatirDuzenle(null);
-      setHata('');
-      return;
-    }
-    const deger = sayiOku(ham);
-    if (deger === null) {
-      setHata('Geçerli bir fiyat girin.');
-      return;
-    }
-    if (yeniSiraNo !== eskiSira) {
-      onKaydet(stokCokluFiyatTasiKaydetPatch(tur, eskiSira, yeniSiraNo, deger, satirPb));
+      patch = stokCokluFiyatPatch(tur, eskiSira, null, satir);
     } else {
-      onKaydet(stokCokluFiyatKaydetPatch(tur, eskiSira, deger, satirPb));
+      const deger = sayiOku(ham);
+      if (deger === null) {
+        setHata('Geçerli bir fiyat girin.');
+        return;
+      }
+      patch =
+        yeniSiraNo !== eskiSira
+          ? stokCokluFiyatTasiKaydetPatch(tur, eskiSira, yeniSiraNo, deger, satirPb, satir)
+          : stokCokluFiyatKaydetPatch(tur, eskiSira, deger, satirPb, satir);
     }
+    onKaydet(patch);
+    ustSiraGuncelle({ ...satir, ...patch });
     setSatirDuzenle(null);
     setSatirSira('');
     setSatirFiyat('');
     setSatirPb('TL');
     setHata('');
-  }, [onKaydet, satir, satirDuzenle, satirFiyat, satirPb, satirSira, tur]);
+  }, [onKaydet, satir, satirDuzenle, satirFiyat, satirPb, satirSira, tur, ustSiraGuncelle]);
 
   useEffect(() => {
     if (!acik || !portalKok) return;
@@ -249,14 +268,14 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                   }}
                   inputMode="numeric"
                   aria-label="Sıra numarası"
-                  title="Sıra numarası (1–6)"
+                  title={`Sıra numarası (1–${STOK_COKLU_FIYAT_MAX_SIRA})`}
                 />
                 <input
                   ref={fiyatInputRef}
                   type="text"
                   className="ap-input stok-coklu-fiyat-ekle-input"
                   value={yeniFiyat}
-                  onChange={(e) => setYeniFiyat(fiyatHamFiltrele(e.target.value))}
+                  onChange={(e) => setYeniFiyat(fiyatYazarkenFormatla(e.target.value))}
                   placeholder="Fiyat"
                   inputMode="decimal"
                   aria-label="Yeni fiyat"
@@ -272,12 +291,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                   onChange={setYeniPb}
                   ariaLabel="Para birimi"
                 />
-                <button
-                  type="button"
-                  className="stok-coklu-fiyat-ekle-btn"
-                  onClick={ekle}
-                  disabled={liste.length >= STOK_COKLU_FIYAT_ADET && ilkBosSira === null}
-                >
+                <button type="button" className="stok-coklu-fiyat-ekle-btn" onClick={ekle}>
                   Ekle
                 </button>
               </div>
@@ -288,7 +302,6 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
               <table className="stok-coklu-fiyat-tablo">
                 <colgroup>
                   <col className="stok-coklu-fiyat-tablo-col-sira" />
-                  <col className="stok-coklu-fiyat-tablo-col-adi" />
                   <col className="stok-coklu-fiyat-tablo-col-tutar" />
                   <col className="stok-coklu-fiyat-tablo-col-pb" />
                   <col className="stok-coklu-fiyat-tablo-col-islem" />
@@ -296,7 +309,6 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                 <thead>
                   <tr>
                     <th>Sırası</th>
-                    <th>Adı</th>
                     <th>Fiyat</th>
                     <th>PB</th>
                     <th>İşlemler</th>
@@ -305,7 +317,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                 <tbody>
                   {liste.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="stok-coklu-fiyat-tablo-bos">
+                      <td colSpan={4} className="stok-coklu-fiyat-tablo-bos">
                         Henüz ek fiyat yok.
                       </td>
                     </tr>
@@ -321,7 +333,9 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                             setSatirDuzenle(oge.sira);
                             setSatirSira(String(oge.sira));
                             setSatirFiyat(
-                              oge.deger !== null && oge.deger !== undefined ? sayiGoster(oge.deger) : ''
+                              oge.deger !== null && oge.deger !== undefined
+                                ? sayiGosterFormatli(oge.deger)
+                                : ''
                             );
                             setSatirPb(oge.pb);
                             setHata('');
@@ -329,7 +343,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                           title="Düzenlemek için çift tıklayın"
                         >
                           {duzenleniyor ? (
-                            <td colSpan={5} className="stok-coklu-fiyat-tablo-duzenle-hucre">
+                            <td colSpan={4} className="stok-coklu-fiyat-tablo-duzenle-hucre">
                               <div className="stok-coklu-fiyat-input-grup stok-coklu-fiyat-input-grup--satir stok-coklu-fiyat-input-grup--duzenle stok-coklu-fiyat-input-grup--ekle stok-coklu-fiyat-tablo-duzenle">
                                 <input
                                   type="text"
@@ -369,7 +383,7 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                                   value={satirFiyat}
                                   inputMode="decimal"
                                   aria-label={`${oge.etiket} tutarı`}
-                                  onChange={(e) => setSatirFiyat(fiyatHamFiltrele(e.target.value))}
+                                  onChange={(e) => setSatirFiyat(fiyatYazarkenFormatla(e.target.value))}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                       e.preventDefault();
@@ -398,16 +412,21 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
                           ) : (
                             <>
                               <td className="stok-coklu-fiyat-tablo-sira">{oge.sira}</td>
-                              <td className="stok-coklu-fiyat-tablo-adi">{oge.etiket}</td>
                               <td className="stok-coklu-fiyat-tablo-tutar">
-                                {oge.deger !== null && oge.deger !== undefined ? sayiGoster(oge.deger) : '—'}
+                                {oge.deger !== null && oge.deger !== undefined
+                                  ? sayiGosterFormatli(oge.deger)
+                                  : '—'}
                               </td>
                               <td className="stok-coklu-fiyat-tablo-pb">{stokPbSembolu(oge.pb)}</td>
                               <td className="stok-coklu-fiyat-tablo-islem">
                                 <button
                                   type="button"
                                   className="stok-coklu-fiyat-tablo-sil"
-                                  onClick={() => onKaydet(stokCokluFiyatPatch(tur, oge.sira, null))}
+                                  onClick={() => {
+                                    const patch = stokCokluFiyatPatch(tur, oge.sira, null, satir);
+                                    onKaydet(patch);
+                                    ustSiraGuncelle({ ...satir, ...patch });
+                                  }}
                                   aria-label={`${oge.etiket} sil`}
                                 >
                                   Sil

@@ -3390,6 +3390,11 @@ button.ap-tanimlar-panel-arka {
   background: transparent !important;
 }
 
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-ekle-input,
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-satir-input {
+  text-align: right;
+}
+
 .stok-coklu-fiyat-ekle-btn {
   flex-shrink: 0;
   border: 0;
@@ -3649,12 +3654,8 @@ button.ap-tanimlar-panel-arka {
   width: 3.25rem;
 }
 
-.stok-coklu-fiyat-tablo-col-adi {
-  width: 34%;
-}
-
 .stok-coklu-fiyat-tablo-col-tutar {
-  width: 22%;
+  width: auto;
 }
 
 .stok-coklu-fiyat-tablo-col-pb {
@@ -3680,12 +3681,12 @@ button.ap-tanimlar-panel-arka {
   text-align: center;
 }
 
-.stok-coklu-fiyat-tablo thead th:nth-child(3),
+.stok-coklu-fiyat-tablo thead th:nth-child(2),
 .stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-tutar {
   text-align: right;
 }
 
-.stok-coklu-fiyat-tablo thead th:nth-child(4),
+.stok-coklu-fiyat-tablo thead th:nth-child(3),
 .stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-pb {
   text-align: center;
 }
@@ -3728,15 +3729,6 @@ button.ap-tanimlar-panel-arka {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--ap-accent);
-}
-
-.stok-coklu-fiyat-tablo-adi {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--ap-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .stok-coklu-fiyat-tablo-tutar {

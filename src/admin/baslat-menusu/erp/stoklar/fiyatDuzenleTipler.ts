@@ -24,6 +24,18 @@ export type IsaretliFiyatAlani =
 
 export type StokFiyatPbAlani = 'pb1' | 'pb2' | 'pb3' | 'pb4' | 'pb5' | 'pb6';
 
+export type StokCokluBarkodKayit = {
+  sira: number;
+  deger: string;
+  tip: StokBarkodTipi;
+};
+
+export type StokCokluFiyatKayit = {
+  sira: number;
+  deger: number;
+  pb: StokFiyatPb;
+};
+
 export interface StokFiyatDuzenleSatir {
   id: string;
   fiyatAdi: string;
@@ -41,6 +53,8 @@ export interface StokFiyatDuzenleSatir {
   barkodTip5?: StokBarkodTipi;
   barkod6?: string;
   barkodTip6?: StokBarkodTipi;
+  /** Sınırsız barkod listesi (kaynak) */
+  barkodlar?: StokCokluBarkodKayit[];
   kdv: number;
   kdvTipi: StokFiyatKdvTipi;
   alisFiyati: number | null;
@@ -49,6 +63,8 @@ export interface StokFiyatDuzenleSatir {
   alisFiyati4?: number | null;
   alisFiyati5?: number | null;
   alisFiyati6?: number | null;
+  /** Sınırsız alış fiyat listesi (kaynak) */
+  alisFiyatListesi?: StokCokluFiyatKayit[];
   satisFiyati1: number | null;
   pb1: StokFiyatPb;
   satisFiyati2: number | null;
@@ -61,6 +77,8 @@ export interface StokFiyatDuzenleSatir {
   pb5: StokFiyatPb;
   satisFiyati6: number | null;
   pb6: StokFiyatPb;
+  /** Sınırsız satış fiyat listesi (kaynak) */
+  satisFiyatListesi?: StokCokluFiyatKayit[];
   alisKdv?: number;
   alisKdvTipi?: StokFiyatKdvTipi;
   aktif?: boolean;
