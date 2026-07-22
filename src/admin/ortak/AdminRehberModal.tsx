@@ -65,7 +65,7 @@ export function AdminRehberModal({
                 <p className="ap-rehber-alt">{altBaslik}</p>
               </div>
             </div>
-            <button type="button" className="ap-rehber-kapat" onClick={kapat}>
+            <button type="button" className="ap-modal-kapat-pil" onClick={kapat}>
               ✕ ESC
             </button>
           </header>

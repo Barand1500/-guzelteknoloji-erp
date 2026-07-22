@@ -29,16 +29,24 @@ export function telefonBayrakUrl(ulkeId: string, genislik: 20 | 40 | 80 = 40): s
   return `https://flagcdn.com/w${genislik}/${ulkeId.toLowerCase()}.png`;
 }
 
+function telefonUlkeTurkiyeUste(ulkeler: TelefonUlke[]): TelefonUlke[] {
+  const trIndex = ulkeler.findIndex((u) => u.id === 'TR');
+  if (trIndex <= 0) return ulkeler;
+  const sonuc = [...ulkeler];
+  sonuc.unshift(sonuc.splice(trIndex, 1)[0]);
+  return sonuc;
+}
+
 export function telefonUlkeAra(arama: string): TelefonUlke[] {
   const q = arama.trim().toLocaleLowerCase('tr');
-  if (!q) return [...TELEFON_ULKELER];
-  return TELEFON_ULKELER.filter(
-    (u) =>
-      u.ad.toLocaleLowerCase('tr').includes(q) ||
-      u.dial.includes(q.replace(/^\+/, '')) ||
-      u.id.toLowerCase().includes(q) ||
-      `+${u.dial}`.includes(q)
-  );
+  const filtre = (u: TelefonUlke) =>
+    u.ad.toLocaleLowerCase('tr').includes(q) ||
+    u.dial.includes(q.replace(/^\+/, '')) ||
+    u.id.toLowerCase().includes(q) ||
+    `+${u.dial}`.includes(q);
+
+  if (!q) return telefonUlkeTurkiyeUste([...TELEFON_ULKELER]);
+  return telefonUlkeTurkiyeUste(TELEFON_ULKELER.filter(filtre));
 }
 
 function yalnizcaRakam(deger: string, max?: number): string {

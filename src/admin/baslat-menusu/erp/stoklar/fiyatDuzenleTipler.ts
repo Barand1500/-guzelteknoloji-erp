@@ -32,10 +32,15 @@ export interface StokFiyatDuzenleSatir {
   barkod: string;
   barkodTip?: StokBarkodTipi;
   barkod2?: string;
+  barkodTip2?: StokBarkodTipi;
   barkod3?: string;
+  barkodTip3?: StokBarkodTipi;
   barkod4?: string;
+  barkodTip4?: StokBarkodTipi;
   barkod5?: string;
+  barkodTip5?: StokBarkodTipi;
   barkod6?: string;
+  barkodTip6?: StokBarkodTipi;
   kdv: number;
   kdvTipi: StokFiyatKdvTipi;
   alisFiyati: number | null;

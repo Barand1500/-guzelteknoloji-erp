@@ -5252,6 +5252,65 @@ html:has(.admin-panel[data-tema='acik']) body {
   animation: ap-sil-onay-giris 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.ap-sil-onay-kart:has(.ap-modal-sol-baslik),
+.ap-sil-onay-kart.ap-sil-onay-kart--sol-baslik {
+  text-align: left;
+  padding: 1rem 1.15rem 0;
+}
+
+.ap-modal-sol-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 78%, transparent);
+}
+
+.ap-modal-sol-baslik-sol {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ap-modal-sol-baslik-ikon {
+  flex-shrink: 0;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+  color: color-mix(in srgb, var(--ap-accent) 84%, #ffffff);
+  background: color-mix(in srgb, var(--ap-accent) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 45%, transparent);
+}
+
+.ap-modal-sol-baslik-ikon svg {
+  display: block;
+}
+
+.ap-modal-sol-baslik-metin {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ap-heading);
+  text-align: left;
+  line-height: 1.25;
+}
+
+.ap-sil-onay-kart:has(.ap-modal-sol-baslik) .ap-sil-onay-metin,
+.ap-sil-onay-kart.ap-sil-onay-kart--sol-baslik .ap-sil-onay-metin {
+  text-align: left;
+}
+
 @keyframes ap-sil-onay-giris {
   from {
     opacity: 0;
@@ -5424,20 +5483,30 @@ html:has(.admin-panel[data-tema='acik']) body {
   color: var(--ap-accent);
 }
 
+.ap-modal-kapat-pil,
 .ap-rehber-kapat {
+  flex-shrink: 0;
   border-radius: 9999px;
   border: 1px solid var(--ap-border);
   background: var(--ap-hover);
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--ap-text-muted);
-  transition: background-color 0.15s;
+  cursor: pointer;
+  line-height: 1;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
+.ap-modal-kapat-pil:hover,
 .ap-rehber-kapat:hover {
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-hover));
   color: var(--ap-text);
+  border-color: color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
 }
 
 .ap-rehber-icerik {

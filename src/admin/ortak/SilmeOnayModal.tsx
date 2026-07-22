@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import {
@@ -65,11 +66,8 @@ export function SilmeOnayModal({
     <div className="ap-sil-onay-modal" role="dialog" aria-modal="true" aria-label={ariaLabel}>
       <div className="ap-sil-onay-arka" aria-hidden="true" />
       <DonenAccentCerceve className="ap-accent-donen-cerceve--sil">
-        <div className="ap-sil-onay-kart">
-          <div className="ap-sil-onay-ikon" aria-hidden>
-            !
-          </div>
-          <h3 className="ap-sil-onay-baslik">{baslik}</h3>
+        <div className="ap-sil-onay-kart ap-sil-onay-kart--sol-baslik">
+          <ModalSolBaslik baslik={baslik} ikon="!" onKapat={kapat} />
           <p className="ap-sil-onay-metin">
             <strong>{hedefMetin}</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
           </p>

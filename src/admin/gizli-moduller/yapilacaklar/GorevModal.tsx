@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import {
@@ -89,11 +90,8 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
     <div className="ap-sil-onay-modal yap-gorev-modal" role="dialog" aria-modal="true" aria-label={baslik}>
       <div className="ap-sil-onay-arka" aria-hidden="true" />
       <DonenAccentCerceve className="ap-accent-donen-cerceve--sil ap-accent-donen-cerceve--yap-gorev">
-        <div className="ap-sil-onay-kart yap-gorev-kart">
-          <div className="ap-sil-onay-ikon yap-gorev-ikon" aria-hidden>
-            ✓
-          </div>
-          <h3 className="ap-sil-onay-baslik">{baslik}</h3>
+        <div className="ap-sil-onay-kart yap-gorev-kart ap-sil-onay-kart--sol-baslik">
+          <ModalSolBaslik baslik={baslik} ikon="✓" onKapat={onKapat} />
           <p className="ap-sil-onay-metin yap-gorev-ozet">
             Tarih yoksa <strong>tarihsiz görevler</strong> arasında görünür.
           </p>

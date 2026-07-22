@@ -37,7 +37,7 @@ export function StokEnvanterTakibiDetay({
     return (
       <>
         <CariOutlinedGirdi
-          etiket="Asgari Stok"
+          etiket="Alt Limit"
           deger={form.asgariStok}
           disabled={disabled}
           inputMode="numeric"
@@ -45,7 +45,7 @@ export function StokEnvanterTakibiDetay({
           onChange={(asgariStok) => onAlan('asgariStok', asgariStok)}
         />
         <CariOutlinedGirdi
-          etiket="Azami Stok"
+          etiket="Üst Limit"
           deger={form.azamiStok}
           disabled={disabled}
           inputMode="numeric"
@@ -83,7 +83,7 @@ export function StokEnvanterTakibiDetay({
     return (
       <>
         <CariOutlinedAcilir
-          etiket="Lot Zorunlu"
+          etiket="LOT Zorunlu"
           deger={form.lotZorunlu || 'HAYIR'}
           disabled={disabled}
           secenekler={evetHayir}
@@ -97,7 +97,7 @@ export function StokEnvanterTakibiDetay({
           onChange={(sktTakibi) => onAlan('sktTakibi', sktTakibi)}
         />
         <CariOutlinedGirdi
-          etiket="Lot Öneki"
+          etiket="LOT Öneki"
           deger={form.lotOneki}
           disabled={disabled}
           maxLength={20}
@@ -112,6 +112,13 @@ export function StokEnvanterTakibiDetay({
   if (tip === 'OMUR') {
     return (
       <>
+        <CariOutlinedAcilir
+          etiket="SKT Zorunlu"
+          deger={form.sktZorunlu || 'HAYIR'}
+          disabled={disabled}
+          secenekler={evetHayir}
+          onChange={(sktZorunlu) => onAlan('sktZorunlu', sktZorunlu)}
+        />
         <CariOutlinedGirdi
           etiket="Raf Ömrü (Gün)"
           deger={form.rafOmruGun}
@@ -127,13 +134,6 @@ export function StokEnvanterTakibiDetay({
           inputMode="numeric"
           odakPlaceholder="0"
           onChange={(opsGun) => onAlan('opsGun', opsGun)}
-        />
-        <CariOutlinedAcilir
-          etiket="SKT Zorunlu"
-          deger={form.sktZorunlu || 'HAYIR'}
-          disabled={disabled}
-          secenekler={evetHayir}
-          onChange={(sktZorunlu) => onAlan('sktZorunlu', sktZorunlu)}
         />
       </>
     );

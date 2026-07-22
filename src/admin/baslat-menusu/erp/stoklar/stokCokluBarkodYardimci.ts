@@ -1,6 +1,14 @@
-import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
+import type { StokBarkodTipi, StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
 
 const BARKOD_ALANLARI = ['barkod', 'barkod2', 'barkod3', 'barkod4', 'barkod5', 'barkod6'] as const;
+const BARKOD_TIP_ALANLARI = [
+  'barkodTip',
+  'barkodTip2',
+  'barkodTip3',
+  'barkodTip4',
+  'barkodTip5',
+  'barkodTip6',
+] as const;
 
 export const STOK_COKLU_BARKOD_ADET = BARKOD_ALANLARI.length;
 
@@ -10,27 +18,43 @@ export function stokCokluBarkodDegeri(satir: StokFiyatDuzenleSatir, sira: number
   return (satir[alan as keyof StokFiyatDuzenleSatir] as string | undefined) ?? '';
 }
 
+export function stokCokluBarkodTipi(satir: StokFiyatDuzenleSatir, sira: number): StokBarkodTipi {
+  if (sira < 1 || sira > STOK_COKLU_BARKOD_ADET) return 'EAN13';
+  const alan = BARKOD_TIP_ALANLARI[sira - 1];
+  return (satir[alan as keyof StokFiyatDuzenleSatir] as StokBarkodTipi | undefined) ?? 'EAN13';
+}
+
 export function stokCokluBarkodDoluMu(satir: StokFiyatDuzenleSatir, sira: number): boolean {
   return stokCokluBarkodDegeri(satir, sira).trim() !== '';
 }
 
-export function stokCokluBarkodPatch(sira: number, deger: string): Partial<StokFiyatDuzenleSatir> {
+export function stokCokluBarkodPatch(
+  sira: number,
+  deger: string,
+  tip: StokBarkodTipi = 'EAN13'
+): Partial<StokFiyatDuzenleSatir> {
   if (sira < 1 || sira > STOK_COKLU_BARKOD_ADET) return {};
   const alan = BARKOD_ALANLARI[sira - 1];
-  return { [alan]: deger.trim() } as Partial<StokFiyatDuzenleSatir>;
+  const tipAlan = BARKOD_TIP_ALANLARI[sira - 1];
+  const temiz = deger.trim();
+  return {
+    [alan]: temiz,
+    [tipAlan]: temiz ? tip : 'EAN13',
+  } as Partial<StokFiyatDuzenleSatir>;
 }
 
 export function stokCokluBarkodTasi(
   eskiSira: number,
   yeniSira: number,
-  deger: string
+  deger: string,
+  tip: StokBarkodTipi
 ): Partial<StokFiyatDuzenleSatir> {
   if (eskiSira < 1 || eskiSira > STOK_COKLU_BARKOD_ADET) return {};
   if (yeniSira < 1 || yeniSira > STOK_COKLU_BARKOD_ADET) return {};
-  if (eskiSira === yeniSira) return stokCokluBarkodPatch(yeniSira, deger);
+  if (eskiSira === yeniSira) return stokCokluBarkodPatch(yeniSira, deger, tip);
   return {
-    ...stokCokluBarkodPatch(eskiSira, ''),
-    ...stokCokluBarkodPatch(yeniSira, deger),
+    ...stokCokluBarkodPatch(eskiSira, '', 'EAN13'),
+    ...stokCokluBarkodPatch(yeniSira, deger, tip),
   };
 }
 

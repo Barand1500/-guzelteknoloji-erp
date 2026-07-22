@@ -321,7 +321,7 @@ export const ENVANTER_TAKIBI_SECENEKLERI = [
   { value: 'YOK', label: 'Yok' },
   { value: 'NORMAL', label: 'Normal' },
   { value: 'SERI_NO', label: 'Seri No' },
-  { value: 'LOT', label: 'Lot' },
+  { value: 'LOT', label: 'LOT' },
   { value: 'OMUR', label: 'Ömür' },
 ] as const;
 

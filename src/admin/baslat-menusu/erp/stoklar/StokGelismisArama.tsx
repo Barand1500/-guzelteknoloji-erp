@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalAramaIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { stokTipleriGetir } from './stokTipleri';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
@@ -106,23 +107,12 @@ export function StokGelismisArama({
     >
       <div className="ap-sil-onay-arka" aria-hidden="true" />
       <DonenAccentCerceve className="ap-accent-donen-cerceve--sil ap-accent-donen-cerceve--stok-arama">
-        <div className="ap-sil-onay-kart stok-gelismis-arama-kart">
-          <button type="button" className="stok-gelismis-arama-vazgec" onClick={onKapat}>
-            <ModalTusIcerik metin="Vazgeç" kisayol="Esc" />
-          </button>
-
-          <div className="ap-sil-onay-ikon stok-gelismis-arama-ikon" aria-hidden>
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden>
-              <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="2.25" />
-              <path
-                d="M16.2 16.2 20 20"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <h3 className="ap-sil-onay-baslik">Gelişmiş Stok Arama</h3>
+        <div className="ap-sil-onay-kart stok-gelismis-arama-kart ap-sil-onay-kart--sol-baslik">
+          <ModalSolBaslik
+            baslik="Gelişmiş Stok Arama"
+            ikon={<ModalAramaIkon />}
+            onKapat={onKapat}
+          />
           <p className="ap-sil-onay-metin stok-gelismis-arama-ozet">
             <strong>{sonucSayisi}</strong> sonuç eşleşiyor
           </p>

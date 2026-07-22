@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalListeIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from '@/araclar/sekmePortal';
 import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
@@ -174,39 +175,8 @@ export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: Sto
     >
       <div className="ap-sil-onay-arka cari-secenek-arka" aria-hidden="true" />
       <DonenAccentCerceve className="ap-accent-donen-cerceve--sil ap-accent-donen-cerceve--cari-secenek">
-        <div className="ap-sil-onay-kart cari-secenek-kart">
-          <button
-            type="button"
-            className="cari-secenek-kapat"
-            onClick={onKapat}
-            aria-label="Kapat (Esc)"
-            title="Kapat (Esc)"
-          >
-            <span className="cari-secenek-kapat-x" aria-hidden>
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none">
-                <path d="M7 7l10 10M17 7L7 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </span>
-            <span className="cari-secenek-kapat-kisayol">Esc</span>
-          </button>
-
-          <div className="ap-sil-onay-ikon cari-secenek-ikon" aria-hidden>
-            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden>
-              <path
-                d="M8 7h11M8 12h11M8 17h11"
-                stroke="currentColor"
-                strokeWidth="2.1"
-                strokeLinecap="round"
-              />
-              <path
-                d="M5 7h.01M5 12h.01M5 17h.01"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <h3 className="ap-sil-onay-baslik cari-secenek-baslik">{baslik}</h3>
+        <div className="ap-sil-onay-kart cari-secenek-kart ap-sil-onay-kart--sol-baslik">
+          <ModalSolBaslik baslik={baslik} ikon={<ModalListeIkon />} onKapat={onKapat} />
 
           <div className="cari-secenek-govde">
             <div className="cari-secenek-ekle stok-coklu-fiyat-ekle">
