@@ -109,12 +109,14 @@ export function CariOutlinedSarmalayici({
   disabled,
   className,
   children,
+  etiketEk,
 }: {
   etiket: string;
   zorunlu?: boolean;
   disabled?: boolean;
   className?: string;
   children: ReactNode;
+  etiketEk?: ReactNode;
 }) {
   const [focused, setFocused] = useState(false);
 
@@ -126,7 +128,9 @@ export function CariOutlinedSarmalayici({
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
       }}
     >
-      <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} />
+      <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu}>
+        {etiketEk}
+      </CariOutlinedEtiket>
       <div className="cari-outlined-cerceve cari-outlined-cerceve--icerik">
         <div className="cari-outlined-icerik">{children}</div>
       </div>

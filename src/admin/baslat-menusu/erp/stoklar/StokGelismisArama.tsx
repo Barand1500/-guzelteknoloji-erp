@@ -4,7 +4,7 @@ import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
-import { URUN_TIPLERI } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
+import { stokTipleriGetir } from './stokTipleri';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import {
   sekmePortalHedefi,
@@ -134,7 +134,7 @@ export function StokGelismisArama({
                 <FormAcilirSecim
                   value={filtre.urunTipi}
                   onChange={(urunTipi) => onFiltreDegistir({ ...filtre, urunTipi })}
-                  secenekler={[{ value: '', label: 'Tümü' }, ...URUN_TIPLERI.map((x) => ({ ...x }))]}
+                  secenekler={[{ value: '', label: 'Tümü' }, ...stokTipleriGetir().map((x) => ({ ...x }))]}
                   aria-label="Stok Tipi"
                 />
               </div>

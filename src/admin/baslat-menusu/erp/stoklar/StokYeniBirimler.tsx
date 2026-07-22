@@ -456,7 +456,6 @@ export function StokYeniBirimler({
       <CariSecenekModal
         acik={fiyatModalAcik}
         baslik="Fiyat Adı"
-        aciklama="Yeni fiyat adı ekleyin. Listede düzenlemek için çift tıklayın."
         placeholder="Yeni fiyat adı…"
         liste={fiyatAdlari.map((f) => ({ value: f.value, label: f.label }))}
         sabitDegerler={['FIYAT']}
@@ -489,7 +488,6 @@ export function StokYeniBirimler({
       <CariSecenekModal
         acik={birimModalAcik}
         baslik="Birim"
-        aciklama="Yeni birim ekleyin. Listede düzenlemek için çift tıklayın."
         placeholder="Yeni birim adı…"
         liste={birimAdlari.map((b) => ({ value: b.value, label: b.label }))}
         sabitDegerler={['ADET']}

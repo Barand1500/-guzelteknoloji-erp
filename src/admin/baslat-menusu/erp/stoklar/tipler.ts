@@ -118,6 +118,8 @@ export interface StokForm extends UrunForm {
   eTicaret: string;
   fKasa: string;
   gtip: string;
+  /** Yok | Normal | Seri No | Lot | Ömür */
+  envanterTakibi: string;
   uns: string;
   ublTr: string;
   cpaRev: string;
@@ -237,6 +239,7 @@ export const bosStokForm: StokForm = {
   eTicaret: '',
   fKasa: '',
   gtip: '',
+  envanterTakibi: 'YOK',
   uns: '',
   ublTr: '',
   cpaRev: '',
@@ -297,3 +300,11 @@ export const STOK_KDV_DEPARTMAN_SECENEKLERI = [
   { value: 'KDY10', label: 'K.D.Y. 10 GRUBU — %10' },
   { value: 'KDY20', label: 'K.D.Y. 20 GRUBU — %20' },
 ];
+
+export const ENVANTER_TAKIBI_SECENEKLERI = [
+  { value: 'YOK', label: 'Yok' },
+  { value: 'NORMAL', label: 'Normal' },
+  { value: 'SERI_NO', label: 'Seri No' },
+  { value: 'LOT', label: 'Lot' },
+  { value: 'OMUR', label: 'Ömür' },
+] as const;

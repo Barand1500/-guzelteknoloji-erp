@@ -1,5 +1,7 @@
 /** Telefon alanı — ülke seçimi ve ulusal numara formatı */
 
+import { TELEFON_ULKE_HAM_VERI } from './telefonUlkeHamVeri';
+
 export type TelefonUlke = {
   id: string;
   ad: string;
@@ -10,44 +12,13 @@ export type TelefonUlke = {
   trFormat?: boolean;
 };
 
-export const TELEFON_ULKELER: readonly TelefonUlke[] = [
-  { id: 'TR', ad: 'Türkiye', dial: '90', maxHane: 11, trFormat: true },
-  { id: 'DE', ad: 'Almanya', dial: '49', maxHane: 12 },
-  { id: 'US', ad: 'ABD', dial: '1', maxHane: 10 },
-  { id: 'GB', ad: 'Birleşik Krallık', dial: '44', maxHane: 11 },
-  { id: 'FR', ad: 'Fransa', dial: '33', maxHane: 10 },
-  { id: 'NL', ad: 'Hollanda', dial: '31', maxHane: 10 },
-  { id: 'IT', ad: 'İtalya', dial: '39', maxHane: 11 },
-  { id: 'ES', ad: 'İspanya', dial: '34', maxHane: 9 },
-  { id: 'AZ', ad: 'Azerbaycan', dial: '994', maxHane: 10 },
-  { id: 'RU', ad: 'Rusya', dial: '7', maxHane: 10 },
-  { id: 'SA', ad: 'Suudi Arabistan', dial: '966', maxHane: 9 },
-  { id: 'AE', ad: 'BAE', dial: '971', maxHane: 9 },
-  { id: 'IQ', ad: 'Irak', dial: '964', maxHane: 10 },
-  { id: 'IR', ad: 'İran', dial: '98', maxHane: 10 },
-  { id: 'SY', ad: 'Suriye', dial: '963', maxHane: 9 },
-  { id: 'BG', ad: 'Bulgaristan', dial: '359', maxHane: 9 },
-  { id: 'GR', ad: 'Yunanistan', dial: '30', maxHane: 10 },
-  { id: 'RO', ad: 'Romanya', dial: '40', maxHane: 10 },
-  { id: 'CN', ad: 'Çin', dial: '86', maxHane: 11 },
-  { id: 'JP', ad: 'Japonya', dial: '81', maxHane: 11 },
-  { id: 'KR', ad: 'Güney Kore', dial: '82', maxHane: 11 },
-  { id: 'IN', ad: 'Hindistan', dial: '91', maxHane: 10 },
-  { id: 'PK', ad: 'Pakistan', dial: '92', maxHane: 10 },
-  { id: 'CA', ad: 'Kanada', dial: '1', maxHane: 10 },
-  { id: 'AU', ad: 'Avustralya', dial: '61', maxHane: 10 },
-  { id: 'CH', ad: 'İsviçre', dial: '41', maxHane: 10 },
-  { id: 'AT', ad: 'Avusturya', dial: '43', maxHane: 11 },
-  { id: 'BE', ad: 'Belçika', dial: '32', maxHane: 10 },
-  { id: 'SE', ad: 'İsveç', dial: '46', maxHane: 10 },
-  { id: 'NO', ad: 'Norveç', dial: '47', maxHane: 8 },
-  { id: 'PL', ad: 'Polonya', dial: '48', maxHane: 9 },
-  { id: 'UA', ad: 'Ukrayna', dial: '380', maxHane: 9 },
-  { id: 'EG', ad: 'Mısır', dial: '20', maxHane: 10 },
-  { id: 'GE', ad: 'Gürcistan', dial: '995', maxHane: 9 },
-] as const;
+/** Dial koduna göre küçükten büyüğe sıralı tüm ülkeler */
+export const TELEFON_ULKELER: readonly TelefonUlke[] = [...TELEFON_ULKE_HAM_VERI].sort(
+  (a, b) => Number(a.dial) - Number(b.dial) || a.ad.localeCompare(b.ad, 'tr')
+);
 
-export const VARSAYILAN_TELEFON_ULKE = TELEFON_ULKELER[0];
+export const VARSAYILAN_TELEFON_ULKE: TelefonUlke =
+  TELEFON_ULKELER.find((u) => u.id === 'TR') ?? TELEFON_ULKELER[0];
 
 export function telefonUlkeBul(id: string): TelefonUlke {
   return TELEFON_ULKELER.find((u) => u.id === id) ?? VARSAYILAN_TELEFON_ULKE;
@@ -65,7 +36,8 @@ export function telefonUlkeAra(arama: string): TelefonUlke[] {
     (u) =>
       u.ad.toLocaleLowerCase('tr').includes(q) ||
       u.dial.includes(q.replace(/^\+/, '')) ||
-      u.id.toLowerCase().includes(q)
+      u.id.toLowerCase().includes(q) ||
+      `+${u.dial}`.includes(q)
   );
 }
 

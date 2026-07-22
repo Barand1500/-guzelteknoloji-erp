@@ -17,7 +17,6 @@ export interface CariSecenekSatir {
 interface CariSecenekModalProps {
   acik: boolean;
   baslik: string;
-  aciklama?: string;
   placeholder?: string;
   liste: CariSecenekSatir[];
   sabitDegerler?: string[];
@@ -34,7 +33,6 @@ interface CariSecenekModalProps {
 export function CariSecenekModal({
   acik,
   baslik,
-  aciklama = 'Yeni seçenek ekleyin. Listede düzenlemek için çift tıklayın.',
   placeholder = 'Yeni seçenek adı…',
   liste,
   sabitDegerler = [],
@@ -144,10 +142,12 @@ export function CariSecenekModal({
             aria-label="Kapat (Esc)"
             title="Kapat (Esc)"
           >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden>
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-            </svg>
-            <span>Esc</span>
+            <span className="cari-secenek-kapat-x" aria-hidden>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none">
+                <path d="M7 7l10 10M17 7L7 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="cari-secenek-kapat-kisayol">Esc</span>
           </button>
 
           <div className="ap-sil-onay-ikon cari-secenek-ikon" aria-hidden>
@@ -166,8 +166,7 @@ export function CariSecenekModal({
               />
             </svg>
           </div>
-          <h3 className="ap-sil-onay-baslik">{baslik}</h3>
-          <p className="ap-sil-onay-metin cari-secenek-ozet">{aciklama}</p>
+          <h3 className="ap-sil-onay-baslik cari-secenek-baslik">{baslik}</h3>
 
           <div className="cari-secenek-govde">
             <div className="cari-secenek-ekle">
@@ -246,6 +245,12 @@ export function CariSecenekModal({
               })}
             </ul>
           </div>
+
+          {onGuncelle ? (
+            <div className="cari-secenek-alt">
+              <p className="cari-secenek-ipucu">Düzenlemek için çift tıklayınız.</p>
+            </div>
+          ) : null}
         </div>
       </DonenAccentCerceve>
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type MutableRefObject } from 'react';
 import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimDuzenleEkrani';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
+import { CariSecenekModal } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariSecenekModal';
 import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
 import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
 import { CariOutlinedMarka } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedMarka';
@@ -12,7 +13,6 @@ import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import {
   URUN_NEVILERI,
-  URUN_TIPLERI,
   type AdminBirim,
 } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
 import { birimGuncelle, birimOlustur, birimleriGetir, stokGuncelle, stokOlustur, stoklariGetir } from './api';
@@ -27,7 +27,15 @@ import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
 import { StokYeniBirimler } from './StokYeniBirimler';
 import { StokDigerVergiBlok } from './StokDigerVergiBlok';
 import {
+  stokTipiEkle,
+  stokTipiGuncelle,
+  stokTipiSil,
+  stokTipleriGetir,
+  type StokTipiSecenek,
+} from './stokTipleri';
+import {
   bosStokForm,
+  ENVANTER_TAKIBI_SECENEKLERI,
   stokFormdanUrunForm,
   type AdminStok,
   type StokForm,
@@ -79,6 +87,8 @@ export function StokKarti({
   const [birimlerKirli, setBirimlerKirli] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
+  const [stokTipleri, setStokTipleri] = useState<StokTipiSecenek[]>(() => stokTipleriGetir());
+  const [tipModalAcik, setTipModalAcik] = useState(false);
 
   const seciliKayit = useMemo(
     () => (stokId ? kayitlar.find((k) => k.id === stokId) ?? null : null),
@@ -101,6 +111,10 @@ export function StokKarti({
   useEffect(() => {
     void yukle();
   }, [yukle]);
+
+  useEffect(() => {
+    setStokTipleri(stokTipleriGetir());
+  }, [tipModalAcik]);
 
   useEffect(() => {
     if (mod === 'yeni') {
@@ -314,21 +328,32 @@ export function StokKarti({
         />
         <CariOutlinedAcilir
           etiket="Stok Tipi"
+          zorunlu
           deger={form.urunTipi}
           disabled={saltOkunur}
-          secenekler={URUN_TIPLERI.map((x) => ({ ...x }))}
+          secenekler={stokTipleri.map((x) => ({ ...x }))}
+          onYonet={() => setTipModalAcik(true)}
           onChange={(urunTipi) => setForm((f) => ({ ...f, urunTipi }))}
         />
-        <CariOutlinedGirdi
-          etiket="GTIP Kodu"
-          deger={form.gtip}
-          disabled={saltOkunur}
-          maxLength={20}
-          buyukHarf
-          className="stok-karti-kisa-alan"
-          odakPlaceholder="GTIP kodunu yazınız"
-          onChange={(gtip) => setForm((f) => ({ ...f, gtip }))}
-        />
+        <div className="stok-karti-gtip-envanter-satir">
+          <CariOutlinedGirdi
+            etiket="GTIP Kodu"
+            deger={form.gtip}
+            disabled={saltOkunur}
+            maxLength={20}
+            buyukHarf
+            className="stok-karti-kisa-alan"
+            odakPlaceholder="GTIP kodunu yazınız"
+            onChange={(gtip) => setForm((f) => ({ ...f, gtip }))}
+          />
+          <CariOutlinedAcilir
+            etiket="Envanter Takibi"
+            deger={form.envanterTakibi || 'YOK'}
+            disabled={saltOkunur}
+            secenekler={[...ENVANTER_TAKIBI_SECENEKLERI]}
+            onChange={(envanterTakibi) => setForm((f) => ({ ...f, envanterTakibi }))}
+          />
+        </div>
         <div className="stok-karti-ana-nevi-satir">
           <CariOutlinedAcilir
             etiket="Stok Nevi"
@@ -366,30 +391,60 @@ export function StokKarti({
   );
 
   return (
-    <div className="stok-karti-kabuk">
-      <TanimDuzenleEkrani
-        ustGizle
-        ustEtiket={ustEtiket}
-        baslik={baslik}
-        altBaslik={altBaslik}
-        rozet={rozet}
-        olusturma={seciliKayit?.olusturma}
-        guncelleme={seciliKayit?.guncelleme}
-        onGeri={onGeri}
-        onKaydet={!saltOkunur && !kaydediliyor ? () => void kaydet() : undefined}
-        kaydediliyor={kaydediliyor}
-        saltOkunur={saltOkunur}
-      >
-        <div className="stok-karti-icerik ap-scroll">
-          <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
-            {anaTanimlar}
-          </fieldset>
+    <>
+      <div className="stok-karti-kabuk">
+        <TanimDuzenleEkrani
+          ustGizle
+          ustEtiket={ustEtiket}
+          baslik={baslik}
+          altBaslik={altBaslik}
+          rozet={rozet}
+          olusturma={seciliKayit?.olusturma}
+          guncelleme={seciliKayit?.guncelleme}
+          onGeri={onGeri}
+          onKaydet={!saltOkunur && !kaydediliyor ? () => void kaydet() : undefined}
+          kaydediliyor={kaydediliyor}
+          saltOkunur={saltOkunur}
+        >
+          <div className="stok-karti-icerik ap-scroll">
+            <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
+              {anaTanimlar}
+            </fieldset>
 
-          <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
-            <StokYeniBirimler satirlar={birimSatirlari} onChange={birimSatirlariAyarla} />
-          </fieldset>
-        </div>
-      </TanimDuzenleEkrani>
-    </div>
+            <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
+              <StokYeniBirimler satirlar={birimSatirlari} onChange={birimSatirlariAyarla} />
+            </fieldset>
+          </div>
+        </TanimDuzenleEkrani>
+      </div>
+
+      <CariSecenekModal
+        acik={tipModalAcik}
+        baslik="Stok Tipi"
+        placeholder="Yeni stok tipi adı…"
+        liste={stokTipleri.map((t) => ({ value: t.value, label: t.label }))}
+        sabitDegerler={['EMTIA', 'HIZMET']}
+        kullanimNesneAdi="stok tipini"
+        kullanimSayisiAl={(value) => kayitlar.filter((s) => s.urunTipi === value).length}
+        onEkle={(ad) => {
+          const sonuc = stokTipiEkle(ad);
+          if (!sonuc) return false;
+          setStokTipleri(stokTipleriGetir());
+          setForm((f) => ({ ...f, urunTipi: sonuc.value }));
+          return true;
+        }}
+        onGuncelle={(value, ad) => {
+          const ok = stokTipiGuncelle(value, ad);
+          if (ok) setStokTipleri(stokTipleriGetir());
+          return ok;
+        }}
+        onSil={(value) => {
+          stokTipiSil(value);
+          setStokTipleri(stokTipleriGetir());
+          if (form.urunTipi === value) setForm((f) => ({ ...f, urunTipi: 'EMTIA' }));
+        }}
+        onKapat={() => setTipModalAcik(false)}
+      />
+    </>
   );
 }
