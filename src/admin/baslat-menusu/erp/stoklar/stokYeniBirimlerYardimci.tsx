@@ -279,6 +279,7 @@ export function CariOutlinedBarkod({
             className="stok-yb-barkod-tip-secim"
             listeSinifi="stok-yb-barkod-tip-liste"
             listeAnchor="self"
+            listeDikeyBosluk={4}
           />
         </div>
       </div>

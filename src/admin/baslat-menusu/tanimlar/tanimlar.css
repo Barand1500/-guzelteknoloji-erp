@@ -3158,6 +3158,23 @@ button.ap-tanimlar-panel-arka {
   overflow: hidden;
 }
 
+.stok-yb-barkod-tip.ap-form-acilir-secim-liste-anchor {
+  position: relative;
+  z-index: 1;
+}
+
+.stok-yb-barkod-tip.ap-form-acilir-secim-liste-anchor:has(.ap-form-acilir-secim-tus[aria-expanded='true']) {
+  z-index: 10301;
+}
+
+.stok-yb-barkod-tip .ap-form-acilir-secim {
+  position: relative;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100%;
+}
+
 .stok-yb-barkod-ikon {
   flex-shrink: 0;
   align-self: stretch;
@@ -3206,18 +3223,6 @@ button.ap-tanimlar-panel-arka {
   padding: 0;
 }
 
-.stok-yb-barkod-tip.ap-form-acilir-secim-liste-anchor {
-  position: relative;
-}
-
-.stok-yb-barkod-tip .ap-form-acilir-secim {
-  position: relative;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  height: 100%;
-}
-
 .stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus {
   width: 100%;
   height: 100%;
@@ -3254,22 +3259,45 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-yb-barkod-tip-liste {
-  z-index: 40;
+  z-index: 10300;
   box-sizing: border-box;
-  overflow: hidden;
-  border-radius: 0 0 0.5rem 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--ap-surface);
+  border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
-  border-top: 1px solid var(--ap-border);
   box-shadow:
     0 6px 18px color-mix(in srgb, var(--ap-heading) 20%, transparent),
     0 1px 0 color-mix(in srgb, var(--ap-border) 80%, transparent);
-  padding-bottom: 0.15rem;
+  padding: 0.3rem 0.28rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
 }
 
 .stok-yb-barkod-tip-liste .ap-form-acilir-secim-oge {
   font-size: 0.68rem;
   padding: 0.38rem 0.55rem;
   white-space: nowrap;
+  border-radius: 0.35rem;
+}
+
+.stok-yb-barkod-tip-liste .ap-form-acilir-secim-oge:hover,
+.stok-yb-barkod-tip-liste .ap-form-acilir-secim-oge.ap-form-acilir-secim-oge-odak {
+  background: var(--ap-accent, #e85d04);
+  color: #fff;
+}
+
+.stok-yb-barkod-tip-liste .ap-form-acilir-secim-oge-secili {
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  color: var(--ap-accent);
+  font-weight: 650;
+}
+
+.stok-yb-barkod-tip-liste .ap-form-acilir-secim-oge-secili:hover,
+.stok-yb-barkod-tip-liste .ap-form-acilir-secim-oge-secili.ap-form-acilir-secim-oge-odak {
+  background: var(--ap-accent, #e85d04);
+  color: #fff;
 }
 
 .stok-yb-barkod-tip-liste li:last-child .ap-form-acilir-secim-oge {
@@ -3388,10 +3416,30 @@ button.ap-tanimlar-panel-arka {
 
 .stok-coklu-fiyat-bos {
   justify-content: center;
-  color: var(--ap-muted);
-  font-size: 0.78rem;
+  color: var(--ap-text-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
   border-style: dashed;
   cursor: default;
+}
+
+.stok-coklu-fiyat-input-grup--duzenle {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.stok-coklu-fiyat-input-grup--duzenle:focus-within {
+  box-shadow: none;
+}
+
+.stok-coklu-fiyat-input-grup--duzenle .stok-coklu-fiyat-no {
+  width: 2.35rem;
+  min-width: 2.35rem;
+  flex: 0 0 2.35rem;
 }
 
 .stok-yb-bos {

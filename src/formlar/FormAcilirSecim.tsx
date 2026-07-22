@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { formSelectSinifi } from '@/formlar/FormAlani';
@@ -30,6 +31,8 @@ interface FormAcilirSecimProps {
   listeAnchor?: 'self' | 'cerceve';
   /** Tetikleyici ile liste arası dikey boşluk (px). 0 = bitişik */
   listeDikeyBosluk?: number;
+  /** true ise liste portal yerine tetikleyicinin altında inline render edilir */
+  listeInline?: boolean;
   /** Kapalıyken tetikleyicide gösterilecek metin (liste etiketinden farklı olabilir) */
   tusMetin?: string;
   disabled?: boolean;
@@ -37,6 +40,35 @@ interface FormAcilirSecimProps {
 }
 
 const KENAR_BOSLUK = 8;
+
+function acilirListeGorunurKaydir(
+  trigger: HTMLElement,
+  liste: HTMLElement,
+  altBosluk = 16
+) {
+  let scrollParent: HTMLElement | null = trigger.parentElement;
+  while (scrollParent) {
+    const { overflowY } = getComputedStyle(scrollParent);
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') &&
+      scrollParent.scrollHeight > scrollParent.clientHeight + 1
+    ) {
+      break;
+    }
+    scrollParent = scrollParent.parentElement;
+  }
+
+  const listeRect = liste.getBoundingClientRect();
+  if (scrollParent) {
+    const containerRect = scrollParent.getBoundingClientRect();
+    const delta = listeRect.bottom - containerRect.bottom + altBosluk;
+    if (delta > 0) scrollParent.scrollBy({ top: delta, behavior: 'smooth' });
+    return;
+  }
+
+  const delta = listeRect.bottom - window.innerHeight + altBosluk;
+  if (delta > 0) window.scrollBy({ top: delta, behavior: 'smooth' });
+}
 
 function anchorBul(trigger: HTMLElement, listeAnchor: 'self' | 'cerceve'): HTMLElement {
   if (listeAnchor === 'self') {
@@ -84,6 +116,7 @@ export function FormAcilirSecim({
   listeMinGenislik = 0,
   listeAnchor = 'cerceve',
   listeDikeyBosluk = 4,
+  listeInline = false,
   tusMetin,
   disabled = false,
   'aria-label': ariaLabel,
@@ -93,11 +126,18 @@ export function FormAcilirSecim({
   const listeRef = useRef<HTMLUListElement>(null);
   const [acik, setAcik] = useState(false);
   const [listeStil, setListeStil] = useState<CSSProperties>({});
+  const [odakIndex, setOdakIndex] = useState(0);
 
   const secili = secenekler.find((s) => s.value === value) ?? secenekler[0];
+  const inlineListe = listeInline;
+
+  const seciliIndex = Math.max(
+    0,
+    secenekler.findIndex((s) => s.value === value)
+  );
 
   const konumGuncelle = useCallback(() => {
-    if (!tusRef.current) return;
+    if (!tusRef.current || inlineListe) return;
     const { top, left, width, maxHeight } = listeKonumuHesapla(
       tusRef.current,
       listeMinGenislik,
@@ -112,18 +152,17 @@ export function FormAcilirSecim({
       maxHeight,
       zIndex: 10300,
     });
-  }, [listeMinGenislik, listeAnchor, listeDikeyBosluk]);
+  }, [inlineListe, listeMinGenislik, listeAnchor, listeDikeyBosluk]);
 
   const sekmeSonrasi = useCallback(() => {
-    if (!acik) return;
-    // Gizli sekmede getBoundingClientRect 0 döner; görünür olunca yenile
+    if (!acik || inlineListe) return;
     requestAnimationFrame(() => konumGuncelle());
-  }, [acik, konumGuncelle]);
+  }, [acik, inlineListe, konumGuncelle]);
 
   useSekmeDegisinceYenile(sekmeSonrasi);
 
   useLayoutEffect(() => {
-    if (!acik) return;
+    if (!acik || inlineListe) return;
     konumGuncelle();
     window.addEventListener('resize', konumGuncelle);
     window.addEventListener('scroll', konumGuncelle, true);
@@ -131,7 +170,29 @@ export function FormAcilirSecim({
       window.removeEventListener('resize', konumGuncelle);
       window.removeEventListener('scroll', konumGuncelle, true);
     };
-  }, [acik, konumGuncelle]);
+  }, [acik, inlineListe, konumGuncelle]);
+
+  useEffect(() => {
+    if (!acik || inlineListe) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (tusRef.current && listeRef.current) {
+          acilirListeGorunurKaydir(tusRef.current, listeRef.current);
+        }
+      });
+    });
+  }, [acik, inlineListe]);
+
+  useEffect(() => {
+    if (!acik) return;
+    setOdakIndex(seciliIndex);
+  }, [acik, seciliIndex]);
+
+  useEffect(() => {
+    if (!acik) return;
+    const el = document.getElementById(`${listeId}-oge-${odakIndex}`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [acik, odakIndex, listeId]);
 
   useEffect(() => {
     if (!acik) return;
@@ -143,16 +204,8 @@ export function FormAcilirSecim({
       setAcik(false);
     }
 
-    function tusBas(e: KeyboardEvent) {
-      if (e.key === 'Escape') setAcik(false);
-    }
-
     document.addEventListener('mousedown', disTik);
-    document.addEventListener('keydown', tusBas);
-    return () => {
-      document.removeEventListener('mousedown', disTik);
-      document.removeEventListener('keydown', tusBas);
-    };
+    return () => document.removeEventListener('mousedown', disTik);
   }, [acik]);
 
   const sec = (yeni: string) => {
@@ -161,8 +214,83 @@ export function FormAcilirSecim({
     tusRef.current?.focus();
   };
 
+  const acKapat = () => {
+    if (disabled) return;
+    setAcik((o) => {
+      if (!o) setOdakIndex(seciliIndex);
+      return !o;
+    });
+  };
+
+  const tusTuslari = (e: KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+
+    if (!acik) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setOdakIndex(seciliIndex);
+        setAcik(true);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setOdakIndex((i) => Math.min(i + 1, secenekler.length - 1));
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setOdakIndex((i) => Math.max(i - 1, 0));
+      return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const hedef = secenekler[odakIndex];
+      if (hedef) sec(hedef.value);
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setAcik(false);
+      tusRef.current?.focus();
+    }
+  };
+
+  const listeIcerik = (
+    <ul
+      ref={listeRef}
+      id={listeId}
+      className={`ap-form-acilir-secim-liste${listeSinifi ? ` ${listeSinifi}` : ''}${inlineListe ? ' ap-form-acilir-secim-liste--inline' : ''}`.trim()}
+      role="listbox"
+      aria-label={ariaLabel}
+      style={inlineListe ? undefined : listeStil}
+    >
+      {secenekler.map((s, index) => {
+        const seciliMi = s.value === value;
+        const odakMi = index === odakIndex;
+        return (
+          <li key={s.value}>
+            <button
+              type="button"
+              id={`${listeId}-oge-${index}`}
+              role="option"
+              aria-selected={seciliMi || odakMi}
+              className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}${odakMi ? ' ap-form-acilir-secim-oge-odak' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onMouseEnter={() => setOdakIndex(index)}
+              onClick={() => sec(s.value)}
+            >
+              {s.label}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   return (
-    <div className="ap-form-acilir-secim">
+    <div className={`ap-form-acilir-secim${inlineListe ? ' ap-form-acilir-secim--inline' : ''}`.trim()}>
       <button
         ref={tusRef}
         type="button"
@@ -172,10 +300,9 @@ export function FormAcilirSecim({
         aria-haspopup="listbox"
         aria-expanded={acik}
         aria-controls={acik ? listeId : undefined}
-        onClick={() => {
-          if (disabled) return;
-          setAcik((o) => !o);
-        }}
+        aria-activedescendant={acik ? `${listeId}-oge-${odakIndex}` : undefined}
+        onClick={acKapat}
+        onKeyDown={tusTuslari}
       >
         <span className="ap-form-acilir-secim-tus-metin">{tusMetin ?? secili?.label ?? value}</span>
         <span className="ap-form-acilir-secim-ok" aria-hidden>
@@ -184,35 +311,9 @@ export function FormAcilirSecim({
       </button>
 
       {acik
-        ? createPortal(
-            <ul
-              ref={listeRef}
-              id={listeId}
-              className={`ap-form-acilir-secim-liste${listeSinifi ? ` ${listeSinifi}` : ''}`.trim()}
-              role="listbox"
-              aria-label={ariaLabel}
-              style={listeStil}
-            >
-              {secenekler.map((s) => {
-                const seciliMi = s.value === value;
-                return (
-                  <li key={s.value}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={seciliMi}
-                      className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}`}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => sec(s.value)}
-                    >
-                      {s.label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>,
-            sekmePortalHedefi(tusRef.current)
-          )
+        ? inlineListe
+          ? listeIcerik
+          : createPortal(listeIcerik, sekmePortalHedefi(tusRef.current))
         : null}
     </div>
   );

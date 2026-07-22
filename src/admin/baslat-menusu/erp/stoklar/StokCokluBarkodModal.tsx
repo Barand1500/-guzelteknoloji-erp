@@ -36,6 +36,9 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
   const [yeniSira, setYeniSira] = useState('1');
   const [yeniBarkod, setYeniBarkod] = useState('');
   const [hata, setHata] = useState('');
+  const [satirDuzenle, setSatirDuzenle] = useState<number | null>(null);
+  const [satirSira, setSatirSira] = useState('');
+  const [satirBarkod, setSatirBarkod] = useState('');
 
   useSekmeModalGovdeKilidi(acik, portalKok);
 
@@ -58,6 +61,9 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
     setYeniSira(String(ilkBosSira ?? 1));
     setYeniBarkod('');
     setHata('');
+    setSatirDuzenle(null);
+    setSatirSira('');
+    setSatirBarkod('');
   }, [acik, ilkBosSira, satir.id]);
 
   const ekle = useCallback(() => {
@@ -78,37 +84,35 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
     setHata('');
   }, [onKaydet, satir, yeniBarkod, yeniSira]);
 
-  const satirSiraKaydet = useCallback(
-    (eskiSira: number, hamSira: string, deger: string): boolean => {
-      const yeniSiraNo = Number(hamSira);
-      if (!stokCokluBarkodSiraGecerliMi(yeniSiraNo)) {
-        setHata('Sıra numarası 1–6 arasında olmalı.');
-        return false;
-      }
-      if (yeniSiraNo !== eskiSira && stokCokluBarkodDoluMu(satir, yeniSiraNo)) {
-        setHata(`${yeniSiraNo}. sıra zaten dolu.`);
-        return false;
-      }
-      onKaydet(stokCokluBarkodTasi(eskiSira, yeniSiraNo, deger));
+  const satirKaydet = useCallback(() => {
+    if (satirDuzenle === null) return;
+    const eskiSira = satirDuzenle;
+    const yeniSiraNo = Number(satirSira);
+    if (!stokCokluBarkodSiraGecerliMi(yeniSiraNo)) {
+      setHata('Sıra numarası 1–6 arasında olmalı.');
+      return;
+    }
+    if (yeniSiraNo !== eskiSira && stokCokluBarkodDoluMu(satir, yeniSiraNo)) {
+      setHata(`${yeniSiraNo}. sıra zaten dolu.`);
+      return;
+    }
+    const temiz = barkodFiltrele(satirBarkod.trim());
+    if (!temiz) {
+      onKaydet(stokCokluBarkodPatch(eskiSira, ''));
+      setSatirDuzenle(null);
       setHata('');
-      return true;
-    },
-    [onKaydet, satir]
-  );
-
-  const satirBarkodKaydet = useCallback(
-    (sira: number, ham: string) => {
-      const temiz = barkodFiltrele(ham.trim());
-      if (!temiz) {
-        onKaydet(stokCokluBarkodPatch(sira, ''));
-        setHata('');
-        return;
-      }
-      onKaydet(stokCokluBarkodPatch(sira, temiz));
-      setHata('');
-    },
-    [onKaydet]
-  );
+      return;
+    }
+    if (yeniSiraNo !== eskiSira) {
+      onKaydet(stokCokluBarkodTasi(eskiSira, yeniSiraNo, temiz));
+    } else {
+      onKaydet(stokCokluBarkodPatch(eskiSira, temiz));
+    }
+    setSatirDuzenle(null);
+    setSatirSira('');
+    setSatirBarkod('');
+    setHata('');
+  }, [onKaydet, satir, satirBarkod, satirDuzenle, satirSira]);
 
   useEffect(() => {
     if (!acik || !portalKok) return;
@@ -116,12 +120,19 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
       if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
+        if (satirDuzenle !== null) {
+          setSatirDuzenle(null);
+          setSatirSira('');
+          setSatirBarkod('');
+          setHata('');
+          return;
+        }
         onKapat();
       }
     }
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [acik, onKapat, portalKok]);
+  }, [acik, onKapat, portalKok, satirDuzenle]);
 
   if (!acik || !portalKok) return null;
 
@@ -142,10 +153,12 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
             aria-label="Kapat (Esc)"
             title="Kapat (Esc)"
           >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden>
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-            </svg>
-            <span>Esc</span>
+            <span className="cari-secenek-kapat-x" aria-hidden>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none">
+                <path d="M7 7l10 10M17 7L7 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="cari-secenek-kapat-kisayol">Esc</span>
           </button>
 
           <div className="ap-sil-onay-ikon cari-secenek-ikon" aria-hidden>
@@ -158,13 +171,10 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
               />
             </svg>
           </div>
-          <h3 className="ap-sil-onay-baslik">Barkodlar</h3>
-          <p className="ap-sil-onay-metin cari-secenek-ozet">
-            Numara ve barkod girin. Sıra numarasını (1–6) listede de değiştirebilirsiniz.
-          </p>
+          <h3 className="ap-sil-onay-baslik cari-secenek-baslik">Barkodlar</h3>
 
           <div className="cari-secenek-govde">
-            <div className="stok-coklu-fiyat-ekle">
+            <div className="cari-secenek-ekle stok-coklu-fiyat-ekle">
               <div className="stok-coklu-fiyat-input-grup">
                 <input
                   type="text"
@@ -203,52 +213,99 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
             </div>
             {hata ? <p className="cari-secenek-hata">{hata}</p> : null}
 
-            <ul className="cari-secenek-liste stok-coklu-fiyat-liste">
+            <ul className="cari-secenek-liste">
               {liste.length === 0 ? (
                 <li className="stok-coklu-fiyat-bos">Henüz ek barkod yok.</li>
               ) : (
-                liste.map((oge) => (
-                  <li key={`${satir.id}-${oge.sira}`} className="stok-coklu-fiyat-satir">
-                    <div className="stok-coklu-fiyat-input-grup stok-coklu-fiyat-input-grup--satir">
-                      <input
-                        type="text"
-                        className="ap-input stok-coklu-fiyat-no"
-                        defaultValue={String(oge.sira)}
-                        inputMode="numeric"
-                        aria-label={`${oge.etiket} sıra numarası`}
-                        onBlur={(e) => {
-                          const input = e.target;
-                          const basarili = satirSiraKaydet(oge.sira, input.value, oge.deger);
-                          if (!basarili) input.value = String(oge.sira);
-                        }}
-                      />
-                      <input
-                        type="text"
-                        className="ap-input stok-coklu-fiyat-satir-input"
-                        defaultValue={oge.deger}
-                        inputMode="numeric"
-                        aria-label={`${oge.etiket} değeri`}
-                        onBlur={(e) => satirBarkodKaydet(oge.sira, e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            (e.target as HTMLInputElement).blur();
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="stok-coklu-fiyat-sil-btn"
-                        onClick={() => onKaydet(stokCokluBarkodPatch(oge.sira, ''))}
-                        aria-label={`${oge.etiket} sil`}
-                      >
-                        Sil
-                      </button>
-                    </div>
-                  </li>
-                ))
+                liste.map((oge) => {
+                  const duzenleniyor = satirDuzenle === oge.sira;
+                  return (
+                    <li
+                      key={`${satir.id}-${oge.sira}`}
+                      className={duzenleniyor ? 'cari-secenek-liste--duzenleniyor' : undefined}
+                      onDoubleClick={() => {
+                        setSatirDuzenle(oge.sira);
+                        setSatirSira(String(oge.sira));
+                        setSatirBarkod(oge.deger);
+                        setHata('');
+                      }}
+                      title="Düzenlemek için çift tıklayın"
+                    >
+                      {duzenleniyor ? (
+                        <div className="stok-coklu-fiyat-input-grup stok-coklu-fiyat-input-grup--satir stok-coklu-fiyat-input-grup--duzenle">
+                          <input
+                            type="text"
+                            className="ap-input stok-coklu-fiyat-no cari-secenek-satir-input"
+                            value={satirSira}
+                            autoFocus
+                            inputMode="numeric"
+                            aria-label={`${oge.etiket} sıra numarası`}
+                            onChange={(e) => setSatirSira(siraHamFiltrele(e.target.value))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                satirKaydet();
+                              }
+                              if (e.key === 'Escape') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSatirDuzenle(null);
+                                setSatirSira('');
+                                setSatirBarkod('');
+                                setHata('');
+                              }
+                            }}
+                          />
+                          <input
+                            type="text"
+                            className="ap-input cari-secenek-satir-input stok-coklu-fiyat-satir-input"
+                            value={satirBarkod}
+                            inputMode="numeric"
+                            aria-label={`${oge.etiket} değeri`}
+                            onChange={(e) => setSatirBarkod(barkodFiltrele(e.target.value))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                satirKaydet();
+                              }
+                              if (e.key === 'Escape') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSatirDuzenle(null);
+                                setSatirSira('');
+                                setSatirBarkod('');
+                                setHata('');
+                              }
+                            }}
+                            onBlur={() => satirKaydet()}
+                          />
+                        </div>
+                      ) : (
+                        <span className="cari-secenek-liste-ad">
+                          {oge.etiket}: {oge.deger || '—'}
+                        </span>
+                      )}
+                      {!duzenleniyor ? (
+                        <button
+                          type="button"
+                          className="cari-secenek-liste-sil"
+                          onClick={() => onKaydet(stokCokluBarkodPatch(oge.sira, ''))}
+                          aria-label={`${oge.etiket} sil`}
+                        >
+                          Sil
+                        </button>
+                      ) : null}
+                    </li>
+                  );
+                })
               )}
             </ul>
+          </div>
+
+          <div className="cari-secenek-alt">
+            <p className="cari-secenek-ipucu">Düzenlemek için çift tıklayınız.</p>
           </div>
         </div>
       </DonenAccentCerceve>
