@@ -60,42 +60,54 @@
 }
 
 /*
-  Kesim: başlık altı çizgiden başlar, altta turuncu çizgiye kadar iner.
-  Dört köşe yuvarlak — üst köşe başlığın altında, alt köşe turuncu çizgide.
+  Kart ekranları — Ayarlar gibi modül panelinde kaydırma.
+  Dış çerçeve paneli yok; içerik kartları kendi border/shadow ile kalır.
 */
-.ap-modul-panel:has(.ap-tanimlar-sayfa):has(.cari-kart-sayfa) {
-  padding: 1.15rem 1.25rem 0 !important;
+.ap-modul-panel:has(.ap-tanimlar-sayfa):has(.cari-kart-sayfa),
+.ap-modul-panel:has(.ap-tanimlar-sayfa):has(.stok-karti-kabuk) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 
-.ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk > .mt-6 {
-  margin-top: 0.65rem;
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
-  background: var(--ap-surface);
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--ap-heading) 5%, transparent);
+.ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk,
+.ap-modul-panel:has(.stok-karti-kabuk) .ap-modul-kabuk {
+  flex: none;
+  min-height: auto;
 }
 
-.ap-modul-panel:has(.cari-kart-sayfa) .ap-tanimlar-sayfa:has(.cari-kart-sayfa) {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: inherit;
+.ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk > .mt-6,
+.ap-modul-panel:has(.stok-karti-kabuk) .ap-modul-kabuk > .mt-6 {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.ap-modul-panel:has(.cari-kart-sayfa) .ap-tanimlar-sayfa:has(.cari-kart-sayfa),
+.ap-modul-panel:has(.stok-karti-kabuk) .ap-tanimlar-sayfa:has(.stok-karti-kabuk) {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
 }
 
 .ap-modul-panel:has(.cari-kart-sayfa) .cari-kart-sayfa {
-  padding: 0.85rem 0.9rem 1.15rem;
-  border-radius: inherit;
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+  padding: 0.15rem 0 1rem;
 }
 
-/* Dış panel zaten çerçeve; iç kabuklar sade kalsın */
-.ap-modul-panel:has(.cari-kart-sayfa) .cari-kart-kabuk,
-.ap-modul-panel:has(.cari-kart-sayfa) .cari-iletisim-bolumu {
-  box-shadow: none;
+.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-kabuk,
+.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-kabuk .ap-tanimlar-duzenle,
+.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-kabuk .ap-tanimlar-duzenle-govde,
+.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-icerik {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+  max-height: none;
 }
 
 .cari-kart-kabuk {
@@ -1434,18 +1446,21 @@
   position: fixed;
   inset: 0;
   z-index: 12000;
-  display: grid;
-  place-items: center;
-  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.15rem 2rem;
 }
 
 .cari-dokuman-onizleme-arka {
   position: absolute;
   inset: 0;
+  z-index: 0;
   border: 0;
   padding: 0;
   margin: 0;
-  background: color-mix(in srgb, #05070e 72%, transparent);
+  background: color-mix(in srgb, #0f172a 88%, transparent);
+  backdrop-filter: blur(5px);
   cursor: pointer;
 }
 
@@ -1454,21 +1469,32 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  width: min(92vw, 56rem);
-  max-height: min(90vh, 44rem);
-  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  width: min(92vw, 54rem);
+  max-height: min(78vh, 36rem);
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
   border-radius: 0.85rem;
   background: var(--ap-surface);
   box-shadow: 0 18px 48px color-mix(in srgb, #000 45%, transparent);
   overflow: hidden;
 }
 
+.cari-dokuman-onizleme-panel--pdf {
+  width: min(94vw, 60rem);
+  max-height: min(82vh, 40rem);
+}
+
 .cari-dokuman-onizleme-ust {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 0.85rem 0.7rem 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  gap: 0.85rem;
+  padding: 0.78rem 0.95rem 0.78rem 1.05rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface)) 0%,
+    var(--ap-surface) 100%
+  );
 }
 
 .cari-dokuman-onizleme-baslik {
@@ -1477,29 +1503,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--ap-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ap-accent, #f97316);
+  letter-spacing: -0.01em;
 }
 
 .cari-dokuman-onizleme-kapat {
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 2rem;
+  height: 2rem;
   border: 0;
-  border-radius: 0.45rem;
-  background: transparent;
-  color: var(--ap-text-muted);
+  border-radius: 0.5rem;
+  background: var(--ap-accent, #f97316);
+  color: #fff;
   font-size: 1.35rem;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--ap-accent) 35%, transparent);
 }
 
 .cari-dokuman-onizleme-kapat:hover {
-  color: var(--ap-heading);
-  background: color-mix(in srgb, var(--ap-border) 35%, transparent);
+  filter: brightness(1.08);
 }
 
 .cari-dokuman-onizleme-govde {
@@ -1507,7 +1535,7 @@
   min-height: 0;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: 0.85rem;
   overflow: auto;
   background: color-mix(in srgb, var(--ap-heading) 4%, var(--ap-surface));
 }
@@ -1515,11 +1543,30 @@
 .cari-dokuman-onizleme-resim {
   display: block;
   max-width: 100%;
-  max-height: min(72vh, 36rem);
+  max-height: min(58vh, 28rem);
   width: auto;
   height: auto;
   object-fit: contain;
   border-radius: 0.35rem;
+}
+
+.cari-dokuman-onizleme-pdf {
+  display: block;
+  width: 100%;
+  height: min(58vh, 28rem);
+  min-height: 16rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: #fff;
+}
+
+.cari-dokuman-onizleme-panel--pdf .cari-dokuman-onizleme-govde {
+  display: block;
+  padding: 0.75rem;
+}
+
+.cari-dokuman-onizleme-panel--pdf .cari-dokuman-onizleme-pdf {
+  height: min(62vh, 30rem);
 }
 
 .cari-dokuman-etiket-liste {

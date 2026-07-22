@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/baglamlar/AuthContext';
+import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
+import { sekmePortalHedefi } from '@/araclar/sekmePortal';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { yeniKayitId } from '../cariDosyaDokumanDeposu';
@@ -38,6 +40,17 @@ function dosyaOkunabilirMi(dosya: File): string | null {
   return null;
 }
 
+function dosyaTipiBelirle(dosya: File): string {
+  if (dosya.type) return dosya.type;
+  const ad = dosya.name.toLowerCase();
+  if (ad.endsWith('.pdf')) return 'application/pdf';
+  if (ad.endsWith('.jpg') || ad.endsWith('.jpeg')) return 'image/jpeg';
+  if (ad.endsWith('.png')) return 'image/png';
+  if (ad.endsWith('.gif')) return 'image/gif';
+  if (ad.endsWith('.webp')) return 'image/webp';
+  return 'application/octet-stream';
+}
+
 function dosyayiOku(dosya: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const okuyucu = new FileReader();
@@ -52,6 +65,15 @@ function dosyaResimMi(dosya: CariDosya): boolean {
   return /\.(png|jpe?g|gif|webp)$/i.test(dosya.ad);
 }
 
+function dosyaPdfMi(dosya: CariDosya): boolean {
+  if (dosya.tip === 'application/pdf') return true;
+  return /\.pdf$/i.test(dosya.ad);
+}
+
+function dosyaOnizlenebilirMi(dosya: CariDosya): boolean {
+  return dosyaResimMi(dosya) || dosyaPdfMi(dosya);
+}
+
 export function CariDosyaDokumanBolumu({
   deger,
   disabled,
@@ -64,6 +86,7 @@ export function CariDosyaDokumanBolumu({
   onHata?: (mesaj: string) => void;
 }) {
   const { kullanici } = useAuth();
+  const sekme = useAdminSekmeKabuk();
   const dosyaInputId = useId();
   const dosyaInputRef = useRef<HTMLInputElement>(null);
   const [notMetin, setNotMetin] = useState('');
@@ -74,9 +97,14 @@ export function CariDosyaDokumanBolumu({
   const [silinecek, setSilinecek] = useState<
     | { tur: 'not'; id: string; metin: string }
     | { tur: 'etiket'; metin: string }
+    | { tur: 'dosya'; id: string; metin: string }
     | null
   >(null);
   const [onizleme, setOnizleme] = useState<CariDosya | null>(null);
+  const onizlemePortalKok = useMemo(
+    () => (onizleme ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
+    [onizleme, sekme?.sekmeId]
+  );
   const veriVar =
     deger.notlar.length > 0 || deger.dosyalar.length > 0 || deger.etiketler.length > 0;
   const [acik, setAcik] = useState(veriVar);
@@ -158,6 +186,7 @@ export function CariDosyaDokumanBolumu({
   const silOnayla = () => {
     if (!silinecek) return;
     if (silinecek.tur === 'not') notSil(silinecek.id);
+    else if (silinecek.tur === 'dosya') dosyaSil(silinecek.id);
     else etiketSil(silinecek.metin);
     setSilinecek(null);
   };
@@ -180,7 +209,7 @@ export function CariDosyaDokumanBolumu({
           id: yeniKayitId('cd'),
           ad: dosya.name,
           boyut: dosya.size,
-          tip: dosya.type || 'application/octet-stream',
+          tip: dosyaTipiBelirle(dosya),
           dataUrl,
           tarih: new Date().toISOString(),
         });
@@ -198,7 +227,7 @@ export function CariDosyaDokumanBolumu({
   };
 
   const dosyaAc = (dosya: CariDosya) => {
-    if (dosyaResimMi(dosya)) {
+    if (dosyaOnizlenebilirMi(dosya)) {
       setOnizleme(dosya);
       return;
     }
@@ -467,7 +496,7 @@ export function CariDosyaDokumanBolumu({
                     <button
                       type="button"
                       className="cari-dokuman-dosya-ad"
-                      title={dosyaResimMi(dosya) ? 'Görüntüle' : 'Aç'}
+                      title={dosyaOnizlenebilirMi(dosya) ? 'Görüntüle' : 'Aç'}
                       onClick={() => dosyaAc(dosya)}
                     >
                       {dosya.ad}
@@ -477,7 +506,9 @@ export function CariDosyaDokumanBolumu({
                       <button
                         type="button"
                         className="cari-dokuman-ikon-btn cari-dokuman-ikon-btn--tehlike"
-                        onClick={() => dosyaSil(dosya.id)}
+                        onClick={() =>
+                          setSilinecek({ tur: 'dosya', id: dosya.id, metin: dosya.ad })
+                        }
                         title="Sil"
                         aria-label={`${dosya.ad} dosyasını sil`}
                       >
@@ -569,16 +600,22 @@ export function CariDosyaDokumanBolumu({
               : silinecek.metin
             : ''
         }
-        ariaLabel={silinecek?.tur === 'etiket' ? 'Etiket silme onayı' : 'Not silme onayı'}
+        ariaLabel={
+          silinecek?.tur === 'etiket'
+            ? 'Etiket silme onayı'
+            : silinecek?.tur === 'dosya'
+              ? 'Dosya silme onayı'
+              : 'Not silme onayı'
+        }
       />
 
-      {onizleme
+      {onizleme && onizlemePortalKok
         ? createPortal(
             <div
               className="cari-dokuman-onizleme"
               role="dialog"
               aria-modal="true"
-              aria-label="Resim önizleme"
+              aria-label={dosyaPdfMi(onizleme) ? 'PDF önizleme' : 'Resim önizleme'}
             >
               <button
                 type="button"
@@ -586,8 +623,10 @@ export function CariDosyaDokumanBolumu({
                 aria-label="Kapat"
                 onClick={() => setOnizleme(null)}
               />
-              <div className="cari-dokuman-onizleme-panel">
-                <div className="cari-dokuman-onizleme-ust">
+              <div
+                className={`cari-dokuman-onizleme-panel${dosyaPdfMi(onizleme) ? ' cari-dokuman-onizleme-panel--pdf' : ''}`}
+              >
+                <header className="cari-dokuman-onizleme-ust">
                   <span className="cari-dokuman-onizleme-baslik" title={onizleme.ad}>
                     {onizleme.ad}
                   </span>
@@ -600,13 +639,25 @@ export function CariDosyaDokumanBolumu({
                   >
                     ×
                   </button>
-                </div>
+                </header>
                 <div className="cari-dokuman-onizleme-govde">
-                  <img src={onizleme.dataUrl} alt={onizleme.ad} className="cari-dokuman-onizleme-resim" />
+                  {dosyaPdfMi(onizleme) ? (
+                    <iframe
+                      src={onizleme.dataUrl}
+                      title={onizleme.ad}
+                      className="cari-dokuman-onizleme-pdf"
+                    />
+                  ) : (
+                    <img
+                      src={onizleme.dataUrl}
+                      alt={onizleme.ad}
+                      className="cari-dokuman-onizleme-resim"
+                    />
+                  )}
                 </div>
               </div>
             </div>,
-            document.body
+            onizlemePortalKok
           )
         : null}
     </section>
