@@ -2557,7 +2557,11 @@ button.ap-tanimlar-panel-arka {
 .stok-karti-gtip-envanter-satir {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: var(--stok-karti-kisa-alan-genislik) minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-columns:
+    minmax(9.5rem, 0.72fr)
+    var(--stok-karti-kisa-alan-genislik)
+    minmax(0, 1fr)
+    minmax(0, 1.15fr);
   gap: 1rem 1.1rem;
   align-items: start;
 }
@@ -3620,6 +3624,226 @@ button.ap-tanimlar-panel-arka {
   text-align: center;
 }
 
+.stok-coklu-fiyat-input-grup--ekle .stok-coklu-fiyat-pb {
+  flex: 0 0 3.35rem;
+  width: 3.35rem;
+  max-width: 3.35rem;
+  align-self: stretch;
+}
+
+.stok-coklu-fiyat-tablo-wrap {
+  border: 1px solid var(--ap-border);
+  border-radius: 0.45rem;
+  overflow: auto;
+  max-height: min(40vh, 16rem);
+  background: var(--ap-surface, #fff);
+}
+
+.stok-coklu-fiyat-tablo {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.stok-coklu-fiyat-tablo-col-sira {
+  width: 3.25rem;
+}
+
+.stok-coklu-fiyat-tablo-col-adi {
+  width: 34%;
+}
+
+.stok-coklu-fiyat-tablo-col-tutar {
+  width: 22%;
+}
+
+.stok-coklu-fiyat-tablo-col-pb {
+  width: 3.35rem;
+}
+
+.stok-coklu-fiyat-tablo-col-islem {
+  width: 4.5rem;
+}
+
+.stok-coklu-fiyat-tablo thead th {
+  padding: 0.45rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--ap-muted);
+  text-align: left;
+  border-bottom: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-surface-2, var(--ap-surface)) 55%, var(--ap-surface));
+}
+
+.stok-coklu-fiyat-tablo thead th:first-child,
+.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-sira {
+  text-align: center;
+}
+
+.stok-coklu-fiyat-tablo thead th:nth-child(3),
+.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-tutar {
+  text-align: right;
+}
+
+.stok-coklu-fiyat-tablo thead th:nth-child(4),
+.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-pb {
+  text-align: center;
+}
+
+.stok-coklu-fiyat-tablo thead th:last-child,
+.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-islem {
+  text-align: center;
+}
+
+.stok-coklu-fiyat-tablo tbody tr {
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.stok-coklu-fiyat-tablo tbody tr:first-child {
+  border-top: 0;
+}
+
+.stok-coklu-fiyat-tablo tbody tr:not(.stok-coklu-fiyat-tablo-satir--duzenleniyor):hover {
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 5%, var(--ap-surface));
+}
+
+.stok-coklu-fiyat-tablo tbody td {
+  padding: 0.45rem 0.55rem;
+  vertical-align: middle;
+}
+
+.stok-coklu-fiyat-tablo-satir--duzenleniyor {
+  background: color-mix(in srgb, var(--ap-accent, #e85d04) 8%, var(--ap-surface));
+}
+
+.stok-coklu-fiyat-tablo-duzenle-hucre {
+  padding: 0.35rem 0.45rem !important;
+}
+
+.stok-coklu-fiyat-tablo-duzenle {
+  width: 100%;
+}
+
+.stok-coklu-fiyat-tablo-sira {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ap-accent);
+}
+
+.stok-coklu-fiyat-tablo-adi {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stok-coklu-fiyat-tablo-tutar {
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--ap-heading, var(--ap-text));
+  white-space: nowrap;
+}
+
+.stok-coklu-fiyat-tablo-pb {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ap-accent);
+}
+
+.stok-coklu-fiyat-tablo-islem {
+  padding-left: 0.25rem !important;
+  padding-right: 0.25rem !important;
+}
+
+.stok-coklu-fiyat-tablo-sil {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.35rem;
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 0.74rem;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+}
+
+.stok-coklu-fiyat-tablo-sil:hover {
+  color: #991b1b;
+}
+
+.stok-coklu-fiyat-tablo-bos {
+  margin: 0;
+  padding: 0.75rem 0.55rem !important;
+  font-size: 0.8rem;
+  color: var(--ap-muted);
+  text-align: center;
+}
+
+.stok-coklu-fiyat-pb {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  border-left: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-accent) 5%, var(--ap-surface));
+}
+
+.stok-coklu-fiyat-pb .ap-form-acilir-secim {
+  position: relative;
+  height: 100%;
+  min-width: 2.35rem;
+}
+
+.stok-coklu-fiyat-pb-secim.ap-form-acilir-secim-tus {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0.28rem 1rem 0.28rem 0.35rem !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-accent);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.stok-coklu-fiyat-pb-secim .ap-form-acilir-secim-tus-metin {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stok-coklu-fiyat-pb-secim .ap-form-acilir-secim-ok {
+  position: absolute;
+  right: 0.28rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  line-height: 1;
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.stok-coklu-fiyat-pb-liste {
+  z-index: 10400;
+  min-width: 4.75rem !important;
+}
+
+.stok-coklu-fiyat-pb-liste .ap-form-acilir-secim-oge {
+  padding: 0.32rem 0.45rem;
+  font-size: 0.74rem;
+}
+
+.stok-coklu-fiyat-liste-pb {
+  margin-left: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ap-accent);
+}
+
 .stok-kdv-departman-input-grup .stok-kdv-departman-yuzde {
   flex: 0 0 4.25rem;
   width: 4.25rem;
@@ -4185,6 +4409,16 @@ button.ap-tanimlar-panel-arka {
   pointer-events: none;
 }
 
+.stok-yb-kdv-outlined--yukari .ap-form-acilir-secim-ok {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.stok-yb-kdv-outlined-liste.ap-form-acilir-secim-liste--uste {
+  box-shadow:
+    0 -4px 18px color-mix(in srgb, var(--ap-heading) 16%, transparent),
+    0 6px 18px color-mix(in srgb, var(--ap-heading) 12%, transparent);
+}
+
 .stok-yb-kabuk .ap-form-acilir-secim-tus {
   position: relative;
 }
@@ -4203,7 +4437,7 @@ button.ap-tanimlar-panel-arka {
   position: absolute;
   right: 0.35rem;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) rotate(180deg);
   pointer-events: none;
 }
 

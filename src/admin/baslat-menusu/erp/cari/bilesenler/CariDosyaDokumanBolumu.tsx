@@ -248,8 +248,8 @@ export function CariDosyaDokumanBolumu({
 
   return (
     <section className="cari-dokuman-bolumu">
-      <div className="cari-dokuman-baslik-satir">
-        <h3 className="cari-dokuman-baslik">Dosya Ve Dökümanlar</h3>
+      <div className="cari-iletisim-baslik-satir">
+        <h3 className="cari-iletisim-baslik">Dosya ve Dökümanlar</h3>
         {!disabled && !panelAcik ? (
           <button
             type="button"

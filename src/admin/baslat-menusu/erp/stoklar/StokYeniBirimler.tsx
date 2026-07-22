@@ -46,17 +46,21 @@ function CariOutlinedKdv({
   deger,
   onChange,
   zorunlu,
+  listeYonu,
+  listeDikeyBosluk,
 }: {
   etiket: string;
   deger: number;
   onChange: (deger: number) => void;
   zorunlu?: boolean;
+  listeYonu?: 'asagi' | 'yukari';
+  listeDikeyBosluk?: number;
 }) {
   return (
     <CariOutlinedSarmalayici
       etiket={etiket}
       zorunlu={zorunlu}
-      className="cari-outlined-acilir stok-yb-kdv-outlined"
+      className={`cari-outlined-acilir stok-yb-kdv-outlined${listeYonu === 'yukari' ? ' stok-yb-kdv-outlined--yukari' : ''}`.trim()}
     >
       <FormAcilirSecim
         value={String(deger)}
@@ -65,6 +69,8 @@ function CariOutlinedKdv({
         aria-label={etiket}
         className="cari-outlined-acilir-tus"
         listeSinifi="stok-yb-kdv-outlined-liste"
+        listeYonu={listeYonu}
+        listeDikeyBosluk={listeDikeyBosluk}
       />
     </CariOutlinedSarmalayici>
   );
@@ -307,6 +313,8 @@ export function StokYeniBirimler({
                       secenekler={birimSecenekleri}
                       onChange={(birim) => satirPatch(satir.id, { birim: birim || 'ADET' })}
                       onYonet={() => setBirimModalAcik(true)}
+                      listeYonu="yukari"
+                      listeDikeyBosluk={4}
                     />
                     <CariOutlinedCarpan
                       etiket="Çarpan"
@@ -397,6 +405,8 @@ export function StokYeniBirimler({
                       zorunlu
                       deger={satir.kdv}
                       onChange={(kdv) => satirPatch(satir.id, { kdv })}
+                      listeYonu="yukari"
+                      listeDikeyBosluk={4}
                     />
                     <KdvTipSegment
                       tip={satisKdvTipi}

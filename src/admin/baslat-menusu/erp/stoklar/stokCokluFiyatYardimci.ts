@@ -1,4 +1,4 @@
-import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
+import type { StokFiyatDuzenleSatir, StokFiyatPb, StokFiyatPbAlani } from './fiyatDuzenleTipler';
 
 export type StokCokluFiyatTur = 'alis' | 'satis';
 
@@ -86,4 +86,54 @@ export function stokCokluFiyatIlkBosSira(
     if (stokCokluFiyatDegeri(satir, tur, sira) === null) return sira;
   }
   return null;
+}
+
+/** Alış fiyatları ana satırdaki PB ile aynı alanı (pb2) kullanır; satışta sıra = pb indeksi. */
+export function stokCokluFiyatPbAlani(tur: StokCokluFiyatTur, sira: number): StokFiyatPbAlani {
+  if (tur === 'alis') return 'pb2';
+  const guvenli = Math.min(Math.max(sira, 1), STOK_COKLU_FIYAT_ADET);
+  return `pb${guvenli}` as StokFiyatPbAlani;
+}
+
+export function stokCokluFiyatPbDegeri(
+  satir: StokFiyatDuzenleSatir,
+  tur: StokCokluFiyatTur,
+  sira: number
+): StokFiyatPb {
+  return satir[stokCokluFiyatPbAlani(tur, sira)];
+}
+
+export function stokCokluFiyatPbPatch(
+  tur: StokCokluFiyatTur,
+  sira: number,
+  pb: StokFiyatPb
+): Partial<StokFiyatDuzenleSatir> {
+  const alan = stokCokluFiyatPbAlani(tur, sira);
+  return { [alan]: pb } as Partial<StokFiyatDuzenleSatir>;
+}
+
+export function stokCokluFiyatKaydetPatch(
+  tur: StokCokluFiyatTur,
+  sira: number,
+  deger: number | null,
+  pb?: StokFiyatPb
+): Partial<StokFiyatDuzenleSatir> {
+  return {
+    ...stokCokluFiyatPatch(tur, sira, deger),
+    ...(pb !== undefined ? stokCokluFiyatPbPatch(tur, sira, pb) : {}),
+  };
+}
+
+export function stokCokluFiyatTasiKaydetPatch(
+  tur: StokCokluFiyatTur,
+  eskiSira: number,
+  yeniSira: number,
+  deger: number | null,
+  pb?: StokFiyatPb
+): Partial<StokFiyatDuzenleSatir> {
+  if (eskiSira === yeniSira) return stokCokluFiyatKaydetPatch(tur, yeniSira, deger, pb);
+  return {
+    ...stokCokluFiyatTasi(tur, eskiSira, yeniSira, deger),
+    ...(pb !== undefined ? stokCokluFiyatPbPatch(tur, yeniSira, pb) : {}),
+  };
 }

@@ -346,16 +346,16 @@ export function StokKarti({
           odakPlaceholder="Stok adını yazınız"
           onChange={(urunAdi) => setForm((f) => ({ ...f, urunAdi }))}
         />
-        <CariOutlinedAcilir
-          etiket="Stok Tipi"
-          zorunlu
-          deger={form.urunTipi}
-          disabled={saltOkunur}
-          secenekler={stokTipleri.map((x) => ({ ...x }))}
-          onYonet={() => setTipModalAcik(true)}
-          onChange={(urunTipi) => setForm((f) => ({ ...f, urunTipi }))}
-        />
         <div className="stok-karti-gtip-envanter-satir">
+          <CariOutlinedAcilir
+            etiket="Stok Tipi"
+            zorunlu
+            deger={form.urunTipi}
+            disabled={saltOkunur}
+            secenekler={stokTipleri.map((x) => ({ ...x }))}
+            onYonet={() => setTipModalAcik(true)}
+            onChange={(urunTipi) => setForm((f) => ({ ...f, urunTipi }))}
+          />
           <CariOutlinedGirdi
             etiket="GTIP Kodu"
             deger={form.gtip}

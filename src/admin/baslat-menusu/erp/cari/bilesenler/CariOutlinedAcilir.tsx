@@ -14,6 +14,8 @@ export function CariOutlinedAcilir({
   tusMetin,
   zorunlu,
   onYonet,
+  listeYonu,
+  listeDikeyBosluk,
 }: {
   etiket: string;
   deger: string;
@@ -26,6 +28,8 @@ export function CariOutlinedAcilir({
   tusMetin?: string;
   zorunlu?: boolean;
   onYonet?: () => void;
+  listeYonu?: 'asagi' | 'yukari';
+  listeDikeyBosluk?: number;
 }) {
   return (
     <CariOutlinedSarmalayici
@@ -60,6 +64,8 @@ export function CariOutlinedAcilir({
         className="cari-outlined-acilir-tus"
         listeSinifi={listeSinifi}
         listeMinGenislik={listeMinGenislik}
+        listeYonu={listeYonu}
+        listeDikeyBosluk={listeDikeyBosluk}
         tusMetin={tusMetin}
       />
     </CariOutlinedSarmalayici>

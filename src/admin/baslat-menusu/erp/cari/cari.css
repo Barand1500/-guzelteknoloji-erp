@@ -901,8 +901,9 @@
 
 .cari-iletisim-ekle {
   flex-shrink: 0;
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.45rem;
   height: 1.45rem;
   padding: 0;
@@ -916,7 +917,8 @@
 
 .cari-iletisim-ekle svg {
   display: block;
-  transform: translateX(1px);
+  flex-shrink: 0;
+  transform: translateX(0.5px);
 }
 
 .cari-iletisim-ekle:disabled {
@@ -1097,24 +1099,8 @@
   box-shadow: 0 8px 28px color-mix(in srgb, var(--ap-heading) 5%, transparent);
 }
 
-.cari-dokuman-baslik-satir {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.55rem;
-  margin-bottom: 0;
-}
-
-.cari-dokuman-bolumu:has(.cari-dokuman-alanlar) .cari-dokuman-baslik-satir {
+.cari-dokuman-bolumu:has(.cari-dokuman-alanlar) .cari-iletisim-baslik-satir {
   margin-bottom: 1rem;
-}
-
-.cari-dokuman-baslik {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--ap-heading);
 }
 
 .cari-dokuman-alanlar {
