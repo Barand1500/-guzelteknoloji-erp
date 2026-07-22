@@ -10,13 +10,11 @@ import { STOK_BARKOD_TIP_SECENEKLERI } from './fiyatDuzenleTipler';
 import { barkodFiltrele } from './stokYeniBirimlerYardimci';
 import {
   STOK_COKLU_BARKOD_MAX_SIRA,
-  stokCokluBarkodDoluMu,
+  stokCokluBarkodEkle,
   stokCokluBarkodEtiketi,
-  stokCokluBarkodIlkBosSira,
+  stokCokluBarkodGuncelle,
   stokCokluBarkodListesi,
-  stokCokluBarkodPatch,
-  stokCokluBarkodSiraGecerliMi,
-  stokCokluBarkodTasi,
+  stokCokluBarkodSil,
 } from './stokCokluBarkodYardimci';
 
 interface StokCokluBarkodModalProps {
@@ -24,10 +22,6 @@ interface StokCokluBarkodModalProps {
   satir: StokFiyatDuzenleSatir;
   onKaydet: (patch: Partial<StokFiyatDuzenleSatir>) => void;
   onKapat: () => void;
-}
-
-function siraHamFiltrele(ham: string): string {
-  return ham.replace(/\D/g, '').slice(0, 2);
 }
 
 const BARKOD_TIP_SECENEKLERI = STOK_BARKOD_TIP_SECENEKLERI.map((s) => ({
@@ -68,14 +62,12 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
     () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
     [acik, sekme?.sekmeId]
   );
-  const [yeniSira, setYeniSira] = useState('1');
   const [yeniBarkod, setYeniBarkod] = useState('');
-  const [yeniTip, setYeniTip] = useState<StokBarkodTipi>('EAN13');
+  const [yeniTip, setYeniTip] = useState<StokBarkodTipi>('');
   const [hata, setHata] = useState('');
   const [satirDuzenle, setSatirDuzenle] = useState<number | null>(null);
-  const [satirSira, setSatirSira] = useState('');
   const [satirBarkod, setSatirBarkod] = useState('');
-  const [satirTip, setSatirTip] = useState<StokBarkodTipi>('EAN13');
+  const [satirTip, setSatirTip] = useState<StokBarkodTipi>('');
   const barkodInputRef = useRef<HTMLInputElement>(null);
   const acilisAnahtarRef = useRef<string | null>(null);
 
@@ -92,8 +84,6 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
     [satir]
   );
 
-  const ilkBosSira = useMemo(() => stokCokluBarkodIlkBosSira(satir), [satir]);
-
   useEffect(() => {
     if (!acik) {
       acilisAnahtarRef.current = null;
@@ -102,29 +92,18 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
     const anahtar = satir.id;
     if (acilisAnahtarRef.current === anahtar) return;
     acilisAnahtarRef.current = anahtar;
-    setYeniSira(String(ilkBosSira));
     setYeniBarkod('');
-    setYeniTip('EAN13');
+    setYeniTip('');
     setHata('');
     setSatirDuzenle(null);
-    setSatirSira('');
     setSatirBarkod('');
-    setSatirTip('EAN13');
+    setSatirTip('');
     requestAnimationFrame(() => barkodInputRef.current?.focus());
-  }, [acik, ilkBosSira, satir.id]);
-
-  const ustSiraGuncelle = useCallback((sonrakiSatir: StokFiyatDuzenleSatir) => {
-    setYeniSira(String(stokCokluBarkodIlkBosSira(sonrakiSatir)));
-  }, []);
+  }, [acik, satir.id]);
 
   const ekle = useCallback(() => {
-    const sira = Number(yeniSira);
-    if (!stokCokluBarkodSiraGecerliMi(sira)) {
-      setHata(`Sıra numarası 1–${STOK_COKLU_BARKOD_MAX_SIRA} arasında olmalı.`);
-      return;
-    }
-    if (stokCokluBarkodDoluMu(satir, sira)) {
-      setHata(`${sira}. sıra zaten var.`);
+    if (liste.length >= STOK_COKLU_BARKOD_MAX_SIRA) {
+      setHata(`En fazla ${STOK_COKLU_BARKOD_MAX_SIRA} barkod eklenebilir.`);
       return;
     }
     const ham = barkodFiltrele(yeniBarkod.trim());
@@ -132,40 +111,25 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
       setHata('Barkod girin.');
       return;
     }
-    const patch = stokCokluBarkodPatch(sira, ham, yeniTip, satir);
+    const patch = stokCokluBarkodEkle(ham, yeniTip, satir);
     onKaydet(patch);
-    ustSiraGuncelle({ ...satir, ...patch });
     setYeniBarkod('');
-    setYeniTip('EAN13');
+    setYeniTip('');
     setHata('');
-  }, [onKaydet, satir, ustSiraGuncelle, yeniBarkod, yeniSira, yeniTip]);
+  }, [liste.length, onKaydet, satir, yeniBarkod, yeniTip]);
 
   const satirKaydet = useCallback(() => {
     if (satirDuzenle === null) return;
-    const eskiSira = satirDuzenle;
-    const yeniSiraNo = Number(satirSira);
-    if (!stokCokluBarkodSiraGecerliMi(yeniSiraNo)) {
-      setHata(`Sıra numarası 1–${STOK_COKLU_BARKOD_MAX_SIRA} arasında olmalı.`);
-      return;
-    }
-    if (yeniSiraNo !== eskiSira && stokCokluBarkodDoluMu(satir, yeniSiraNo)) {
-      setHata(`${yeniSiraNo}. sıra zaten var.`);
-      return;
-    }
     const temiz = barkodFiltrele(satirBarkod.trim());
     const patch = !temiz
-      ? stokCokluBarkodPatch(eskiSira, '', 'EAN13', satir)
-      : yeniSiraNo !== eskiSira
-        ? stokCokluBarkodTasi(eskiSira, yeniSiraNo, temiz, satirTip, satir)
-        : stokCokluBarkodPatch(eskiSira, temiz, satirTip, satir);
+      ? stokCokluBarkodSil(satirDuzenle, satir)
+      : stokCokluBarkodGuncelle(satirDuzenle, temiz, satirTip, satir);
     onKaydet(patch);
-    ustSiraGuncelle({ ...satir, ...patch });
     setSatirDuzenle(null);
-    setSatirSira('');
     setSatirBarkod('');
-    setSatirTip('EAN13');
+    setSatirTip('');
     setHata('');
-  }, [onKaydet, satir, satirBarkod, satirDuzenle, satirSira, satirTip, ustSiraGuncelle]);
+  }, [onKaydet, satir, satirBarkod, satirDuzenle, satirTip]);
 
   useEffect(() => {
     if (!acik || !portalKok) return;
@@ -175,9 +139,8 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
         e.preventDefault();
         if (satirDuzenle !== null) {
           setSatirDuzenle(null);
-          setSatirSira('');
           setSatirBarkod('');
-          setSatirTip('EAN13');
+          setSatirTip('');
           setHata('');
           return;
         }
@@ -205,15 +168,6 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
           <div className="cari-secenek-govde">
             <div className="cari-secenek-ekle stok-coklu-fiyat-ekle">
               <div className="stok-coklu-fiyat-input-grup stok-coklu-barkod-input-grup">
-                <input
-                  type="text"
-                  className="ap-input stok-coklu-fiyat-no"
-                  value={yeniSira}
-                  onChange={(e) => setYeniSira(siraHamFiltrele(e.target.value))}
-                  inputMode="numeric"
-                  aria-label="Sıra numarası"
-                  title={`Sıra numarası (1–${STOK_COKLU_BARKOD_MAX_SIRA})`}
-                />
                 <input
                   ref={barkodInputRef}
                   type="text"
@@ -243,25 +197,32 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
             {hata ? <p className="cari-secenek-hata">{hata}</p> : null}
 
             <div className="stok-coklu-barkod-tablo-wrap">
-              <table className="stok-coklu-barkod-tablo">
+              <table
+                className={`stok-coklu-barkod-tablo${satirDuzenle !== null ? ' stok-coklu-barkod-tablo--duzenle' : ''}`.trim()}
+              >
                 <colgroup>
                   <col className="stok-coklu-barkod-tablo-col-sira" />
                   <col className="stok-coklu-barkod-tablo-col-adi" />
                   <col className="stok-coklu-barkod-tablo-col-kodu" />
-                  <col className="stok-coklu-barkod-tablo-col-islem" />
+                  {satirDuzenle === null ? (
+                    <col className="stok-coklu-barkod-tablo-col-islem" />
+                  ) : null}
                 </colgroup>
                 <thead>
                   <tr>
                     <th>Sırası</th>
                     <th>Adı</th>
                     <th>Kodu</th>
-                    <th>İşlemler</th>
+                    {satirDuzenle === null ? <th>#</th> : null}
                   </tr>
                 </thead>
                 <tbody>
                   {liste.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="stok-coklu-barkod-tablo-bos">
+                      <td
+                        colSpan={satirDuzenle === null ? 4 : 3}
+                        className="stok-coklu-barkod-tablo-bos"
+                      >
                         Henüz ek barkod yok.
                       </td>
                     </tr>
@@ -273,9 +234,8 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                           key={`${satir.id}-${oge.sira}`}
                           className={duzenleniyor ? 'stok-coklu-barkod-tablo-satir--duzenleniyor' : undefined}
                           onDoubleClick={() => {
-                            if (duzenleniyor) return;
+                            if (duzenleniyor || satirDuzenle !== null) return;
                             setSatirDuzenle(oge.sira);
-                            setSatirSira(String(oge.sira));
                             setSatirBarkod(oge.deger);
                             setSatirTip(oge.tip);
                             setHata('');
@@ -283,37 +243,16 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                           title="Düzenlemek için çift tıklayın"
                         >
                           {duzenleniyor ? (
-                            <td colSpan={4} className="stok-coklu-barkod-tablo-duzenle-hucre">
+                            <td colSpan={3} className="stok-coklu-barkod-tablo-duzenle-hucre">
                               <div className="stok-coklu-fiyat-input-grup stok-coklu-fiyat-input-grup--satir stok-coklu-fiyat-input-grup--duzenle stok-coklu-barkod-input-grup stok-coklu-barkod-tablo-duzenle">
-                                <input
-                                  type="text"
-                                  className="ap-input stok-coklu-fiyat-no cari-secenek-satir-input"
-                                  value={satirSira}
-                                  autoFocus
-                                  inputMode="numeric"
-                                  aria-label={`${oge.etiket} sıra numarası`}
-                                  onChange={(e) => setSatirSira(siraHamFiltrele(e.target.value))}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      satirKaydet();
-                                    }
-                                    if (e.key === 'Escape') {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setSatirDuzenle(null);
-                                      setSatirSira('');
-                                      setSatirBarkod('');
-                                      setSatirTip('EAN13');
-                                      setHata('');
-                                    }
-                                  }}
-                                />
+                                <span className="stok-coklu-fiyat-no" aria-hidden="true">
+                                  {oge.sira}
+                                </span>
                                 <input
                                   type="text"
                                   className="ap-input cari-secenek-satir-input stok-coklu-fiyat-satir-input"
                                   value={satirBarkod}
+                                  autoFocus
                                   inputMode="numeric"
                                   aria-label={`${oge.etiket} adı`}
                                   onChange={(e) => setSatirBarkod(barkodFiltrele(e.target.value))}
@@ -327,9 +266,8 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                                       e.preventDefault();
                                       e.stopPropagation();
                                       setSatirDuzenle(null);
-                                      setSatirSira('');
                                       setSatirBarkod('');
-                                      setSatirTip('EAN13');
+                                      setSatirTip('');
                                       setHata('');
                                     }
                                   }}
@@ -346,21 +284,21 @@ export function StokCokluBarkodModal({ acik, satir, onKaydet, onKapat }: StokCok
                             <>
                               <td className="stok-coklu-barkod-tablo-sira">{oge.sira}</td>
                               <td className="stok-coklu-barkod-tablo-adi">{oge.deger || '—'}</td>
-                              <td className="stok-coklu-barkod-tablo-kodu">{oge.tip}</td>
-                              <td className="stok-coklu-barkod-tablo-islem">
-                                <button
-                                  type="button"
-                                  className="stok-coklu-barkod-tablo-sil"
-                                  onClick={() => {
-                                    const patch = stokCokluBarkodPatch(oge.sira, '', 'EAN13', satir);
-                                    onKaydet(patch);
-                                    ustSiraGuncelle({ ...satir, ...patch });
-                                  }}
-                                  aria-label={`${oge.etiket} sil`}
-                                >
-                                  Sil
-                                </button>
-                              </td>
+                              <td className="stok-coklu-barkod-tablo-kodu">{oge.tip || '—'}</td>
+                              {satirDuzenle === null ? (
+                                <td className="stok-coklu-barkod-tablo-islem">
+                                  <button
+                                    type="button"
+                                    className="stok-coklu-barkod-tablo-sil"
+                                    onClick={() => {
+                                      onKaydet(stokCokluBarkodSil(oge.sira, satir));
+                                    }}
+                                    aria-label={`${oge.etiket} sil`}
+                                  >
+                                    Sil
+                                  </button>
+                                </td>
+                              ) : null}
                             </>
                           )}
                         </tr>

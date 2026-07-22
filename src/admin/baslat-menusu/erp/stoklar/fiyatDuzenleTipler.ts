@@ -10,7 +10,8 @@ export type StokBarkodTipi =
   | 'CODE93'
   | 'CODE128'
   | 'GRAMAJ'
-  | 'ADET';
+  | 'ADET'
+  | '';
 
 /** İşaretli alan — diğer fiyatları buna göre kopyalamak için */
 export type IsaretliFiyatAlani =
@@ -32,7 +33,10 @@ export type StokCokluBarkodKayit = {
 
 export type StokCokluFiyatKayit = {
   sira: number;
+  aciklama: string;
   deger: number;
+  iskonto: string;
+  netTutar: number;
   pb: StokFiyatPb;
 };
 
@@ -112,6 +116,7 @@ export function stokPbEtiketi(kod: StokFiyatPb | string): string {
 }
 
 export const STOK_BARKOD_TIP_SECENEKLERI: { deger: StokBarkodTipi; etiket: string }[] = [
+  { deger: '', etiket: '—' },
   { deger: 'EAN8', etiket: 'EAN8' },
   { deger: 'EAN13', etiket: 'EAN13' },
   { deger: 'UPC', etiket: 'UPC' },

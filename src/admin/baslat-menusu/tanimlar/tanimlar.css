@@ -3343,6 +3343,14 @@ button.ap-tanimlar-panel-arka {
   width: 100%;
 }
 
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .ap-accent-donen-cerceve--cari-secenek {
+  width: min(42rem, calc(100vw - 2rem));
+}
+
+.stok-coklu-barkod-modal .ap-accent-donen-cerceve--cari-secenek {
+  width: min(32rem, calc(100vw - 2rem));
+}
+
 .stok-coklu-fiyat-input-grup {
   display: flex;
   align-items: stretch;
@@ -3390,9 +3398,30 @@ button.ap-tanimlar-panel-arka {
   background: transparent !important;
 }
 
-.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-ekle-input,
-.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-satir-input {
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-tutar-input,
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-net-input {
   text-align: right;
+}
+
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-aciklama-input {
+  text-align: left;
+  flex: 1.35 1 0;
+}
+
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-tutar-input,
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-net-input {
+  flex: 0.9 1 0;
+}
+
+.stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal) .stok-coklu-fiyat-iskonto-input {
+  flex: 0.7 1 0;
+  text-align: center;
+  border-left: 1px solid var(--ap-border) !important;
+  border-right: 1px solid var(--ap-border) !important;
+}
+
+.stok-coklu-fiyat-input-grup--genis .stok-coklu-fiyat-ekle-input + .stok-coklu-fiyat-ekle-input {
+  border-left: 1px solid var(--ap-border);
 }
 
 .stok-coklu-fiyat-ekle-btn {
@@ -3524,7 +3553,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-coklu-barkod-tablo-col-islem {
-  width: 4.5rem;
+  width: 2.75rem;
 }
 
 .stok-coklu-barkod-tablo thead th {
@@ -3607,14 +3636,14 @@ button.ap-tanimlar-panel-arka {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.35rem;
+  min-width: 1.75rem;
   border: none;
   background: transparent;
   color: #b91c1c;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 650;
   cursor: pointer;
-  padding: 0.15rem 0.35rem;
+  padding: 0.15rem 0.2rem;
 }
 
 .stok-coklu-barkod-tablo-sil:hover {
@@ -3651,24 +3680,40 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-coklu-fiyat-tablo-col-sira {
-  width: 3.25rem;
+  width: 3rem;
+}
+
+.stok-coklu-fiyat-tablo-col-aciklama {
+  width: 26%;
 }
 
 .stok-coklu-fiyat-tablo-col-tutar {
-  width: auto;
+  width: 14%;
+}
+
+.stok-coklu-fiyat-tablo-col-iskonto {
+  width: 12%;
+}
+
+.stok-coklu-fiyat-tablo-col-net {
+  width: 14%;
 }
 
 .stok-coklu-fiyat-tablo-col-pb {
-  width: 3.35rem;
+  width: 3.1rem;
+}
+
+.stok-coklu-fiyat-tablo--duzenle .stok-coklu-fiyat-tablo-col-pb {
+  width: 3.75rem;
 }
 
 .stok-coklu-fiyat-tablo-col-islem {
-  width: 4.5rem;
+  width: 2.75rem;
 }
 
 .stok-coklu-fiyat-tablo thead th {
-  padding: 0.45rem 0.55rem;
-  font-size: 0.72rem;
+  padding: 0.45rem 0.4rem;
+  font-size: 0.7rem;
   font-weight: 650;
   color: var(--ap-muted);
   text-align: left;
@@ -3681,12 +3726,19 @@ button.ap-tanimlar-panel-arka {
   text-align: center;
 }
 
-.stok-coklu-fiyat-tablo thead th:nth-child(2),
-.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-tutar {
+.stok-coklu-fiyat-tablo thead th:nth-child(3),
+.stok-coklu-fiyat-tablo thead th:nth-child(5),
+.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-tutar,
+.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-net {
   text-align: right;
 }
 
-.stok-coklu-fiyat-tablo thead th:nth-child(3),
+.stok-coklu-fiyat-tablo thead th:nth-child(4),
+.stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-iskonto {
+  text-align: center;
+}
+
+.stok-coklu-fiyat-tablo thead th:nth-child(6),
 .stok-coklu-fiyat-tablo tbody td.stok-coklu-fiyat-tablo-pb {
   text-align: center;
 }
@@ -3731,10 +3783,27 @@ button.ap-tanimlar-panel-arka {
   color: var(--ap-accent);
 }
 
-.stok-coklu-fiyat-tablo-tutar {
-  font-size: 0.8rem;
+.stok-coklu-fiyat-tablo-aciklama {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stok-coklu-fiyat-tablo-tutar,
+.stok-coklu-fiyat-tablo-net {
+  font-size: 0.78rem;
   font-weight: 650;
   color: var(--ap-heading, var(--ap-text));
+  white-space: nowrap;
+}
+
+.stok-coklu-fiyat-tablo-iskonto {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--ap-text);
   white-space: nowrap;
 }
 
@@ -3745,22 +3814,22 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-coklu-fiyat-tablo-islem {
-  padding-left: 0.25rem !important;
-  padding-right: 0.25rem !important;
+  padding-left: 0.15rem !important;
+  padding-right: 0.15rem !important;
 }
 
 .stok-coklu-fiyat-tablo-sil {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.35rem;
+  min-width: 1.75rem;
   border: none;
   background: transparent;
   color: #b91c1c;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 650;
   cursor: pointer;
-  padding: 0.15rem 0.35rem;
+  padding: 0.15rem 0.2rem;
 }
 
 .stok-coklu-fiyat-tablo-sil:hover {
