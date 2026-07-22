@@ -128,7 +128,7 @@ export function StokEnvanterTakibiDetay({
           onChange={(rafOmruGun) => onAlan('rafOmruGun', rafOmruGun)}
         />
         <CariOutlinedGirdi
-          etiket="Ops. (Gün)"
+          etiket="Risk (Gün)"
           deger={form.opsGun}
           disabled={disabled}
           inputMode="numeric"

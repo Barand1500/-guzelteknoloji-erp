@@ -1466,6 +1466,27 @@ export const TELEFON_ULKE_HAM_VERI = [
     "maxHane": 12
   },
   {
+    "id": "DO809",
+    "ad": "Dominik Cumhuriyeti (809)",
+    "dial": "1809",
+    "maxHane": 7,
+    "bayrakId": "DO"
+  },
+  {
+    "id": "DO829",
+    "ad": "Dominik Cumhuriyeti (829)",
+    "dial": "1829",
+    "maxHane": 7,
+    "bayrakId": "DO"
+  },
+  {
+    "id": "DO849",
+    "ad": "Dominik Cumhuriyeti (849)",
+    "dial": "1849",
+    "maxHane": 7,
+    "bayrakId": "DO"
+  },
+  {
     "id": "TT",
     "ad": "Trinidad ve Tobago",
     "dial": "1868",
@@ -1487,12 +1508,6 @@ export const TELEFON_ULKE_HAM_VERI = [
     "id": "VA",
     "ad": "Vatikan",
     "dial": "3906",
-    "maxHane": 12
-  },
-  {
-    "id": "DO",
-    "ad": "Dominik Cumhuriyeti",
-    "dial": "180918291849",
     "maxHane": 12
   }
 ] as const;

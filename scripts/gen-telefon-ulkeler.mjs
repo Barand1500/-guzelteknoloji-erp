@@ -270,6 +270,25 @@ function parseCsvLine(line) {
   return cols;
 }
 
+function dialParcalari(hamDial) {
+  return hamDial
+    .split(',')
+    .map((part) => part.replace(/[^\d]/g, ''))
+    .filter(Boolean);
+}
+
+function ulkeKayitId(iso2, dial, dialParcaSayisi) {
+  if (dialParcaSayisi <= 1) return iso2;
+  if (/^1\d{3}$/.test(dial)) return `${iso2}${dial.slice(1)}`;
+  return `${iso2}_${dial}`;
+}
+
+function ulkeKayitAd(temelAd, dial, dialParcaSayisi) {
+  if (dialParcaSayisi <= 1) return temelAd;
+  if (/^1\d{3}$/.test(dial)) return `${temelAd} (${dial.slice(1)})`;
+  return temelAd;
+}
+
 const res = await fetch(
   'https://raw.githubusercontent.com/datasets/country-codes/master/data/country-codes.csv'
 );
@@ -282,29 +301,38 @@ const idx = {
   dial: headers.indexOf('Dial'),
 };
 
-/** @type {{ id: string; ad: string; dial: string; maxHane: number; trFormat?: boolean }[]} */
+/** @type {{ id: string; ad: string; dial: string; maxHane: number; trFormat?: boolean; bayrakId?: string }[]} */
 const ulkeler = [];
 const seen = new Set();
 
 for (let i = 1; i < lines.length; i++) {
   const cols = parseCsvLine(lines[i]);
-  const id = (cols[idx.iso2] || '').trim();
-  let dial = (cols[idx.dial] || '').trim();
+  const iso2 = (cols[idx.iso2] || '').trim();
+  const hamDial = (cols[idx.dial] || '').trim();
   const adEn = (cols[idx.name] || '').trim();
-  if (!id || id.length !== 2 || !dial) continue;
-  dial = dial.replace(/[^\d]/g, '');
-  if (!dial) continue;
-  const key = `${id}|${dial}`;
-  if (seen.has(key)) continue;
-  seen.add(key);
-  const kayit = {
-    id,
-    ad: TR_ISIMLER[id] || adEn,
-    dial,
-    maxHane: id === 'TR' ? 11 : 12,
-  };
-  if (id === 'TR') kayit.trFormat = true;
-  ulkeler.push(kayit);
+  if (!iso2 || iso2.length !== 2 || !hamDial) continue;
+
+  const dialList = dialParcalari(hamDial);
+  if (dialList.length === 0) continue;
+
+  const temelAd = TR_ISIMLER[iso2] || adEn;
+
+  for (const dial of dialList) {
+    const kayitId = ulkeKayitId(iso2, dial, dialList.length);
+    const key = `${kayitId}|${dial}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const kayit = {
+      id: kayitId,
+      ad: ulkeKayitAd(temelAd, dial, dialList.length),
+      dial,
+      maxHane: iso2 === 'TR' ? 11 : iso2 === 'DO' ? 7 : 12,
+    };
+    if (iso2 === 'TR') kayit.trFormat = true;
+    if (kayitId !== iso2) kayit.bayrakId = iso2;
+    ulkeler.push(kayit);
+  }
 }
 
 // Kosova CSV'de yoksa ekle

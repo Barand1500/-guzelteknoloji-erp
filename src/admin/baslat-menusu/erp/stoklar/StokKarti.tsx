@@ -13,7 +13,6 @@ import { markaCacheSifirla, stokMarkaEkle } from '@/veri/markalar';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import {
-  URUN_NEVILERI,
   type AdminBirim,
 } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
 import { birimGuncelle, birimOlustur, birimleriGetir, stokGuncelle, stokOlustur, stoklariGetir } from './api';
@@ -44,6 +43,13 @@ import {
   stokTipleriGetir,
   type StokTipiSecenek,
 } from './stokTipleri';
+import {
+  stokNeviEkle,
+  stokNeviGuncelle,
+  stokNeviSil,
+  stokNevileriGetir,
+  type StokNeviSecenek,
+} from './stokNevileri';
 import {
   bosStokForm,
   ENVANTER_TAKIBI_SECENEKLERI,
@@ -100,10 +106,12 @@ export function StokKarti({
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [stokTipleri, setStokTipleri] = useState<StokTipiSecenek[]>(() => stokTipleriGetir());
+  const [stokNevileri, setStokNevileri] = useState<StokNeviSecenek[]>(() => stokNevileriGetir());
   const [kdvDepartmanlari, setKdvDepartmanlari] = useState<StokKdvDepartmaniSecenek[]>(() =>
     stokKdvDepartmanlariGetir()
   );
   const [tipModalAcik, setTipModalAcik] = useState(false);
+  const [neviModalAcik, setNeviModalAcik] = useState(false);
   const [kdvModalAcik, setKdvModalAcik] = useState(false);
 
   const seciliKayit = useMemo(
@@ -131,6 +139,10 @@ export function StokKarti({
   useEffect(() => {
     setStokTipleri(stokTipleriGetir());
   }, [tipModalAcik]);
+
+  useEffect(() => {
+    setStokNevileri(stokNevileriGetir());
+  }, [neviModalAcik]);
 
   useEffect(() => {
     setKdvDepartmanlari(stokKdvDepartmanlariGetir());
@@ -404,7 +416,8 @@ export function StokKarti({
             etiket="Stok Nevi"
             deger={form.urunNevi}
             disabled={saltOkunur}
-            secenekler={[{ value: '', label: 'Seçilmedi' }, ...URUN_NEVILERI.map((x) => ({ ...x }))]}
+            secenekler={[{ value: '', label: 'Seçilmedi' }, ...stokNevileri.map((x) => ({ ...x }))]}
+            onYonet={() => setNeviModalAcik(true)}
             onChange={(urunNevi) => setForm((f) => ({ ...f, urunNevi }))}
           />
           <StokDigerVergiBlok />
@@ -512,6 +525,34 @@ export function StokKarti({
           if (form.urunTipi === value) setForm((f) => ({ ...f, urunTipi: 'EMTIA' }));
         }}
         onKapat={() => setTipModalAcik(false)}
+      />
+
+      <CariSecenekModal
+        acik={neviModalAcik}
+        baslik="Stok Nevi"
+        placeholder="Yeni stok nevi adı…"
+        liste={stokNevileri.map((n) => ({ value: n.value, label: n.label }))}
+        sabitDegerler={['RESMI', 'GAYRIRESMI']}
+        kullanimNesneAdi="stok nevi"
+        kullanimSayisiAl={(value) => kayitlar.filter((s) => s.urunNevi === value).length}
+        onEkle={(ad) => {
+          const sonuc = stokNeviEkle(ad);
+          if (!sonuc) return false;
+          setStokNevileri(stokNevileriGetir());
+          setForm((f) => ({ ...f, urunNevi: sonuc.value }));
+          return true;
+        }}
+        onGuncelle={(value, ad) => {
+          const ok = stokNeviGuncelle(value, ad);
+          if (ok) setStokNevileri(stokNevileriGetir());
+          return ok;
+        }}
+        onSil={(value) => {
+          stokNeviSil(value);
+          setStokNevileri(stokNevileriGetir());
+          if (form.urunNevi === value) setForm((f) => ({ ...f, urunNevi: '' }));
+        }}
+        onKapat={() => setNeviModalAcik(false)}
       />
     </>
   );

@@ -10,6 +10,8 @@ export type TelefonUlke = {
   maxHane: number;
   /** true ise TR tarzı gruplama */
   trFormat?: boolean;
+  /** Bayrak için ISO2 — id alanı alan kodu soneki içeriyorsa (ör. DO809) */
+  bayrakId?: string;
 };
 
 /** Dial koduna göre küçükten büyüğe sıralı tüm ülkeler */
@@ -24,9 +26,20 @@ export function telefonUlkeBul(id: string): TelefonUlke {
   return TELEFON_ULKELER.find((u) => u.id === id) ?? VARSAYILAN_TELEFON_ULKE;
 }
 
+export function telefonBayrakIso(ulkeId: string, bayrakId?: string): string {
+  if (bayrakId) return bayrakId.toLowerCase();
+  const kod = ulkeId.match(/^([A-Z]{2})\d+$/)?.[1] ?? ulkeId;
+  return kod.slice(0, 2).toLowerCase();
+}
+
 /** Windows emoji bayrak göstermediği için PNG (flagcdn) */
-export function telefonBayrakUrl(ulkeId: string, genislik: 20 | 40 | 80 = 40): string {
-  return `https://flagcdn.com/w${genislik}/${ulkeId.toLowerCase()}.png`;
+export function telefonBayrakUrl(
+  ulkeId: string,
+  genislik: 20 | 40 | 80 = 40,
+  bayrakId?: string
+): string {
+  const iso = telefonBayrakIso(ulkeId, bayrakId);
+  return `https://flagcdn.com/w${genislik}/${iso}.png`;
 }
 
 function telefonUlkeTurkiyeUste(ulkeler: TelefonUlke[]): TelefonUlke[] {
@@ -52,6 +65,10 @@ export function telefonUlkeAra(arama: string): TelefonUlke[] {
 function yalnizcaRakam(deger: string, max?: number): string {
   const rakamlar = deger.replace(/\D/g, '');
   return max ? rakamlar.slice(0, max) : rakamlar;
+}
+
+export function dominikUlkeMi(ulke: TelefonUlke): boolean {
+  return ulke.bayrakId === 'DO' || /^DO(809|829|849)$/.test(ulke.id);
 }
 
 /** Ulusal numarayı ülkeye göre boşluklarla biçimlendirir */
@@ -94,6 +111,13 @@ export function ulusalTelefonFormatla(ham: string, ulke: TelefonUlke): string {
     return `(${a}) ${b}-${c}`.trim();
   }
 
+  if (dominikUlkeMi(ulke)) {
+    const a = rakamlar.slice(0, 3);
+    const b = rakamlar.slice(3, 7);
+    if (rakamlar.length <= 3) return a;
+    return `${a} ${b}`.trim();
+  }
+
   // Genel: 3-3-2-2… gruplama
   const parcalar: string[] = [];
   let kalan = rakamlar;
@@ -111,6 +135,24 @@ export function telefonKayitDegeri(ulke: TelefonUlke, ulusalHam: string): string
   if (!rakamlar) return '';
   const bicimli = ulusalTelefonFormatla(rakamlar, ulke);
   return `+${ulke.dial} ${bicimli}`.trim();
+}
+
+/** + işareti olmadan kayıtlı TR ulusal numarayı ayırır (850 hatları dahil) */
+function turkUlusalNumaraRakamlari(rakamlar: string): string | null {
+  if (!rakamlar) return null;
+  if (/^0\d{10}$/.test(rakamlar)) return trUlusalSifirsiz(rakamlar).slice(0, 10);
+  if (/^90\d{10}$/.test(rakamlar)) return rakamlar.slice(2, 12);
+  if (!/^\d{10}$/.test(rakamlar)) return null;
+  if (
+    /^5\d{9}$/.test(rakamlar) ||
+    /^850\d{7}$/.test(rakamlar) ||
+    /^800\d{7}$/.test(rakamlar) ||
+    /^444\d{7}$/.test(rakamlar) ||
+    /^[2-4]\d{9}$/.test(rakamlar)
+  ) {
+    return rakamlar;
+  }
+  return null;
 }
 
 /** Kayıtlı değeri ülke + ulusal numaraya ayırır */
@@ -134,7 +176,15 @@ export function telefonDegeriniParcala(deger: string): { ulke: TelefonUlke; ulus
     }
   }
 
-  // Dial ile başlayan (artısız)
+  const trUlusal = turkUlusalNumaraRakamlari(rakamlarHepsi);
+  if (trUlusal) {
+    return {
+      ulke: VARSAYILAN_TELEFON_ULKE,
+      ulusal: ulusalTelefonFormatla(trUlusal, VARSAYILAN_TELEFON_ULKE),
+    };
+  }
+
+  // Dial ile başlayan (artısız) — yabancı numaralar
   const dialEslesen = [...TELEFON_ULKELER]
     .filter((u) => rakamlarHepsi.startsWith(u.dial) && rakamlarHepsi.length > u.dial.length + 4)
     .sort((a, b) => b.dial.length - a.dial.length)[0];
@@ -191,5 +241,6 @@ export function telefonPlaceholder(
     return 'xxx xxx xx xx';
   }
   if (ulke.id === 'US' || ulke.id === 'CA') return '(xxx) xxx-xxxx';
+  if (dominikUlkeMi(ulke)) return 'xxx xxxx';
   return 'xxx xxx xx xx';
 }

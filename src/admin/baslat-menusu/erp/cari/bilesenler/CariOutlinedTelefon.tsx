@@ -19,10 +19,12 @@ type DogrulaAsama = 'alan' | 'kod';
 
 function UlkeBayrakGorsel({
   ulkeId,
+  bayrakId,
   className,
   kucuk = false,
 }: {
   ulkeId: string;
+  bayrakId?: string;
   className?: string;
   kucuk?: boolean;
 }) {
@@ -31,8 +33,8 @@ function UlkeBayrakGorsel({
   return (
     <img
       className={className}
-      src={telefonBayrakUrl(ulkeId, 40)}
-      srcSet={`${telefonBayrakUrl(ulkeId, 80)} 2x`}
+      src={telefonBayrakUrl(ulkeId, 40, bayrakId)}
+      srcSet={`${telefonBayrakUrl(ulkeId, 80, bayrakId)} 2x`}
       width={w}
       height={h}
       alt=""
@@ -271,7 +273,7 @@ export function CariOutlinedTelefon({
               setListeAcik((a) => !a);
             }}
           >
-            <UlkeBayrakGorsel ulkeId={ulke.id} className="cari-telefon-ulke-bayrak" kucuk />
+            <UlkeBayrakGorsel ulkeId={ulke.id} bayrakId={ulke.bayrakId} className="cari-telefon-ulke-bayrak" kucuk />
             <span className="cari-telefon-ulke-kod">+{ulke.dial}</span>
             <span className="cari-telefon-ulke-ok" aria-hidden>
               ▾
@@ -364,7 +366,11 @@ export function CariOutlinedTelefon({
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => ulkeSec(telefonUlkeBul(u.id))}
                       >
-                        <UlkeBayrakGorsel ulkeId={u.id} className="cari-telefon-ulke-oge-bayrak" />
+                        <UlkeBayrakGorsel
+                          ulkeId={u.id}
+                          bayrakId={u.bayrakId}
+                          className="cari-telefon-ulke-oge-bayrak"
+                        />
                         <span className="cari-telefon-ulke-oge-ad">{u.ad}</span>
                         <span className="cari-telefon-ulke-oge-dial">+{u.dial}</span>
                       </button>

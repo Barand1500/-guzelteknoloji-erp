@@ -26,7 +26,7 @@ export interface StokForm extends UrunForm {
   otv: string;
   maliyet: string;
   rafOmruGun: string;
-  /** Ops. (Gün) */
+  /** Risk (Gün) */
   opsGun: string;
   teminSuresi: string;
   karYuzde: string;

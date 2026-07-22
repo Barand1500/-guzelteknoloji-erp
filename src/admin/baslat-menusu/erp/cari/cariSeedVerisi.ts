@@ -19,7 +19,7 @@ export function cariSeedKayitlari(simdi: string): AdminCari[] {
       il: 'ANTALYA',
       ilce: 'KEPEZ',
       adres: 'YENI EMEK MAH. YILDIRIM BEYAZIT CAD. NO:130A',
-      telefon: '8508851160',
+      telefon: '+90 850 885 11 60',
       gsm: '',
       eposta: 'bilgi@guzelteknoloji.com',
       web: 'www.guzelteknoloji.com',
