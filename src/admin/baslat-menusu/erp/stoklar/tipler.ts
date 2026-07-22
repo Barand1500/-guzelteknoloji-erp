@@ -120,6 +120,14 @@ export interface StokForm extends UrunForm {
   gtip: string;
   /** Yok | Normal | Seri No | Lot | Ömür */
   envanterTakibi: string;
+  asgariStok: string;
+  azamiStok: string;
+  seriNoZorunlu: string;
+  seriNoOneki: string;
+  lotZorunlu: string;
+  sktTakibi: string;
+  lotOneki: string;
+  sktZorunlu: string;
   uns: string;
   ublTr: string;
   cpaRev: string;
@@ -240,6 +248,14 @@ export const bosStokForm: StokForm = {
   fKasa: '',
   gtip: '',
   envanterTakibi: 'YOK',
+  asgariStok: '',
+  azamiStok: '',
+  seriNoZorunlu: 'HAYIR',
+  seriNoOneki: '',
+  lotZorunlu: 'HAYIR',
+  sktTakibi: 'HAYIR',
+  lotOneki: '',
+  sktZorunlu: 'HAYIR',
   uns: '',
   ublTr: '',
   cpaRev: '',
@@ -308,3 +324,16 @@ export const ENVANTER_TAKIBI_SECENEKLERI = [
   { value: 'LOT', label: 'Lot' },
   { value: 'OMUR', label: 'Ömür' },
 ] as const;
+
+export function envanterDetayKolonSayisi(tip: string): 0 | 2 | 3 {
+  switch (tip) {
+    case 'NORMAL':
+    case 'SERI_NO':
+      return 2;
+    case 'LOT':
+    case 'OMUR':
+      return 3;
+    default:
+      return 0;
+  }
+}

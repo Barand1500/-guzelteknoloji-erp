@@ -3,6 +3,7 @@ import { TanimDuzenleEkrani } from '@/admin/baslat-menusu/tanimlar/bilesenler/Ta
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { CariSecenekModal } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariSecenekModal';
 import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
+import { CariOutlinedAramaAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAramaAcilir';
 import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
 import { CariOutlinedMarka } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedMarka';
 import { CariOutlinedMensei } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedMensei';
@@ -26,6 +27,14 @@ import {
 import type { StokFiyatDuzenleSatir } from './fiyatDuzenleTipler';
 import { StokYeniBirimler } from './StokYeniBirimler';
 import { StokDigerVergiBlok } from './StokDigerVergiBlok';
+import { StokEnvanterTakibiDetay } from './StokEnvanterTakibiDetay';
+import {
+  stokKdvDepartmaniEkle,
+  stokKdvDepartmaniGuncelle,
+  stokKdvDepartmaniSil,
+  stokKdvDepartmanlariGetir,
+  type StokKdvDepartmaniSecenek,
+} from './stokKdvDepartmanlari';
 import {
   stokTipiEkle,
   stokTipiGuncelle,
@@ -36,6 +45,7 @@ import {
 import {
   bosStokForm,
   ENVANTER_TAKIBI_SECENEKLERI,
+  envanterDetayKolonSayisi,
   stokFormdanUrunForm,
   type AdminStok,
   type StokForm,
@@ -88,7 +98,11 @@ export function StokKarti({
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [stokTipleri, setStokTipleri] = useState<StokTipiSecenek[]>(() => stokTipleriGetir());
+  const [kdvDepartmanlari, setKdvDepartmanlari] = useState<StokKdvDepartmaniSecenek[]>(() =>
+    stokKdvDepartmanlariGetir()
+  );
   const [tipModalAcik, setTipModalAcik] = useState(false);
+  const [kdvModalAcik, setKdvModalAcik] = useState(false);
 
   const seciliKayit = useMemo(
     () => (stokId ? kayitlar.find((k) => k.id === stokId) ?? null : null),
@@ -115,6 +129,10 @@ export function StokKarti({
   useEffect(() => {
     setStokTipleri(stokTipleriGetir());
   }, [tipModalAcik]);
+
+  useEffect(() => {
+    setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+  }, [kdvModalAcik]);
 
   useEffect(() => {
     if (mod === 'yeni') {
@@ -346,13 +364,35 @@ export function StokKarti({
             odakPlaceholder="GTIP kodunu yazınız"
             onChange={(gtip) => setForm((f) => ({ ...f, gtip }))}
           />
-          <CariOutlinedAcilir
-            etiket="Envanter Takibi"
-            deger={form.envanterTakibi || 'YOK'}
+          <CariOutlinedAramaAcilir
+            etiket="KDV Departmanı"
+            deger={form.kdvDepartmani}
             disabled={saltOkunur}
-            secenekler={[...ENVANTER_TAKIBI_SECENEKLERI]}
-            onChange={(envanterTakibi) => setForm((f) => ({ ...f, envanterTakibi }))}
+            secenekler={kdvDepartmanlari.map((x) => ({ ...x }))}
+            aramaPlaceholder="KDV departmanı ara…"
+            bosMetin="KDV Departmanı"
+            kutuIciArama
+            onYonet={() => setKdvModalAcik(true)}
+            onChange={(kdvDepartmani) => setForm((f) => ({ ...f, kdvDepartmani }))}
           />
+          <div
+            className="stok-karti-envanter-blok"
+            data-detay={envanterDetayKolonSayisi(form.envanterTakibi || 'YOK')}
+          >
+            <CariOutlinedAcilir
+              etiket="Envanter Takibi"
+              deger={form.envanterTakibi || 'YOK'}
+              disabled={saltOkunur}
+              secenekler={[...ENVANTER_TAKIBI_SECENEKLERI]}
+              onChange={(envanterTakibi) => setForm((f) => ({ ...f, envanterTakibi }))}
+            />
+            <StokEnvanterTakibiDetay
+              envanterTakibi={form.envanterTakibi}
+              form={form}
+              disabled={saltOkunur}
+              onAlan={(alan, deger) => setForm((f) => ({ ...f, [alan]: deger }))}
+            />
+          </div>
         </div>
         <div className="stok-karti-ana-nevi-satir">
           <CariOutlinedAcilir
@@ -417,6 +457,34 @@ export function StokKarti({
           </div>
         </TanimDuzenleEkrani>
       </div>
+
+      <CariSecenekModal
+        acik={kdvModalAcik}
+        baslik="KDV Departmanı"
+        placeholder="Yeni KDV departmanı adı…"
+        liste={kdvDepartmanlari.map((d) => ({ value: d.value, label: d.label }))}
+        sabitDegerler={['ICECEKLER', 'YIYECEKLER', 'MERCH', 'CEKIRDEK_KAHVE']}
+        kullanimNesneAdi="KDV departmanını"
+        kullanimSayisiAl={() => 0}
+        onEkle={(ad) => {
+          const sonuc = stokKdvDepartmaniEkle(ad);
+          if (!sonuc) return false;
+          setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+          setForm((f) => ({ ...f, kdvDepartmani: sonuc.value }));
+          return true;
+        }}
+        onGuncelle={(value, ad) => {
+          const ok = stokKdvDepartmaniGuncelle(value, ad);
+          if (ok) setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+          return ok;
+        }}
+        onSil={(value) => {
+          stokKdvDepartmaniSil(value);
+          setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+          if (form.kdvDepartmani === value) setForm((f) => ({ ...f, kdvDepartmani: '' }));
+        }}
+        onKapat={() => setKdvModalAcik(false)}
+      />
 
       <CariSecenekModal
         acik={tipModalAcik}

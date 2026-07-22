@@ -2555,10 +2555,34 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-karti-gtip-envanter-satir {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: var(--stok-karti-kisa-alan-genislik) minmax(0, 1fr);
+  grid-template-columns: var(--stok-karti-kisa-alan-genislik) minmax(0, 1fr) minmax(0, 2fr);
   gap: 1rem 1.1rem;
   align-items: start;
+}
+
+.stok-karti-envanter-blok {
+  display: grid;
+  gap: 1rem 1.1rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.stok-karti-envanter-blok[data-detay='0'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.stok-karti-envanter-blok[data-detay='2'] {
+  grid-template-columns: minmax(8.5rem, 0.42fr) repeat(2, minmax(0, 1fr));
+}
+
+.stok-karti-envanter-blok[data-detay='3'] {
+  grid-template-columns: minmax(8.5rem, 0.34fr) repeat(3, minmax(0, 1fr));
+}
+
+.stok-karti-envanter-blok > * {
+  min-width: 0;
 }
 
 .stok-karti-gtip-envanter-satir > * {
@@ -2955,6 +2979,12 @@ button.ap-tanimlar-panel-arka {
   }
 
   .stok-karti-gtip-envanter-satir {
+    grid-template-columns: 1fr;
+  }
+
+  .stok-karti-envanter-blok[data-detay='0'],
+  .stok-karti-envanter-blok[data-detay='2'],
+  .stok-karti-envanter-blok[data-detay='3'] {
     grid-template-columns: 1fr;
   }
 
