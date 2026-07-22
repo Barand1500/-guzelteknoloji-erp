@@ -536,6 +536,37 @@
   width: 100%;
 }
 
+.cari-mensei-alan {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.cari-mensei-alan .ap-form-arama-secim {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cari-mensei-secili-bayrak,
+.cari-mensei-liste-bayrak {
+  display: block;
+  width: 1.25rem;
+  height: 0.94rem;
+  object-fit: cover;
+  border-radius: 0.12rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-heading) 12%, transparent);
+}
+
+.cari-mensei-liste-ad {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Chip seçim kutuları — outlined ile aynı dil */
 
 .cari-secili-alan {

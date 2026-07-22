@@ -12202,6 +12202,12 @@ html:has(.admin-panel[data-tema='acik']) body {
   cursor: pointer;
 }
 
+.ap-form-acilir-secim-oge-bayrakli {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .ap-form-acilir-secim-oge:hover,
 .ap-form-acilir-secim-oge-odak {
   background: color-mix(in srgb, var(--ap-accent) 88%, #fff);

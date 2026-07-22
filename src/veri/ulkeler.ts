@@ -1,3 +1,7 @@
+import { MENSEI_ULKELER, type MenseiUlke } from './menseiUlkeler';
+
+export { MENSEI_ULKELER, type MenseiUlke };
+
 /** Menşei (ülke) alanı için Türkçe ülke adları listesi. */
 export const ULKELER: readonly string[] = [
   'Türkiye',
@@ -200,18 +204,27 @@ export const ULKELER: readonly string[] = [
   'Zimbabve',
 ];
 
-/** Menşei aramasında en az bu kadar harf yazılınca öneri gösterilir. */
-export const MIN_ULKE_ARAMA_UZUNLUGU = 2;
+/** Menşei: 0 = odaklanınca tüm liste; yazarken filtreler. */
+export const MIN_ULKE_ARAMA_UZUNLUGU = 0;
 
-const ULKE_ONERI_LIMIT = 30;
+/** flagcdn PNG — Windows emoji bayrak göstermediği için. */
+export function ulkeBayrakUrl(iso: string, genislik: 20 | 40 | 80 = 40): string {
+  return `https://flagcdn.com/w${genislik}/${iso.toLowerCase()}.png`;
+}
 
-/** Yazılan metni içeren ülkeleri (Türkçe duyarlı) döndürür. */
+/** Ülke adına göre ISO2 (büyük/küçük harf duyarsız). */
+export function ulkeIsoBul(ad: string): string | undefined {
+  const q = ad.trim().toLocaleLowerCase('tr');
+  if (!q) return undefined;
+  return MENSEI_ULKELER.find((u) => u.ad.toLocaleLowerCase('tr') === q)?.iso;
+}
+
+/** Yazılan metni içeren ülkeleri (Türkçe duyarlı) döndürür; boş aramada tüm liste. */
 export function ulkeAra(arama: string): Promise<string[]> {
   const q = arama.trim().toLocaleLowerCase('tr');
   const liste = q
-    ? ULKELER.filter((u) => u.toLocaleLowerCase('tr').includes(q))
-    : [...ULKELER];
-  return Promise.resolve(
-    liste.sort((a, b) => a.localeCompare(b, 'tr')).slice(0, ULKE_ONERI_LIMIT)
-  );
+    ? MENSEI_ULKELER.filter((u) => u.ad.toLocaleLowerCase('tr').includes(q))
+    : MENSEI_ULKELER;
+  const adlar = [...new Set(liste.map((u) => u.ad))];
+  return Promise.resolve(adlar);
 }

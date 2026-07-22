@@ -7,25 +7,31 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { formInputSinifi } from '@/formlar/FormAlani';
 import { sekmeGecisTiklamasiMi, sekmePortalHedefi, useSekmeDegisinceYenile } from '@/araclar/sekmePortal';
 
 const KENAR_BOSLUK = 8;
-const LISTE_LIMIT = 80;
+const LISTE_LIMIT_VARSAYILAN = 80;
 const ARAMA_GECIKME_MS = 80;
 
 function normalizeMetin(metin: string): string {
   return metin.trim().toLocaleLowerCase('tr');
 }
 
-function secenekleriFiltrele(secenekler: string[], arama: string, minAramaUzunlugu: number): string[] {
+function secenekleriFiltrele(
+  secenekler: string[],
+  arama: string,
+  minAramaUzunlugu: number,
+  listeLimit: number
+): string[] {
   const q = normalizeMetin(arama);
   if (q.length < minAramaUzunlugu) return [];
   return secenekler
-    .filter((s) => normalizeMetin(s).includes(q))
-    .slice(0, LISTE_LIMIT);
+    .filter((s) => (q ? normalizeMetin(s).includes(q) : true))
+    .slice(0, listeLimit);
 }
 
 function anchorBul(trigger: HTMLElement): HTMLElement {
@@ -59,9 +65,12 @@ interface FormAramaSecimProps {
   secenekler?: readonly string[];
   secenekAra?: (arama: string) => Promise<string[]>;
   minAramaUzunlugu?: number;
+  listeLimit?: number;
   placeholder?: string;
   disabled?: boolean;
   'aria-label'?: string;
+  /** Liste satırında özel içerik (ör. bayrak + ad). */
+  ogeIcerik?: (secenek: string) => ReactNode;
 }
 
 export function FormAramaSecim({
@@ -71,9 +80,11 @@ export function FormAramaSecim({
   secenekler = [],
   secenekAra,
   minAramaUzunlugu = 2,
+  listeLimit = LISTE_LIMIT_VARSAYILAN,
   placeholder,
   disabled = false,
   'aria-label': ariaLabel,
+  ogeIcerik,
 }: FormAramaSecimProps) {
   const listeId = useId();
   const kapsayiciRef = useRef<HTMLDivElement>(null);
@@ -107,7 +118,9 @@ export function FormAramaSecim({
     const zamanlayici = window.setTimeout(() => {
       secenekAra(q)
         .then((liste) => {
-          if (!iptal && surum === aramaSurumuRef.current) setAsyncSecenekler(liste);
+          if (!iptal && surum === aramaSurumuRef.current) {
+            setAsyncSecenekler(liste.slice(0, listeLimit));
+          }
         })
         .catch(() => {
           if (!iptal && surum === aramaSurumuRef.current) setAsyncSecenekler([]);
@@ -121,19 +134,19 @@ export function FormAramaSecim({
       iptal = true;
       window.clearTimeout(zamanlayici);
     };
-  }, [value, secenekAra, minAramaUzunlugu]);
+  }, [value, secenekAra, minAramaUzunlugu, listeLimit]);
 
   const filtrelenmis = useMemo(() => {
     if (secenekAra) return asyncSecenekler;
-    return secenekleriFiltrele(benzersizSecenekler, value, minAramaUzunlugu);
-  }, [secenekAra, asyncSecenekler, benzersizSecenekler, value, minAramaUzunlugu]);
+    return secenekleriFiltrele(benzersizSecenekler, value, minAramaUzunlugu, listeLimit);
+  }, [secenekAra, asyncSecenekler, benzersizSecenekler, value, minAramaUzunlugu, listeLimit]);
 
   useEffect(() => {
     setOdakIndex(0);
   }, [value, filtrelenmis.length]);
 
-  const oneriGoster =
-    acik && value.trim().length >= minAramaUzunlugu && (aramaYukleniyor || filtrelenmis.length > 0);
+  const aramaYeterli = value.trim().length >= minAramaUzunlugu;
+  const oneriGoster = acik && aramaYeterli && (aramaYukleniyor || filtrelenmis.length > 0);
 
   const konumGuncelle = useCallback(() => {
     if (!kapsayiciRef.current) return;
@@ -201,7 +214,7 @@ export function FormAramaSecim({
   };
 
   const alanAc = () => {
-    if (value.trim().length >= minAramaUzunlugu) setAcik(true);
+    if (aramaYeterli) setAcik(true);
   };
 
   return (
@@ -228,24 +241,24 @@ export function FormAramaSecim({
         onFocus={alanAc}
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown') {
-            if (filtrelenmis.length === 0) return;
             e.preventDefault();
-            if (!acik) {
+            if (!acik && aramaYeterli) {
               setAcik(true);
               setOdakIndex(0);
               return;
             }
+            if (filtrelenmis.length === 0) return;
             setOdakIndex((i) => Math.min(i + 1, filtrelenmis.length - 1));
             return;
           }
           if (e.key === 'ArrowUp') {
-            if (filtrelenmis.length === 0) return;
             e.preventDefault();
-            if (!acik) {
+            if (!acik && aramaYeterli) {
               setAcik(true);
               setOdakIndex(0);
               return;
             }
+            if (filtrelenmis.length === 0) return;
             setOdakIndex((i) => Math.max(i - 1, 0));
             return;
           }
@@ -271,22 +284,22 @@ export function FormAramaSecim({
                 <li className="ap-form-arama-secim-bos">Aranıyor…</li>
               ) : (
                 filtrelenmis.map((secenek, index) => {
-                  const seciliMi = secenek === value;
+                  const seciliMi = normalizeMetin(secenek) === normalizeMetin(value);
                   const odakMi = index === odakIndex;
                   return (
-                    <li key={secenek}>
+                    <li key={`${secenek}-${index}`}>
                       <button
                         type="button"
                         id={`${listeId}-oge-${index}`}
                         data-odak-index={index}
                         role="option"
                         aria-selected={seciliMi || odakMi}
-                        className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}${odakMi ? ' ap-form-acilir-secim-oge-odak' : ''}`}
+                        className={`ap-form-acilir-secim-oge${ogeIcerik ? ' ap-form-acilir-secim-oge-bayrakli' : ''}${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}${odakMi ? ' ap-form-acilir-secim-oge-odak' : ''}`}
                         onMouseDown={(e) => e.preventDefault()}
                         onMouseEnter={() => setOdakIndex(index)}
                         onClick={() => sec(secenek)}
                       >
-                        {secenek}
+                        {ogeIcerik ? ogeIcerik(secenek) : secenek}
                       </button>
                     </li>
                   );
