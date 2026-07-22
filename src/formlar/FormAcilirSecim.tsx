@@ -33,6 +33,8 @@ interface FormAcilirSecimProps {
   listeDikeyBosluk?: number;
   /** true ise liste portal yerine tetikleyicinin altında inline render edilir */
   listeInline?: boolean;
+  /** asagi: tetikleyicinin altina; yukari: tetikleyicinin ustune acilir */
+  listeYonu?: 'asagi' | 'yukari';
   /** Kapalıyken tetikleyicide gösterilecek metin (liste etiketinden farklı olabilir) */
   tusMetin?: string;
   disabled?: boolean;
@@ -44,7 +46,8 @@ const KENAR_BOSLUK = 8;
 function acilirListeGorunurKaydir(
   trigger: HTMLElement,
   liste: HTMLElement,
-  altBosluk = 16
+  kenarBosluk = 16,
+  yon: 'asagi' | 'yukari' = 'asagi'
 ) {
   let scrollParent: HTMLElement | null = trigger.parentElement;
   while (scrollParent) {
@@ -59,14 +62,26 @@ function acilirListeGorunurKaydir(
   }
 
   const listeRect = liste.getBoundingClientRect();
+
+  if (yon === 'yukari') {
+    const ustAsimi = KENAR_BOSLUK - listeRect.top;
+    if (ustAsimi <= 0) return;
+    if (scrollParent) {
+      scrollParent.scrollBy({ top: -ustAsimi, behavior: 'smooth' });
+      return;
+    }
+    window.scrollBy({ top: -ustAsimi, behavior: 'smooth' });
+    return;
+  }
+
   if (scrollParent) {
     const containerRect = scrollParent.getBoundingClientRect();
-    const delta = listeRect.bottom - containerRect.bottom + altBosluk;
+    const delta = listeRect.bottom - containerRect.bottom + kenarBosluk;
     if (delta > 0) scrollParent.scrollBy({ top: delta, behavior: 'smooth' });
     return;
   }
 
-  const delta = listeRect.bottom - window.innerHeight + altBosluk;
+  const delta = listeRect.bottom - window.innerHeight + kenarBosluk;
   if (delta > 0) window.scrollBy({ top: delta, behavior: 'smooth' });
 }
 
@@ -90,7 +105,8 @@ function listeKonumuHesapla(
   trigger: HTMLButtonElement,
   minGenislik = 0,
   listeAnchor: 'self' | 'cerceve' = 'cerceve',
-  dikeyBosluk = 4
+  dikeyBosluk = 4,
+  yon: 'asagi' | 'yukari' = 'asagi'
 ) {
   const rect = anchorBul(trigger, listeAnchor).getBoundingClientRect();
   const genislik = listeAnchor === 'self' ? rect.width : Math.max(rect.width, minGenislik);
@@ -101,10 +117,20 @@ function listeKonumuHesapla(
   }
   if (left < KENAR_BOSLUK) left = KENAR_BOSLUK;
 
+  if (yon === 'yukari') {
+    return {
+      bottom: window.innerHeight - rect.top + dikeyBosluk,
+      left,
+      width: genislik,
+      maxHeight: Math.max(120, rect.top - KENAR_BOSLUK - dikeyBosluk),
+      usteAc: true as const,
+    };
+  }
+
   const ust = rect.bottom + dikeyBosluk;
   const maxHeight = Math.max(120, window.innerHeight - ust - KENAR_BOSLUK);
 
-  return { top: ust, left, width: genislik, maxHeight };
+  return { top: ust, left, width: genislik, maxHeight, usteAc: false as const };
 }
 
 export function FormAcilirSecim({
@@ -117,6 +143,7 @@ export function FormAcilirSecim({
   listeAnchor = 'cerceve',
   listeDikeyBosluk = 4,
   listeInline = false,
+  listeYonu = 'asagi',
   tusMetin,
   disabled = false,
   'aria-label': ariaLabel,
@@ -138,21 +165,22 @@ export function FormAcilirSecim({
 
   const konumGuncelle = useCallback(() => {
     if (!tusRef.current || inlineListe) return;
-    const { top, left, width, maxHeight } = listeKonumuHesapla(
+    const sonuc = listeKonumuHesapla(
       tusRef.current,
       listeMinGenislik,
       listeAnchor,
-      listeDikeyBosluk
+      listeDikeyBosluk,
+      listeYonu
     );
     setListeStil({
       position: 'fixed',
-      top,
-      left,
-      width,
-      maxHeight,
+      left: sonuc.left,
+      width: sonuc.width,
+      maxHeight: sonuc.maxHeight,
       zIndex: 10300,
+      ...(sonuc.usteAc ? { bottom: sonuc.bottom } : { top: sonuc.top }),
     });
-  }, [inlineListe, listeMinGenislik, listeAnchor, listeDikeyBosluk]);
+  }, [inlineListe, listeMinGenislik, listeAnchor, listeDikeyBosluk, listeYonu]);
 
   const sekmeSonrasi = useCallback(() => {
     if (!acik || inlineListe) return;
@@ -177,11 +205,11 @@ export function FormAcilirSecim({
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (tusRef.current && listeRef.current) {
-          acilirListeGorunurKaydir(tusRef.current, listeRef.current);
+          acilirListeGorunurKaydir(tusRef.current, listeRef.current, 16, listeYonu);
         }
       });
     });
-  }, [acik, inlineListe]);
+  }, [acik, inlineListe, listeYonu]);
 
   useEffect(() => {
     if (!acik) return;
@@ -261,7 +289,7 @@ export function FormAcilirSecim({
     <ul
       ref={listeRef}
       id={listeId}
-      className={`ap-form-acilir-secim-liste${listeSinifi ? ` ${listeSinifi}` : ''}${inlineListe ? ' ap-form-acilir-secim-liste--inline' : ''}`.trim()}
+      className={`ap-form-acilir-secim-liste${listeSinifi ? ` ${listeSinifi}` : ''}${inlineListe ? ' ap-form-acilir-secim-liste--inline' : ''}${listeYonu === 'yukari' ? ' ap-form-acilir-secim-liste--uste' : ''}`.trim()}
       role="listbox"
       aria-label={ariaLabel}
       style={inlineListe ? undefined : listeStil}

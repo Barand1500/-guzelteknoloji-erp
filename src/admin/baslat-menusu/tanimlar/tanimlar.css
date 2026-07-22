@@ -3122,7 +3122,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .stok-yb-outlined-input--uc-nokta {
-  padding-left: 0.45rem !important;
+  padding-left: 0.55rem !important;
 }
 
 .stok-yb-fiyat-uc-nokta--ic {
@@ -3130,11 +3130,11 @@ button.ap-tanimlar-panel-arka {
   align-self: stretch;
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  width: 1.75rem;
-  min-width: 1.75rem;
+  justify-content: center;
+  width: 2.65rem;
+  min-width: 2.65rem;
   margin: 0;
-  padding: 0 0 0 0.42rem;
+  padding: 0;
   border: 0;
   border-right: 1px solid var(--ap-border);
   border-radius: 0;
@@ -3146,6 +3146,8 @@ button.ap-tanimlar-panel-arka {
 .stok-yb-fiyat-uc-nokta--ic svg {
   display: block;
   flex-shrink: 0;
+  width: 18px;
+  height: 18px;
 }
 
 .stok-yb-fiyat-uc-nokta--ic:hover {
@@ -3158,9 +3160,24 @@ button.ap-tanimlar-panel-arka {
   overflow: hidden;
 }
 
+.cari-outlined-field:focus-within .stok-yb-barkod-cerceve {
+  border-color: var(--ap-accent);
+  box-shadow: none;
+}
+
+.cari-outlined-field:focus-within .stok-yb-barkod-cerceve::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px var(--ap-accent);
+  z-index: 3;
+}
+
 .stok-yb-barkod-tip.ap-form-acilir-secim-liste-anchor {
   position: relative;
-  z-index: 1;
+  z-index: 0;
 }
 
 .stok-yb-barkod-tip.ap-form-acilir-secim-liste-anchor:has(.ap-form-acilir-secim-tus[aria-expanded='true']) {
@@ -3180,11 +3197,11 @@ button.ap-tanimlar-panel-arka {
   align-self: stretch;
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  width: 1.75rem;
-  min-width: 1.75rem;
+  justify-content: center;
+  width: 2.65rem;
+  min-width: 2.65rem;
   margin: 0;
-  padding: 0 0 0 0.38rem;
+  padding: 0;
   border: 0;
   border-right: 1px solid var(--ap-border);
   border-radius: 0;
@@ -3196,6 +3213,8 @@ button.ap-tanimlar-panel-arka {
 .stok-yb-barkod-ikon svg {
   display: block;
   flex-shrink: 0;
+  width: 18px;
+  height: 18px;
 }
 
 .stok-yb-barkod-ikon:hover {
@@ -3205,33 +3224,53 @@ button.ap-tanimlar-panel-arka {
 .stok-yb-barkod-input {
   flex: 1 1 auto;
   min-width: 0;
-  padding-left: 0.5rem !important;
-  padding-right: 0.35rem !important;
+  padding-left: 0.45rem !important;
+  padding-right: 0.3rem !important;
 }
 
 .stok-yb-barkod-tip {
-  flex: 0 0 4.5rem;
-  width: 4.5rem;
-  max-width: 4.5rem;
+  flex: 0 0 4.85rem;
+  width: 4.85rem;
+  max-width: 4.85rem;
   align-self: stretch;
   display: flex;
   align-items: stretch;
   justify-content: flex-end;
   margin-left: auto;
-  border-left: 1px solid var(--ap-border);
+  position: relative;
+  z-index: 0;
   background: color-mix(in srgb, var(--ap-text) 4%, var(--ap-input-bg));
   padding: 0;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus {
   width: 100%;
   height: 100%;
-  border: 0;
-  background: transparent;
-  padding: 0.35rem 1.15rem 0.35rem 0.3rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0.32rem 1.05rem 0.32rem 0.25rem !important;
   justify-content: flex-end !important;
   min-height: 0;
-  box-shadow: none;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus:hover,
+.stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus:focus,
+.stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus:focus-visible,
+.stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus[aria-expanded='true'],
+.cari-outlined-field:focus-within .stok-yb-barkod-tip-secim.ap-form-acilir-secim-tus {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
 }
 
 .stok-yb-barkod-tip-secim .ap-form-acilir-secim-tus-metin {
@@ -3240,7 +3279,7 @@ button.ap-tanimlar-panel-arka {
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: right;
-  font-size: 0.64rem;
+  font-size: 0.66rem;
   font-weight: 650;
   letter-spacing: 0;
   color: var(--ap-text);
@@ -3248,9 +3287,9 @@ button.ap-tanimlar-panel-arka {
 
 .stok-yb-barkod-tip-secim .ap-form-acilir-secim-ok {
   position: absolute;
-  right: 0.28rem;
+  right: 0.32rem;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) rotate(180deg);
   width: auto;
   height: auto;
   font-size: 0.78rem;
@@ -3267,9 +3306,9 @@ button.ap-tanimlar-panel-arka {
   border-radius: 0.5rem;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
   box-shadow:
-    0 6px 18px color-mix(in srgb, var(--ap-heading) 20%, transparent),
-    0 1px 0 color-mix(in srgb, var(--ap-border) 80%, transparent);
-  padding: 0.3rem 0.28rem 0.6rem;
+    0 -4px 18px color-mix(in srgb, var(--ap-heading) 16%, transparent),
+    0 6px 18px color-mix(in srgb, var(--ap-heading) 12%, transparent);
+  padding: 0.6rem 0.28rem 0.3rem;
   display: flex;
   flex-direction: column;
   gap: 0.12rem;

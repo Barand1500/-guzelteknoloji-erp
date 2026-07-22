@@ -239,8 +239,22 @@ export function CariOutlinedBarkod({
   const [focused, setFocused] = useState(false);
   const tipSecenekleri = STOK_BARKOD_TIP_SECENEKLERI.map((s) => ({ value: s.deger, label: s.etiket }));
 
+  const alanOdakIci = (hedef: EventTarget | null) => {
+    const kok = hedef as HTMLElement | null;
+    return Boolean(kok?.closest?.('.stok-yb-barkod-tip-liste'));
+  };
+
   return (
-    <div className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}>
+    <div
+      className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}`.trim()}
+      onFocusCapture={() => setFocused(true)}
+      onBlurCapture={(e) => {
+        const sonraki = e.relatedTarget as Node | null;
+        if (sonraki && e.currentTarget.contains(sonraki)) return;
+        if (alanOdakIci(sonraki)) return;
+        setFocused(false);
+      }}
+    >
       <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
       <div className="cari-outlined-cerceve stok-yb-barkod-cerceve">
         <button
@@ -265,8 +279,6 @@ export function CariOutlinedBarkod({
           value={deger}
           inputMode="numeric"
           placeholder={focused ? 'Barkod yazınız' : undefined}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           onChange={(e) => onBarkodDegistir(barkodFiltrele(e.target.value))}
           aria-label={etiket}
         />
@@ -279,6 +291,7 @@ export function CariOutlinedBarkod({
             className="stok-yb-barkod-tip-secim"
             listeSinifi="stok-yb-barkod-tip-liste"
             listeAnchor="self"
+            listeYonu="yukari"
             listeDikeyBosluk={4}
           />
         </div>
