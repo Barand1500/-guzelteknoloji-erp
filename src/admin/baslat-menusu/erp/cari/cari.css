@@ -227,20 +227,25 @@
 .cari-fiyat-tanim-grup .cari-outlined-cerceve--icerik {
   padding: 0;
   overflow: hidden;
+  min-height: 2.55rem;
 }
 
 .cari-fiyat-tanim-grup .cari-outlined-icerik {
   display: block;
   width: 100%;
+  height: 100%;
+  min-height: 2.55rem;
   padding: 0;
 }
 
 .cari-fiyat-tanim-grup-icerik {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) auto minmax(0, 0.7fr);
+  grid-template-columns: minmax(0, 1.35fr) auto minmax(0, 1fr);
   align-items: stretch;
   min-width: 0;
   width: 100%;
+  min-height: 2.55rem;
+  height: 100%;
 }
 
 .cari-fiyat-tanim-grup-ayirici {
@@ -254,12 +259,15 @@
   min-width: 0;
   width: 100%;
   display: flex;
+  align-items: stretch;
 }
 
 .cari-fiyat-tanim-grup-hucre .ap-form-acilir-secim {
   flex: 1 1 auto;
   width: 100%;
   min-width: 0;
+  display: flex;
+  align-items: stretch;
 }
 
 .cari-fiyat-tanim-grup .cari-fiyat-tanim-grup-tanim,
@@ -274,18 +282,20 @@
   letter-spacing: 0.01em;
 }
 
+/* E-Arşiv Teslim Şekli (cari-outlined-kucuk) ile aynı yükseklik */
 .cari-fiyat-tanim-grup .cari-outlined-cerceve {
-  min-height: 2.35rem;
+  min-height: 2.55rem;
   padding: 0;
   box-sizing: border-box;
 }
 
 .cari-fiyat-tanim-grup .cari-outlined-acilir-tus,
 .cari-fiyat-tanim-grup .ap-form-acilir-secim-tus {
-  min-height: 2rem;
+  min-height: 2.2rem;
+  height: 100%;
   width: 100%;
-  padding: 0.28rem 0.28rem;
-  font-size: 0.75rem;
+  padding: 0.35rem 0.28rem;
+  font-size: 0.8125rem;
   border: none;
   background: transparent;
   box-shadow: none;
@@ -303,6 +313,10 @@
 .cari-fiyat-tanim-grup .ap-form-acilir-secim-tus-metin {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cari-fiyat-tanim-grup-liste .ap-form-acilir-secim-oge {
   white-space: nowrap;
 }
 
