@@ -15,6 +15,8 @@ function kisiSilMetni(kisi: CariIletisimKisi): string {
 
 export function CariIletisimBolumu({
   kisiler,
+  efatura = false,
+  earsiv = false,
   efaturaAlias,
   eirsaliyeAlias,
   varsayilanAdres,
@@ -26,6 +28,8 @@ export function CariIletisimBolumu({
   onEirsaliyeAliasChange,
 }: {
   kisiler: CariIletisimKisi[];
+  efatura?: boolean;
+  earsiv?: boolean;
   efaturaAlias: string;
   eirsaliyeAlias: string;
   varsayilanAdres: string;
@@ -139,6 +143,7 @@ export function CariIletisimBolumu({
                   <CariOutlinedEposta
                     deger={kisi.eposta}
                     disabled={disabled}
+                    dogrulaAktif
                     onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
                   />
                   <CariOutlinedGirdi
@@ -178,24 +183,28 @@ export function CariIletisimBolumu({
                     disabled={disabled}
                     onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
                   />
-                  {index === 0 ? (
+                  {index === 0 && (efatura || earsiv) ? (
                     <>
-                      <CariOutlinedGirdi
-                        etiket="E-Fatura Alias"
-                        deger={efaturaAlias}
-                        maxLength={200}
-                        odakPlaceholder="Alias giriniz"
-                        disabled={disabled}
-                        onChange={onEfaturaAliasChange}
-                      />
-                      <CariOutlinedGirdi
-                        etiket="E-İrsaliye Alias"
-                        deger={eirsaliyeAlias}
-                        maxLength={200}
-                        odakPlaceholder="Alias giriniz"
-                        disabled={disabled}
-                        onChange={onEirsaliyeAliasChange}
-                      />
+                      {efatura ? (
+                        <CariOutlinedGirdi
+                          etiket="E-Fatura Alias"
+                          deger={efaturaAlias}
+                          maxLength={200}
+                          odakPlaceholder="Alias giriniz"
+                          disabled={disabled}
+                          onChange={onEfaturaAliasChange}
+                        />
+                      ) : null}
+                      {earsiv ? (
+                        <CariOutlinedGirdi
+                          etiket="E-İrsaliye Alias"
+                          deger={eirsaliyeAlias}
+                          maxLength={200}
+                          odakPlaceholder="Alias giriniz"
+                          disabled={disabled}
+                          onChange={onEirsaliyeAliasChange}
+                        />
+                      ) : null}
                     </>
                   ) : null}
                 </div>

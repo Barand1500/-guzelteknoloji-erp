@@ -181,6 +181,39 @@
   width: 100%;
 }
 
+/* Alias satırı — üstteki 4’lü ile aynı sütun genişlikleri */
+.cari-alias-fatura-satir {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem 1.05rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.cari-alias-fatura-satir > * {
+  min-width: 0;
+  width: 100%;
+}
+
+.cari-alias-efatura {
+  grid-column: 1;
+}
+
+.cari-alias-eirsaliye {
+  grid-column: 2;
+}
+
+/* E-İrsaliye Hayır: Fatura Tipi 2. sütunda (boşluğu doldurur) */
+.cari-alias-fatura-tipi {
+  grid-column: 2;
+}
+
+/* E-İrsaliye Evet: Fatura Tipi 3. sütuna kayar */
+.cari-alias-fatura-satir--ikili .cari-alias-fatura-tipi {
+  grid-column: 3;
+}
+
 /* Fiyat Tanımı yüksekliği E-Fatura / E-İrsaliye / Teslim ile aynı */
 .cari-dortlu-satir .cari-arama-acilir .cari-outlined-cerceve,
 .cari-dortlu-satir .cari-arama-acilir-cerceve {
@@ -228,8 +261,22 @@
 }
 
 @media (max-width: 980px) {
-  .cari-dortlu-satir {
+  .cari-dortlu-satir,
+  .cari-alias-fatura-satir {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cari-alias-efatura {
+    grid-column: 1;
+  }
+
+  .cari-alias-eirsaliye {
+    grid-column: 2;
+  }
+
+  .cari-alias-fatura-tipi,
+  .cari-alias-fatura-satir--ikili .cari-alias-fatura-tipi {
+    grid-column: 1 / -1;
   }
 }
 
@@ -239,8 +286,16 @@
   .cari-web-efatura-satir,
   .cari-efatura-kucuk-grup,
   .cari-efatura-kucuk-grup--tek,
-  .cari-dortlu-satir {
+  .cari-dortlu-satir,
+  .cari-alias-fatura-satir {
     grid-template-columns: 1fr;
+  }
+
+  .cari-alias-efatura,
+  .cari-alias-eirsaliye,
+  .cari-alias-fatura-tipi,
+  .cari-alias-fatura-satir--ikili .cari-alias-fatura-tipi {
+    grid-column: 1;
   }
 }
 
@@ -933,6 +988,77 @@
   border-color: var(--ap-accent);
 }
 
+.cari-adres-cek:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.cari-adres-cek--basarili {
+  border-color: color-mix(in srgb, #16a34a 55%, var(--ap-border));
+  background: color-mix(in srgb, #16a34a 14%, var(--ap-surface));
+  color: #15803d;
+}
+
+.cari-adres-cek--basarili:hover {
+  background: color-mix(in srgb, #16a34a 20%, var(--ap-surface));
+  border-color: #16a34a;
+}
+
+/* GSM / E-Posta doğrulama — etiket / alan geçiş animasyonu */
+.cari-dogrula-alan .cari-outlined-etiket-metin,
+.cari-dogrula-alan .cari-dogrula-alan-girdi {
+  transition:
+    opacity 0.18s ease,
+    transform 0.22s ease;
+}
+
+.cari-dogrula-alan--gecis .cari-outlined-etiket-metin,
+.cari-dogrula-alan--gecis .cari-dogrula-alan-girdi {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.cari-dogrula-alan--kod .cari-outlined-cerceve {
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ap-accent) 16%, transparent);
+  animation: cari-dogrula-kod-nabiz 1.1s ease-in-out 1;
+}
+
+.cari-dogrula-alan--kod .cari-outlined-etiket-metin {
+  color: var(--ap-accent);
+}
+
+.cari-dogrula-alan--basari .cari-outlined-cerceve {
+  animation: cari-dogrula-basari-parlama 0.85s ease;
+}
+
+@keyframes cari-dogrula-kod-nabiz {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ap-accent) 0%, transparent);
+  }
+  40% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ap-accent) 22%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ap-accent) 16%, transparent);
+  }
+}
+
+@keyframes cari-dogrula-basari-parlama {
+  0% {
+    border-color: var(--ap-border);
+    box-shadow: 0 0 0 0 color-mix(in srgb, #16a34a 0%, transparent);
+  }
+  35% {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 4px color-mix(in srgb, #16a34a 22%, transparent);
+  }
+  100% {
+    border-color: var(--ap-border);
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
 /* İletişim kartları — etiket zemini kart ile aynı (gri kutu görünmez) */
 
 .cari-iletisim-kart .cari-outlined-etiket,
@@ -1446,4 +1572,141 @@
   font-size: 0.82rem;
   color: var(--ap-text-muted);
 }
+
+/* ——— Telefon ülke kodu ——— */
+
+.cari-telefon-cerceve {
+  gap: 0.25rem;
+  padding-left: 0.35rem !important;
+}
+
+.cari-telefon-ulke {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.2rem 0.35rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
+  color: var(--ap-heading);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cari-telefon-ulke:hover:not(:disabled),
+.cari-telefon-ulke[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
+  color: var(--ap-accent);
+}
+
+.cari-telefon-ulke:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.cari-telefon-ulke-bayrak {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.cari-telefon-ulke-kod {
+  letter-spacing: 0.01em;
+}
+
+.cari-telefon-ulke-ok {
+  font-size: 0.55rem;
+  opacity: 0.75;
+  color: var(--ap-accent);
+}
+
+.cari-telefon-ulke-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem;
+  background: var(--ap-surface);
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+  border-radius: 0.55rem;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--ap-heading) 14%, transparent);
+}
+
+.cari-telefon-ulke-ara {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.4rem;
+  background: var(--ap-input-bg, var(--ap-surface));
+  color: var(--ap-text);
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.cari-telefon-ulke-ara:focus {
+  border-color: var(--ap-accent);
+}
+
+.cari-telefon-ulke-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0.1rem;
+  overflow: auto;
+  max-height: 12.5rem;
+}
+
+.cari-telefon-ulke-bos {
+  padding: 0.55rem 0.45rem;
+  font-size: 0.78rem;
+  color: var(--ap-text-muted);
+}
+
+.cari-telefon-ulke-oge {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--ap-heading);
+  text-align: left;
+  padding: 0.4rem 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cari-telefon-ulke-oge:hover,
+.cari-telefon-ulke-oge--secili {
+  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
+  color: var(--ap-accent);
+}
+
+.cari-telefon-ulke-oge-bayrak {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.cari-telefon-ulke-oge-ad {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cari-telefon-ulke-oge-dial {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
 
