@@ -110,7 +110,6 @@ export function KayitlarSayfasi() {
   const [gozAcik, setGozAcik] = useState(false);
   const [yatayKart, setYatayKart] = useState(false);
   const [modalHedef, setModalHedef] = useState<TanimModalHedef | null>(null);
-  const [sonEkleTipi, setSonEkleTipi] = useState<KayitTipi>('firma');
   const hoverDuzenleRef = useRef<DuzenleHoverHedef | null>(null);
 
   const kayitHoverAyarla = useCallback((hedef: DuzenleHoverHedef | null) => {
@@ -186,7 +185,6 @@ export function KayitlarSayfasi() {
         hataBildir('Yeni kayıt ekleme yetkiniz yok');
         return;
       }
-      setSonEkleTipi(tip);
       if (tip === 'firma') {
         setModalHedef({ tip: 'firma', mod: 'ekle' });
         return;
@@ -230,13 +228,14 @@ export function KayitlarSayfasi() {
     [yukle, seciliFirmaId]
   );
 
+  const aksiyonEkleTipi = useMemo((): KayitTipi => {
+    if (!seciliFirmaId) return 'firma';
+    return icSekme === 'donemler' ? 'donem' : 'sube';
+  }, [seciliFirmaId, icSekme]);
+
   const aksiyonEkle = useCallback(() => {
-    if (sonEkleTipi === 'depo' || sonEkleTipi === 'kasa') {
-      ekleAc(icSekme === 'donemler' ? 'donem' : 'sube');
-      return;
-    }
-    ekleAc(sonEkleTipi);
-  }, [ekleAc, sonEkleTipi, icSekme]);
+    ekleAc(aksiyonEkleTipi);
+  }, [ekleAc, aksiyonEkleTipi]);
 
   useModulAksiyonlari(
     {
@@ -244,12 +243,12 @@ export function KayitlarSayfasi() {
       sil: undefined,
     },
     {
-      ekle: eklemeVar && (sonEkleTipi === 'firma' || !!seciliFirmaId),
+      ekle: eklemeVar && (aksiyonEkleTipi === 'firma' || !!seciliFirmaId),
       sil: false,
     },
     false,
     {
-      ekle: `Yeni ${TIP_ETIKET[sonEkleTipi === 'depo' || sonEkleTipi === 'kasa' ? (icSekme === 'donemler' ? 'donem' : 'sube') : sonEkleTipi]}`,
+      ekle: `Yeni ${TIP_ETIKET[aksiyonEkleTipi]}`,
     }
   );
 

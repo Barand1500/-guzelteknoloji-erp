@@ -48,10 +48,10 @@ function subeFormDogrula(form: SubeFormDegeri): string | null {
   if (!kodGecerliMi(form.subeKodu)) return 'Şube kodu zorunludur (en fazla 20 harf/rakam)';
   if (!adGecerliMi(form.subeAdi)) return 'Şube adı zorunludur';
   if (!postaKoduGecerliMi(form.postaKodu)) return 'Posta kodu 5 haneli olmalıdır';
-  if (!ebelgeSeriGecerliMi(form.efaturaSeri)) return 'e-Fatura seri 3 karakter olmalıdır (A-Z, 0-9)';
-  if (!ebelgeSeriGecerliMi(form.earsivSeri)) return 'e-Arşiv seri 3 karakter olmalıdır (A-Z, 0-9)';
-  if (!ebelgeSeriGecerliMi(form.eirsaliyeSeri)) return 'e-İrsaliye seri 3 karakter olmalıdır (A-Z, 0-9)';
-  if (!mersisGecerliMi(form.mersis)) return 'MERSİS numarası 16 haneli olmalıdır';
+  if (!ebelgeSeriGecerliMi(form.efaturaSeri)) return 'e-Fatura seri 3 harf olmalıdır (A-Z)';
+  if (!ebelgeSeriGecerliMi(form.earsivSeri)) return 'e-Arşiv seri 3 harf olmalıdır (A-Z)';
+  if (!ebelgeSeriGecerliMi(form.eirsaliyeSeri)) return 'e-İrsaliye seri 3 harf olmalıdır (A-Z)';
+  if (!mersisGecerliMi(form.mersis)) return 'MERSİS numarası 16 haneli rakam olmalıdır';
   return null;
 }
 
@@ -65,9 +65,9 @@ function subeAdimDogrula(adim: number, form: SubeFormDegeri, firmaId: string): s
     return 'Posta kodu 5 haneli olmalıdır';
   }
   if (adim === 2) {
-    if (!ebelgeSeriGecerliMi(form.efaturaSeri)) return 'E-Fatura seri 3 karakter olmalıdır (A-Z, 0-9)';
-    if (!ebelgeSeriGecerliMi(form.earsivSeri)) return 'E-Arşiv seri 3 karakter olmalıdır (A-Z, 0-9)';
-    if (!ebelgeSeriGecerliMi(form.eirsaliyeSeri)) return 'E-İrsaliye seri 3 karakter olmalıdır (A-Z, 0-9)';
+    if (!ebelgeSeriGecerliMi(form.efaturaSeri)) return 'E-Fatura seri 3 harf olmalıdır (A-Z)';
+    if (!ebelgeSeriGecerliMi(form.earsivSeri)) return 'E-Arşiv seri 3 harf olmalıdır (A-Z)';
+    if (!ebelgeSeriGecerliMi(form.eirsaliyeSeri)) return 'E-İrsaliye seri 3 harf olmalıdır (A-Z)';
   }
   if (adim === 3 && !mersisGecerliMi(form.mersis)) {
     return 'MERSİS numarası 16 haneli olmalıdır';

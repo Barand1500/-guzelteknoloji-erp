@@ -113,14 +113,14 @@ export function SubelerPaneli({
             onClick={onSubeEkle}
             title={firmaPasif ? 'Pasif firmaya şube eklenemez' : 'Yeni şube'}
           >
-            + Şube
+            Yeni Şube
           </button>
         ) : null}
       </div>
 
       {filtreli.length === 0 ? (
         <p className="ap-tanimlar-firma-bos">
-          {subeler.length === 0 ? 'Bu firmada şube yok — + Şube ile ekleyin' : 'Şube bulunamadı'}
+          {subeler.length === 0 ? 'Bu firmada şube yok — Yeni Şube ile ekleyin' : 'Şube bulunamadı'}
         </p>
       ) : (
         <ul className={`ap-tanimlar-sube-liste${yatayKart ? ' ap-tanimlar-sube-liste--yatay' : ''}`}>

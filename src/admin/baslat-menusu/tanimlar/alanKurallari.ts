@@ -29,9 +29,13 @@ export const ALAN_KURALLARI: Record<AlanKuralTipi, AlanKurali> = {
   serbestMetin: { max: 255 },
 };
 
-/** Kod / e-belge: ASCII + Türkçe harfler; İ/ı/i doğru büyük harfe döner */
+/** Kod: ASCII + Türkçe harfler + rakam; İ/ı/i doğru büyük harfe döner */
 const HARF_RAKAM =
   /[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ]/g;
+
+/** e-belge seri: yalnızca harf (rakam yok) */
+const SADECE_HARF =
+  /[^a-zA-ZçğıöşüÇĞİÖŞÜ]/g;
 
 export function alanDegeriniFiltrele(tip: AlanKuralTipi, ham: string): string {
   const { max } = ALAN_KURALLARI[tip];
@@ -40,8 +44,9 @@ export function alanDegeriniFiltrele(tip: AlanKuralTipi, ham: string): string {
     case 'postaKodu':
     case 'mersis':
       return ham.replace(/\D/g, '').slice(0, max);
-    case 'kod':
     case 'ebelgeSeri':
+      return ham.replace(SADECE_HARF, '').toLocaleUpperCase('tr').slice(0, max);
+    case 'kod':
     case 'ticaretSicil':
       return ham.replace(HARF_RAKAM, '').toLocaleUpperCase('tr').slice(0, max);
     case 'stokKod':
@@ -77,7 +82,7 @@ export function postaKoduGecerliMi(deger: string): boolean {
 
 export function ebelgeSeriGecerliMi(deger: string): boolean {
   const v = deger.trim().toLocaleUpperCase('tr');
-  return v === '' || /^[A-Z0-9ÇĞİÖŞÜ]{3}$/.test(v);
+  return v === '' || /^[A-ZÇĞİÖŞÜ]{3}$/.test(v);
 }
 
 export function kodGecerliMi(deger: string): boolean {

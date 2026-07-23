@@ -2677,7 +2677,7 @@ button.ap-tanimlar-panel-arka {
 
 .stok-kart-tarih-bilgi-panel {
   position: absolute;
-  top: calc(100% + 0.4rem);
+  top: calc(100% + 0.55rem);
   right: 0;
   z-index: 40;
   min-width: 11.5rem;
@@ -2692,6 +2692,19 @@ button.ap-tanimlar-panel-arka {
   gap: 0.45rem;
 }
 
+/* Ok: border ùùgeni ù renk border-color / accent */
+.stok-kart-tarih-bilgi-panel::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 0.7rem;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 6px 6px;
+  border-color: transparent transparent var(--ap-accent) transparent;
+}
+
 .stok-kart-tarih-bilgi-satir {
   display: flex;
   flex-direction: column;
@@ -2703,7 +2716,6 @@ button.ap-tanimlar-panel-arka {
   margin-top: 0.1rem;
   padding-top: 0.5rem;
   border-top: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
-  /* kenarlara tam de?mesin */
   margin-left: 0.15rem;
   margin-right: 0.15rem;
   padding-left: 0;
@@ -2713,8 +2725,8 @@ button.ap-tanimlar-panel-arka {
 .stok-kart-tarih-bilgi-satir em {
   font-style: normal;
   font-size: 0.72rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 650;
+  color: var(--ap-muted, #94a3b8);
   letter-spacing: -0.01em;
 }
 
@@ -2726,7 +2738,7 @@ button.ap-tanimlar-panel-arka {
   word-break: break-word;
 }
 
-/* Eski sat?r stili ? art?k kullan?lm?yor; geriye dÔøΩnÔøΩk temiz b?rak?ld? */
+/* Eski sat?r stili ? art?k kullan?lm?yor; geriye dùnùk temiz b?rak?ld? */
 .stok-karti-tarih-bilgi {
   display: none;
 }
@@ -7353,7 +7365,7 @@ button.ap-tanimlar-panel-arka {
 
 /* ??? Kay?tlar: ?st bar + grid ??? */
 
-/* ‚Äî‚Äî‚Äî Kayƒ±tlar: hiyerar≈üi (firma ara ‚Üí ≈üube/d√∂nem) ‚Äî‚Äî‚Äî */
+/* ùùù Kay?tlar: hiyerar?i (firma ara ? ?ube/dùnem) ùùù */
 
 .ap-tanimlar-kayit-sayfa {
   display: flex;
@@ -8016,29 +8028,61 @@ button.ap-tanimlar-panel-arka {
   padding-right: 0.15rem;
 }
 
+.ap-tanimlar-modal-govde--tek {
+  max-height: none;
+  overflow: visible;
+  gap: 0.75rem;
+  margin: 0.2rem 0 0.85rem;
+  padding: 0 0.15rem;
+}
+
+.ap-tanimlar-modal-adres {
+  grid-column: 1 / -1;
+}
+
+.ap-tanimlar-modal-ebelge-satir {
+  grid-column: 1 / -1;
+}
+
+.ap-tanimlar-modal-govde--tek .ap-tanimlar-adres-metin {
+  min-height: 3.2rem;
+  max-height: 4.2rem;
+  height: 3.6rem;
+}
+
+.ap-tanimlar-kayit-kart {
+  padding: 1rem 1.15rem 0 !important;
+}
+
+.ap-tanimlar-kayit-kart .ap-tanimlar-modal-footer {
+  margin-left: -1.15rem;
+  margin-right: -1.15rem;
+}
+
 .ap-tanimlar-modal-baglam {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.35rem 0.55rem;
-  padding: 0.45rem 0.65rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 22%, var(--ap-border));
-  background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
+  gap: 0.2rem 0.4rem;
+  padding: 0.22rem 0.45rem;
+  border-radius: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
+  background: color-mix(in srgb, var(--ap-hover) 35%, var(--ap-surface));
 }
 
 .ap-tanimlar-modal-baglam-etiket {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.58rem;
+  font-weight: 650;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   color: var(--ap-accent);
 }
 
 .ap-tanimlar-modal-baglam-metin {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--ap-heading);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ap-muted);
+  line-height: 1.25;
 }
 
 .ap-tanimlar-modal-hata {
@@ -8049,20 +8093,36 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-modal-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem;
-  width: 100%;
+  gap: 0.65rem;
+  width: auto;
+  margin-top: 0.35rem;
+  padding: 0.75rem 1.15rem;
+  border-top: 1px solid var(--ap-border);
+  background: color-mix(in srgb, var(--ap-hover) 45%, var(--ap-surface));
+  border-radius: 0 0 calc(var(--cerceve-yaricap, 1.1rem) - var(--cerceve-kalinlik, 4px))
+    calc(var(--cerceve-yaricap, 1.1rem) - var(--cerceve-kalinlik, 4px));
 }
 
 .ap-tanimlar-modal-iptal,
 .ap-tanimlar-modal-kaydet {
+  appearance: none;
   margin: 0;
-  padding: 0.45rem 0.95rem;
-  border-radius: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 0.625rem;
   font: inherit;
-  font-size: 0.84rem;
-  font-weight: 650;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.ap-tanimlar-modal-kisayol {
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.72;
 }
 
 .ap-tanimlar-modal-iptal {
@@ -8071,16 +8131,32 @@ button.ap-tanimlar-panel-arka {
   color: var(--ap-heading);
 }
 
+.ap-tanimlar-modal-iptal:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-hover) 70%, var(--ap-surface));
+}
+
 .ap-tanimlar-modal-kaydet {
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
-  background: var(--ap-accent);
+  border: none;
   color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent),
+    color-mix(in srgb, var(--ap-accent) 75%, #000)
+  );
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ap-accent) 32%, transparent);
+}
+
+.ap-tanimlar-modal-kaydet:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ap-accent) 42%, transparent);
 }
 
 .ap-tanimlar-modal-kaydet:disabled,
 .ap-tanimlar-modal-iptal:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .ap-tanimlar-durum-rozet {

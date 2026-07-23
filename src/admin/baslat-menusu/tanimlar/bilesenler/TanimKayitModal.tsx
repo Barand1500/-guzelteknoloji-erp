@@ -22,8 +22,6 @@ import {
 } from '@/admin/baslat-menusu/tanimlar/api';
 import { adresMetniniOku } from '@/admin/baslat-menusu/tanimlar/araclar/adresYardimci';
 import { OrtakAdresFormu } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakAdresFormu';
-import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
-import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
 import { TanimGirdi } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimGirdi';
 import { VergiDairesiSecici } from '@/admin/baslat-menusu/tanimlar/bilesenler/VergiDairesiSecici';
 import {
@@ -45,11 +43,19 @@ import {
   type SubeFormDegeri,
   type TanimSekmeId,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
-import { SistemModal } from '@/admin/ortak/SistemModal';
+import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
+import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
+import {
+  sekmePortalHedefi,
+  sekmePortaliGizliMi,
+  useSekmeModalGovdeKilidi,
+} from '@/araclar/sekmePortal';
 import { useAdminLogMesaji, useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
+import { createPortal } from 'react-dom';
 
 export type TanimModalHedef =
   | { tip: 'firma'; mod: 'ekle' }
@@ -275,10 +281,10 @@ export function TanimKayitModal({
         if (!kodGecerliMi(subeForm.subeKodu)) throw new Error('Şube kodu zorunludur (en fazla 20 harf/rakam)');
         if (!adGecerliMi(subeForm.subeAdi)) throw new Error('Şube adı zorunludur');
         if (!postaKoduGecerliMi(subeForm.postaKodu)) throw new Error('Posta kodu 5 haneli olmalıdır');
-        if (!ebelgeSeriGecerliMi(subeForm.efaturaSeri)) throw new Error('e-Fatura seri 3 karakter olmalıdır');
-        if (!ebelgeSeriGecerliMi(subeForm.earsivSeri)) throw new Error('e-Arşiv seri 3 karakter olmalıdır');
-        if (!ebelgeSeriGecerliMi(subeForm.eirsaliyeSeri)) throw new Error('e-İrsaliye seri 3 karakter olmalıdır');
-        if (!mersisGecerliMi(subeForm.mersis)) throw new Error('MERSİS numarası 16 haneli olmalıdır');
+        if (!ebelgeSeriGecerliMi(subeForm.efaturaSeri)) throw new Error('e-Fatura seri 3 harf olmalıdır (A-Z)');
+        if (!ebelgeSeriGecerliMi(subeForm.earsivSeri)) throw new Error('e-Arşiv seri 3 harf olmalıdır (A-Z)');
+        if (!ebelgeSeriGecerliMi(subeForm.eirsaliyeSeri)) throw new Error('e-İrsaliye seri 3 harf olmalıdır (A-Z)');
+        if (!mersisGecerliMi(subeForm.mersis)) throw new Error('MERSİS numarası 16 haneli rakam olmalıdır');
         const hedefMetin = `«${subeForm.subeAdi.trim()}» (${subeForm.subeKodu.trim()}) şubesini`;
         if (hedef.mod === 'duzenle') {
           await subeGuncelle(hedef.kayit.id, subeForm);
@@ -363,76 +369,72 @@ export function TanimKayitModal({
     onKapat,
   ]);
 
+  const sekme = useAdminSekmeKabuk();
+  const acik = Boolean(hedef);
+  const portalKok = useMemo(
+    () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
+    [acik, sekme?.sekmeId]
+  );
+
+  useSekmeModalGovdeKilidi(acik, portalKok);
+
+  const kapat = useCallback(() => {
+    if (!kaydediliyor) onKapat();
+  }, [kaydediliyor, onKapat]);
+
   useEffect(() => {
-    if (!hedef) return;
+    if (!hedef || !portalKok) return;
     function tusHandler(e: KeyboardEvent) {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      if (sekmePortaliGizliMi(portalKok)) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        kapat();
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        const el = e.target as HTMLElement | null;
+        if (el?.tagName === 'TEXTAREA') return;
+        if (el?.closest('.ap-form-acilir-secim, .ap-form-arama-secim')) return;
         e.preventDefault();
         void kaydet();
       }
     }
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [hedef, kaydet]);
+  }, [hedef, portalKok, kapat, kaydet]);
 
-  useModulAksiyonlari(
-    {
-      kaydet: hedef ? () => void kaydet() : undefined,
-    },
-    {
-      kaydet: Boolean(hedef) && !kaydediliyor,
-    },
-    Boolean(hedef)
-  );
+  useModulAksiyonlari({}, { kaydet: acik ? false : undefined }, false);
 
-  if (!hedef) return null;
+  if (!hedef || !portalKok) return null;
 
   const tip = hedef.tip;
   const ekleMi = hedef.mod === 'ekle';
   const baslik = ekleMi ? `Yeni ${TIP_BASLIK[tip]}` : `${TIP_BASLIK[tip]} Düzenle`;
+  const genis = tip === 'sube' || tip === 'depo';
 
-  return (
-    <SistemModal
-      acik
-      onKapat={onKapat}
-      baslik={baslik}
-      altBaslik="Ctrl+Enter ile kaydet · Esc ile kapat"
-      ikon={TIP_IKON[tip]}
-      genislik={tip === 'sube' || tip === 'depo' ? 'lg' : 'md'}
-      kapatmaDevreDisi={kaydediliyor}
-      ustCizgi={false}
-      footer={
-        <div className="ap-tanimlar-modal-footer">
-          <button
-            type="button"
-            className="ap-tanimlar-modal-iptal"
-            onClick={onKapat}
-            disabled={kaydediliyor}
-          >
-            İptal
-          </button>
-          <button
-            type="button"
-            className="ap-tanimlar-modal-kaydet"
-            onClick={() => void kaydet()}
-            disabled={kaydediliyor}
-          >
-            {kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}
-          </button>
-        </div>
-      }
+  return createPortal(
+    <div
+      className="ap-sil-onay-modal ap-tanimlar-kayit-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label={baslik}
     >
-      <div className="ap-tanimlar-modal-govde">
-        {baglamBandi ? (
-          <div className="ap-tanimlar-modal-baglam" role="status">
-            <span className="ap-tanimlar-modal-baglam-etiket">Bağlam</span>
-            <span className="ap-tanimlar-modal-baglam-metin">{baglamBandi}</span>
-          </div>
-        ) : null}
+      <div className="ap-sil-onay-arka" aria-hidden="true" onClick={kapat} />
+      <DonenAccentCerceve
+        className={`ap-accent-donen-cerceve--sil ap-accent-donen-cerceve--tanim-kayit${genis ? ' ap-accent-donen-cerceve--tanim-kayit-genis' : ''}`}
+      >
+        <div className="ap-sil-onay-kart ap-tanimlar-kayit-kart ap-sil-onay-kart--sol-baslik">
+          <ModalSolBaslik baslik={baslik} ikon={TIP_IKON[tip]} onKapat={kapat} />
 
-        {tip === 'firma' && (
-          <>
-            <TanimFormBolum baslik="Temel Bilgiler">
+          <div className="ap-tanimlar-modal-govde ap-tanimlar-modal-govde--tek">
+            {baglamBandi ? (
+              <div className="ap-tanimlar-modal-baglam" role="status">
+                <span className="ap-tanimlar-modal-baglam-etiket">Bağlam</span>
+                <span className="ap-tanimlar-modal-baglam-metin">{baglamBandi}</span>
+              </div>
+            ) : null}
+
+            {tip === 'firma' && (
               <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
                 <TanimGirdi
                   etiket="Firma Kodu"
@@ -449,31 +451,21 @@ export function TanimKayitModal({
                   zorunlu
                   onChange={(firmaAdi) => setFirmaForm((f) => ({ ...f, firmaAdi }))}
                 />
+                <VergiDairesiSecici
+                  deger={firmaForm.vergiDairesi}
+                  onChange={(vergiDairesi) => setFirmaForm((f) => ({ ...f, vergiDairesi }))}
+                />
+                <TanimGirdi
+                  etiket="Vergi No"
+                  deger={firmaForm.vergiNo}
+                  kural="vergiNo"
+                  onChange={(vergiNo) => setFirmaForm((f) => ({ ...f, vergiNo }))}
+                  placeholder="10 haneli vergi numarası"
+                />
               </div>
-            </TanimFormBolum>
-            <TanimFormBolum baslik="Vergi Bilgileri">
-              <VergiDairesiSecici
-                deger={firmaForm.vergiDairesi}
-                onChange={(vergiDairesi) => setFirmaForm((f) => ({ ...f, vergiDairesi }))}
-              />
-              <TanimGirdi
-                etiket="Vergi No"
-                deger={firmaForm.vergiNo}
-                kural="vergiNo"
-                onChange={(vergiNo) => setFirmaForm((f) => ({ ...f, vergiNo }))}
-                placeholder="10 haneli vergi numarası"
-              />
-            </TanimFormBolum>
-            <OrtakDurumAlani
-              aktif={firmaForm.aktif}
-              onChange={(aktif) => setFirmaForm((f) => ({ ...f, aktif }))}
-            />
-          </>
-        )}
+            )}
 
-        {tip === 'sube' && (
-          <>
-            <TanimFormBolum baslik="Temel Bilgiler">
+            {tip === 'sube' && (
               <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
                 <TanimGirdi
                   etiket="Şube Kodu"
@@ -489,36 +481,41 @@ export function TanimKayitModal({
                   zorunlu
                   onChange={(subeAdi) => setSubeForm((f) => ({ ...f, subeAdi }))}
                 />
-              </div>
-            </TanimFormBolum>
-            <OrtakAdresFormu
-              deger={subeForm}
-              onChange={(adres) => setSubeForm((f) => ({ ...f, ...adres }))}
-            />
-            <TanimFormBolum baslik="E-Belge / Sicil">
-              <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-                <TanimGirdi
-                  etiket="e-Fatura Seri"
-                  deger={subeForm.efaturaSeri}
-                  kural="ebelgeSeri"
-                  onChange={(efaturaSeri) => setSubeForm((f) => ({ ...f, efaturaSeri }))}
-                />
-                <TanimGirdi
-                  etiket="e-Arşiv Seri"
-                  deger={subeForm.earsivSeri}
-                  kural="ebelgeSeri"
-                  onChange={(earsivSeri) => setSubeForm((f) => ({ ...f, earsivSeri }))}
-                />
-                <TanimGirdi
-                  etiket="e-İrsaliye Seri"
-                  deger={subeForm.eirsaliyeSeri}
-                  kural="ebelgeSeri"
-                  onChange={(eirsaliyeSeri) => setSubeForm((f) => ({ ...f, eirsaliyeSeri }))}
-                />
+                <div className="ap-tanimlar-modal-adres">
+                  <OrtakAdresFormu
+                    bolumsuz
+                    deger={subeForm}
+                    onChange={(adres) => setSubeForm((f) => ({ ...f, ...adres }))}
+                  />
+                </div>
+                <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--3 ap-tanimlar-modal-ebelge-satir">
+                  <TanimGirdi
+                    etiket="e-Fatura Seri"
+                    deger={subeForm.efaturaSeri}
+                    kural="ebelgeSeri"
+                    placeholder="ABC"
+                    onChange={(efaturaSeri) => setSubeForm((f) => ({ ...f, efaturaSeri }))}
+                  />
+                  <TanimGirdi
+                    etiket="e-Arşiv Seri"
+                    deger={subeForm.earsivSeri}
+                    kural="ebelgeSeri"
+                    placeholder="ABC"
+                    onChange={(earsivSeri) => setSubeForm((f) => ({ ...f, earsivSeri }))}
+                  />
+                  <TanimGirdi
+                    etiket="e-İrsaliye Seri"
+                    deger={subeForm.eirsaliyeSeri}
+                    kural="ebelgeSeri"
+                    placeholder="ABC"
+                    onChange={(eirsaliyeSeri) => setSubeForm((f) => ({ ...f, eirsaliyeSeri }))}
+                  />
+                </div>
                 <TanimGirdi
                   etiket="MERSİS"
                   deger={subeForm.mersis}
                   kural="mersis"
+                  placeholder="16 haneli numara"
                   onChange={(mersis) => setSubeForm((f) => ({ ...f, mersis }))}
                 />
                 <TanimGirdi
@@ -528,17 +525,9 @@ export function TanimKayitModal({
                   onChange={(ticaretSicil) => setSubeForm((f) => ({ ...f, ticaretSicil }))}
                 />
               </div>
-            </TanimFormBolum>
-            <OrtakDurumAlani
-              aktif={subeForm.aktif}
-              onChange={(aktif) => setSubeForm((f) => ({ ...f, aktif }))}
-            />
-          </>
-        )}
+            )}
 
-        {tip === 'depo' && (
-          <>
-            <TanimFormBolum baslik="Temel Bilgiler">
+            {tip === 'depo' && (
               <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
                 <label className="ap-tanimlar-secim-alan block">
                   <span className="ap-tanim-girdi-etiket">
@@ -565,22 +554,17 @@ export function TanimKayitModal({
                   zorunlu
                   onChange={(depoAdi) => setDepoForm((f) => ({ ...f, depoAdi }))}
                 />
+                <div className="ap-tanimlar-modal-adres">
+                  <OrtakAdresFormu
+                    bolumsuz
+                    deger={depoForm}
+                    onChange={(adres) => setDepoForm((f) => ({ ...f, ...adres }))}
+                  />
+                </div>
               </div>
-            </TanimFormBolum>
-            <OrtakAdresFormu
-              deger={depoForm}
-              onChange={(adres) => setDepoForm((f) => ({ ...f, ...adres }))}
-            />
-            <OrtakDurumAlani
-              aktif={depoForm.aktif}
-              onChange={(aktif) => setDepoForm((f) => ({ ...f, aktif }))}
-            />
-          </>
-        )}
+            )}
 
-        {tip === 'kasa' && (
-          <>
-            <TanimFormBolum baslik="Temel Bilgiler">
+            {tip === 'kasa' && (
               <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
                 <label className="ap-tanimlar-secim-alan block">
                   <span className="ap-tanim-girdi-etiket">
@@ -619,17 +603,9 @@ export function TanimKayitModal({
                   />
                 </label>
               </div>
-            </TanimFormBolum>
-            <OrtakDurumAlani
-              aktif={kasaForm.aktif}
-              onChange={(aktif) => setKasaForm((f) => ({ ...f, aktif }))}
-            />
-          </>
-        )}
+            )}
 
-        {tip === 'donem' && (
-          <>
-            <TanimFormBolum baslik="Temel Bilgiler">
+            {tip === 'donem' && (
               <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
                 <TanimGirdi
                   etiket="Dönem Kodu"
@@ -647,16 +623,33 @@ export function TanimKayitModal({
                   onChange={(donemAdi) => setDonemForm((f) => ({ ...f, donemAdi }))}
                 />
               </div>
-            </TanimFormBolum>
-            <OrtakDurumAlani
-              aktif={donemForm.aktif}
-              onChange={(aktif) => setDonemForm((f) => ({ ...f, aktif }))}
-            />
-          </>
-        )}
+            )}
 
-        {hata ? <p className="ap-tanimlar-modal-hata">{hata}</p> : null}
-      </div>
-    </SistemModal>
+            {hata ? <p className="ap-tanimlar-modal-hata">{hata}</p> : null}
+          </div>
+
+          <div className="ap-tanimlar-modal-footer">
+            <button
+              type="button"
+              className="ap-tanimlar-modal-iptal"
+              onClick={kapat}
+              disabled={kaydediliyor}
+            >
+              İptal <span className="ap-tanimlar-modal-kisayol">(Esc)</span>
+            </button>
+            <button
+              type="button"
+              className="ap-tanimlar-modal-kaydet"
+              onClick={() => void kaydet()}
+              disabled={kaydediliyor}
+            >
+              {kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}{' '}
+              <span className="ap-tanimlar-modal-kisayol">(Enter)</span>
+            </button>
+          </div>
+        </div>
+      </DonenAccentCerceve>
+    </div>,
+    portalKok
   );
 }

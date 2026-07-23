@@ -329,33 +329,23 @@ button.ap-roller-yetki-hucre:hover {
 .ap-roller-yetki-hucre--aktif {
   border-color: transparent;
   color: #fff;
+  background: var(--ap-accent);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--ap-accent) 30%, transparent);
 }
 
-.ap-roller-yetki-hucre--aktif.ap-roller-yetki--goruntuleme {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-}
-
-.ap-roller-yetki-hucre--aktif.ap-roller-yetki--ekleme {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-}
-
-.ap-roller-yetki-hucre--aktif.ap-roller-yetki--duzenleme {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-}
-
-.ap-roller-yetki-hucre--aktif.ap-roller-yetki--silme {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-
+.ap-roller-yetki-hucre--aktif.ap-roller-yetki--goruntuleme,
+.ap-roller-yetki-hucre--aktif.ap-roller-yetki--ekleme,
+.ap-roller-yetki-hucre--aktif.ap-roller-yetki--duzenleme,
+.ap-roller-yetki-hucre--aktif.ap-roller-yetki--silme,
 .ap-roller-yetki-hucre--aktif.ap-roller-yetki--kullanici_yonetimi {
-  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  background: var(--ap-accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ap-accent) 30%, transparent);
 }
 
 .ap-roller-yetki-hucre--karisik {
-  border-color: color-mix(in srgb, #f59e0b 45%, var(--ap-border));
-  background: color-mix(in srgb, #f59e0b 16%, var(--ap-surface));
-  color: color-mix(in srgb, #d97706 75%, var(--ap-heading));
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
+  color: color-mix(in srgb, var(--ap-accent) 85%, var(--ap-heading));
   font-weight: 700;
 }
 

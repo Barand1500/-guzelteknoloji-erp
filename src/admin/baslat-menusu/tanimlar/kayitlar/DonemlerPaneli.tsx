@@ -61,14 +61,14 @@ export function DonemlerPaneli({
             onClick={onDonemEkle}
             title={firmaPasif ? 'Pasif firmaya dönem eklenemez' : 'Yeni dönem'}
           >
-            + Dönem
+            Yeni Dönem
           </button>
         ) : null}
       </div>
 
       {filtreli.length === 0 ? (
         <p className="ap-tanimlar-firma-bos">
-          {donemler.length === 0 ? 'Bu firmada dönem yok — + Dönem ile ekleyin' : 'Dönem bulunamadı'}
+          {donemler.length === 0 ? 'Bu firmada dönem yok — Yeni Dönem ile ekleyin' : 'Dönem bulunamadı'}
         </p>
       ) : (
         <ul className={`ap-tanimlar-donem-liste${yatayKart ? ' ap-tanimlar-donem-liste--yatay' : ''}`}>

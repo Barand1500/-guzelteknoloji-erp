@@ -536,9 +536,10 @@ html:has(.admin-panel[data-tema='acik']) body {
 /* --- Donen mavi cerceve (baslat menusu tarzi, hover'da) --- */
 .erp-donen-cerceve {
   --cerceve-yaricap: 1rem;
+  --cerceve-kalinlik: 2px;
   position: relative;
   border-radius: var(--cerceve-yaricap);
-  padding: 2px;
+  padding: var(--cerceve-kalinlik);
   isolation: isolate;
   box-sizing: border-box;
 }
@@ -548,8 +549,8 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 /* Donen isik: cerceve alaninda kalir, icerigi kaplamaz.
-   Genis bir kare conic-gradient doner; mask ile sadece 2px'lik
-   halka gorunur, kare kosede bosluk olusmaz. */
+   Genis bir kare conic-gradient doner; mask ile sadece halka
+   gorunur, kare kosede bosluk olusmaz. */
 .erp-donen-cerceve-iz {
   position: absolute;
   inset: 0;
@@ -558,7 +559,6 @@ html:has(.admin-panel[data-tema='acik']) body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
-  /* Sadece 2px'lik halka gorunur, ortasi bosaltilir */
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -567,7 +567,7 @@ html:has(.admin-panel[data-tema='acik']) body {
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
-  padding: 2px;
+  padding: var(--cerceve-kalinlik);
 }
 
 /* Donen katman: iz'in icinde tam kaplayan, donen conic gradient */
@@ -590,7 +590,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .erp-donen-cerceve-icerik {
   position: relative;
   z-index: 1;
-  border-radius: calc(var(--cerceve-yaricap) - 2px);
+  border-radius: calc(var(--cerceve-yaricap) - var(--cerceve-kalinlik));
   width: 100%;
   height: 100%;
 }
@@ -5182,16 +5182,18 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-rehber-donen-cerceve .erp-donen-cerceve-icerik,
 .ap-accent-donen-cerceve .erp-donen-cerceve-icerik {
-  border-radius: calc(var(--cerceve-yaricap) - 2px);
+  border-radius: calc(var(--cerceve-yaricap) - var(--cerceve-kalinlik, 2px));
   overflow: hidden;
 }
 
 .ap-rehber-donen-cerceve {
+  --cerceve-kalinlik: 4px;
   width: min(100%, 520px);
 }
 
 .ap-accent-donen-cerceve--sil {
   --cerceve-yaricap: 1.1rem;
+  --cerceve-kalinlik: 4px;
   width: min(520px, calc(100vw - 2rem));
 }
 
@@ -5201,10 +5203,21 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-accent-donen-cerceve--sistem {
+  --cerceve-kalinlik: 4px;
   position: relative;
   z-index: 1;
   width: min(720px, 100%);
   max-height: 90vh;
+}
+
+.ap-accent-donen-cerceve--tanim-kayit {
+  --cerceve-yaricap: 1.1rem;
+  --cerceve-kalinlik: 4px;
+  width: min(34rem, calc(100vw - 2rem));
+}
+
+.ap-accent-donen-cerceve--tanim-kayit-genis {
+  width: min(36rem, calc(100vw - 2rem));
 }
 
 .ap-accent-donen-cerceve--sistem .ap-sistem-modal {
@@ -5260,7 +5273,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-sil-onay-kart {
   position: relative;
   width: 100%;
-  border-radius: calc(var(--cerceve-yaricap, 1.1rem) - 2px);
+  border-radius: calc(var(--cerceve-yaricap, 1.1rem) - var(--cerceve-kalinlik, 4px));
   border: none;
   background: var(--ap-surface);
   padding: 1.75rem 1.75rem 0;
@@ -5380,7 +5393,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   background: var(--ap-surface);
-  border-radius: 0 0 calc(var(--cerceve-yaricap, 1.1rem) - 2px) calc(var(--cerceve-yaricap, 1.1rem) - 2px);
+  border-radius: 0 0 calc(var(--cerceve-yaricap, 1.1rem) - var(--cerceve-kalinlik, 4px)) calc(var(--cerceve-yaricap, 1.1rem) - var(--cerceve-kalinlik, 4px));
   overflow: hidden;
 }
 
@@ -5444,7 +5457,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   width: 100%;
   flex-direction: column;
   overflow: hidden;
-  border-radius: calc(1rem - 2px);
+  border-radius: calc(1rem - var(--cerceve-kalinlik, 4px));
   border: none;
   background: linear-gradient(
     180deg,
