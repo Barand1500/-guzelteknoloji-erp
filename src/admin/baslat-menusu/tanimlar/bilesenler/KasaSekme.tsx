@@ -88,22 +88,30 @@ export function KasaSekme({
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
   const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
+  const gomuluEkle = gomuluDuzenle?.mod === 'ekle';
   const onizleme = onizlemeKasaMu(gomuluDuzenle?.onizleme) ? gomuluDuzenle.onizleme : null;
+  const baglamSubeId = gomuluDuzenle?.baglam?.subeId ?? '';
   const [kayitlar, setKayitlar] = useState<AdminKasa[]>(() => (onizleme ? [onizleme] : []));
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
-  const [form, setForm] = useState<KasaFormDegeri>(() =>
-    onizleme ? kasadanForm(onizleme) : bosKasaForm
+  const [form, setForm] = useState<KasaFormDegeri>(() => {
+    if (onizleme) return kasadanForm(onizleme);
+    if (baglamSubeId) return { ...bosKasaForm, subeId: baglamSubeId };
+    return bosKasaForm;
+  });
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(
+    gomuluEkle ? 'ekle' : gomuluDuzenle ? 'duzenle' : 'liste'
   );
-  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
   const [sihirbazAdim, setSihirbazAdim] = useState(0);
-  const [yukleniyor, setYukleniyor] = useState(!onizleme);
+  const [yukleniyor, setYukleniyor] = useState(!gomuluDuzenle);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
+  const [seciliId, setSeciliId] = useState<string | null>(
+    gomuluEkle ? null : gomuluDuzenle?.id ?? null
+  );
 
   async function yukle() {
-    if (!onizleme) setYukleniyor(true);
+    if (!gomuluDuzenle) setYukleniyor(true);
     try {
       const [kasalar, subeListesi] = await Promise.all([kasalariGetir(), subeleriGetir()]);
       setKayitlar(kasalar);
@@ -158,9 +166,9 @@ export function KasaSekme({
     return aktif;
   }, [subeler, form.subeId, onizleme]);
 
-  const listeyeDon = useCallback(() => {
+  const listeyeDon = useCallback((secenek?: { yenile?: boolean }) => {
     if (gomuluDuzenle) {
-      gomuluDuzenle.onKapat();
+      gomuluDuzenle.onKapat(secenek);
       return;
     }
     setGorunum('liste');
@@ -223,7 +231,7 @@ export function KasaSekme({
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Kasa', hedef));
         basariBildir('Kasa eklendi.');
       }
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
@@ -249,7 +257,7 @@ export function KasaSekme({
         );
       }
       basariBildir('Kasa silindi.');
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
@@ -269,7 +277,9 @@ export function KasaSekme({
   useModulAksiyonlari(
     gomuluDuzenle ? { kaydet, sil } : { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      kaydet:
+        ((gorunum === 'duzenle' && duzenlemeVar) || (gorunum === 'ekle' && eklemeVar)) &&
+        !kaydediliyor,
       ...(gomuluDuzenle ? {} : { ekle: gorunum === 'liste' && eklemeVar }),
       sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
@@ -297,6 +307,7 @@ export function KasaSekme({
         <FormAcilirSecim
           value={form.subeId}
           onChange={(subeId) => setForm((f) => ({ ...f, subeId }))}
+          disabled={Boolean(baglamSubeId)}
           secenekler={subeSecenekleri.map((s) => ({
             value: s.id,
             label: `${s.subeKodu} — ${s.subeAdi}`.toLocaleUpperCase('tr'),
@@ -332,6 +343,26 @@ export function KasaSekme({
   );
 
   if (yukleniyor && !gomuluDuzenle) return <TanimYukleniyor />;
+
+  if (gomuluEkle && gomuluDuzenle?.panel) {
+    return (
+      <TanimDuzenleEkrani
+        panel
+        ustEtiket="Yeni Kasa"
+        baslik="Yeni Kasa"
+        onGeri={listeyeDon}
+        onKaydet={eklemeVar ? () => void kaydet() : undefined}
+        kaydediliyor={kaydediliyor}
+        saltOkunur={!eklemeVar}
+      >
+        <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
+        <OrtakDurumAlani
+          aktif={form.aktif}
+          onChange={(aktif) => setForm((f) => ({ ...f, aktif }))}
+        />
+      </TanimDuzenleEkrani>
+    );
+  }
 
   if (gorunum === 'ekle' && !gomuluDuzenle) {
     return (
@@ -375,7 +406,7 @@ export function KasaSekme({
     );
   }
 
-  if (gorunum === 'duzenle' || gomuluDuzenle) {
+  if (gorunum === 'duzenle' || (gomuluDuzenle && !gomuluEkle)) {
     if (!seciliKayit) {
       if (yukleniyor) return <TanimYukleniyor />;
       return (

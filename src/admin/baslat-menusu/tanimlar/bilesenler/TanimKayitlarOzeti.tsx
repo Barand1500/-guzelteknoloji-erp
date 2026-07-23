@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   depoSil,
   depolariGetir,
@@ -17,17 +17,10 @@ import {
   tanimHedefMetni,
 } from '@/admin/baslat-menusu/tanimlar/araclar/tanimBaglilari';
 import {
-  tanimEkleEtiketi,
-  tanimHizliGirisKaydet,
-  tanimHizliGirisKolonlari,
-} from '@/admin/baslat-menusu/tanimlar/araclar/tanimKayitHizliGiris';
-import { DepoSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/DepoSekme';
-import { DonemSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/DonemSekme';
-import { FirmaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/FirmaSekme';
-import { KasaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/KasaSekme';
-import { SubeSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/SubeSekme';
+  TanimKayitModal,
+  type TanimModalHedef,
+} from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitModal';
 import { TanimBagliSilOnayModal } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimBagliSilOnayModal';
-import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import type {
   AdminDepo,
@@ -35,22 +28,42 @@ import type {
   AdminFirma,
   AdminKasa,
   AdminSube,
-  GomuluDuzenleSecenek,
   TanimSekmeId,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import '@/admin/ortak/datagrid/datagrid.css';
-import { DatagridSagTikMenu, type SatirEkleKonumu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
-import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
+import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
-import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
+import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
-import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
+import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
+import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
 
-const VARSAYILAN_GIZLI: string[] = [];
+type KayitTipi = TanimSekmeId;
+
+interface TanimSatir {
+  id: string;
+  tip: KayitTipi;
+  kod: string;
+  ad: string;
+  donemMetin: string;
+  subeMetin: string;
+  depoMetin: string;
+  kasaMetin: string;
+  aktif: boolean;
+  olusturma: string;
+  guncelleme: string;
+  firmaId: string;
+  kayit:
+    | AdminFirma
+    | AdminSube
+    | AdminDepo
+    | AdminKasa
+    | AdminDonem;
+}
 
 type SilmeHedef =
   | { tip: 'firma'; kayit: AdminFirma }
@@ -59,168 +72,73 @@ type SilmeHedef =
   | { tip: 'kasa'; kayit: AdminKasa }
   | { tip: 'donem'; kayit: AdminDonem };
 
-type KayitKonum =
-  | { seviye: 'firmalar' }
-  | { seviye: 'firma'; firmaId: string; sekme: 'subeler' | 'donemler' }
-  | { seviye: 'sube'; firmaId: string; subeId: string; sekme: 'depolar' | 'kasalar' };
+const TIP_ETIKET: Record<KayitTipi, string> = {
+  firma: 'Firma',
+  sube: 'Şube',
+  depo: 'Depo',
+  kasa: 'Kasa',
+  donem: 'Dönem',
+};
 
-function secimKolonu<TRow extends { id: string }>(): KolonTanimi<TRow> {
-  return {
-    id: 'secim',
-    baslik: '',
-    tip: 'salt-okunur',
-    genislik: 40,
-    zorunlu: true,
-    siralama: false,
-    degerAl: () => null,
-  };
-}
+const TIP_SIRASI: Record<KayitTipi, number> = {
+  firma: 0,
+  donem: 1,
+  sube: 2,
+  depo: 3,
+  kasa: 4,
+};
 
-function islemlerKolonu<TRow extends { id: string }>(): KolonTanimi<TRow> {
-  return {
-    id: 'islemler',
-    baslik: '',
-    tip: 'salt-okunur',
-    genislik: 68,
-    sabitSag: true,
-    siralama: false,
-    degerAl: () => null,
-  };
-}
+const EKLE_BUTONLARI: { tip: KayitTipi; etiket: string; ikon: string }[] = [
+  { tip: 'firma', etiket: 'Firma', ikon: '🏢' },
+  { tip: 'sube', etiket: 'Şube', ikon: '🏪' },
+  { tip: 'depo', etiket: 'Depo', ikon: '📦' },
+  { tip: 'kasa', etiket: 'Kasa', ikon: '💰' },
+  { tip: 'donem', etiket: 'Dönem', ikon: '📅' },
+];
 
-function durumKolonu<TRow extends { aktif: boolean }>(): KolonTanimi<TRow> {
-  return {
-    id: 'durum',
-    baslik: 'Durum',
-    tip: 'toggle',
-    genislik: 88,
-    siralama: true,
-    degerAl: (s) => s.aktif,
-    siralamaDegeri: (s) => (s.aktif ? 1 : 0),
-  };
-}
+const TIP_FILTRE_SECENEKLER = [
+  { value: '', label: 'Tümü' },
+  { value: 'firma', label: 'Firma' },
+  { value: 'sube', label: 'Şube' },
+  { value: 'depo', label: 'Depo' },
+  { value: 'kasa', label: 'Kasa' },
+  { value: 'donem', label: 'Dönem' },
+];
 
-function tanimKodAdGoster(kodHam: string, adHam: string) {
-  const ad = adHam.trim();
-  const kod = kodHam.trim();
-  const ikili = Boolean(ad && kod && ad.toLocaleLowerCase('tr') !== kod.toLocaleLowerCase('tr'));
-
-  if (!ad && !kod) return <>—</>;
-
-  if (ikili) {
-    return (
-      <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
-        <span className="dg-urun-kodu-alt">{kod}</span>
-        <span className="dg-urun-adi-ust">{ad}</span>
-      </div>
-    );
-  }
-
-  if (kod && !ad) return <span className="dg-urun-kodu-alt">{kod}</span>;
-  return <span className="dg-urun-adi-ust">{ad || kod}</span>;
-}
-
-function kodAdKolonu<TRow extends { id: string }>(opts: {
-  id: string;
-  baslik: string;
-  kodAl: (s: TRow) => string;
-  adAl: (s: TRow) => string;
-  genislik?: number;
-}): KolonTanimi<TRow> {
-  return {
-    id: opts.id,
-    baslik: opts.baslik,
-    tip: 'metin',
-    genislik: opts.genislik ?? 240,
-    minGenislik: 140,
-    zorunlu: true,
-    siralama: true,
-    degerAl: (s) => `${opts.kodAl(s)} ${opts.adAl(s)}`,
-    siralamaDegeri: (s) => `${opts.kodAl(s)} ${opts.adAl(s)}`,
-    goster: (s) => tanimKodAdGoster(opts.kodAl(s) ?? '', opts.adAl(s) ?? ''),
-  };
-}
-
-function olusturmaKolonu<TRow extends { olusturma: string }>(): KolonTanimi<TRow> {
-  return {
-    id: 'olusturma',
-    baslik: 'Kayıt Tarihi',
-    tip: 'tarih',
-    genislik: 130,
-    siralama: true,
-    degerAl: (s) => s.olusturma,
-    goster: (s) => tarihSaatFormatla(s.olusturma),
-  };
-}
-
-function guncellemeKolonu<TRow extends { guncelleme: string }>(): KolonTanimi<TRow> {
-  return {
-    id: 'guncelleme',
-    baslik: 'Güncelleme Tarihi',
-    tip: 'tarih',
-    genislik: 130,
-    siralama: true,
-    degerAl: (s) => s.guncelleme,
-    goster: (s) => tarihSaatFormatla(s.guncelleme),
-  };
-}
-
-interface GezginSekme {
-  id: string;
-  etiket: string;
-}
-
-function GezginSekmeler({
-  sekmeler,
-  aktif,
-  onSec,
-}: {
-  sekmeler: GezginSekme[];
-  aktif: string;
-  onSec: (id: string) => void;
-}) {
-  return (
-    <div className="ap-tanimlar-gezgin-sekme-bar">
-      <TanimModCubugu
-        sekmeler={sekmeler.map((s) => ({ id: s.id, ad: s.etiket }))}
-        aktif={aktif}
-        onDegistir={onSec}
-        ariaLabel="Alt kayıt türü"
-        kompakt
-      />
-    </div>
-  );
+function hucreMetin(deger: string) {
+  const v = deger.trim();
+  if (!v) return <span className="ap-tanimlar-hucre-bos">—</span>;
+  return <span className="ap-tanimlar-hucre-metin">{v}</span>;
 }
 
 export function TanimKayitlarOzeti() {
   const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('tanimlar');
-  const { firmaBagliPasifMi, subeBagliPasifMi } = useTanimFirmaDurumu();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
-  const sayfaRef = useRef<HTMLDivElement>(null);
+  const logMesajiAyarla = useAdminLogMesaji();
   const { setRehberModulId } = useAdminAksiyon();
-  const gridApiRef = useRef<DataGridApi | null>(null);
-  const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
+
   const [yukleniyor, setYukleniyor] = useState(true);
-  const [hizliGirisAcik, setHizliGirisAcik] = useState(false);
-  const [aksiyonSurum, setAksiyonSurum] = useState(0);
   const [firmalar, setFirmalar] = useState<AdminFirma[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [depolar, setDepolar] = useState<AdminDepo[]>([]);
   const [kasalar, setKasalar] = useState<AdminKasa[]>([]);
   const [donemler, setDonemler] = useState<AdminDonem[]>([]);
-  const [konum, setKonum] = useState<KayitKonum>({ seviye: 'firmalar' });
-  const [silme, setSilme] = useState<SilmeHedef | null>(null);
-  const [siliniyor, setSiliniyor] = useState(false);
+  const [seciliFirmaId, setSeciliFirmaId] = useState<string | null>(null);
+  const [firmaArama, setFirmaArama] = useState('');
+  const [tipFiltre, setTipFiltre] = useState('');
+  const [modalHedef, setModalHedef] = useState<TanimModalHedef | null>(null);
+  const [silinecek, setSilinecek] = useState<SilmeHedef | null>(null);
+  const [bagliSil, setBagliSil] = useState<SilmeHedef | null>(null);
 
-  const veriSeti = useMemo(
-    () => ({ firmalar, subeler, depolar, kasalar, donemler }),
-    [firmalar, subeler, depolar, kasalar, donemler]
-  );
+  useEffect(() => {
+    setRehberModulId('tanimlar');
+    return () => setRehberModulId(null);
+  }, [setRehberModulId]);
 
-  const yukle = useCallback(async () => {
+  const yukle = useCallback(async (seciliKorunsun?: string | null) => {
     setYukleniyor(true);
     try {
-      const [f, s, d, k, dn] = await Promise.all([
+      const [f, s, d, k, don] = await Promise.all([
         firmalariGetir(),
         subeleriGetir(),
         depolariGetir(),
@@ -231,9 +149,14 @@ export function TanimKayitlarOzeti() {
       setSubeler(s);
       setDepolar(d);
       setKasalar(k);
-      setDonemler(dn);
+      setDonemler(don);
+      setSeciliFirmaId((onceki) => {
+        const hedef = seciliKorunsun !== undefined ? seciliKorunsun : onceki;
+        if (hedef && f.some((x) => x.id === hedef)) return hedef;
+        return f[0]?.id ?? null;
+      });
     } catch (err) {
-      hataBildir(err instanceof Error ? err.message : 'Tanımlar yüklenemedi');
+      hataBildir(err instanceof Error ? err.message : 'Kayıtlar alınamadı');
     } finally {
       setYukleniyor(false);
     }
@@ -243,706 +166,545 @@ export function TanimKayitlarOzeti() {
     void yukle();
   }, [yukle]);
 
-  useEffect(() => {
-    if (konum.seviye === 'firmalar') return;
-    const firmaVar = firmalar.some((f) => f.id === konum.firmaId);
-    if (!firmaVar) {
-      setKonum({ seviye: 'firmalar' });
-      return;
-    }
-    if (konum.seviye === 'sube') {
-      const subeVar = subeler.some((s) => s.id === konum.subeId);
-      if (!subeVar) {
-        setKonum({ seviye: 'firma', firmaId: konum.firmaId, sekme: 'subeler' });
-      }
-    }
-  }, [konum, firmalar, subeler]);
+  const filtreliFirmalar = useMemo(() => {
+    const q = firmaArama.trim().toLocaleLowerCase('tr');
+    if (!q) return firmalar;
+    return firmalar.filter(
+      (f) =>
+        f.firmaAdi.toLocaleLowerCase('tr').includes(q) ||
+        f.firmaKodu.toLocaleLowerCase('tr').includes(q)
+    );
+  }, [firmalar, firmaArama]);
 
-  const seciliFirma = useMemo(() => {
-    if (konum.seviye === 'firmalar') return null;
-    return firmalar.find((f) => f.id === konum.firmaId) ?? null;
-  }, [konum, firmalar]);
-
-  const seciliSube = useMemo(() => {
-    if (konum.seviye !== 'sube') return null;
-    return subeler.find((s) => s.id === konum.subeId) ?? null;
-  }, [konum, subeler]);
-
-  const aktifKayitTipi = useMemo((): TanimSekmeId => {
-    if (konum.seviye === 'firmalar') return 'firma';
-    if (konum.seviye === 'firma') return konum.sekme === 'donemler' ? 'donem' : 'sube';
-    return konum.sekme === 'kasalar' ? 'kasa' : 'depo';
-  }, [konum]);
-
-  useEffect(() => {
-    setRehberModulId(`tanimlar-${aktifKayitTipi}`);
-    return () => setRehberModulId(null);
-  }, [aktifKayitTipi, setRehberModulId]);
-
-  const ekleEtiketi = useMemo(() => tanimEkleEtiketi(aktifKayitTipi), [aktifKayitTipi]);
-
-  const hizliGirisBaglam = useMemo(
-    () => ({
-      firmaId: seciliFirma?.id,
-      subeId: seciliSube?.id,
-    }),
-    [seciliFirma, seciliSube]
+  const seciliFirma = useMemo(
+    () => firmalar.find((f) => f.id === seciliFirmaId) ?? null,
+    [firmalar, seciliFirmaId]
   );
 
-  const hizliGirisKaydet = useCallback(
-    async (degerler: Record<string, string>) => {
-      try {
-        const sonuc = await tanimHizliGirisKaydet(aktifKayitTipi, degerler, hizliGirisBaglam);
-        if (!sonuc.ok) {
-          hataBildir(sonuc.mesaj);
-          return false;
-        }
-        basariBildir(sonuc.mesaj);
-        await yukle();
-        return true;
-      } catch (err) {
-        hataBildir(err instanceof Error ? err.message : 'Kayıt eklenemedi');
-        return false;
-      }
+  const firmaPasifMi = useCallback(
+    (firmaId: string) => firmalar.find((f) => f.id === firmaId)?.aktif === false,
+    [firmalar]
+  );
+
+  const subePasifMi = useCallback(
+    (subeId: string) => {
+      const sube = subeler.find((s) => s.id === subeId);
+      if (!sube) return false;
+      if (sube.aktif === false) return true;
+      return firmaPasifMi(sube.firmaId);
     },
-    [aktifKayitTipi, hizliGirisBaglam, basariBildir, hataBildir, yukle]
+    [subeler, firmaPasifMi]
   );
 
-  const yeniEkle = useCallback(() => {
-    gridApiRef.current?.hizliGirisOdakla();
-  }, []);
-
-  const aksiyonKaydet = useCallback(async (): Promise<boolean> => {
-    await gridApiRef.current?.hizliGirisKaydet?.();
-    /* Bildirim hizliGirisKaydet içinde; çubuk “Kaydedildi” göstermesin */
-    return false;
-  }, [aksiyonSurum]);
-
-  useModulAksiyonlari(
-    { ekle: yeniEkle, kaydet: aksiyonKaydet },
-    {
-      ekle: eklemeVar,
-      /* false yazma — düzenle panelinin kaydet:true durumunu ezmesin */
-      ...(eklemeVar && hizliGirisAcik ? { kaydet: true } : {}),
-    },
-    undefined,
-    { ekle: ekleEtiketi }
+  const firmaSubeleri = useMemo(
+    () => subeler.filter((s) => s.firmaId === seciliFirmaId),
+    [subeler, seciliFirmaId]
   );
 
-  useEffect(() => {
-    gridApiRef.current?.hizliGirisKapat();
-    setHizliGirisAcik(false);
-    setSeciliSatirSayisi(0);
-  }, [konum, aktifKayitTipi]);
+  const subeMap = useMemo(() => {
+    const m = new Map<string, AdminSube>();
+    for (const s of subeler) m.set(s.id, s);
+    return m;
+  }, [subeler]);
 
-  const silmeAc = useCallback((hedef: SilmeHedef) => {
-    setSilme(hedef);
-  }, []);
+  const satirlar = useMemo((): TanimSatir[] => {
+    if (!seciliFirma) return [];
+    const subeIdleri = new Set(firmaSubeleri.map((s) => s.id));
+    const liste: TanimSatir[] = [];
 
-  const silmeKapat = useCallback(() => {
-    if (siliniyor) return;
-    setSilme(null);
-  }, [siliniyor]);
-
-  const aktifBaglanti = useMemo(() => {
-    if (!silme) return null;
-    return tanimBaglantiOzeti(silme.tip, silme.kayit.id, veriSeti);
-  }, [silme, veriSeti]);
-
-  const silmeUygula = useCallback(
-    async (mod?: TanimSilModu) => {
-      if (!silme) return;
-      setSiliniyor(true);
-      try {
-        const { tip, kayit } = silme;
-        if (tip === 'firma') await firmaSil(kayit.id, mod);
-        else if (tip === 'sube') await subeSil(kayit.id, mod);
-        else if (tip === 'depo') await depoSil(kayit.id);
-        else if (tip === 'kasa') await kasaSil(kayit.id);
-        else await donemSil(kayit.id);
-
-        const hedef = tanimHedefMetni(tip, kayit);
-        if (mod === 'pasif') {
-          basariBildir(`${hedef} ve bağlı kayıtlar pasif yapıldı.`);
-        } else {
-          basariBildir(`${hedef} silindi.`);
-        }
-
-        if (tip === 'firma' && konum.seviye !== 'firmalar') {
-          setKonum({ seviye: 'firmalar' });
-        } else if (tip === 'sube' && konum.seviye === 'sube') {
-          setKonum({ seviye: 'firma', firmaId: konum.firmaId, sekme: 'subeler' });
-        }
-
-        setSilme(null);
-        await yukle();
-      } catch (err) {
-        hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
-      } finally {
-        setSiliniyor(false);
-      }
-    },
-    [silme, basariBildir, hataBildir, yukle, konum]
-  );
-
-  const panelKapat = useCallback(
-    (onKapat: () => void) => {
-      void yukle();
-      onKapat();
-      /* Düzenle paneli unmount olunca kaydet handler silinir — yeniden bağla */
-      setAksiyonSurum((s) => s + 1);
-    },
-    [yukle]
-  );
-
-  const satirDuzenlePaneli = useCallback(
-    (satir: { id: string }, _onKaydet: unknown, onKapat: () => void) => {
-      const opts: GomuluDuzenleSecenek = {
-        id: satir.id,
-        onKapat: () => panelKapat(onKapat),
-        panel: true,
-        onizleme: satir,
-      };
-      switch (aktifKayitTipi) {
-        case 'firma':
-          return <FirmaSekme key={`firma-${satir.id}`} gomuluDuzenle={opts} />;
-        case 'sube':
-          return <SubeSekme key={`sube-${satir.id}`} gomuluDuzenle={opts} />;
-        case 'depo':
-          return <DepoSekme key={`depo-${satir.id}`} gomuluDuzenle={opts} />;
-        case 'kasa':
-          return <KasaSekme key={`kasa-${satir.id}`} gomuluDuzenle={opts} />;
-        case 'donem':
-          return <DonemSekme key={`donem-${satir.id}`} gomuluDuzenle={opts} />;
-      }
-    },
-    [aktifKayitTipi, panelKapat]
-  );
-
-  const satirDuzenleAc = useCallback((id: string) => {
-    if (!duzenlemeVar) return;
-    gridApiRef.current?.satirDuzenleAc(id);
-  }, [duzenlemeVar]);
-
-  const sagTikSatirSil = useCallback(
-    (satir: { id: string }) => {
-      switch (aktifKayitTipi) {
-        case 'firma': {
-          const kayit = firmalar.find((f) => f.id === satir.id);
-          if (kayit) silmeAc({ tip: 'firma', kayit });
-          break;
-        }
-        case 'sube': {
-          const kayit = subeler.find((s) => s.id === satir.id);
-          if (kayit) silmeAc({ tip: 'sube', kayit });
-          break;
-        }
-        case 'depo': {
-          const kayit = depolar.find((d) => d.id === satir.id);
-          if (kayit) silmeAc({ tip: 'depo', kayit });
-          break;
-        }
-        case 'kasa': {
-          const kayit = kasalar.find((k) => k.id === satir.id);
-          if (kayit) silmeAc({ tip: 'kasa', kayit });
-          break;
-        }
-        case 'donem': {
-          const kayit = donemler.find((d) => d.id === satir.id);
-          if (kayit) silmeAc({ tip: 'donem', kayit });
-          break;
-        }
-      }
-    },
-    [aktifKayitTipi, firmalar, subeler, depolar, kasalar, donemler, silmeAc]
-  );
-
-  const sagTikSatirSilMetni = useCallback(
-    (satir: { id: string }) => {
-      switch (aktifKayitTipi) {
-        case 'firma': {
-          const kayit = firmalar.find((f) => f.id === satir.id);
-          return kayit ? tanimHedefMetni('firma', kayit) : `Kayıt #${satir.id}`;
-        }
-        case 'sube': {
-          const kayit = subeler.find((s) => s.id === satir.id);
-          return kayit ? tanimHedefMetni('sube', kayit) : `Kayıt #${satir.id}`;
-        }
-        case 'depo': {
-          const kayit = depolar.find((d) => d.id === satir.id);
-          return kayit ? tanimHedefMetni('depo', kayit) : `Kayıt #${satir.id}`;
-        }
-        case 'kasa': {
-          const kayit = kasalar.find((k) => k.id === satir.id);
-          return kayit ? tanimHedefMetni('kasa', kayit) : `Kayıt #${satir.id}`;
-        }
-        case 'donem': {
-          const kayit = donemler.find((d) => d.id === satir.id);
-          return kayit ? tanimHedefMetni('donem', kayit) : `Kayıt #${satir.id}`;
-        }
-      }
-    },
-    [aktifKayitTipi, firmalar, subeler, depolar, kasalar, donemler]
-  );
-
-  const sagTikSatirEkle = useCallback((_konum: SatirEkleKonumu, _satirId: string) => {
-    gridApiRef.current?.hizliGirisOdakla();
-  }, []);
-
-  const firmaKolonlari = useMemo((): KolonTanimi<AdminFirma>[] => {
-    return [
-      secimKolonu<AdminFirma>(),
-      kodAdKolonu<AdminFirma>({
-        id: 'firmaKoduAdi',
-        baslik: 'Firma Kodu/Adı',
-        kodAl: (f) => f.firmaKodu,
-        adAl: (f) => f.firmaAdi,
-      }),
-      {
-        id: 'vergiDairesi',
-        baslik: 'Vergi Dairesi',
-        tip: 'metin',
-        genislik: 140,
-        siralama: true,
-        degerAl: (f) => f.vergiDairesi || '—',
-      },
-      {
-        id: 'vergiNo',
-        baslik: 'Vergi No',
-        tip: 'metin',
-        genislik: 110,
-        siralama: true,
-        degerAl: (f) => f.vergiNo || '—',
-      },
-      {
-        id: 'bagli',
-        baslik: 'Bağlı Kayıt',
-        tip: 'metin',
-        genislik: 140,
-        siralama: false,
-        degerAl: (f) => {
-          const s = subeler.filter((x) => x.firmaId === f.id).length;
-          const d = donemler.filter((x) => x.firmaId === f.id).length;
-          return `${s} şube · ${d} dönem`;
-        },
-      },
-      olusturmaKolonu<AdminFirma>(),
-      guncellemeKolonu<AdminFirma>(),
-      durumKolonu<AdminFirma>(),
-      islemlerKolonu<AdminFirma>(),
-    ];
-  }, [subeler, donemler]);
-
-  const subeKolonlari = useMemo((): KolonTanimi<AdminSube>[] => {
-    const metin = (id: string, baslik: string, genislik: number, al: (s: AdminSube) => string): KolonTanimi<AdminSube> => ({
-      id,
-      baslik,
-      tip: 'metin',
-      genislik,
-      minGenislik: Math.min(genislik, 72),
-      siralama: true,
-      degerAl: (s) => al(s) || '—',
+    liste.push({
+      id: `firma:${seciliFirma.id}`,
+      tip: 'firma',
+      kod: seciliFirma.firmaKodu,
+      ad: seciliFirma.firmaAdi,
+      donemMetin: '',
+      subeMetin: '',
+      depoMetin: '',
+      kasaMetin: '',
+      aktif: seciliFirma.aktif,
+      olusturma: seciliFirma.olusturma,
+      guncelleme: seciliFirma.guncelleme,
+      firmaId: seciliFirma.id,
+      kayit: seciliFirma,
     });
 
-    return [
-      secimKolonu<AdminSube>(),
-      kodAdKolonu<AdminSube>({
-        id: 'subeKoduAdi',
-        baslik: 'Şube Kodu/Adı',
-        kodAl: (s) => s.subeKodu,
-        adAl: (s) => s.subeAdi,
-      }),
-      {
-        id: 'adres',
-        baslik: 'Adres',
-        tip: 'metin',
-        genislik: 220,
-        siralama: true,
-        degerAl: (s) => s.adres || '—',
-      },
-      {
-        id: 'ilIlce',
-        baslik: 'İl/İlçe',
-        tip: 'metin',
-        genislik: 130,
-        siralama: true,
-        degerAl: (s) => [s.il, s.ilce].filter(Boolean).join(' / ') || '—',
-        siralamaDegeri: (s) => `${s.il} ${s.ilce}`,
-      },
-      metin('efaturaSeri', 'E-Fatura Seri', 96, (s) => s.efaturaSeri),
-      metin('earsivSeri', 'E-Arşiv Seri', 96, (s) => s.earsivSeri),
-      metin('eirsaliyeSeri', 'E-İrsaliye Seri', 104, (s) => s.eirsaliyeSeri),
-      metin('mersis', 'MERSİS', 120, (s) => s.mersis),
-      metin('ticaretSicil', 'Ticaret Sicil', 110, (s) => s.ticaretSicil),
-      olusturmaKolonu<AdminSube>(),
-      guncellemeKolonu<AdminSube>(),
-      durumKolonu<AdminSube>(),
-      islemlerKolonu<AdminSube>(),
-    ];
-  }, []);
-
-  const donemKolonlari = useMemo((): KolonTanimi<AdminDonem>[] => {
-    return [
-      secimKolonu<AdminDonem>(),
-      kodAdKolonu<AdminDonem>({
-        id: 'donemKoduAdi',
-        baslik: 'Dönem Kodu/Adı',
-        kodAl: (d) => d.donemKodu,
-        adAl: (d) => d.donemAdi,
-      }),
-      olusturmaKolonu<AdminDonem>(),
-      guncellemeKolonu<AdminDonem>(),
-      durumKolonu<AdminDonem>(),
-      islemlerKolonu<AdminDonem>(),
-    ];
-  }, []);
-
-  const depoKolonlari = useMemo((): KolonTanimi<AdminDepo>[] => {
-    const metin = (id: string, baslik: string, genislik: number, al: (d: AdminDepo) => string): KolonTanimi<AdminDepo> => ({
-      id,
-      baslik,
-      tip: 'metin',
-      genislik,
-      minGenislik: Math.min(genislik, 72),
-      siralama: true,
-      degerAl: (d) => al(d) || '—',
-    });
-
-    return [
-      secimKolonu<AdminDepo>(),
-      kodAdKolonu<AdminDepo>({
-        id: 'depoKoduAdi',
-        baslik: 'Depo Kodu/Adı',
-        kodAl: (d) => d.depoKodu,
-        adAl: (d) => d.depoAdi,
-      }),
-      metin('adres', 'Adres', 220, (d) => d.adres),
-      metin('il', 'İl', 100, (d) => d.il),
-      metin('ilce', 'İlçe', 100, (d) => d.ilce),
-      olusturmaKolonu<AdminDepo>(),
-      guncellemeKolonu<AdminDepo>(),
-      durumKolonu<AdminDepo>(),
-      islemlerKolonu<AdminDepo>(),
-    ];
-  }, []);
-
-  const kasaKolonlari = useMemo((): KolonTanimi<AdminKasa>[] => {
-    return [
-      secimKolonu<AdminKasa>(),
-      kodAdKolonu<AdminKasa>({
-        id: 'kasaKoduAdi',
-        baslik: 'Kasa Kodu/Adı',
-        kodAl: (k) => k.kasaKodu,
-        adAl: (k) => k.kasaAdi,
-      }),
-      {
-        id: 'paraBirimi',
-        baslik: 'Para Birimi',
-        tip: 'metin',
-        genislik: 100,
-        siralama: true,
-        degerAl: (k) => k.paraBirimi || '—',
-      },
-      olusturmaKolonu<AdminKasa>(),
-      guncellemeKolonu<AdminKasa>(),
-      durumKolonu<AdminKasa>(),
-      islemlerKolonu<AdminKasa>(),
-    ];
-  }, []);
-
-  const breadcrumb = useMemo(() => {
-    const ogeler: { etiket: string; onTikla?: () => void }[] = [
-      { etiket: 'Firmalar', onTikla: () => setKonum({ seviye: 'firmalar' }) },
-    ];
-    if (seciliFirma) {
-      ogeler.push({
-        etiket: `${seciliFirma.firmaKodu} — ${seciliFirma.firmaAdi}`,
-        onTikla:
-          konum.seviye === 'sube'
-            ? () => setKonum({ seviye: 'firma', firmaId: seciliFirma.id, sekme: 'subeler' })
-            : undefined,
+    for (const d of donemler.filter((x) => x.firmaId === seciliFirma.id)) {
+      liste.push({
+        id: `donem:${d.id}`,
+        tip: 'donem',
+        kod: d.donemKodu,
+        ad: d.donemAdi,
+        donemMetin: `${d.donemKodu} — ${d.donemAdi}`,
+        subeMetin: '',
+        depoMetin: '',
+        kasaMetin: '',
+        aktif: d.aktif,
+        olusturma: d.olusturma,
+        guncelleme: d.guncelleme,
+        firmaId: seciliFirma.id,
+        kayit: d,
       });
     }
-    if (seciliSube) {
-      ogeler.push({ etiket: `${seciliSube.subeKodu} — ${seciliSube.subeAdi}` });
-    }
-    return ogeler;
-  }, [seciliFirma, seciliSube, konum.seviye]);
 
-  const aktifGrid = useMemo(() => {
-    if (konum.seviye === 'firmalar') {
-      return { kolonlar: firmaKolonlari, satirlar: firmalar };
+    for (const s of firmaSubeleri) {
+      liste.push({
+        id: `sube:${s.id}`,
+        tip: 'sube',
+        kod: s.subeKodu,
+        ad: s.subeAdi,
+        donemMetin: '',
+        subeMetin: `${s.subeKodu} — ${s.subeAdi}`,
+        depoMetin: '',
+        kasaMetin: '',
+        aktif: s.aktif,
+        olusturma: s.olusturma,
+        guncelleme: s.guncelleme,
+        firmaId: seciliFirma.id,
+        kayit: s,
+      });
     }
-    if (konum.seviye === 'firma' && seciliFirma) {
-      if (konum.sekme === 'subeler') {
-        return { kolonlar: subeKolonlari, satirlar: subeler.filter((s) => s.firmaId === seciliFirma.id) };
-      }
-      return { kolonlar: donemKolonlari, satirlar: donemler.filter((d) => d.firmaId === seciliFirma.id) };
-    }
-    if (konum.seviye === 'sube' && seciliSube) {
-      if (konum.sekme === 'depolar') {
-        return { kolonlar: depoKolonlari, satirlar: depolar.filter((d) => d.subeId === seciliSube.id) };
-      }
-      return { kolonlar: kasaKolonlari, satirlar: kasalar.filter((k) => k.subeId === seciliSube.id) };
-    }
-    return { kolonlar: firmaKolonlari, satirlar: firmalar };
-  }, [
-    konum,
-    seciliFirma,
-    seciliSube,
-    firmaKolonlari,
-    subeKolonlari,
-    donemKolonlari,
-    depoKolonlari,
-    kasaKolonlari,
-    firmalar,
-    subeler,
-    depolar,
-    kasalar,
-    donemler,
-  ]);
 
-  const gridOrtak = useMemo(
-    () => ({
-      tabloAltBaslik: 'Görünür sütunlar ve sırası',
-      yukleniyor,
-      varsayilanGizliKolonlar: VARSAYILAN_GIZLI,
-      gridApiRef,
-      satirDuzenlePaneli: duzenlemeVar ? satirDuzenlePaneli : undefined,
-      satirPanelModu: 'cubuk' as const,
-      formulMenuGoster: false,
-      hizliGirisIstegeBagli: true,
-      hizliGirisVarsayilanAlan: true,
-      hizliGirisKolonlari: eklemeVar ? tanimHizliGirisKolonlari(aktifKayitTipi) : undefined,
-      onHizliGiris: eklemeVar ? hizliGirisKaydet : undefined,
-      onHizliGirisAcikDegisti: setHizliGirisAcik,
-      onSecimDegistir: (ids: string[]) => setSeciliSatirSayisi(ids.length),
-    }),
-    [yukleniyor, satirDuzenlePaneli, aktifKayitTipi, hizliGirisKaydet, duzenlemeVar, eklemeVar]
+    for (const d of depolar.filter((x) => subeIdleri.has(x.subeId))) {
+      const sube = subeMap.get(d.subeId);
+      liste.push({
+        id: `depo:${d.id}`,
+        tip: 'depo',
+        kod: d.depoKodu,
+        ad: d.depoAdi,
+        donemMetin: '',
+        subeMetin: sube ? `${sube.subeKodu} — ${sube.subeAdi}` : d.subeKodu ?? '',
+        depoMetin: `${d.depoKodu} — ${d.depoAdi}`,
+        kasaMetin: '',
+        aktif: d.aktif,
+        olusturma: d.olusturma,
+        guncelleme: d.guncelleme,
+        firmaId: seciliFirma.id,
+        kayit: d,
+      });
+    }
+
+    for (const k of kasalar.filter((x) => subeIdleri.has(x.subeId))) {
+      const sube = subeMap.get(k.subeId);
+      liste.push({
+        id: `kasa:${k.id}`,
+        tip: 'kasa',
+        kod: k.kasaKodu,
+        ad: k.kasaAdi,
+        donemMetin: '',
+        subeMetin: sube ? `${sube.subeKodu} — ${sube.subeAdi}` : k.subeKodu ?? '',
+        depoMetin: '',
+        kasaMetin: `${k.kasaKodu} — ${k.kasaAdi}`,
+        aktif: k.aktif,
+        olusturma: k.olusturma,
+        guncelleme: k.guncelleme,
+        firmaId: seciliFirma.id,
+        kayit: k,
+      });
+    }
+
+    return liste.sort((a, b) => {
+      const tipFark = TIP_SIRASI[a.tip] - TIP_SIRASI[b.tip];
+      if (tipFark !== 0) return tipFark;
+      return a.kod.localeCompare(b.kod, 'tr');
+    });
+  }, [seciliFirma, firmaSubeleri, donemler, depolar, kasalar, subeMap]);
+
+  const gosterilenSatirlar = useMemo(() => {
+    if (!tipFiltre) return satirlar;
+    return satirlar.filter((s) => s.tip === tipFiltre);
+  }, [satirlar, tipFiltre]);
+
+  const ekleAc = useCallback(
+    (tip: KayitTipi) => {
+      if (!eklemeVar) {
+        hataBildir('Yeni kayıt ekleme yetkiniz yok');
+        return;
+      }
+      if (tip === 'firma') {
+        setModalHedef({ tip: 'firma', mod: 'ekle' });
+        return;
+      }
+      if (!seciliFirmaId) {
+        hataBildir('Önce soldan bir firma seçin');
+        return;
+      }
+      if (firmaPasifMi(seciliFirmaId)) {
+        hataBildir('Pasif firmaya kayıt eklenemez');
+        return;
+      }
+      const varsayilanSube =
+        firmaSubeleri.find((s) => s.subeKodu === 'MERKEZ')?.id ?? firmaSubeleri[0]?.id;
+      if (tip === 'sube') setModalHedef({ tip: 'sube', mod: 'ekle', firmaId: seciliFirmaId });
+      else if (tip === 'donem') setModalHedef({ tip: 'donem', mod: 'ekle', firmaId: seciliFirmaId });
+      else if (tip === 'depo') {
+        if (!varsayilanSube) {
+          hataBildir('Depo eklemek için önce şube oluşturun');
+          return;
+        }
+        setModalHedef({ tip: 'depo', mod: 'ekle', firmaId: seciliFirmaId, subeId: varsayilanSube });
+      } else if (tip === 'kasa') {
+        if (!varsayilanSube) {
+          hataBildir('Kasa eklemek için önce şube oluşturun');
+          return;
+        }
+        setModalHedef({ tip: 'kasa', mod: 'ekle', firmaId: seciliFirmaId, subeId: varsayilanSube });
+      }
+    },
+    [eklemeVar, seciliFirmaId, firmaPasifMi, firmaSubeleri, hataBildir]
   );
 
-  const gridIcerik = useMemo((): ReactNode => {
-    if (konum.seviye === 'firmalar') {
-      return (
-        <DataGrid
-          key="tanimlar_kayitlar_firmalar_v8"
-          {...gridOrtak}
-          tabloBaslik="Tanım Kayıtları"
-          kolonlar={firmaKolonlari}
-          satirlar={firmalar}
-          depolamaAnahtari="tanimlar_kayitlar_firmalar_v8"
-          bosMesaj="Henüz firma tanımı yok"
-          satirSinifAdi={(f) => (!f.aktif ? 'dg-satir--pasif' : undefined)}
-          onSatirTikla={(f) => setKonum({ seviye: 'firma', firmaId: f.id, sekme: 'subeler' })}
-          onSatirSil={silmeVar ? (f) => silmeAc({ tip: 'firma', kayit: f }) : undefined}
-        />
-      );
-    }
+  const duzenleAc = useCallback(
+    (satir: TanimSatir) => {
+      if (!duzenlemeVar) {
+        hataBildir('Kayıt düzenleme yetkiniz yok');
+        return;
+      }
+      if (satir.tip === 'firma') setModalHedef({ tip: 'firma', mod: 'duzenle', kayit: satir.kayit as AdminFirma });
+      else if (satir.tip === 'sube') setModalHedef({ tip: 'sube', mod: 'duzenle', kayit: satir.kayit as AdminSube });
+      else if (satir.tip === 'depo') setModalHedef({ tip: 'depo', mod: 'duzenle', kayit: satir.kayit as AdminDepo });
+      else if (satir.tip === 'kasa') setModalHedef({ tip: 'kasa', mod: 'duzenle', kayit: satir.kayit as AdminKasa });
+      else if (satir.tip === 'donem') setModalHedef({ tip: 'donem', mod: 'duzenle', kayit: satir.kayit as AdminDonem });
+    },
+    [duzenlemeVar, hataBildir]
+  );
 
-    if (konum.seviye === 'firma' && seciliFirma) {
-      const firmaSubeler = subeler.filter((s) => s.firmaId === seciliFirma.id);
-      const firmaDonemler = donemler.filter((d) => d.firmaId === seciliFirma.id);
-      const sekme = konum.sekme;
+  const silBaslat = useCallback(
+    (satir: TanimSatir) => {
+      if (!silmeVar) {
+        hataBildir('Kayıt silme yetkiniz yok');
+        return;
+      }
+      const hedef: SilmeHedef =
+        satir.tip === 'firma'
+          ? { tip: 'firma', kayit: satir.kayit as AdminFirma }
+          : satir.tip === 'sube'
+            ? { tip: 'sube', kayit: satir.kayit as AdminSube }
+            : satir.tip === 'depo'
+              ? { tip: 'depo', kayit: satir.kayit as AdminDepo }
+              : satir.tip === 'kasa'
+                ? { tip: 'kasa', kayit: satir.kayit as AdminKasa }
+                : { tip: 'donem', kayit: satir.kayit as AdminDonem };
 
-      return (
-        <div className="ap-tanimlar-gezgin-icerik">
-          <GezginSekmeler
-            sekmeler={[
-              { id: 'subeler', etiket: `Şubeler (${firmaSubeler.length})` },
-              { id: 'donemler', etiket: `Dönemler (${firmaDonemler.length})` },
-            ]}
-            aktif={sekme}
-            onSec={(id) =>
-              setKonum({
-                seviye: 'firma',
-                firmaId: seciliFirma.id,
-                sekme: id as 'subeler' | 'donemler',
-              })
-            }
-          />
-          {sekme === 'subeler' ? (
-            <DataGrid
-              key="tanimlar_kayitlar_subeler_v8"
-              {...gridOrtak}
-              tabloBaslik="Şubeler"
-              kolonlar={subeKolonlari}
-              satirlar={firmaSubeler}
-              depolamaAnahtari="tanimlar_kayitlar_subeler_v8"
-              bosMesaj="Bu firmaya bağlı şube yok"
-              satirSinifAdi={(s) =>
-                firmaBagliPasifMi(s.aktif, s.firmaId) ? 'dg-satir--pasif' : undefined
-              }
-              onSatirTikla={(s) =>
-                setKonum({
-                  seviye: 'sube',
-                  firmaId: seciliFirma.id,
-                  subeId: s.id,
-                  sekme: 'depolar',
-                })
-              }
-              onSatirSil={silmeVar ? (s) => silmeAc({ tip: 'sube', kayit: s }) : undefined}
-            />
-          ) : (
-            <DataGrid
-              key="tanimlar_kayitlar_donemler_v6"
-              {...gridOrtak}
-              tabloBaslik="Dönemler"
-              kolonlar={donemKolonlari}
-              satirlar={firmaDonemler}
-              depolamaAnahtari="tanimlar_kayitlar_donemler_v6"
-              bosMesaj="Bu firmaya bağlı dönem yok"
-              satirSinifAdi={(d) =>
-                firmaBagliPasifMi(d.aktif, d.firmaId) ? 'dg-satir--pasif' : undefined
-              }
-              onSatirTikla={(d) => satirDuzenleAc(d.id)}
-              onSatirSil={silmeVar ? (d) => silmeAc({ tip: 'donem', kayit: d }) : undefined}
-            />
-          )}
-        </div>
-      );
-    }
+      const ozet = tanimBaglantiOzeti(hedef.tip, hedef.kayit.id, {
+        firmalar,
+        subeler,
+        depolar,
+        kasalar,
+        donemler,
+      });
+      if (ozet.bagliVar) setBagliSil(hedef);
+      else setSilinecek(hedef);
+    },
+    [silmeVar, hataBildir, firmalar, subeler, depolar, kasalar, donemler]
+  );
 
-    if (konum.seviye === 'sube' && seciliFirma && seciliSube) {
-      const subeDepolar = depolar.filter((d) => d.subeId === seciliSube.id);
-      const subeKasalar = kasalar.filter((k) => k.subeId === seciliSube.id);
-      const sekme = konum.sekme;
+  const silOnayla = useCallback(
+    async (hedef: SilmeHedef, mod?: TanimSilModu) => {
+      try {
+        const metin = tanimHedefMetni(hedef.tip, hedef.kayit);
+        if (hedef.tip === 'firma') await firmaSil(hedef.kayit.id, mod);
+        else if (hedef.tip === 'sube') await subeSil(hedef.kayit.id, mod);
+        else if (hedef.tip === 'depo') await depoSil(hedef.kayit.id);
+        else if (hedef.tip === 'kasa') await kasaSil(hedef.kayit.id);
+        else await donemSil(hedef.kayit.id);
 
-      return (
-        <div className="ap-tanimlar-gezgin-icerik">
-          <GezginSekmeler
-            sekmeler={[
-              { id: 'depolar', etiket: `Depolar (${subeDepolar.length})` },
-              { id: 'kasalar', etiket: `Kasalar (${subeKasalar.length})` },
-            ]}
-            aktif={sekme}
-            onSec={(id) =>
-              setKonum({
-                seviye: 'sube',
-                firmaId: seciliFirma.id,
-                subeId: seciliSube.id,
-                sekme: id as 'depolar' | 'kasalar',
-              })
-            }
-          />
-          {sekme === 'depolar' ? (
-            <DataGrid
-              key="tanimlar_kayitlar_depolar_v8"
-              {...gridOrtak}
-              tabloBaslik="Depolar"
-              kolonlar={depoKolonlari}
-              satirlar={subeDepolar}
-              depolamaAnahtari="tanimlar_kayitlar_depolar_v8"
-              bosMesaj="Bu şubeye bağlı depo yok"
-              satirSinifAdi={(d) =>
-                subeBagliPasifMi(d.aktif, d.subeId) ? 'dg-satir--pasif' : undefined
-              }
-              onSatirTikla={(d) => satirDuzenleAc(d.id)}
-              onSatirSil={silmeVar ? (d) => silmeAc({ tip: 'depo', kayit: d }) : undefined}
-            />
-          ) : (
-            <DataGrid
-              key="tanimlar_kayitlar_kasalar_v6"
-              {...gridOrtak}
-              tabloBaslik="Kasalar"
-              kolonlar={kasaKolonlari}
-              satirlar={subeKasalar}
-              depolamaAnahtari="tanimlar_kayitlar_kasalar_v6"
-              bosMesaj="Bu şubeye bağlı kasa yok"
-              satirSinifAdi={(k) =>
-                subeBagliPasifMi(k.aktif, k.subeId) ? 'dg-satir--pasif' : undefined
-              }
-              onSatirTikla={(k) => satirDuzenleAc(k.id)}
-              onSatirSil={silmeVar ? (k) => silmeAc({ tip: 'kasa', kayit: k }) : undefined}
-            />
-          )}
-        </div>
-      );
-    }
+        logMesajiAyarla(logMesaj.sildi(`Tanımlar — ${TIP_ETIKET[hedef.tip]}`, metin));
+        basariBildir(`${TIP_ETIKET[hedef.tip]} silindi.`);
+        setSilinecek(null);
+        setBagliSil(null);
+        const yeniSecili =
+          hedef.tip === 'firma' && hedef.kayit.id === seciliFirmaId ? null : seciliFirmaId;
+        await yukle(yeniSecili);
+      } catch (err) {
+        hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
+      }
+    },
+    [logMesajiAyarla, basariBildir, hataBildir, seciliFirmaId, yukle]
+  );
 
-    return null;
-  }, [
-    konum,
-    firmalar,
-    subeler,
-    depolar,
-    kasalar,
-    donemler,
-    seciliFirma,
-    seciliSube,
-    gridOrtak,
-    firmaKolonlari,
-    subeKolonlari,
-    donemKolonlari,
-    depoKolonlari,
-    kasaKolonlari,
-    firmaBagliPasifMi,
-    subeBagliPasifMi,
-    silmeAc,
-    satirDuzenleAc,
-  ]);
+  const kaydedildi = useCallback(
+    async (_tip: TanimSekmeId, firmaId?: string) => {
+      await yukle(firmaId ?? seciliFirmaId);
+    },
+    [yukle, seciliFirmaId]
+  );
+
+  useModulAksiyonlari(
+    {
+      ekle: eklemeVar
+        ? () => ekleAc(tipFiltre === 'firma' || tipFiltre === 'sube' || tipFiltre === 'depo' || tipFiltre === 'kasa' || tipFiltre === 'donem' ? tipFiltre : seciliFirmaId ? 'sube' : 'firma')
+        : undefined,
+      sil: undefined,
+    },
+    {
+      ekle: eklemeVar && (tipFiltre === 'firma' || !!seciliFirmaId),
+      sil: false,
+    },
+    false
+  );
+
+  const kolonlar = useMemo((): KolonTanimi<TanimSatir>[] => {
+    return [
+      {
+        id: 'tip',
+        baslik: 'Tip',
+        tip: 'metin',
+        genislik: 88,
+        minGenislik: 72,
+        zorunlu: true,
+        siralama: true,
+        degerAl: (s) => TIP_ETIKET[s.tip],
+        siralamaDegeri: (s) => TIP_SIRASI[s.tip],
+        goster: (s) => <span className="ap-tanimlar-tip-metin">{TIP_ETIKET[s.tip]}</span>,
+      },
+      {
+        id: 'kod',
+        baslik: 'Kod',
+        tip: 'metin',
+        genislik: 110,
+        minGenislik: 80,
+        zorunlu: true,
+        siralama: true,
+        degerAl: (s) => s.kod,
+        goster: (s) => <span className="ap-tanimlar-hucre-kod">{s.kod}</span>,
+      },
+      {
+        id: 'ad',
+        baslik: 'Ad',
+        tip: 'metin',
+        genislik: 180,
+        minGenislik: 120,
+        zorunlu: true,
+        siralama: true,
+        degerAl: (s) => s.ad,
+      },
+      {
+        id: 'donem',
+        baslik: 'Dönem',
+        tip: 'metin',
+        genislik: 150,
+        minGenislik: 110,
+        siralama: true,
+        degerAl: (s) => s.donemMetin,
+        goster: (s) => hucreMetin(s.donemMetin),
+      },
+      {
+        id: 'sube',
+        baslik: 'Şube',
+        tip: 'metin',
+        genislik: 160,
+        minGenislik: 120,
+        siralama: true,
+        degerAl: (s) => s.subeMetin,
+        goster: (s) => hucreMetin(s.subeMetin),
+      },
+      {
+        id: 'depo',
+        baslik: 'Depo',
+        tip: 'metin',
+        genislik: 150,
+        minGenislik: 110,
+        siralama: true,
+        degerAl: (s) => s.depoMetin,
+        goster: (s) => hucreMetin(s.depoMetin),
+      },
+      {
+        id: 'kasa',
+        baslik: 'Kasa',
+        tip: 'metin',
+        genislik: 150,
+        minGenislik: 110,
+        siralama: true,
+        degerAl: (s) => s.kasaMetin,
+        goster: (s) => hucreMetin(s.kasaMetin),
+      },
+      {
+        id: 'durum',
+        baslik: 'Durum',
+        tip: 'salt-okunur',
+        genislik: 88,
+        siralama: true,
+        degerAl: (s) => (s.aktif ? 'Aktif' : 'Pasif'),
+        siralamaDegeri: (s) => (s.aktif ? 1 : 0),
+        goster: (s) => (
+          <span className={s.aktif ? 'ap-muted' : 'ap-tanimlar-hucre-bos'}>
+            {s.aktif ? 'Aktif' : 'Pasif'}
+          </span>
+        ),
+      },
+      {
+        id: 'olusturma',
+        baslik: 'Kayıt',
+        tip: 'tarih',
+        genislik: 120,
+        siralama: true,
+        degerAl: (s) => s.olusturma,
+        goster: (s) => tarihSaatFormatla(s.olusturma),
+      },
+      {
+        id: 'guncelleme',
+        baslik: 'Güncelleme',
+        tip: 'tarih',
+        genislik: 120,
+        siralama: true,
+        degerAl: (s) => s.guncelleme,
+        goster: (s) => tarihSaatFormatla(s.guncelleme),
+      },
+      {
+        id: 'islemler',
+        baslik: '',
+        tip: 'salt-okunur',
+        genislik: 68,
+        sabitSag: true,
+        siralama: false,
+        degerAl: () => null,
+      },
+    ];
+  }, []);
+
+  const bagliOzet = useMemo(() => {
+    if (!bagliSil) return [];
+    return tanimBaglantiOzeti(bagliSil.tip, bagliSil.kayit.id, {
+      firmalar,
+      subeler,
+      depolar,
+      kasalar,
+      donemler,
+    }).ozetSatirlari;
+  }, [bagliSil, firmalar, subeler, depolar, kasalar, donemler]);
 
   if (yukleniyor && firmalar.length === 0) return <TanimYukleniyor />;
 
-  const silmeHedefMetni = silme ? tanimHedefMetni(silme.tip, silme.kayit) : '';
-  const bagliSilGoster =
-    !!silme &&
-    (silme.tip === 'firma' || silme.tip === 'sube') &&
-    !!aktifBaglanti?.bagliVar;
-
   return (
-    <div ref={sayfaRef} className="dg-demo-sayfa dg-demo-sag-tik-alan">
-      <DatagridSagTikMenu
-        konteynerRef={sayfaRef}
-        kolonlar={aktifGrid.kolonlar as unknown as KolonTanimi<{ id: string }>[]}
-        satirlar={aktifGrid.satirlar}
-        seciliSatirSayisi={seciliSatirSayisi}
-        gridApiRef={gridApiRef}
-        menuEtiketi="Tanım kayıtları menüsü"
-        satirCogaltGoster={false}
-        seciliSilGoster={false}
-        dahiliSilmeOnay={false}
-        onSatirEkleBaslat={eklemeVar ? sagTikSatirEkle : undefined}
-        onSatirSil={silmeVar ? sagTikSatirSil : undefined}
-        satirSilMetniAl={sagTikSatirSilMetni}
-        onBilgi={basariBildir}
-      />
-
-      <div className="dg-tanimlar-kayit-ust">
-        <nav className="ap-tanimlar-gezgin-yol" aria-label="Kayıt konumu">
-          <ol className="ap-tanimlar-gezgin-yol-liste">
-            {breadcrumb.map((oge, idx) => (
-              <li key={`${oge.etiket}-${idx}`} className="ap-tanimlar-gezgin-yol-oge">
-                {oge.onTikla ? (
-                  <button type="button" className="ap-tanimlar-gezgin-yol-tus" onClick={oge.onTikla}>
-                    {oge.etiket}
-                  </button>
-                ) : (
-                  <span className="ap-tanimlar-gezgin-yol-metin">{oge.etiket}</span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
+    <div className="ap-tanimlar-kayit-sayfa">
+      <div className="ap-tanimlar-ekle-cubuk" role="toolbar" aria-label="Yeni kayıt ekle">
+        <div className="ap-tanimlar-tip-filtre">
+          <FormAcilirSecim
+            aria-label="Kayıt tipi filtre"
+            value={tipFiltre}
+            onChange={setTipFiltre}
+            secenekler={TIP_FILTRE_SECENEKLER}
+            tusMetin={tipFiltre ? undefined : 'Tümü'}
+          />
+        </div>
+        {EKLE_BUTONLARI.map((b) => {
+          const firmaGerekli = b.tip !== 'firma';
+          const disabled =
+            !eklemeVar ||
+            (firmaGerekli && !seciliFirmaId) ||
+            (firmaGerekli && !!seciliFirmaId && firmaPasifMi(seciliFirmaId));
+          return (
+            <button
+              key={b.tip}
+              type="button"
+              className="ap-tanimlar-ekle-tus"
+              disabled={disabled}
+              onClick={() => ekleAc(b.tip)}
+              title={
+                !eklemeVar
+                  ? 'Ekleme yetkiniz yok'
+                  : firmaGerekli && !seciliFirmaId
+                    ? 'Önce firma seçin'
+                    : `Yeni ${b.etiket}`
+              }
+            >
+              <span aria-hidden>{b.ikon}</span>
+              <span>+ {b.etiket}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {gridIcerik}
+      <div className="ap-tanimlar-kayit-duzen">
+        <aside className="ap-tanimlar-firma-liste" aria-label="Firmalar">
+          <div className="ap-tanimlar-firma-arama">
+            <input
+              type="search"
+              className="ap-tanimlar-firma-arama-input"
+              placeholder="Firma ara…"
+              value={firmaArama}
+              onChange={(e) => setFirmaArama(e.target.value)}
+              aria-label="Firma ara"
+            />
+          </div>
+          <div className="ap-tanimlar-firma-scroll">
+            {filtreliFirmalar.length === 0 ? (
+              <p className="ap-tanimlar-firma-bos">Firma bulunamadı</p>
+            ) : (
+              filtreliFirmalar.map((f) => {
+                const secili = f.id === seciliFirmaId;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    className={`ap-tanimlar-firma-oge${secili ? ' ap-tanimlar-firma-oge--aktif' : ''}${!f.aktif ? ' ap-tanimlar-firma-oge--pasif' : ''}`}
+                    onClick={() => setSeciliFirmaId(f.id)}
+                  >
+                    <span className="ap-tanimlar-firma-ad">{f.firmaAdi}</span>
+                    <span className="ap-tanimlar-firma-kod">{f.firmaKodu}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </aside>
 
-      {bagliSilGoster && aktifBaglanti ? (
-        <TanimBagliSilOnayModal
-          acik
-          onKapat={silmeKapat}
-          onOnayla={(mod) => void silmeUygula(mod)}
-          hedefMetin={silmeHedefMetni}
-          bagliOzet={aktifBaglanti.ozetSatirlari}
-        />
-      ) : (
-        <SilmeOnayModal
-          acik={!!silme && !bagliSilGoster}
-          onKapat={silmeKapat}
-          onOnayla={() => void silmeUygula()}
-          hedefMetin={silmeHedefMetni}
-        />
-      )}
+        <div className="ap-tanimlar-kayit-ana">
+          {!seciliFirma ? (
+            <p className="ap-tanimlar-firma-bos">Soldan bir firma seçin veya + Firma ile ekleyin</p>
+          ) : (
+            <DataGrid
+              tabloBaslik={`${seciliFirma.firmaAdi} kayıtları`}
+              kolonlar={kolonlar}
+              satirlar={gosterilenSatirlar}
+              depolamaAnahtari="tanimlar-kayitlar-duz-v2"
+              kompakt
+              formulMenuGoster={false}
+              sutunSabitleGoster={false}
+              bosMesaj="Bu firmaya ait kayıt yok — üstten ekleyin"
+              onSatirTikla={duzenlemeVar ? duzenleAc : undefined}
+              onSatirDuzenle={duzenlemeVar ? duzenleAc : undefined}
+              onSatirSil={silmeVar ? silBaslat : undefined}
+              satirSinifAdi={(s) =>
+                !s.aktif ||
+                firmaPasifMi(s.firmaId) ||
+                ((s.tip === 'depo' || s.tip === 'kasa') &&
+                  subePasifMi((s.kayit as AdminDepo | AdminKasa).subeId))
+                  ? 'ap-tanimlar-satir--pasif'
+                  : undefined
+              }
+            />
+          )}
+        </div>
+      </div>
+
+      <TanimKayitModal
+        hedef={modalHedef}
+        subeler={subeler}
+        onKapat={() => setModalHedef(null)}
+        onKaydedildi={(tip, firmaId) => void kaydedildi(tip, firmaId)}
+      />
+
+      <SilmeOnayModal
+        acik={!!silinecek}
+        onKapat={() => setSilinecek(null)}
+        onOnayla={() => {
+          if (silinecek) void silOnayla(silinecek);
+        }}
+        baslik="Bu kaydı silmek istiyor musunuz?"
+        hedefMetin={silinecek ? tanimHedefMetni(silinecek.tip, silinecek.kayit) : ''}
+        ariaLabel="Tanım kaydı silme onayı"
+      />
+
+      <TanimBagliSilOnayModal
+        acik={!!bagliSil}
+        onKapat={() => setBagliSil(null)}
+        onOnayla={(mod) => {
+          if (bagliSil) void silOnayla(bagliSil, mod);
+        }}
+        hedefMetin={bagliSil ? tanimHedefMetni(bagliSil.tip, bagliSil.kayit) : ''}
+        bagliOzet={bagliOzet}
+      />
     </div>
   );
 }

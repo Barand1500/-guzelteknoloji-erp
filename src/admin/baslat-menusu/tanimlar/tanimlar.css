@@ -1,4 +1,4 @@
-/* Tanımlar — üst pill sekmeler + liste / form */
+/* Tan?mlar ? �st pill sekmeler + liste / form */
 
 .ap-tanimlar-sayfa {
   display: flex;
@@ -35,7 +35,7 @@
   margin-top: 0.75rem;
 }
 
-/* Sekme geçişinde üst başlık kaymasın — panel düzeni her iki modda aynı */
+/* Sekme ge�i?inde �st ba?l?k kaymas?n ? panel d�zeni her iki modda ayn? */
 .ap-modul-panel:has(.ap-tanimlar-sayfa),
 .ap-modul-panel:has(.ap-tanimlar-sayfa):has(.dg-demo-sayfa) {
   display: flex !important;
@@ -71,7 +71,7 @@
   flex-direction: column;
 }
 
-/* İçerik geçişi */
+/* ?�erik ge�i?i */
 .ap-tanimlar-icerik {
   animation: ap-tanimlar-icerik-gir 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -222,7 +222,7 @@
   border-radius: 0.45rem;
 }
 
-/* Form bölümleri */
+/* Form b�l�mleri */
 .ap-tanimlar-bolum {
   padding: 0.85rem 0.9rem;
   border-radius: 0.75rem;
@@ -314,7 +314,7 @@
   color: var(--ap-heading);
 }
 
-/* Yükleniyor */
+/* Y�kleniyor */
 .ap-tanimlar-yukleniyor {
   display: flex;
   flex-direction: column;
@@ -411,7 +411,7 @@
   transform: translateX(1rem);
 }
 
-/* Liste ekranı + tablo */
+/* Liste ekran? + tablo */
 .ap-tanimlar-liste-ekran {
   display: flex;
   flex-direction: column;
@@ -646,7 +646,7 @@
   color: #ef4444;
 }
 
-/* Bağlı kayıt silme modalı — ap-sil-onay yapısı içinde seçenekler */
+/* Ba?l? kay?t silme modal? ? ap-sil-onay yap?s? i�inde se�enekler */
 .ap-sil-onay-kart--bagli .ap-sil-onay-metin {
   margin-bottom: 0.85rem;
 }
@@ -729,7 +729,7 @@
   color: var(--ap-text-muted);
 }
 
-/* Kurulum sihirbazı */
+/* Kurulum sihirbaz? */
 .ap-tanimlar-icerik:has(.ap-tanimlar-sihirbaz) {
   flex: 1;
   min-height: 0;
@@ -931,7 +931,7 @@
   box-shadow: 0 4px 12px color-mix(in srgb, var(--ap-accent) 30%, transparent);
 }
 
-/* Düzenle ekranı */
+/* D�zenle ekran? */
 .ap-tanimlar-duzenle {
   display: flex;
   flex-direction: column;
@@ -1286,7 +1286,7 @@ button.ap-tanimlar-sihirbaz-faz {
   font-size: 0.78rem;
 }
 
-/* Kayıtlar gezgini */
+/* Kay?tlar gezgini */
 .ap-tanimlar-gezgin {
   display: flex;
   flex-direction: column;
@@ -1339,7 +1339,7 @@ button.ap-tanimlar-sihirbaz-faz {
 }
 
 .ap-tanimlar-gezgin-yol-oge + .ap-tanimlar-gezgin-yol-oge::before {
-  content: '›';
+  content: '?';
   margin-right: 0.5rem;
   color: color-mix(in srgb, var(--ap-muted) 70%, transparent);
   font-size: 0.85rem;
@@ -1504,7 +1504,7 @@ button.ap-tanimlar-panel-arka {
   line-height: 1.45;
 }
 
-/* Düzenle paneli — sade başlık + tam genişlik alt butonlar */
+/* D�zenle paneli ? sade ba?l?k + tam geni?lik alt butonlar */
 .ap-tanimlar-duzenle-panel-baslik {
   padding: 1rem 1.25rem;
 }
@@ -1514,9 +1514,9 @@ button.ap-tanimlar-panel-arka {
   font-weight: 700;
 }
 
-/* Tam genişlik alt bar stilleri datagrid.css içindeki .dg-duzenle-alt--genis kurallarından gelir */
+/* Tam geni?lik alt bar stilleri datagrid.css i�indeki .dg-duzenle-alt--genis kurallar?ndan gelir */
 
-/* Stoklar liste — hızlı ara + gelişmiş ara çubuğu */
+/* Stoklar liste ? h?zl? ara + geli?mi? ara �ubu?u */
 .stoklar-liste-ara-cubugu {
   display: flex;
   flex-wrap: wrap;
@@ -1809,10 +1809,10 @@ button.ap-tanimlar-panel-arka {
 }
 
 /*
-  Sipariş tablosu hiyerarşisi (stok ekranları):
-  - Kolon başlıkları / metin-kategori: sola
-  - Sayı / para / KDV tutarı: sağa
-  - Global miktar/birim center kurallarını burada kır
+  Sipari? tablosu hiyerar?isi (stok ekranlar?):
+  - Kolon ba?l?klar? / metin-kategori: sola
+  - Say? / para / KDV tutar?: sa?a
+  - Global miktar/birim center kurallar?n? burada k?r
 */
 .stok-fiyat-analiz-tablo .dg-baslik-hucre,
 .stok-envanter-analiz-tablo .dg-baslik-hucre,
@@ -1846,7 +1846,7 @@ button.ap-tanimlar-panel-arka {
   justify-content: flex-start !important;
 }
 
-/* Hücre değerleri: başlık sola, içerik sağa (birim / depo / tarih / fiyat adı / barkod / K.) */
+/* H�cre de?erleri: ba?l?k sola, i�erik sa?a (birim / depo / tarih / fiyat ad? / barkod / K.) */
 .stok-birim-liste-tablo .dg-hucre[data-kolon-id='birim'],
 .stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='birim'],
 .stok-fiyat-duzenle-tablo .dg-hucre[data-kolon-id='barkod'],
@@ -1870,7 +1870,7 @@ button.ap-tanimlar-panel-arka {
   text-align: left;
 }
 
-/* PB: başlık sola, para birimi değeri ortada */
+/* PB: ba?l?k sola, para birimi de?eri ortada */
 .stok-fiyat-duzenle-tablo .dg-baslik-hucre[data-kolon-id='pb1'] {
   text-align: left !important;
 }
@@ -1924,7 +1924,7 @@ button.ap-tanimlar-panel-arka {
   width: 100%;
 }
 
-/* Üst etiket sola, alt değer sağa (sipariş hiyerarşisi + istenen yön) */
+/* �st etiket sola, alt de?er sa?a (sipari? hiyerar?isi + istenen y�n) */
 .stok-dg-etiket-deger {
   display: flex;
   flex-direction: column;
@@ -2002,7 +2002,7 @@ button.ap-tanimlar-panel-arka {
   background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
 }
 
-/* Stok envanter analiz — tam sayfa */
+/* Stok envanter analiz ? tam sayfa */
 .stok-envanter-analiz-icerik {
   display: flex;
   flex-direction: column;
@@ -2169,7 +2169,7 @@ button.ap-tanimlar-panel-arka {
   font-variant-numeric: tabular-nums;
 }
 
-/* Stok birim listesi — tam sayfa */
+/* Stok birim listesi ? tam sayfa */
 .stok-birim-liste-icerik {
   display: flex;
   flex-direction: column;
@@ -2356,7 +2356,7 @@ button.ap-tanimlar-panel-arka {
   font-weight: 600;
 }
 
-/* Stok fiyat düzenle — tam sayfa */
+/* Stok fiyat d�zenle ? tam sayfa */
 .stok-fiyat-duzenle-icerik {
   display: flex;
   flex-direction: column;
@@ -2475,7 +2475,7 @@ button.ap-tanimlar-panel-arka {
   accent-color: var(--ap-accent);
 }
 
-/* Stok kartı — tam yükseklik + gizli scrollbar */
+/* Stok kart? ? tam y�kseklik + gizli scrollbar */
 .stok-karti-kabuk .ap-tanimlar-duzenle--ust-gizli {
   border: 0;
   box-shadow: none;
@@ -2520,7 +2520,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.9rem;
 }
 
-/* Cari kartı gibi gri panel — turuncu sol şerit yok */
+/* Cari kart? gibi gri panel ? turuncu sol ?erit yok */
 .stok-karti-bolum-panel {
   padding: 1.35rem 1.4rem 1.5rem;
   border-radius: 0.85rem;
@@ -2626,7 +2626,7 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
 }
 
-/* Marka + Menşei yan yana → Stok Nevi kolonu genişliği */
+/* Marka + Men?ei yan yana ? Stok Nevi kolonu geni?li?i */
 .stok-karti-marka-mensei-cift {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2880,7 +2880,7 @@ button.ap-tanimlar-panel-arka {
   min-height: 2rem;
 }
 
-/* Ana Tanımlar — farklı input tarzı: dolgulu gövde + alt vurgu çizgisi */
+/* Ana Tan?mlar ? farkl? input tarz?: dolgulu g�vde + alt vurgu �izgisi */
 .stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-input,
 .stok-karti-ana-tanimlar .stok-karti-yatay-kontrol .ap-form-acilir-secim-tus {
   background: color-mix(in srgb, var(--ap-hover) 55%, var(--ap-surface));
@@ -2936,7 +2936,7 @@ button.ap-tanimlar-panel-arka {
 
 .stok-karti-ek-govde {
   display: grid;
-  /* Orta kolon (Alış KDV) Üretici inputunun bittiği hizada bitsin */
+  /* Orta kolon (Al?? KDV) �retici inputunun bitti?i hizada bitsin */
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.6fr) minmax(0, 1.35fr);
   gap: 0.75rem 1.15rem;
   align-items: start;
@@ -3148,7 +3148,7 @@ button.ap-tanimlar-panel-arka {
   }
 }
 
-/* ── Yeni Stok — Birimler kartı ── */
+/* ?? Yeni Stok ? Birimler kart? ?? */
 .stok-yb-kabuk {
   display: flex;
   flex-direction: column;
@@ -3908,7 +3908,7 @@ button.ap-tanimlar-panel-arka {
   width: 100%;
 }
 
-/* Alış / Satış fiyat: üst satır ile tablo aynı kolon izleri */
+/* Al?? / Sat?? fiyat: �st sat?r ile tablo ayn? kolon izleri */
 .stok-coklu-fiyat-modal:not(.stok-coklu-barkod-modal):not(.stok-kdv-departman-modal) {
   --scf-col-sira: 2.5rem;
   --scf-col-fiyat: 6.75rem;
@@ -4743,7 +4743,7 @@ button.ap-tanimlar-panel-arka {
   max-width: calc(100% - 0.6rem);
 }
 
-/* ── Birim kart düzeni (ana tanımlar tarzı) ── */
+/* ?? Birim kart d�zeni (ana tan?mlar tarz?) ?? */
 .stok-yb-liste {
   display: flex;
   flex-direction: column;
@@ -5153,7 +5153,7 @@ button.ap-tanimlar-panel-arka {
   align-items: stretch;
 }
 
-/* stok-karti-form padding !important eziyor — daha spesifik seçici */
+/* stok-karti-form padding !important eziyor ? daha spesifik se�ici */
 .stok-karti-form .stok-yb-kdv-outlined--dh .ap-form-acilir-secim-tus,
 .stok-yb-kabuk .stok-yb-kdv-outlined--dh .ap-form-acilir-secim-tus {
   display: flex !important;
@@ -5597,7 +5597,7 @@ button.ap-tanimlar-panel-arka {
   }
 }
 
-/* Stok Kartı sekme içerikleri (referans ekran) */
+/* Stok Kart? sekme i�erikleri (referans ekran) */
 .stok-karti-sekme-birim-fiyat {
   display: flex;
   flex-direction: column;
@@ -5620,7 +5620,7 @@ button.ap-tanimlar-panel-arka {
   border-radius: 0;
 }
 
-/* Tablo kendi sonuna gelince tekerlek kaydırması sayfaya devretsin (takılma olmasın) */
+/* Tablo kendi sonuna gelince tekerlek kayd?rmas? sayfaya devretsin (tak?lma olmas?n) */
 .stok-karti-birim-fiyat-grid .dg-scroll {
   overscroll-behavior: auto;
 }
@@ -5699,7 +5699,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.5rem;
 }
 
-/* Pl: kutu etiketin hemen önünde, tablonun (Depo Adı) sol hizasında */
+/* Pl: kutu etiketin hemen �n�nde, tablonun (Depo Ad?) sol hizas?nda */
 .stok-karti-ozel-kodlar-ust .stok-karti-yatay {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.35rem 0.35rem;
@@ -5745,7 +5745,7 @@ button.ap-tanimlar-panel-arka {
   max-width: 42rem;
 }
 
-/* Analiz: fiyatlar sol, değişim tarihleri sağda yan yana */
+/* Analiz: fiyatlar sol, de?i?im tarihleri sa?da yan yana */
 .stok-karti-analiz {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5771,7 +5771,7 @@ button.ap-tanimlar-panel-arka {
   }
 }
 
-/* E-Dönüşüm: sol GTIP kolonu + sağ Menşei kolonu satırı birlikte kaplar */
+/* E-D�n�?�m: sol GTIP kolonu + sa? Men?ei kolonu sat?r? birlikte kaplar */
 .stok-karti-e-donusum {
   max-width: none;
 }
@@ -5790,7 +5790,7 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
 }
 
-/* Muhasebe: sol kod alanları + sağ Gider Çeşit Kodları */
+/* Muhasebe: sol kod alanlar? + sa? Gider �e?it Kodlar? */
 .stok-karti-muhasebe {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5805,7 +5805,7 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
 }
 
-/* İstihbarat: etiket kolonu daraltılıp alanlar sola hizalanır */
+/* ?stihbarat: etiket kolonu daralt?l?p alanlar sola hizalan?r */
 .stok-karti-istihbarat .stok-karti-yatay {
   grid-template-columns: 5.5rem minmax(0, 1fr);
 }
@@ -5856,8 +5856,8 @@ button.ap-tanimlar-panel-arka {
   object-fit: contain;
 }
 
-/* Resim, İstihbarat ve E-Dönüşüm sekmeleri: panel alttaki boşluğu doldursun.
-   min-height: 0 kullanılmaz — kutu içerikten kısa kalıp alanlar çerçeve dışına taşmasın */
+/* Resim, ?stihbarat ve E-D�n�?�m sekmeleri: panel alttaki bo?lu?u doldursun.
+   min-height: 0 kullan?lmaz ? kutu i�erikten k?sa kal?p alanlar �er�eve d???na ta?mas?n */
 .stok-karti-icerik > .stok-karti-form[data-stok-sekme='resim'],
 .stok-karti-icerik > .stok-karti-form[data-stok-sekme='istihbarat'],
 .stok-karti-icerik > .stok-karti-form[data-stok-sekme='e-donusum'] {
@@ -5898,8 +5898,8 @@ button.ap-tanimlar-panel-arka {
   resize: vertical;
 }
 
-/* Tevkifat satırı üstteki iki kolon düzenine oturur:
-   sol parça GTIP inputlarının bittiği çizgide biter, Oran sağ kolonun başında başlar */
+/* Tevkifat sat?r? �stteki iki kolon d�zenine oturur:
+   sol par�a GTIP inputlar?n?n bitti?i �izgide biter, Oran sa? kolonun ba??nda ba?lar */
 .stok-karti-tevkifat {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5916,7 +5916,7 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
 }
 
-/* Oran satırı sağ kolondaki diğer satırlarla (İhraç Kayıt Şekilleri vb.) aynı ızgarada durur */
+/* Oran sat?r? sa? kolondaki di?er sat?rlarla (?hra� Kay?t ?ekilleri vb.) ayn? ?zgarada durur */
 .stok-karti-tevkifat-sag {
   display: grid;
   grid-template-columns: minmax(6.5rem, 9.5rem) minmax(0, 1fr);
@@ -5971,7 +5971,7 @@ button.ap-tanimlar-panel-arka {
   appearance: textfield;
 }
 
-/* Sayı artır/azalt okları gizli */
+/* Say? art?r/azalt oklar? gizli */
 .stok-karti-tevkifat-oran::-webkit-inner-spin-button,
 .stok-karti-tevkifat-oran::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -6267,14 +6267,14 @@ button.ap-tanimlar-panel-arka {
   line-height: 1.4;
 }
 
-/* Sağ taraf formu — tüm genişliği ve yüksekliği doldur */
+/* Sa? taraf formu ? t�m geni?li?i ve y�ksekli?i doldur */
 .stok-yeni-sag .stok-karti-form {
   flex: 1 1 auto;
   max-width: none;
   gap: 0.7rem;
 }
 
-/* Bölümler eşit yükseklikle alanı doldursun (alttaki boşluk gitsin) */
+/* B�l�mler e?it y�kseklikle alan? doldursun (alttaki bo?luk gitsin) */
 .stok-yeni-sag .ap-tanimlar-bolum {
   flex: 1 1 0;
   min-height: 0;
@@ -6284,7 +6284,7 @@ button.ap-tanimlar-panel-arka {
   max-width: none;
 }
 
-/* Bölümleri yumuşat + büyüt (yalnızca yeni ekleme ekranı) */
+/* B�l�mleri yumu?at + b�y�t (yaln?zca yeni ekleme ekran?) */
 .stok-yeni-sag .ap-tanimlar-bolum {
   padding: 1rem 1.15rem;
   border-radius: 0.9rem;
@@ -6304,7 +6304,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.85rem;
 }
 
-/* Girdi kutularını büyüt */
+/* Girdi kutular?n? b�y�t */
 .stok-yeni-sag .ap-input {
   padding-top: 0.6rem;
   padding-bottom: 0.6rem;
@@ -6441,7 +6441,7 @@ button.ap-tanimlar-panel-arka {
   letter-spacing: 0.04em;
 }
 
-/* Gelişmiş Stok Arama — silme modalı dili + bu modal’a özel 2 aksiyon / Vazgeç üstte */
+/* Geli?mi? Stok Arama ? silme modal? dili + bu modal?a �zel 2 aksiyon / Vazge� �stte */
 .stok-gelismis-arama {
   z-index: 10040;
 }
@@ -6549,7 +6549,7 @@ button.ap-tanimlar-panel-arka {
   opacity: 1;
 }
 
-/* Focus halkası dışarı taşmasın — overflow clip sol kenarı yiyordu */
+/* Focus halkas? d??ar? ta?mas?n ? overflow clip sol kenar? yiyordu */
 .stok-gelismis-arama-govde .ap-input:focus,
 .stok-gelismis-arama-govde .ap-input:focus-visible,
 .stok-gelismis-arama-govde .ap-form-acilir-secim-tus:focus,
@@ -6579,8 +6579,8 @@ button.ap-tanimlar-panel-arka {
 }
 
 
-/* ——— Cari Kart ——— */
-/* Kaydırma .cari-kart-sayfa'da; kabuk içeriğe göre uzar (+ ile iletişim açılınca) */
+/* ??? Cari Kart ??? */
+/* Kayd?rma .cari-kart-sayfa'da; kabuk i�eri?e g�re uzar (+ ile ileti?im a�?l?nca) */
 .cari-kart-kabuk {
   display: flex;
   flex-direction: column;
@@ -6697,7 +6697,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.5rem 0.75rem;
 }
 
-/* İşletme Türü / chip stilleri: cari.css (outlined notch) — burada ezme */
+/* ??letme T�r� / chip stilleri: cari.css (outlined notch) ? burada ezme */
 
 .cari-onay {
   display: inline-flex;
@@ -7349,4 +7349,291 @@ button.ap-tanimlar-panel-arka {
   .cari-alan-yaninda-onay {
     grid-template-columns: 1fr;
   }
+}
+
+/* ??? Kay?tlar: Eri?im Atamas? tarz? (sol firma + sa? d?z grid) ??? */
+
+.ap-tanimlar-kayit-sayfa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.ap-tanimlar-ekle-cubuk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.ap-tanimlar-ekle-tus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-heading);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.ap-tanimlar-ekle-tus:hover:not(:disabled) {
+  background: var(--ap-surface-2);
+  border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+}
+
+.ap-tanimlar-ekle-tus:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ap-tanimlar-kayit-duzen {
+  display: flex;
+  align-items: stretch;
+  gap: 0.85rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: min(58vh, 34rem);
+  height: min(62vh, 38rem);
+  max-height: min(70vh, 42rem);
+}
+
+.ap-tanimlar-firma-liste {
+  flex: 0 0 14rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.45rem;
+  min-height: 0;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 12%, var(--ap-border));
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--ap-surface-2) 70%, var(--ap-surface)) 0%,
+      color-mix(in srgb, var(--ap-surface-2) 40%, var(--ap-surface)) 100%
+    );
+}
+
+.ap-tanimlar-firma-arama {
+  flex-shrink: 0;
+}
+
+.ap-tanimlar-firma-arama-input {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-heading);
+  font-size: 0.78rem;
+}
+
+.ap-tanimlar-firma-arama-input:focus {
+  outline: none;
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 18%, transparent);
+}
+
+.ap-tanimlar-firma-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ap-tanimlar-firma-oge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: none;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.ap-tanimlar-firma-oge:hover {
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+}
+
+.ap-tanimlar-firma-ad {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+  line-height: 1.25;
+}
+
+.ap-tanimlar-firma-kod {
+  font-size: 0.7rem;
+  color: var(--ap-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-tanimlar-firma-oge:hover .ap-tanimlar-firma-ad {
+  color: var(--ap-accent);
+}
+
+.ap-tanimlar-firma-oge--aktif,
+.ap-tanimlar-firma-oge--aktif:hover {
+  background: color-mix(in srgb, var(--ap-accent) 18%, var(--ap-surface));
+}
+
+.ap-tanimlar-firma-oge--aktif .ap-tanimlar-firma-ad,
+.ap-tanimlar-firma-oge--aktif:hover .ap-tanimlar-firma-ad {
+  color: var(--ap-accent);
+}
+
+.ap-tanimlar-firma-oge--aktif .ap-tanimlar-firma-kod,
+.ap-tanimlar-firma-oge--aktif:hover .ap-tanimlar-firma-kod {
+  color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-muted));
+}
+
+.ap-tanimlar-firma-oge--pasif {
+  opacity: 0.55;
+}
+
+.ap-tanimlar-firma-bos {
+  margin: 0.75rem 0.35rem;
+  font-size: 0.78rem;
+  color: var(--ap-muted);
+}
+
+.ap-tanimlar-kayit-ana {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  overflow: hidden;
+}
+
+.ap-tanimlar-kayit-ana .dg-kabuk {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ap-tanimlar-kayit-ana .dg-scroll-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ap-tanimlar-kayit-ana .dg-scroll {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: auto;
+}
+
+.ap-tanimlar-tip-filtre {
+  flex: 0 0 9.5rem;
+  min-width: 9.5rem;
+}
+
+.ap-tanimlar-tip-metin {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.ap-tanimlar-tip-rozet {
+  display: none;
+}
+
+.ap-tanimlar-tip-rozet--firma,
+.ap-tanimlar-tip-rozet--sube,
+.ap-tanimlar-tip-rozet--depo,
+.ap-tanimlar-tip-rozet--kasa,
+.ap-tanimlar-tip-rozet--donem {
+  display: none;
+}
+
+.ap-tanimlar-hucre-kod {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ap-heading);
+}
+
+.ap-tanimlar-hucre-metin {
+  font-size: 0.78rem;
+  color: var(--ap-text);
+}
+
+.ap-tanimlar-hucre-bos {
+  color: color-mix(in srgb, var(--ap-muted) 70%, transparent);
+}
+
+.ap-tanimlar-satir--pasif td {
+  opacity: 0.55;
+}
+
+.ap-tanimlar-modal-govde {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-height: min(65vh, 32rem);
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.ap-tanimlar-modal-hata {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #f87171;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kayit-sayfa) .ap-tanimlar-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 900px) {
+  .ap-tanimlar-kayit-duzen {
+    flex-direction: column;
+    height: auto;
+    max-height: none;
+    min-height: 28rem;
+  }
+
+  .ap-tanimlar-firma-liste {
+    flex: 0 0 auto;
+    max-height: 10rem;
+  }
+}
+
+.ap-tanimlar-durum-rozet {
+  display: inline-flex;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: color-mix(in srgb, #ef4444 16%, transparent);
+  color: #f87171;
+}
+
+.ap-tanimlar-durum-rozet--aktif {
+  background: color-mix(in srgb, #10b981 16%, transparent);
+  color: #34d399;
 }

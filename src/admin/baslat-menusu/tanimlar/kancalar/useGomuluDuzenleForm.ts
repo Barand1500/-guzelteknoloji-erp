@@ -17,6 +17,8 @@ export function useGomuluDuzenleFormYukle(
       yuklenenIdRef.current = null;
       return;
     }
+    /* Gömülü ekle: yüklenecek kayıt yok */
+    if (gomuluDuzenle.mod === 'ekle') return;
     if (!seciliKayit) return;
     if (yuklenenIdRef.current === seciliKayit.id) return;
     yuklenenIdRef.current = seciliKayit.id;

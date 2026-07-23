@@ -97,6 +97,15 @@ function formlarEsit(a: SubeFormDegeri, b: SubeFormDegeri): boolean {
   return (Object.keys(a) as (keyof SubeFormDegeri)[]).every((k) => a[k] === b[k]);
 }
 
+function onizlemeSubeMu(v: unknown): v is AdminSube {
+  return (
+    !!v &&
+    typeof v === 'object' &&
+    typeof (v as AdminSube).id === 'string' &&
+    typeof (v as AdminSube).subeKodu === 'string'
+  );
+}
+
 export function SubeSekme({
   gomuluDuzenle,
 }: {
@@ -106,19 +115,28 @@ export function SubeSekme({
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { firmaBagliPasifMi } = useTanimFirmaDurumu();
   const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
-  const [kayitlar, setKayitlar] = useState<AdminSube[]>([]);
+  const gomuluEkle = gomuluDuzenle?.mod === 'ekle';
+  const onizleme = onizlemeSubeMu(gomuluDuzenle?.onizleme) ? gomuluDuzenle.onizleme : null;
+  const baglamFirmaId = gomuluDuzenle?.baglam?.firmaId ?? '';
+  const [kayitlar, setKayitlar] = useState<AdminSube[]>(() => (onizleme ? [onizleme] : []));
   const [firmalar, setFirmalar] = useState<AdminFirma[]>([]);
-  const [seciliFirmaId, setSeciliFirmaId] = useState('');
-  const [form, setForm] = useState<SubeFormDegeri>(bosSubeForm);
-  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
+  const [seciliFirmaId, setSeciliFirmaId] = useState(baglamFirmaId);
+  const [form, setForm] = useState<SubeFormDegeri>(() =>
+    onizleme ? subedenForm(onizleme) : bosSubeForm
+  );
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(
+    gomuluEkle ? 'ekle' : gomuluDuzenle ? 'duzenle' : 'liste'
+  );
   const [sihirbazAdim, setSihirbazAdim] = useState(0);
-  const [yukleniyor, setYukleniyor] = useState(true);
+  const [yukleniyor, setYukleniyor] = useState(!gomuluDuzenle);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
+  const [seciliId, setSeciliId] = useState<string | null>(
+    gomuluEkle ? null : gomuluDuzenle?.id ?? null
+  );
 
   async function yukle() {
-    setYukleniyor(true);
+    if (!gomuluDuzenle) setYukleniyor(true);
     try {
       const [subeListesi, firmaListesi] = await Promise.all([subeleriGetir(), firmalariGetir()]);
       setKayitlar(subeListesi);
@@ -137,9 +155,9 @@ export function SubeSekme({
     void yukle();
   }, []);
 
-  const listeyeDon = useCallback(() => {
+  const listeyeDon = useCallback((secenek?: { yenile?: boolean }) => {
     if (gomuluDuzenle) {
-      gomuluDuzenle.onKapat();
+      gomuluDuzenle.onKapat(secenek);
       return;
     }
     setGorunum('liste');
@@ -156,10 +174,13 @@ export function SubeSekme({
     setGorunum('ekle');
   }, [firmalar]);
 
-  const seciliKayit = useMemo(
-    () => (seciliId ? kayitlar.find((k) => k.id === seciliId) ?? null : null),
-    [seciliId, kayitlar]
-  );
+  const seciliKayit = useMemo(() => {
+    if (!seciliId) return null;
+    return (
+      kayitlar.find((k) => k.id === seciliId) ??
+      (onizleme?.id === seciliId ? onizleme : null)
+    );
+  }, [seciliId, kayitlar, onizleme]);
 
   const kirli = useMemo(() => {
     if (gorunum === 'duzenle' && seciliKayit) {
@@ -205,7 +226,7 @@ export function SubeSekme({
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Şube', hedef));
         basariBildir('Şube eklendi.');
       }
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
@@ -231,7 +252,7 @@ export function SubeSekme({
         );
       }
       basariBildir('Şube silindi.');
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
@@ -251,7 +272,9 @@ export function SubeSekme({
   useModulAksiyonlari(
     gomuluDuzenle ? { kaydet, sil } : { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      kaydet:
+        ((gorunum === 'duzenle' && duzenlemeVar) || (gorunum === 'ekle' && eklemeVar)) &&
+        !kaydediliyor,
       ...(gomuluDuzenle ? {} : { ekle: gorunum === 'liste' && eklemeVar }),
       sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
@@ -265,6 +288,7 @@ export function SubeSekme({
           firmalar={firmalar}
           value={seciliFirmaId}
           onChange={setSeciliFirmaId}
+          saltOkunur={Boolean(baglamFirmaId)}
         />
       ) : seciliKayit ? (
         <TanimFirmaSecici
@@ -332,7 +356,27 @@ export function SubeSekme({
     </div>
   );
 
-  if (yukleniyor) return <TanimYukleniyor />;
+  if (yukleniyor && !gomuluDuzenle) return <TanimYukleniyor />;
+
+  if (gomuluEkle && gomuluDuzenle?.panel) {
+    return (
+      <TanimDuzenleEkrani
+        panel
+        ustEtiket="Yeni Şube"
+        baslik="Yeni Şube"
+        onGeri={listeyeDon}
+        onKaydet={eklemeVar ? () => void kaydet() : undefined}
+        kaydediliyor={kaydediliyor}
+        saltOkunur={!eklemeVar}
+      >
+        <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
+        <OrtakAdresFormu deger={form} onChange={(adres) => setForm((f) => ({ ...f, ...adres }))} />
+        <TanimFormBolum baslik="E-Belge Serileri">{ebelgeAlanlar}</TanimFormBolum>
+        <TanimFormBolum baslik="Ticari Bilgiler">{ticariAlanlar}</TanimFormBolum>
+        <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} />
+      </TanimDuzenleEkrani>
+    );
+  }
 
   if (gorunum === 'ekle' && !gomuluDuzenle) {
     return (
@@ -394,7 +438,7 @@ export function SubeSekme({
     );
   }
 
-  if (gorunum === 'duzenle' || gomuluDuzenle) {
+  if (gorunum === 'duzenle' || (gomuluDuzenle && !gomuluEkle)) {
     if (!seciliKayit) return <TanimYukleniyor />;
     return (
       <>

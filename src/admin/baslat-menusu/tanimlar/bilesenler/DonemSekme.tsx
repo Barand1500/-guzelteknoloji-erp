@@ -51,14 +51,17 @@ export function DonemSekme({
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { firmaBagliPasifMi } = useTanimFirmaDurumu();
   const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
+  const gomuluEkle = gomuluDuzenle?.mod === 'ekle';
   const [kayitlar, setKayitlar] = useState<AdminDonem[]>([]);
   const [form, setForm] = useState<DonemFormDegeri>(bosDonemForm);
-  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(
+    gomuluEkle ? 'ekle' : gomuluDuzenle ? 'duzenle' : 'liste'
+  );
   const [sihirbazAdim, setSihirbazAdim] = useState(0);
-  const [yukleniyor, setYukleniyor] = useState(true);
+  const [yukleniyor, setYukleniyor] = useState(!gomuluDuzenle);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
+  const [seciliId, setSeciliId] = useState<string | null>(gomuluEkle ? null : gomuluDuzenle?.id ?? null);
 
   async function yukle() {
     setYukleniyor(true);
@@ -75,9 +78,9 @@ export function DonemSekme({
     void yukle();
   }, []);
 
-  const listeyeDon = useCallback(() => {
+  const listeyeDon = useCallback((secenek?: { yenile?: boolean }) => {
     if (gomuluDuzenle) {
-      gomuluDuzenle.onKapat();
+      gomuluDuzenle.onKapat(secenek);
       return;
     }
     setGorunum('liste');
@@ -129,11 +132,11 @@ export function DonemSekme({
         logMesajiAyarla(logMesaj.guncelledi('Tanımlar — Dönem', hedef));
         basariBildir('Dönem güncellendi.');
       } else {
-        await donemOlustur(form);
+        await donemOlustur(form, gomuluDuzenle?.baglam?.firmaId);
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Dönem', hedef));
         basariBildir('Dönem eklendi.');
       }
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
@@ -159,7 +162,7 @@ export function DonemSekme({
         );
       }
       basariBildir('Dönem silindi.');
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
@@ -179,7 +182,9 @@ export function DonemSekme({
   useModulAksiyonlari(
     gomuluDuzenle ? { kaydet, sil } : { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      kaydet:
+        ((gorunum === 'duzenle' && duzenlemeVar) || (gorunum === 'ekle' && eklemeVar)) &&
+        !kaydediliyor,
       ...(gomuluDuzenle ? {} : { ekle: gorunum === 'liste' && eklemeVar }),
       sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
@@ -206,7 +211,24 @@ export function DonemSekme({
     </div>
   );
 
-  if (yukleniyor) return <TanimYukleniyor />;
+  if (yukleniyor && !gomuluDuzenle) return <TanimYukleniyor />;
+
+  if (gomuluEkle && gomuluDuzenle?.panel) {
+    return (
+      <TanimDuzenleEkrani
+        panel
+        ustEtiket="Yeni Dönem"
+        baslik="Yeni Dönem"
+        onGeri={listeyeDon}
+        onKaydet={eklemeVar ? () => void kaydet() : undefined}
+        kaydediliyor={kaydediliyor}
+        saltOkunur={!eklemeVar}
+      >
+        {bilgiAlanlar}
+        <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+      </TanimDuzenleEkrani>
+    );
+  }
 
   if (gorunum === 'ekle' && !gomuluDuzenle) {
     return (
@@ -231,7 +253,7 @@ export function DonemSekme({
     );
   }
 
-  if (gorunum === 'duzenle' || gomuluDuzenle) {
+  if (gorunum === 'duzenle' || (gomuluDuzenle && !gomuluEkle)) {
     if (!seciliKayit) return <TanimYukleniyor />;
     return (
       <>

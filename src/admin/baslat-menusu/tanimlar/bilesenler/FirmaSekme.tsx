@@ -65,6 +65,15 @@ function firmaAdimDogrula(adim: number, form: FirmaFormDegeri): string | null {
   return null;
 }
 
+function onizlemeFirmaMu(v: unknown): v is AdminFirma {
+  return (
+    !!v &&
+    typeof v === 'object' &&
+    typeof (v as AdminFirma).id === 'string' &&
+    typeof (v as AdminFirma).firmaKodu === 'string'
+  );
+}
+
 export function FirmaSekme({
   gomuluDuzenle,
 }: {
@@ -73,17 +82,25 @@ export function FirmaSekme({
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
-  const [kayitlar, setKayitlar] = useState<AdminFirma[]>([]);
-  const [form, setForm] = useState<FirmaFormDegeri>(bosFirmaForm);
-  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
+  const gomuluEkle = gomuluDuzenle?.mod === 'ekle';
+  const onizleme = onizlemeFirmaMu(gomuluDuzenle?.onizleme) ? gomuluDuzenle.onizleme : null;
+  const [kayitlar, setKayitlar] = useState<AdminFirma[]>(() => (onizleme ? [onizleme] : []));
+  const [form, setForm] = useState<FirmaFormDegeri>(() =>
+    onizleme ? firmadanForm(onizleme) : bosFirmaForm
+  );
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(
+    gomuluEkle ? 'ekle' : gomuluDuzenle ? 'duzenle' : 'liste'
+  );
   const [sihirbazAdim, setSihirbazAdim] = useState(0);
-  const [yukleniyor, setYukleniyor] = useState(true);
+  const [yukleniyor, setYukleniyor] = useState(!gomuluDuzenle);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
+  const [seciliId, setSeciliId] = useState<string | null>(
+    gomuluEkle ? null : gomuluDuzenle?.id ?? null
+  );
 
   async function yukle() {
-    setYukleniyor(true);
+    if (!gomuluDuzenle) setYukleniyor(true);
     try {
       setKayitlar(await firmalariGetir());
     } catch (err) {
@@ -97,9 +114,9 @@ export function FirmaSekme({
     void yukle();
   }, []);
 
-  const listeyeDon = useCallback(() => {
+  const listeyeDon = useCallback((secenek?: { yenile?: boolean }) => {
     if (gomuluDuzenle) {
-      gomuluDuzenle.onKapat();
+      gomuluDuzenle.onKapat(secenek);
       return;
     }
     setGorunum('liste');
@@ -115,10 +132,13 @@ export function FirmaSekme({
     setGorunum('ekle');
   }, []);
 
-  const seciliKayit = useMemo(
-    () => (seciliId ? kayitlar.find((k) => k.id === seciliId) ?? null : null),
-    [seciliId, kayitlar]
-  );
+  const seciliKayit = useMemo(() => {
+    if (!seciliId) return null;
+    return (
+      kayitlar.find((k) => k.id === seciliId) ??
+      (onizleme?.id === seciliId ? onizleme : null)
+    );
+  }, [seciliId, kayitlar, onizleme]);
 
   const kirli = useMemo(() => {
     if (gorunum === 'duzenle' && seciliKayit) {
@@ -163,7 +183,7 @@ export function FirmaSekme({
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Firma', hedef));
         basariBildir('Firma eklendi. MERKEZ şube ve depo oluşturuldu.');
       }
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
@@ -189,7 +209,7 @@ export function FirmaSekme({
         );
       }
       basariBildir('Firma silindi.');
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
@@ -209,7 +229,9 @@ export function FirmaSekme({
   useModulAksiyonlari(
     gomuluDuzenle ? { kaydet, sil } : { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      kaydet:
+        ((gorunum === 'duzenle' && duzenlemeVar) || (gorunum === 'ekle' && eklemeVar)) &&
+        !kaydediliyor,
       ...(gomuluDuzenle ? {} : { ekle: gorunum === 'liste' && eklemeVar }),
       sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
@@ -252,7 +274,25 @@ export function FirmaSekme({
     </>
   );
 
-  if (yukleniyor) return <TanimYukleniyor />;
+  if (yukleniyor && !gomuluDuzenle) return <TanimYukleniyor />;
+
+  if (gomuluEkle && gomuluDuzenle?.panel) {
+    return (
+      <TanimDuzenleEkrani
+        panel
+        ustEtiket="Yeni Firma"
+        baslik="Yeni Firma"
+        onGeri={listeyeDon}
+        onKaydet={eklemeVar ? () => void kaydet() : undefined}
+        kaydediliyor={kaydediliyor}
+        saltOkunur={!eklemeVar}
+      >
+        <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
+        <TanimFormBolum baslik="Vergi Bilgileri">{vergiAlanlar}</TanimFormBolum>
+        <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm((f) => ({ ...f, aktif }))} />
+      </TanimDuzenleEkrani>
+    );
+  }
 
   if (gorunum === 'ekle' && !gomuluDuzenle) {
     return (
@@ -298,7 +338,7 @@ export function FirmaSekme({
     );
   }
 
-  if (gorunum === 'duzenle' || gomuluDuzenle) {
+  if (gorunum === 'duzenle' || (gomuluDuzenle && !gomuluEkle)) {
     if (!seciliKayit) return <TanimYukleniyor />;
     return (
       <>

@@ -95,22 +95,30 @@ export function DepoSekme({
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
   const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
+  const gomuluEkle = gomuluDuzenle?.mod === 'ekle';
   const onizleme = onizlemeDepoMu(gomuluDuzenle?.onizleme) ? gomuluDuzenle.onizleme : null;
+  const baglamSubeId = gomuluDuzenle?.baglam?.subeId ?? '';
   const [kayitlar, setKayitlar] = useState<AdminDepo[]>(() => (onizleme ? [onizleme] : []));
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
-  const [form, setForm] = useState<DepoFormDegeri>(() =>
-    onizleme ? depodanForm(onizleme) : bosDepoForm
+  const [form, setForm] = useState<DepoFormDegeri>(() => {
+    if (onizleme) return depodanForm(onizleme);
+    if (baglamSubeId) return { ...bosDepoForm, subeId: baglamSubeId };
+    return bosDepoForm;
+  });
+  const [gorunum, setGorunum] = useState<TanimGorunumModu>(
+    gomuluEkle ? 'ekle' : gomuluDuzenle ? 'duzenle' : 'liste'
   );
-  const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
   const [sihirbazAdim, setSihirbazAdim] = useState(0);
-  const [yukleniyor, setYukleniyor] = useState(!onizleme);
+  const [yukleniyor, setYukleniyor] = useState(!gomuluDuzenle);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
-  const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
+  const [seciliId, setSeciliId] = useState<string | null>(
+    gomuluEkle ? null : gomuluDuzenle?.id ?? null
+  );
 
   async function yukle() {
-    if (!onizleme) setYukleniyor(true);
+    if (!gomuluDuzenle) setYukleniyor(true);
     try {
       const [depolar, subeListesi] = await Promise.all([depolariGetir(), subeleriGetir()]);
       setKayitlar(depolar);
@@ -165,9 +173,9 @@ export function DepoSekme({
     return aktif;
   }, [subeler, form.subeId, onizleme]);
 
-  const listeyeDon = useCallback(() => {
+  const listeyeDon = useCallback((secenek?: { yenile?: boolean }) => {
     if (gomuluDuzenle) {
-      gomuluDuzenle.onKapat();
+      gomuluDuzenle.onKapat(secenek);
       return;
     }
     setGorunum('liste');
@@ -230,7 +238,7 @@ export function DepoSekme({
         logMesajiAyarla(logMesaj.ekledi('Tanımlar — Depo', hedef));
         basariBildir('Depo eklendi.');
       }
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Kayıt başarısız');
@@ -256,7 +264,7 @@ export function DepoSekme({
         );
       }
       basariBildir('Depo silindi.');
-      listeyeDon();
+      listeyeDon({ yenile: true });
       if (!gomuluDuzenle) await yukle();
     } catch (err) {
       hataBildir(err instanceof Error ? err.message : 'Silme başarısız');
@@ -276,7 +284,9 @@ export function DepoSekme({
   useModulAksiyonlari(
     gomuluDuzenle ? { kaydet, sil } : { kaydet, ekle: yeniBaslat, sil },
     {
-      kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
+      kaydet:
+        ((gorunum === 'duzenle' && duzenlemeVar) || (gorunum === 'ekle' && eklemeVar)) &&
+        !kaydediliyor,
       ...(gomuluDuzenle ? {} : { ekle: gorunum === 'liste' && eklemeVar }),
       sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
@@ -304,6 +314,7 @@ export function DepoSekme({
         <FormAcilirSecim
           value={form.subeId}
           onChange={(subeId) => setForm({ ...form, subeId })}
+          disabled={Boolean(baglamSubeId)}
           secenekler={subeSecenekleri.map((s) => ({
             value: s.id,
             label: `${s.subeKodu} — ${s.subeAdi}`.toLocaleUpperCase('tr'),
@@ -330,6 +341,24 @@ export function DepoSekme({
   );
 
   if (yukleniyor && !gomuluDuzenle) return <TanimYukleniyor />;
+
+  if (gomuluEkle && gomuluDuzenle?.panel) {
+    return (
+      <TanimDuzenleEkrani
+        panel
+        ustEtiket="Yeni Depo"
+        baslik="Yeni Depo"
+        onGeri={listeyeDon}
+        onKaydet={eklemeVar ? () => void kaydet() : undefined}
+        kaydediliyor={kaydediliyor}
+        saltOkunur={!eklemeVar}
+      >
+        <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
+        <OrtakAdresFormu deger={form} onChange={(adres) => setForm((f) => ({ ...f, ...adres }))} />
+        <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+      </TanimDuzenleEkrani>
+    );
+  }
 
   if (gorunum === 'ekle' && !gomuluDuzenle) {
     return (
@@ -381,7 +410,7 @@ export function DepoSekme({
     );
   }
 
-  if (gorunum === 'duzenle' || gomuluDuzenle) {
+  if (gorunum === 'duzenle' || (gomuluDuzenle && !gomuluEkle)) {
     if (!seciliKayit) {
       if (yukleniyor) return <TanimYukleniyor />;
       return (

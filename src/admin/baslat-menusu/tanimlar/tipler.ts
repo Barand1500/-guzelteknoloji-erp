@@ -4,8 +4,13 @@ export type TanimGorunumModu = 'liste' | 'ekle' | 'duzenle';
 
 export interface GomuluDuzenleSecenek {
   id: string;
-  onKapat: () => void;
+  /** Vazgeç/Esc: yenilemeden kapat. Kaydet/Sil sonrası: { yenile: true } */
+  onKapat: (secenek?: { yenile?: boolean }) => void;
   panel?: boolean;
+  /** Varsayılan: duzenle. ekle = alttan / gömülü yeni kayıt */
+  mod?: 'duzenle' | 'ekle';
+  /** Eklemede üst bağlam (firma/şube) */
+  baglam?: { firmaId?: string; subeId?: string };
   /**
    * Grid satırından gelen anlık kayıt.
    * API yeniden yüklenene kadar formu doldurur; sonsuz yükleme spinner'ını önler.

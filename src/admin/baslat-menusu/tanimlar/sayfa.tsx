@@ -77,7 +77,7 @@ export function TanimlarSayfasi() {
   return (
     <AdminModulKabuk
       baslik="Tanımlar"
-      aciklama="Firma, şube, dönem, depo ve kasa kayıtlarını buradan oluşturur, düzenler ve hiyerarşik olarak yönetirsiniz."
+      aciklama="Firma seçin, kayıtları tek gridde görün; ekleme ve düzenleme modal ile hızlı yapılır."
       ustAksiyon={
         <TanimModCubugu
           sekmeler={gorunurSekmeler}
