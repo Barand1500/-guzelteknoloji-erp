@@ -8,7 +8,6 @@ import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/Car
 import { CariOutlinedMarka } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedMarka';
 import { CariOutlinedMensei } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedMensei';
 import '@/admin/baslat-menusu/erp/cari/cari.css';
-import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { markaCacheSifirla, stokMarkaEkle } from '@/veri/markalar';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
@@ -312,20 +311,6 @@ export function StokKarti({
     mod === 'yeni' ? 'Yeni Stok' : mod === 'incele' ? 'Stok İncele' : 'Stok Düzenle';
   const rozet = mod === 'yeni' ? 'Yeni Ekle' : mod === 'incele' ? 'İncele' : 'Düzenle';
 
-  const guncellemeGoster =
-    mod !== 'yeni' && seciliKayit?.guncelleme
-      ? tarihSaatFormatla(seciliKayit.guncelleme)
-      : mod === 'yeni'
-        ? 'Kayıt sonrası oluşur'
-        : '—';
-
-  const kayitGoster =
-    mod !== 'yeni' && seciliKayit?.olusturma
-      ? tarihSaatFormatla(seciliKayit.olusturma)
-      : mod === 'yeni'
-        ? 'Kayıt sonrası oluşur'
-        : '—';
-
   if (yukleniyor && mod !== 'yeni') {
     return <TanimYukleniyor />;
   }
@@ -448,15 +433,6 @@ export function StokKarti({
             />
           </div>
           <StokDigerVergiBlok />
-        </div>
-        <div className="stok-karti-tarih-bilgi">
-          <span>
-            <em>Kayıt Tarihi</em> {kayitGoster}
-          </span>
-          <span className="stok-karti-tarih-bilgi-ayrac">·</span>
-          <span>
-            <em>Güncelleme Tarihi</em> {guncellemeGoster}
-          </span>
         </div>
       </div>
     </div>

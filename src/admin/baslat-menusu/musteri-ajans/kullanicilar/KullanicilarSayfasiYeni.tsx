@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
 
@@ -7,6 +7,8 @@ import {
   KullaniciListesiYeni,
 
 } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleriYeni';
+import { ErisimAtamasiPaneli } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/ErisimAtamasiPaneli';
+import { RolGorunumCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolGorunumCubugu';
 
 import type { AtanabilirRol } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleri';
 
@@ -74,6 +76,14 @@ import {
 } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/kullaniciOturumYardimci';
 
 import './kullanicilar.css';
+import '@/admin/baslat-menusu/musteri-ajans/roller/roller.css';
+
+const GORUNUM_SEKMELER = [
+  { id: 'kullanicilar', ad: 'Kullanıcılar', ikon: '👤' },
+  { id: 'erisim', ad: 'Erişim Ataması', ikon: '🔑' },
+] as const;
+
+type KullaniciGorunumId = (typeof GORUNUM_SEKMELER)[number]['id'];
 
 
 
@@ -174,6 +184,23 @@ export function KullanicilarSayfasiYeni() {
   const [hata, setHata] = useState('');
 
   const [silModalAcik, setSilModalAcik] = useState(false);
+  const [gorunum, setGorunum] = useState<KullaniciGorunumId>('kullanicilar');
+  const [gorunumYonu, setGorunumYonu] = useState<'ileri' | 'geri'>('ileri');
+  const [erisimDegisti, setErisimDegisti] = useState(false);
+  const [erisimSatirSecili, setErisimSatirSecili] = useState(false);
+  const erisimKaydetRef = useRef<(() => Promise<void>) | null>(null);
+  const erisimEkleRef = useRef<(() => void) | null>(null);
+  const erisimSilRef = useRef<(() => void) | null>(null);
+
+  const erisimKaydetKayit = useCallback((fn: (() => Promise<void>) | null) => {
+    erisimKaydetRef.current = fn;
+  }, []);
+  const erisimEkleKayit = useCallback((fn: (() => void) | null) => {
+    erisimEkleRef.current = fn;
+  }, []);
+  const erisimSilKayit = useCallback((fn: (() => void) | null) => {
+    erisimSilRef.current = fn;
+  }, []);
 
   const [tumRoller, setTumRoller] = useState<AtanabilirRol[]>([]);
 
@@ -313,21 +340,36 @@ export function KullanicilarSayfasiYeni() {
 
 
 
+  const erisimModu = gorunum === 'erisim';
+  const sayfaKirli = erisimModu ? erisimDegisti : kirli;
+
   useKaydedilmemisBildirim(
-
-    kirli && !kaydediliyor,
-
+    sayfaKirli && !kaydediliyor,
     'Kaydedilmemiş değişiklikler var.',
-
     'Kullanıcılar',
-
     'kullanicilar'
+  );
 
+  const gorunumDegistir = useCallback(
+    (yeni: KullaniciGorunumId) => {
+      if (yeni === gorunum) return;
+      if (sayfaKirli && !window.confirm('Kaydedilmemiş değişiklikler var. Yine de sekme değiştirilsin mi?')) {
+        return;
+      }
+      const eskiIdx = GORUNUM_SEKMELER.findIndex((s) => s.id === gorunum);
+      const yeniIdx = GORUNUM_SEKMELER.findIndex((s) => s.id === yeni);
+      if (eskiIdx >= 0 && yeniIdx >= 0) {
+        setGorunumYonu(yeniIdx > eskiIdx ? 'ileri' : 'geri');
+      }
+      setHata('');
+      setGorunum(yeni);
+    },
+    [gorunum, sayfaKirli]
   );
 
 
 
-  const kaydet = useCallback(async () => {
+  const kullaniciKaydet = useCallback(async () => {
 
     if (!form.ad.trim() || !form.kullaniciKodu.trim()) {
 
@@ -387,13 +429,45 @@ export function KullanicilarSayfasiYeni() {
 
   }, [form, seciliId, sifreDegisti, yeniBaslat, logMesajiAyarla]);
 
-
+  const kaydet = useCallback(async () => {
+    if (gorunum === 'erisim') {
+      const fn = erisimKaydetRef.current;
+      if (!fn) return;
+      setKaydediliyor(true);
+      setHata('');
+      try {
+        await fn();
+        logMesajiAyarla(logMesaj.kaydetti('Kullanıcılar', 'kullanıcı erişim atamasını'));
+      } catch (err) {
+        const mesaj = err instanceof Error ? err.message : 'Kaydetme başarısız';
+        setHata(
+          mesaj.includes('.map is not a function')
+            ? 'Erişim kaydı başarısız — veriyi kontrol edip tekrar deneyin.'
+            : mesaj
+        );
+      } finally {
+        setKaydediliyor(false);
+      }
+      return;
+    }
+    await kullaniciKaydet();
+  }, [gorunum, kullaniciKaydet, logMesajiAyarla]);
 
   const sil = useCallback(() => {
-
+    if (gorunum === 'erisim') {
+      erisimSilRef.current?.();
+      return;
+    }
     if (seciliId) setSilModalAcik(true);
+  }, [gorunum, seciliId]);
 
-  }, [seciliId]);
+  const ekle = useCallback(() => {
+    if (gorunum === 'erisim') {
+      erisimEkleRef.current?.();
+      return;
+    }
+    yeniBaslat();
+  }, [gorunum, yeniBaslat]);
 
 
 
@@ -442,21 +516,13 @@ export function KullanicilarSayfasiYeni() {
 
 
   useModulAksiyonlari(
-
-    { kaydet, ekle: yeniBaslat, sil },
-
+    { kaydet, ekle, sil },
     {
-
-      kaydet: kirli && !kaydediliyor,
-
+      kaydet: sayfaKirli && !kaydediliyor,
       ekle: !kaydediliyor,
-
-      sil: !!seciliId && !kaydediliyor,
-
+      sil: erisimModu ? !kaydediliyor && erisimSatirSecili : !!seciliId && !kaydediliyor,
     },
-
-    kirli
-
+    sayfaKirli
   );
 
 
@@ -472,13 +538,17 @@ export function KullanicilarSayfasiYeni() {
   return (
 
     <AdminModulKabuk
-
       baslik="Kullanıcılar"
-
       aciklama="Panel kullanıcılarını oluşturun, rollerini atayın ve erişimlerini yönetin."
-
       onizleGoster={false}
-
+      ustAksiyon={
+        <RolGorunumCubugu
+          sekmeler={GORUNUM_SEKMELER}
+          aktif={gorunum}
+          onDegistir={(id) => gorunumDegistir(id as KullaniciGorunumId)}
+          ariaLabel="Kullanıcı görünümü"
+        />
+      }
     >
 
       <div className="ap-kullanicilar-sayfa ap-kullanicilar-sayfa--yeni">
@@ -494,12 +564,25 @@ export function KullanicilarSayfasiYeni() {
 
 
         {yukleniyor ? (
-
           <YukleniyorDurumu mesaj="Kullanıcılar yükleniyor..." />
-
         ) : (
-
-          <div className="ap-kullanicilar-yeni-duzen">
+          <div className={`ap-roller-icerik ap-roller-icerik--${gorunumYonu}`} key={gorunum}>
+            {gorunum === 'erisim' ? (
+              <AdminPanelKarti
+                baslik="Erişim Ataması"
+                altBaslik="Soldan kullanıcı seçin. Gridde satır satır firma, dönem, şube, depo ve kasa atayın. Ekle ile yeni satır açılır."
+              >
+                <ErisimAtamasiPaneli
+                  duzenlenebilir={!saltOkunur}
+                  onDegisti={setErisimDegisti}
+                  kaydetKayit={erisimKaydetKayit}
+                  ekleKayit={erisimEkleKayit}
+                  silKayit={erisimSilKayit}
+                  onSecimDegisti={setErisimSatirSecili}
+                />
+              </AdminPanelKarti>
+            ) : (
+              <div className="ap-kullanicilar-yeni-duzen">
 
             <AdminPanelKarti
 
@@ -557,7 +640,8 @@ export function KullanicilarSayfasiYeni() {
             </div>
 
           </div>
-
+            )}
+          </div>
         )}
 
       </div>

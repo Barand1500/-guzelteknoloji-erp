@@ -16,7 +16,6 @@ import { RolDuzenleModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bile
 
 import { RolGorunumCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolGorunumCubugu';
 import { RolModulCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolModulCubugu';
-import { ErisimAtamasiPaneli } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/ErisimAtamasiPaneli';
 
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 
@@ -72,8 +71,6 @@ const GORUNUM_SEKMELER = [
   { id: 'matris', ad: 'Yetki Matrisi', ikon: '⊞' },
 
   { id: 'kartlar', ad: 'Rol Tanımları', ikon: '🛡️' },
-
-  { id: 'erisim', ad: 'Erişim Ataması', ikon: '🔑' },
 
 ] as const;
 
@@ -147,23 +144,6 @@ export function RollerSayfasiYeni() {
 
   const kayitliRef = useRef<RolTanimi[]>([]);
 
-  const [erisimDegisti, setErisimDegisti] = useState(false);
-
-  const erisimKaydetRef = useRef<(() => Promise<void>) | null>(null);
-  const erisimEkleRef = useRef<(() => void) | null>(null);
-  const erisimSilRef = useRef<(() => void) | null>(null);
-  const [erisimSatirSecili, setErisimSatirSecili] = useState(false);
-
-  const erisimKaydetKayit = useCallback((fn: (() => Promise<void>) | null) => {
-    erisimKaydetRef.current = fn;
-  }, []);
-  const erisimEkleKayit = useCallback((fn: (() => void) | null) => {
-    erisimEkleRef.current = fn;
-  }, []);
-  const erisimSilKayit = useCallback((fn: (() => void) | null) => {
-    erisimSilRef.current = fn;
-  }, []);
-
 
 
   useEffect(() => {
@@ -228,8 +208,7 @@ export function RollerSayfasiYeni() {
 
   useKaydedilmemisBildirim(
 
-    duzenlenebilir &&
-      ((gorunum === 'erisim' ? erisimDegisti : degisti) && !kaydediliyor),
+    duzenlenebilir && degisti && !kaydediliyor,
 
     'Kaydedilmemiş değişiklikler var.',
 
@@ -531,23 +510,6 @@ export function RollerSayfasiYeni() {
 
   const kaydet = useCallback(async () => {
 
-    if (gorunum === 'erisim') {
-      const fn = erisimKaydetRef.current;
-      if (!fn) return;
-      setKaydediliyor(true);
-      setHata('');
-      try {
-        await fn();
-        logMesajiAyarla(logMesaj.kaydetti('Roller ve Yetkiler', 'kullanıcı erişim atamasını'));
-      } catch (err) {
-        const mesaj = err instanceof Error ? err.message : 'Kaydetme başarısız';
-        setHata(mesaj.includes('.map is not a function') ? 'Erişim kaydı başarısız — veriyi kontrol edip tekrar deneyin.' : mesaj);
-      } finally {
-        setKaydediliyor(false);
-      }
-      return;
-    }
-
     const hazir = kaydaHazirRoller(taslakRoller);
 
     const bosTaslak = taslakRoller.some((r) => rolTaslakMi(r.kod) && !r.baslik.trim());
@@ -596,43 +558,24 @@ export function RollerSayfasiYeni() {
 
     }
 
-  }, [taslakRoller, logMesajiAyarla, moduller, gorunum]);
+  }, [taslakRoller, logMesajiAyarla, moduller]);
 
 
 
-  const erisimModu = gorunum === 'erisim';
   const kaydetAktif =
-    duzenlenebilir && !kaydediliyor && (erisimModu ? erisimDegisti : degisti);
-
-  const ekleHandler = useCallback(() => {
-    if (gorunum === 'erisim') {
-      erisimEkleRef.current?.();
-      return;
-    }
-    ekleAc();
-  }, [gorunum, ekleAc]);
-
-  const silHandler = useCallback(() => {
-    if (gorunum === 'erisim') {
-      erisimSilRef.current?.();
-      return;
-    }
-    silIste();
-  }, [gorunum, silIste]);
+    duzenlenebilir && !kaydediliyor && degisti;
 
   useModulAksiyonlari(
 
-    { kaydet, ekle: ekleHandler, sil: silHandler },
+    { kaydet, ekle: ekleAc, sil: silIste },
 
     {
 
       kaydet: kaydetAktif,
 
-      ekle: duzenlenebilir && !kaydediliyor && (erisimModu || !acikTaslakVar),
+      ekle: duzenlenebilir && !kaydediliyor && !acikTaslakVar,
 
-      sil: erisimModu
-        ? duzenlenebilir && !kaydediliyor && erisimSatirSecili
-        : silAktif && !kaydediliyor,
+      sil: silAktif && !kaydediliyor,
 
     },
 
@@ -727,27 +670,6 @@ export function RollerSayfasiYeni() {
                     ) : null}
                   </div>
                 </div>
-
-              </AdminPanelKarti>
-
-            ) : gorunum === 'erisim' ? (
-
-              <AdminPanelKarti
-
-                baslik="Erişim Ataması"
-
-                altBaslik="Soldan kullanıcı seçin. Gridde satır satır firma, dönem, şube, depo ve kasa atayın. Ekle ile yeni satır açılır."
-
-              >
-
-                <ErisimAtamasiPaneli
-                  duzenlenebilir={duzenlenebilir}
-                  onDegisti={setErisimDegisti}
-                  kaydetKayit={erisimKaydetKayit}
-                  ekleKayit={erisimEkleKayit}
-                  silKayit={erisimSilKayit}
-                  onSecimDegisti={setErisimSatirSecili}
-                />
 
               </AdminPanelKarti>
 

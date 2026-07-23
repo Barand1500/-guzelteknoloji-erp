@@ -32,7 +32,7 @@ export interface ErisimSatir {
 }
 
 const TASLAK_ID = '__erisim_taslak__';
-const SECIM_SABIT_ANAHTAR = 'roller-erisim-secim-sabit-v2';
+const SECIM_SABIT_ANAHTAR = 'kullanicilar-erisim-secim-sabit-v2';
 
 type SecimSabitSeviye = 'yok' | 'firma' | 'donem' | 'sube' | 'depo';
 
@@ -50,6 +50,7 @@ function secimSabitOku(): SecimSabitSeviye {
     if (v === 'firma' || v === 'donem' || v === 'sube' || v === 'depo' || v === 'yok') return v;
     // Eski anahtar (boolean)
     if (localStorage.getItem('roller-erisim-secim-sabit') === '1') return 'donem';
+    if (localStorage.getItem('kullanicilar-erisim-secim-sabit') === '1') return 'donem';
     return 'yok';
   } catch {
     return 'yok';
@@ -858,7 +859,7 @@ export function ErisimAtamasiPaneli({
             tabloBaslik="Erişim satırları"
             kolonlar={kolonlar}
             satirlar={gosterilenSatirlar}
-            depolamaAnahtari="roller-erisim-atamasi-v5"
+            depolamaAnahtari="kullanicilar-erisim-atamasi-v1"
             kompakt
             formulMenuGoster={false}
             sutunSabitleGoster={false}

@@ -108,6 +108,63 @@ function StokListelemeTus({ onGit }: { onGit: () => void }) {
   );
 }
 
+function StokKartTarihBilgi({
+  kayitMetni,
+  guncellemeMetni,
+}: {
+  kayitMetni: string;
+  guncellemeMetni: string;
+}) {
+  const [acik, setAcik] = useState(false);
+  const [sabitAcik, setSabitAcik] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const goster = acik || sabitAcik;
+
+  useEffect(() => {
+    if (!sabitAcik) return;
+    function disTik(e: MouseEvent) {
+      if (wrapRef.current?.contains(e.target as Node)) return;
+      setSabitAcik(false);
+    }
+    document.addEventListener('mousedown', disTik);
+    return () => document.removeEventListener('mousedown', disTik);
+  }, [sabitAcik]);
+
+  return (
+    <div
+      className="stok-kart-tarih-bilgi-wrap"
+      ref={wrapRef}
+      onMouseEnter={() => setAcik(true)}
+      onMouseLeave={() => setAcik(false)}
+    >
+      <button
+        type="button"
+        className={`cari-listeye-don-ikon stok-kart-tarih-bilgi-tus${goster ? ' stok-kart-tarih-bilgi-tus--acik' : ''}`}
+        title="Kayıt bilgisi"
+        aria-label="Kayıt ve güncelleme bilgisi"
+        aria-expanded={goster}
+        onClick={() => setSabitAcik((v) => !v)}
+      >
+        <span className="stok-kart-tarih-bilgi-i" aria-hidden>
+          i
+        </span>
+      </button>
+      {goster ? (
+        <div className="stok-kart-tarih-bilgi-panel" role="tooltip">
+          <div className="stok-kart-tarih-bilgi-satir">
+            <em>Kayıt Tarihi</em>
+            <span>{kayitMetni}</span>
+          </div>
+          <div className="stok-kart-tarih-bilgi-satir">
+            <em>Güncelleme Tarihi</em>
+            <span>{guncellemeMetni}</span>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function secimKolonu(): KolonTanimi<AdminStok> {
   return {
     id: 'secim',
@@ -621,6 +678,24 @@ export function StoklarSayfasi() {
   const modulAciklama =
     gorunum === 'liste' ? 'Stok kartlarını listeleyin, arayın ve yönetin.' : undefined;
 
+  const aktifKartStok = useMemo(() => {
+    if (gorunum !== 'kart' || !aktifStokId) return null;
+    return stokBul(aktifStokId);
+  }, [aktifStokId, gorunum, stokBul]);
+
+  const kartKayitMetni =
+    kartModu === 'yeni'
+      ? 'Kayıt sonrası oluşur'
+      : aktifKartStok?.olusturma
+        ? tarihSaatFormatla(aktifKartStok.olusturma)
+        : '—';
+  const kartGuncellemeMetni =
+    kartModu === 'yeni'
+      ? 'Kayıt sonrası oluşur'
+      : aktifKartStok?.guncelleme
+        ? tarihSaatFormatla(aktifKartStok.guncelleme)
+        : '—';
+
   return (
     <AdminModulKabuk
       baslik={modulBaslik}
@@ -628,6 +703,7 @@ export function StoklarSayfasi() {
       ustAksiyon={
         gorunum === 'kart' ? (
           <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
+            <StokKartTarihBilgi kayitMetni={kartKayitMetni} guncellemeMetni={kartGuncellemeMetni} />
             <StokListelemeTus onGit={listeyeDon} />
             <StokGezinOk
               yon="geri"
