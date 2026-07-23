@@ -121,6 +121,8 @@ interface OdakHucre {
 interface DuzenlemeHucre extends OdakHucre {
   hamDeger: string;
   birlesikKatman?: 'ust' | 'alt';
+  /** true: tıklayınca/Delete ile boş başladı; blur boşsa eski değeri koru */
+  temizBasladi?: boolean;
 }
 
 interface SilmeOnayDurumu {
@@ -371,6 +373,7 @@ export function DataGrid<TRow extends { id: string }>({
   const girdiRef = useRef<HTMLElement>(null);
   const theadRef = useRef<HTMLTableSectionElement>(null);
   const duzenlemeCommitRef = useRef(false);
+  const hizliGirisEscIptalRef = useRef(false);
   const [baslikYukseklik, setBaslikYukseklik] = useState(40);
 
   const hizliGirisKartModu = hizliGirisModu === 'kart' && Boolean(hizliGirisKolonlari?.length && onHizliGiris);
@@ -1028,7 +1031,13 @@ export function DataGrid<TRow extends { id: string }>({
       ham = String(kolon.birlesikDuzenle.altDegerAl(satir) ?? '');
     } else if (kolon.tip === 'birlesik') ham = String((deger as { ust: string }).ust ?? '');
     else ham = String(deger ?? '');
-    setDuzenleme({ satirId: satir.id, kolonId: kolon.id, hamDeger: ham, birlesikKatman });
+    setDuzenleme({
+      satirId: satir.id,
+      kolonId: kolon.id,
+      hamDeger: ham,
+      birlesikKatman,
+      temizBasladi: baslangicHam === '',
+    });
     setOdak({ satirId: satir.id, kolonId: kolon.id });
     return true;
   };
@@ -1131,7 +1140,7 @@ export function DataGrid<TRow extends { id: string }>({
         (/^[0-9]$/.test(e.key) || e.key === ',' || e.key === '.' || e.key === '-' || e.key === '+')
       ) {
         e.preventDefault();
-        duzenlemeyiBaslat(satir, kolon, 'ust', mevcut + e.key);
+        duzenlemeyiBaslat(satir, kolon, 'ust', e.key);
         return;
       }
     }
@@ -1551,7 +1560,7 @@ export function DataGrid<TRow extends { id: string }>({
                         ? kolon.secenekler?.length
                           ? 'Düzenlemek için Enter veya çift tıklayın'
                           : kolonFormulaTipi(kolon)
-                            ? 'Düzenlemek için rakam yazın veya çift tıklayın'
+                            ? 'Rakam yazınca değişir; Enter ile kaydet'
                             : 'Düzenlemek için çift tıklayın veya F2'
                         : 'Düzenleme sayfası için çift tıklayın'
                     )}
@@ -1585,48 +1594,97 @@ export function DataGrid<TRow extends { id: string }>({
                         const ft = kolonFormulaTipi(kolon);
                         return ft ? dgTooltipMetni(formulaIpucuMetni(ft)) : undefined;
                       })()}
-                      placeholder={(() => {
-                        const ft = kolonFormulaTipi(kolon);
-                        return ft === 'sayi' ? '1000+%10' : ft === 'iskonto' ? '20+20' : undefined;
-                      })()}
                       onChange={(e) => setDuzenleme({ ...duzenleme, hamDeger: e.target.value })}
                       onBlur={() => {
                         if (duzenlemeCommitRef.current) {
                           duzenlemeCommitRef.current = false;
                           return;
                         }
-                        hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
+                        /* Enter olmadan değer değişmez — blur = iptal */
                         setDuzenleme(null);
                         odakAyarla(satir.id, kolon.id);
                       }}
                       onKeyDown={(e) => {
+                        const satirIdx = sayfalama.satirlar.findIndex((s) => s.id === satir.id);
+
+                        /** Sadece Enter kaydeder; sonrakine odaklan (yazı silinmez) */
+                        const kaydetVeGit = (hedefSatir: TRow | undefined, hedefKolonId: string) => {
+                          duzenlemeCommitRef.current = true;
+                          hucreDuzenlemeyiBitir(
+                            satir,
+                            kolon,
+                            duzenleme.hamDeger,
+                            duzenleme.birlesikKatman
+                          );
+                          setDuzenleme(null);
+                          if (hedefSatir) odakAyarla(hedefSatir.id, hedefKolonId);
+                          else odakAyarla(satir.id, kolon.id);
+                        };
+
+                        /** Ok / Tab — kaydetmeden çık; yazı yerinde kalır */
+                        const iptalVeGit = (hedefSatir: TRow | undefined, hedefKolonId: string) => {
+                          duzenlemeCommitRef.current = true;
+                          setDuzenleme(null);
+                          if (hedefSatir) odakAyarla(hedefSatir.id, hedefKolonId);
+                          else odakAyarla(satir.id, kolon.id);
+                        };
+
                         if (e.key === 'Enter') {
                           e.preventDefault();
-                          duzenlemeCommitRef.current = true;
-                          hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
-                          setDuzenleme(null);
-                          const satirIdx = sayfalama.satirlar.findIndex((s) => s.id === satir.id);
-                          const altSatir = sayfalama.satirlar[satirIdx + 1];
-                          if (altSatir) odakAyarla(altSatir.id, kolon.id);
-                          else odakAyarla(satir.id, kolon.id);
+                          if (duzenleme.temizBasladi && !duzenleme.hamDeger.trim()) {
+                            iptalVeGit(sayfalama.satirlar[satirIdx + 1], kolon.id);
+                          } else {
+                            kaydetVeGit(sayfalama.satirlar[satirIdx + 1], kolon.id);
+                          }
+                          return;
                         }
                         if (e.key === 'Escape') {
                           e.stopPropagation();
                           duzenlemeCommitRef.current = true;
                           setDuzenleme(null);
                           odakAyarla(satir.id, kolon.id);
+                          return;
+                        }
+                        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          const hedefIdx =
+                            e.key === 'ArrowDown'
+                              ? Math.min(satirIdx + 1, sayfalama.satirlar.length - 1)
+                              : Math.max(satirIdx - 1, 0);
+                          const hedefSatir = sayfalama.satirlar[hedefIdx];
+                          if (hedefSatir && hedefSatir.id !== satir.id) {
+                            iptalVeGit(hedefSatir, kolon.id);
+                          } else {
+                            iptalVeGit(undefined, kolon.id);
+                          }
+                          return;
+                        }
+                        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                          const el = e.currentTarget as HTMLInputElement;
+                          const bos = !duzenleme.hamDeger;
+                          const caretBas = el.selectionStart === 0 && el.selectionEnd === 0;
+                          const caretSon =
+                            el.selectionStart === el.value.length &&
+                            el.selectionEnd === el.value.length;
+                          const solaGit = e.key === 'ArrowLeft' && (bos || caretBas);
+                          const sagaGit = e.key === 'ArrowRight' && (bos || caretSon);
+                          if (!solaGit && !sagaGit) return;
+
+                          e.preventDefault();
+                          const yon: 1 | -1 = e.key === 'ArrowRight' ? 1 : -1;
+                          const sonraki = gezinilebilirKolonIndeksi(kolonIdx + yon, yon);
+                          if (sonraki < 0) return;
+                          iptalVeGit(satir, dg.gorunurKolonlar[sonraki].id);
+                          return;
                         }
                         if (e.key === 'Tab') {
                           e.preventDefault();
-                          duzenlemeCommitRef.current = true;
-                          hucreDuzenlemeyiBitir(satir, kolon, duzenleme.hamDeger, duzenleme.birlesikKatman);
-                          setDuzenleme(null);
                           const yon: 1 | -1 = e.shiftKey ? -1 : 1;
                           const sonraki = gezinilebilirKolonIndeksi(kolonIdx + yon, yon);
                           if (sonraki >= 0) {
-                            odakAyarla(satir.id, dg.gorunurKolonlar[sonraki].id);
+                            iptalVeGit(satir, dg.gorunurKolonlar[sonraki].id);
                           } else {
-                            odakAyarla(satir.id, kolon.id);
+                            iptalVeGit(undefined, kolon.id);
                           }
                         }
                       }}
@@ -1668,6 +1726,15 @@ export function DataGrid<TRow extends { id: string }>({
     const girdiDegistir = (kolonId: string, deger: string) =>
       setHizliGiris((onceki) => ({ ...onceki, [kolonId]: deger }));
 
+    const alanFiltreBul = (kolonId: string): ((ham: string) => string) | undefined => {
+      for (const k of hizliGirisKolonlari ?? []) {
+        if (k.kolonId === kolonId && k.degerFiltrele) return k.degerFiltrele;
+        const birlesik = k.birlesik?.find((b) => b.kolonId === kolonId);
+        if (birlesik?.degerFiltrele) return birlesik.degerFiltrele;
+      }
+      return undefined;
+    };
+
     const metinGirdi = (
       kolonId: string,
       placeholder: string,
@@ -1680,6 +1747,7 @@ export function DataGrid<TRow extends { id: string }>({
       const gosterilenPlaceholder =
         hizliGirisInputPlaceholder?.(kolonId, deger, placeholder) ?? placeholder;
       const ekSinif = hizliGirisInputSinif?.(kolonId, deger);
+      const filtrele = alanFiltreBul(kolonId);
 
       return (
         <input
@@ -1689,8 +1757,39 @@ export function DataGrid<TRow extends { id: string }>({
           placeholder={gosterilenPlaceholder}
           title={ipucu ? dgTooltipMetni(ipucu) : undefined}
           value={deger}
-          onChange={(e) => girdiDegistir(kolonId, e.target.value)}
+          onChange={(e) => {
+            const ham = e.target.value;
+            girdiDegistir(kolonId, filtrele ? filtrele(ham) : ham);
+          }}
           onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              e.stopPropagation();
+              hizliGirisEscIptalRef.current = true;
+              if (hizliGirisIstegeBagli) {
+                setHizliGirisAcik(false);
+                hizliGirisSifirla();
+              } else {
+                hizliGirisSifirla();
+              }
+              (e.currentTarget as HTMLInputElement).blur();
+              return;
+            }
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              e.stopPropagation();
+              (e.currentTarget as HTMLInputElement).blur();
+              const liste = sayfalama.satirlar;
+              if (!liste.length) return;
+              const hedefSatir = liste[e.key === 'ArrowDown' ? 0 : liste.length - 1];
+              if (!hedefSatir) return;
+              const hedefKolonId =
+                odak?.kolonId && dg.gorunurKolonlar.some((k) => k.id === odak.kolonId)
+                  ? odak.kolonId
+                  : (dg.gorunurKolonlar.find((k) => gezinilebilirKolonMu(k))?.id ?? 'urunKoduAdi');
+              odakAyarla(hedefSatir.id, hedefKolonId);
+              return;
+            }
             ozelTus?.(e);
             if (e.defaultPrevented) return;
             if (e.key === 'Enter') {
@@ -1746,8 +1845,8 @@ export function DataGrid<TRow extends { id: string }>({
 
       const genislik = dg.ayar.kolonGenislikleri[kolon.id] ?? kolon.genislik ?? 120;
       const girisAyar = hizliGirisKolonlari?.find((k) => k.kolonId === kolon.id);
-      const placeholder = girisAyar?.placeholder ?? kolon.baslik;
-      const ipucu = girisAyar?.ipucu ?? placeholder;
+      const placeholder = girisAyar?.placeholder ?? '';
+      const ipucu = girisAyar?.ipucu ?? (placeholder || kolon.baslik);
       const anaAlanId = girisAyar?.anaAlan ?? kolon.id;
       const hucreStil = sabitHucreStili(kolon.id, genislik);
 
@@ -1946,6 +2045,10 @@ export function DataGrid<TRow extends { id: string }>({
         onBlurCapture={(e) => {
           const satir = e.currentTarget;
           requestAnimationFrame(() => {
+            if (hizliGirisEscIptalRef.current) {
+              hizliGirisEscIptalRef.current = false;
+              return;
+            }
             if (!satir.contains(document.activeElement)) {
               if (hizliGirisDoluMu()) {
                 void hizliGirisGonder();

@@ -47,7 +47,7 @@ export function TanimGirdi({
             kural === 'serbestMetin'
               ? e.target.value.slice(0, limit)
               : alanDegeriniFiltrele(kural, e.target.value);
-          if (buyukHarf) sonraki = sonraki.toUpperCase();
+          if (buyukHarf) sonraki = sonraki.toLocaleUpperCase('tr');
           onChange(sonraki);
         }}
         maxLength={limit}

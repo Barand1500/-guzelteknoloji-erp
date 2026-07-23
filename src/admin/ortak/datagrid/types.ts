@@ -66,7 +66,7 @@ export interface HizliGirisKolonu {
   secenekler?: { deger: string; etiket: string }[];
   grup?: 'temel' | 'fiyat' | 'ekstra';
   /** Bu alan başka kolon hücresinde üstte gösterilir (ör. stok kodu → ürün) */
-  birlesik?: { kolonId: string; placeholder?: string }[];
+  birlesik?: { kolonId: string; placeholder?: string; degerFiltrele?: (ham: string) => string }[];
   /** Birleşik hücrede kaç sütun kaplanır (stokKodu+urun gibi) */
   colspan?: number;
   /** true ise birleşik alanlar yatay değil dikey dizilir */
@@ -75,6 +75,8 @@ export interface HizliGirisKolonu {
   anaAlan?: string;
   /** Yanında + butonu ile modal açılır */
   modalAksiyon?: boolean;
+  /** Yazarken değer dönüşümü (büyük harf / filtre) */
+  degerFiltrele?: (ham: string) => string;
 }
 
 export interface HizliGirisEnterBaglami {

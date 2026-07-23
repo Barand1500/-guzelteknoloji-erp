@@ -12,15 +12,18 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
   const [secenekler, setSecenekler] = useState<string[]>(() => vergiDaireleriAdlari());
 
   useEffect(() => {
-    if (secenekler.length > 0) return;
     let iptal = false;
-    void vergiDaireleriListeYukle().then((liste) => {
-      if (!iptal) setSecenekler(liste);
-    });
+    void vergiDaireleriListeYukle()
+      .then((liste) => {
+        if (!iptal) setSecenekler(liste);
+      })
+      .catch(() => {
+        /* offline / ağ hatası — boş liste kalır */
+      });
     return () => {
       iptal = true;
     };
-  }, [secenekler.length]);
+  }, []);
 
   return (
     <label className="ap-tanimlar-secim-alan block">

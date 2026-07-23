@@ -207,10 +207,10 @@ export function FirmaSekme({
   );
 
   useModulAksiyonlari(
-    { kaydet, ekle: yeniBaslat, sil },
+    gomuluDuzenle ? { kaydet, sil } : { kaydet, ekle: yeniBaslat, sil },
     {
       kaydet: gorunum === 'duzenle' && duzenlemeVar && !kaydediliyor,
-      ekle: gorunum === 'liste' && !gomuluDuzenle && eklemeVar,
+      ...(gomuluDuzenle ? {} : { ekle: gorunum === 'liste' && eklemeVar }),
       sil: gorunum === 'duzenle' && !!seciliId && silmeVar && !kaydediliyor,
     },
     kirli

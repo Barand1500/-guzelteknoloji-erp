@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import {
   useAdminAksiyon,
   type AksiyonDurumlari,
+  type AksiyonEtiketleri,
   type AksiyonHandlerlar,
   type AksiyonId,
 } from '@/baglamlar/AdminAksiyonContext';
@@ -22,14 +23,25 @@ function durumAnahtarlari(durumlar: AksiyonDurumlari): AksiyonId[] {
   return (Object.keys(durumlar) as AksiyonId[]).filter((key) => durumlar[key] !== undefined);
 }
 
+function etiketAnahtarlari(etiketler: AksiyonEtiketleri): AksiyonId[] {
+  return (Object.keys(etiketler) as AksiyonId[]).filter((key) => etiketler[key] !== undefined);
+}
+
 export function useModulAksiyonlari(
   handlers: AksiyonHandlerlar,
   durumlar?: AksiyonDurumlari,
-  kirli?: boolean
+  kirli?: boolean,
+  etiketler?: AksiyonEtiketleri
 ) {
   const modulId = useAktifModulId();
-  const { registerHandlers, clearHandlers, setAksiyonDurumlari, clearAksiyonDurumlari } =
-    useAdminAksiyon();
+  const {
+    registerHandlers,
+    clearHandlers,
+    setAksiyonDurumlari,
+    clearAksiyonDurumlari,
+    setAksiyonEtiketleri,
+    clearAksiyonEtiketleri,
+  } = useAdminAksiyon();
 
   useSekmeKirli(kirli);
 
@@ -111,5 +123,28 @@ export function useModulAksiyonlari(
     durumlar?.stokEnvanterAnaliz,
     durumlar?.stokBirimListesi,
     durumlar?.stokFiyatDuzenle,
+  ]);
+
+  const etiketKeys = useMemo(() => etiketAnahtarlari(etiketler ?? {}), [
+    etiketler?.kaydet,
+    etiketler?.guncelle,
+    etiketler?.ekle,
+    etiketler?.sil,
+  ]);
+
+  useEffect(() => {
+    if (!etiketler) return;
+    setAksiyonEtiketleri(modulId, etiketler);
+    return () => clearAksiyonEtiketleri(modulId, etiketKeys);
+  }, [
+    modulId,
+    setAksiyonEtiketleri,
+    clearAksiyonEtiketleri,
+    etiketKeys,
+    etiketler,
+    etiketler?.ekle,
+    etiketler?.kaydet,
+    etiketler?.guncelle,
+    etiketler?.sil,
   ]);
 }

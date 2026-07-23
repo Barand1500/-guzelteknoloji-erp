@@ -45,6 +45,7 @@ export interface AksiyonHandlerlar {
 }
 
 export type AksiyonDurumlari = Partial<Record<AksiyonId, boolean>>;
+export type AksiyonEtiketleri = Partial<Record<AksiyonId, string>>;
 
 export interface AksiyonGeriBildirim {
   aksiyonId: AksiyonId;
@@ -65,6 +66,7 @@ const AKSİYON_BASARI: Partial<Record<AksiyonId, string>> = {
 interface ModulAksiyonKaydi {
   handlers: AksiyonHandlerlar;
   durumlar: AksiyonDurumlari;
+  etiketler: AksiyonEtiketleri;
 }
 
 interface AdminAksiyonContextType {
@@ -77,7 +79,10 @@ interface AdminAksiyonContextType {
   clearHandlers: (modulId: string, keys?: (keyof AksiyonHandlerlar)[]) => void;
   setAksiyonDurumlari: (modulId: string, durumlar: AksiyonDurumlari) => void;
   clearAksiyonDurumlari: (modulId: string, keys?: AksiyonId[]) => void;
+  setAksiyonEtiketleri: (modulId: string, etiketler: AksiyonEtiketleri) => void;
+  clearAksiyonEtiketleri: (modulId: string, keys?: AksiyonId[]) => void;
   aksiyonDurumlari: AksiyonDurumlari;
+  aksiyonEtiketleri: AksiyonEtiketleri;
   aksiyonGeriBildirim: AksiyonGeriBildirim | null;
   aksiyonGeriBildirimiGoster: (
     aksiyonId: AksiyonId,
@@ -100,12 +105,14 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
   const [focusModulId, setFocusModulId] = useState('dashboard');
   const [rehberModulId, setRehberModulId] = useState<string | null>(null);
   const [aksiyonDurumlari, setAksiyonDurumlariState] = useState<AksiyonDurumlari>({});
+  const [aksiyonEtiketleri, setAksiyonEtiketleriState] = useState<AksiyonEtiketleri>({});
   const [aksiyonGeriBildirim, setAksiyonGeriBildirim] = useState<AksiyonGeriBildirim | null>(null);
   const geriBildirimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const kayit = kayitlarRef.current.get(focusModulId);
     setAksiyonDurumlariState(kayit?.durumlar ?? {});
+    setAksiyonEtiketleriState(kayit?.etiketler ?? {});
   }, [focusModulId]);
 
   const aksiyonGeriBildirimiGoster = useCallback(
@@ -140,8 +147,14 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
     return mesaj;
   }, []);
 
+  const bosKayit = (): ModulAksiyonKaydi => ({
+    handlers: {},
+    durumlar: {},
+    etiketler: {},
+  });
+
   const registerHandlers = useCallback((modulId: string, handlers: AksiyonHandlerlar) => {
-    const mevcut = kayitlarRef.current.get(modulId) ?? { handlers: {}, durumlar: {} };
+    const mevcut = kayitlarRef.current.get(modulId) ?? bosKayit();
     kayitlarRef.current.set(modulId, {
       ...mevcut,
       handlers: { ...mevcut.handlers, ...handlers },
@@ -162,7 +175,7 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
 
   const setAksiyonDurumlari = useCallback(
     (modulId: string, durumlar: AksiyonDurumlari) => {
-      const mevcut = kayitlarRef.current.get(modulId) ?? { handlers: {}, durumlar: {} };
+      const mevcut = kayitlarRef.current.get(modulId) ?? bosKayit();
       const birlesik = { ...mevcut.durumlar, ...durumlar };
       kayitlarRef.current.set(modulId, { ...mevcut, durumlar: birlesik });
       setAksiyonDurumlariState((onceki) => {
@@ -187,6 +200,50 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
       setAksiyonDurumlariState((onceki) => {
         if (modulId !== focusModulId) return onceki;
         return kayitlarRef.current.get(modulId)?.durumlar ?? {};
+      });
+    },
+    [focusModulId]
+  );
+
+  const setAksiyonEtiketleri = useCallback(
+    (modulId: string, etiketler: AksiyonEtiketleri) => {
+      const mevcut = kayitlarRef.current.get(modulId) ?? bosKayit();
+      const birlesik = { ...(mevcut.etiketler ?? {}), ...etiketler };
+      kayitlarRef.current.set(modulId, {
+        handlers: mevcut.handlers ?? {},
+        durumlar: mevcut.durumlar ?? {},
+        etiketler: birlesik,
+      });
+      setAksiyonEtiketleriState((onceki) => {
+        if (modulId !== focusModulId) return onceki;
+        return birlesik;
+      });
+    },
+    [focusModulId]
+  );
+
+  const clearAksiyonEtiketleri = useCallback(
+    (modulId: string, keys?: AksiyonId[]) => {
+      const mevcut = kayitlarRef.current.get(modulId);
+      if (!mevcut) return;
+      if (!keys?.length) {
+        kayitlarRef.current.set(modulId, {
+          handlers: mevcut.handlers ?? {},
+          durumlar: mevcut.durumlar ?? {},
+          etiketler: {},
+        });
+      } else {
+        const etiketler = { ...(mevcut.etiketler ?? {}) };
+        for (const key of keys) delete etiketler[key];
+        kayitlarRef.current.set(modulId, {
+          handlers: mevcut.handlers ?? {},
+          durumlar: mevcut.durumlar ?? {},
+          etiketler,
+        });
+      }
+      setAksiyonEtiketleriState((onceki) => {
+        if (modulId !== focusModulId) return onceki;
+        return kayitlarRef.current.get(modulId)?.etiketler ?? {};
       });
     },
     [focusModulId]
@@ -258,7 +315,10 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
         clearHandlers,
         setAksiyonDurumlari,
         clearAksiyonDurumlari,
+        setAksiyonEtiketleri,
+        clearAksiyonEtiketleri,
         aksiyonDurumlari,
+        aksiyonEtiketleri,
         aksiyonGeriBildirim,
         aksiyonGeriBildirimiGoster,
         aksiyonCalistir,

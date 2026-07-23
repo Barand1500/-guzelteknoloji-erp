@@ -135,7 +135,7 @@ export function UrunAramaSlayt({
                   className="dg-urun-arama-girdi"
                   value={sorgu}
                   onChange={(e) => onSorguDegistir(e.target.value)}
-                  placeholder="Yazmaya devam edin…"
+                  placeholder=""
                   aria-label="Ürün ara"
                   autoComplete="off"
                   spellCheck={false}

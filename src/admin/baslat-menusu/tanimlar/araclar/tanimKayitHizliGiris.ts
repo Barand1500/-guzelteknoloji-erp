@@ -32,19 +32,20 @@ const DURUM_GIRIS: HizliGirisKolonu = {
 export function tanimEkleEtiketi(tip: TanimSekmeId): string {
   switch (tip) {
     case 'firma':
-      return 'Firma Ekle';
+      return 'Yeni Ekle (Firma)';
     case 'sube':
-      return 'Şube Ekle';
+      return 'Yeni Ekle (Şube)';
     case 'donem':
-      return 'Dönem Ekle';
+      return 'Yeni Ekle (Dönem)';
     case 'depo':
-      return 'Depo Ekle';
+      return 'Yeni Ekle (Depo)';
     case 'kasa':
-      return 'Kasa Ekle';
+      return 'Yeni Ekle (Kasa)';
   }
 }
 
 export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] {
+  const kodFiltre = (ham: string) => alanDegeriniFiltrele('kod', ham);
   switch (tip) {
     case 'firma':
       return [
@@ -52,7 +53,7 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
           kolonId: 'firmaKoduAdi',
           birlesikDikey: true,
           birlesik: [
-            { kolonId: 'firmaKodu', placeholder: 'Firma kodu' },
+            { kolonId: 'firmaKodu', placeholder: 'Firma kodu', degerFiltrele: kodFiltre },
             { kolonId: 'firmaAdi', placeholder: 'Firma adı' },
           ],
         },
@@ -62,25 +63,25 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
       ];
     case 'sube':
       return [
-        { kolonId: 'subeKodu', placeholder: 'Şube kodu' },
+        { kolonId: 'subeKodu', placeholder: 'Şube kodu', degerFiltrele: kodFiltre },
         { kolonId: 'subeAdi', placeholder: 'Şube adı' },
         DURUM_GIRIS,
       ];
     case 'donem':
       return [
-        { kolonId: 'donemKodu', placeholder: 'Dönem kodu' },
+        { kolonId: 'donemKodu', placeholder: 'Dönem kodu', degerFiltrele: kodFiltre },
         { kolonId: 'donemAdi', placeholder: 'Dönem adı' },
         DURUM_GIRIS,
       ];
     case 'depo':
       return [
-        { kolonId: 'depoKodu', placeholder: 'Depo kodu' },
+        { kolonId: 'depoKodu', placeholder: 'Depo kodu', degerFiltrele: kodFiltre },
         { kolonId: 'depoAdi', placeholder: 'Depo adı' },
         DURUM_GIRIS,
       ];
     case 'kasa':
       return [
-        { kolonId: 'kasaKodu', placeholder: 'Kasa kodu' },
+        { kolonId: 'kasaKodu', placeholder: 'Kasa kodu', degerFiltrele: kodFiltre },
         { kolonId: 'kasaAdi', placeholder: 'Kasa adı' },
         {
           kolonId: 'paraBirimi',

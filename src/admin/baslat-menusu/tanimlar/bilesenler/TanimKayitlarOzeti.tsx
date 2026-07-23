@@ -27,7 +27,6 @@ import { FirmaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/FirmaSekme
 import { KasaSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/KasaSekme';
 import { SubeSekme } from '@/admin/baslat-menusu/tanimlar/bilesenler/SubeSekme';
 import { TanimBagliSilOnayModal } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimBagliSilOnayModal';
-import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
 import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import type {
@@ -49,6 +48,7 @@ import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/use
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
+import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 
 const VARSAYILAN_GIZLI: string[] = [];
 
@@ -92,12 +92,11 @@ function durumKolonu<TRow extends { aktif: boolean }>(): KolonTanimi<TRow> {
   return {
     id: 'durum',
     baslik: 'Durum',
-    tip: 'salt-okunur',
+    tip: 'toggle',
     genislik: 88,
     siralama: true,
     degerAl: (s) => s.aktif,
     siralamaDegeri: (s) => (s.aktif ? 1 : 0),
-    goster: (s) => <TanimDurumRozeti aktif={s.aktif} />,
   };
 }
 
@@ -269,6 +268,13 @@ export function TanimKayitlarOzeti() {
   const yeniEkle = useCallback(() => {
     gridApiRef.current?.hizliGirisOdakla();
   }, []);
+
+  useModulAksiyonlari(
+    { ekle: yeniEkle },
+    { ekle: eklemeVar },
+    undefined,
+    { ekle: ekleEtiketi }
+  );
 
   useEffect(() => {
     gridApiRef.current?.hizliGirisKapat();
@@ -530,6 +536,14 @@ export function TanimKayitlarOzeti() {
         goster: (s) => <span className="dg-urun-adi-ust">{s.subeAdi || '—'}</span>,
       },
       {
+        id: 'adres',
+        baslik: 'Adres',
+        tip: 'metin',
+        genislik: 220,
+        siralama: true,
+        degerAl: (s) => s.adres || '—',
+      },
+      {
         id: 'ilIlce',
         baslik: 'İl/İlçe',
         tip: 'metin',
@@ -538,9 +552,6 @@ export function TanimKayitlarOzeti() {
         degerAl: (s) => [s.il, s.ilce].filter(Boolean).join(' / ') || '—',
         siralamaDegeri: (s) => `${s.il} ${s.ilce}`,
       },
-      metin('mahalle', 'Mahalle', 110, (s) => s.mahalle),
-      metin('postaKodu', 'Posta Kodu', 88, (s) => s.postaKodu),
-      metin('adres', 'Adres', 220, (s) => s.adres),
       metin('efaturaSeri', 'E-Fatura Seri', 96, (s) => s.efaturaSeri),
       metin('earsivSeri', 'E-Arşiv Seri', 96, (s) => s.earsivSeri),
       metin('eirsaliyeSeri', 'E-İrsaliye Seri', 104, (s) => s.eirsaliyeSeri),
@@ -620,11 +631,9 @@ export function TanimKayitlarOzeti() {
         degerAl: (d) => d.depoAdi,
         goster: (d) => <span className="dg-urun-adi-ust">{d.depoAdi || '—'}</span>,
       },
+      metin('adres', 'Adres', 220, (d) => d.adres),
       metin('il', 'İl', 100, (d) => d.il),
       metin('ilce', 'İlçe', 100, (d) => d.ilce),
-      metin('mahalle', 'Mahalle', 110, (d) => d.mahalle),
-      metin('postaKodu', 'Posta Kodu', 88, (d) => d.postaKodu),
-      metin('adres', 'Adres', 220, (d) => d.adres),
       olusturmaKolonu<AdminDepo>(),
       guncellemeKolonu<AdminDepo>(),
       durumKolonu<AdminDepo>(),
@@ -746,12 +755,12 @@ export function TanimKayitlarOzeti() {
     if (konum.seviye === 'firmalar') {
       return (
         <DataGrid
-          key="tanimlar_kayitlar_firmalar_v6"
+          key="tanimlar_kayitlar_firmalar_v7"
           {...gridOrtak}
           tabloBaslik="Tanım Kayıtları"
           kolonlar={firmaKolonlari}
           satirlar={firmalar}
-          depolamaAnahtari="tanimlar_kayitlar_firmalar_v6"
+          depolamaAnahtari="tanimlar_kayitlar_firmalar_v7"
           bosMesaj="Henüz firma tanımı yok"
           satirSinifAdi={(f) => (!f.aktif ? 'dg-satir--pasif' : undefined)}
           onSatirTikla={(f) => setKonum({ seviye: 'firma', firmaId: f.id, sekme: 'subeler' })}
@@ -783,12 +792,12 @@ export function TanimKayitlarOzeti() {
           />
           {sekme === 'subeler' ? (
             <DataGrid
-              key="tanimlar_kayitlar_subeler_v6"
+              key="tanimlar_kayitlar_subeler_v7"
               {...gridOrtak}
               tabloBaslik="Şubeler"
               kolonlar={subeKolonlari}
               satirlar={firmaSubeler}
-              depolamaAnahtari="tanimlar_kayitlar_subeler_v6"
+              depolamaAnahtari="tanimlar_kayitlar_subeler_v7"
               bosMesaj="Bu firmaya bağlı şube yok"
               satirSinifAdi={(s) =>
                 firmaBagliPasifMi(s.aktif, s.firmaId) ? 'dg-satir--pasif' : undefined
@@ -847,12 +856,12 @@ export function TanimKayitlarOzeti() {
           />
           {sekme === 'depolar' ? (
             <DataGrid
-              key="tanimlar_kayitlar_depolar_v6"
+              key="tanimlar_kayitlar_depolar_v7"
               {...gridOrtak}
               tabloBaslik="Depolar"
               kolonlar={depoKolonlari}
               satirlar={subeDepolar}
-              depolamaAnahtari="tanimlar_kayitlar_depolar_v6"
+              depolamaAnahtari="tanimlar_kayitlar_depolar_v7"
               bosMesaj="Bu şubeye bağlı depo yok"
               satirSinifAdi={(d) =>
                 subeBagliPasifMi(d.aktif, d.subeId) ? 'dg-satir--pasif' : undefined
@@ -944,12 +953,6 @@ export function TanimKayitlarOzeti() {
             ))}
           </ol>
         </nav>
-        {eklemeVar ? (
-          <button type="button" className="ap-tanimlar-yeni-ekle" onClick={yeniEkle}>
-            <span aria-hidden>+</span>
-            {ekleEtiketi}
-          </button>
-        ) : null}
       </div>
 
       {gridIcerik}

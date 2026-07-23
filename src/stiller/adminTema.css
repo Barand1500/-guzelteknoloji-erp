@@ -12131,6 +12131,30 @@ html:has(.admin-panel[data-tema='acik']) body {
   width: 100%;
 }
 
+.ap-form-arama-secim-liste {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Opak panel — portal dışında değişken kaybında da şeffaf kalmasın */
+  background: var(--ap-surface, #1e293b) !important;
+  background-color: var(--ap-surface, #1e293b) !important;
+  border: 1px solid var(--ap-border, #475569);
+  color: var(--ap-heading, #fff);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+  opacity: 1;
+}
+
+.admin-panel[data-tema='acik'] .ap-form-arama-secim-liste {
+  background: var(--ap-surface, #ffffff) !important;
+  background-color: var(--ap-surface, #ffffff) !important;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.18);
+}
+
+.ap-form-arama-secim-liste::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .ap-form-arama-secim-bos {
   padding: 0.55rem 0.75rem;
   font-size: 0.8125rem;
@@ -12172,12 +12196,19 @@ html:has(.admin-panel[data-tema='acik']) body {
   padding: 0.25rem;
   list-style: none;
   border-radius: 0.5rem;
-  border: 1px solid var(--ap-border);
-  background: var(--ap-surface);
-  box-shadow: 0 10px 28px color-mix(in srgb, var(--ap-heading) 18%, transparent);
+  border: 1px solid var(--ap-border, #475569);
+  background: var(--ap-surface, #1e293b);
+  background-color: var(--ap-surface, #1e293b);
+  box-shadow: 0 10px 28px color-mix(in srgb, #000 35%, transparent);
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
+  opacity: 1;
+}
+
+.admin-panel[data-tema='acik'] .ap-form-acilir-secim-liste {
+  background: var(--ap-surface, #ffffff);
+  background-color: var(--ap-surface, #ffffff);
 }
 
 .ap-form-acilir-secim-liste > li {

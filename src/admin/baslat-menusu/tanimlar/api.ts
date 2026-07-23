@@ -1,6 +1,7 @@
 import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
 import {
   bosDepoForm,
+  bosKasaForm,
   bosSubeForm,
   type DepoFormDegeri,
   type DonemFormDegeri,
@@ -123,12 +124,47 @@ export async function subeleriGetir(): Promise<AdminSube[]> {
   return veri.subeler ?? [];
 }
 
+/** Yeni şube ile aynı kod/ad/adres bilgileriyle depo ve kasa oluşturur (yoksa). */
+async function subeAltKayitlariOlustur(sube: AdminSube, form: SubeFormDegeri): Promise<void> {
+  const kod = form.subeKodu.trim();
+  const ad = form.subeAdi.trim();
+  if (!kod || !ad) return;
+
+  const [depolar, kasalar] = await Promise.all([depolariGetir(), kasalariGetir()]);
+
+  if (!depolar.some((d) => d.subeId === sube.id && d.depoKodu === kod)) {
+    await depoOlustur({
+      ...bosDepoForm,
+      subeId: sube.id,
+      depoKodu: kod,
+      depoAdi: ad,
+      il: form.il,
+      ilce: form.ilce,
+      mahalle: form.mahalle,
+      postaKodu: form.postaKodu,
+      adres: form.adres,
+      aktif: form.aktif,
+    });
+  }
+
+  if (!kasalar.some((k) => k.subeId === sube.id && k.kasaKodu === kod)) {
+    await kasaOlustur({
+      ...bosKasaForm,
+      subeId: sube.id,
+      kasaKodu: kod,
+      kasaAdi: ad,
+      aktif: form.aktif,
+    });
+  }
+}
+
 export async function subeOlustur(form: SubeFormDegeri, firmaId?: string): Promise<AdminSube> {
   const veri = await adminJsonFetch<{ sube: AdminSube }>(`${TABAN}/subeler`, {
     method: 'POST',
     headers: adminHeaders(),
     body: JSON.stringify(firmaId ? { ...form, firmaId } : form),
   });
+  await subeAltKayitlariOlustur(veri.sube, form);
   return veri.sube;
 }
 

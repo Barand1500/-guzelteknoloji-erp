@@ -114,7 +114,7 @@ const AKSIYON_YETKI: Partial<Record<string, YetkiKodu>> = {
 };
 
 export function useAksiyonCubugu(modulId: string) {
-  const { aksiyonDurumlari } = useAdminAksiyon();
+  const { aksiyonDurumlari, aksiyonEtiketleri } = useAdminAksiyon();
   const { t } = usePanelDil();
   const { yetkiler: modulYetkiler } = useYetkiler(modulId);
   const { yetkiler: genelYetkiler } = useYetkiler();
@@ -132,11 +132,13 @@ export function useAksiyonCubugu(modulId: string) {
 
     return temel.map((aksiyon) => {
       const dinamik = aksiyonDurumlari[aksiyon.id as AksiyonId];
+      const ozellikle = aksiyonEtiketleri[aksiyon.id as AksiyonId];
       const modulEtiket = t(`aksiyon.${aksiyon.id}.${modulId}`, '');
       const etiket =
-        modulEtiket && modulEtiket !== `aksiyon.${aksiyon.id}.${modulId}`
+        ozellikle ||
+        (modulEtiket && modulEtiket !== `aksiyon.${aksiyon.id}.${modulId}`
           ? modulEtiket
-          : t(`aksiyon.${aksiyon.id}`, aksiyon.etiket);
+          : t(`aksiyon.${aksiyon.id}`, aksiyon.etiket));
       const guncel = { ...aksiyon, etiket };
 
       const yetkiKodu = modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id];
@@ -145,5 +147,5 @@ export function useAksiyonCubugu(modulId: string) {
 
       return { ...guncel, aktif: temelAktif && yetkiUygun };
     });
-  }, [modulId, aksiyonDurumlari, t, modulYetkiler, genelYetkiler]);
+  }, [modulId, aksiyonDurumlari, aksiyonEtiketleri, t, modulYetkiler, genelYetkiler]);
 }

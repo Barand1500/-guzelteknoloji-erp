@@ -16,6 +16,7 @@ import { sekmeGecisTiklamasiMi, sekmePortalHedefi, useSekmeDegisinceYenile } fro
 const KENAR_BOSLUK = 8;
 const LISTE_LIMIT_VARSAYILAN = 80;
 const ARAMA_GECIKME_MS = 80;
+const LISTE_Z_INDEX = 13000;
 
 function normalizeMetin(metin: string): string {
   return metin.trim().toLocaleLowerCase('tr');
@@ -42,6 +43,21 @@ function anchorBul(trigger: HTMLElement): HTMLElement {
   );
 }
 
+/** Footer / düzenle panelinde sekme portalı listenin altında kalır.
+ *  body değil admin-panel — tema CSS değişkenleri (--ap-surface) korunsun. */
+function aramaPortalHedefi(trigger: HTMLElement | null): HTMLElement {
+  if (
+    trigger?.closest(
+      '.ap-footer, .dg-duzenle, .dg-satir-panel-cubuk, .dg-satir-panel, .ap-tanimlar-duzenle'
+    )
+  ) {
+    return (
+      (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body
+    );
+  }
+  return sekmePortalHedefi(trigger);
+}
+
 function listeKonumuHesapla(anchor: HTMLElement) {
   const rect = anchorBul(anchor).getBoundingClientRect();
   const genislik = rect.width;
@@ -52,10 +68,23 @@ function listeKonumuHesapla(anchor: HTMLElement) {
   }
   if (left < KENAR_BOSLUK) left = KENAR_BOSLUK;
 
-  const ust = rect.bottom + 4;
-  const maxHeight = Math.max(120, window.innerHeight - ust - KENAR_BOSLUK);
+  const asagiBosluk = window.innerHeight - rect.bottom - KENAR_BOSLUK;
+  const yukariBosluk = rect.top - KENAR_BOSLUK;
+  const listeHedefH = 240;
 
-  return { top: ust, left, width: genislik, maxHeight };
+  /* Panel altta (aksiyon çubuğu üstü) ise listeyi yukarı aç — aksi halde görünmez */
+  if (asagiBosluk < listeHedefH && yukariBosluk > asagiBosluk) {
+    const maxHeight = Math.max(120, Math.min(320, yukariBosluk - 4));
+    return {
+      top: Math.max(KENAR_BOSLUK, rect.top - maxHeight - 4),
+      left,
+      width: genislik,
+      maxHeight,
+    };
+  }
+
+  const maxHeight = Math.max(120, Math.min(320, asagiBosluk));
+  return { top: rect.bottom + 4, left, width: genislik, maxHeight };
 }
 
 interface FormAramaSecimProps {
@@ -146,7 +175,7 @@ export function FormAramaSecim({
   }, [value, filtrelenmis.length]);
 
   const aramaYeterli = value.trim().length >= minAramaUzunlugu;
-  const oneriGoster = acik && aramaYeterli && (aramaYukleniyor || filtrelenmis.length > 0);
+  const oneriGoster = acik && aramaYeterli;
 
   const konumGuncelle = useCallback(() => {
     if (!kapsayiciRef.current) return;
@@ -157,7 +186,7 @@ export function FormAramaSecim({
       left,
       width,
       maxHeight,
-      zIndex: 10050,
+      zIndex: LISTE_Z_INDEX,
     });
   }, []);
 
@@ -195,7 +224,10 @@ export function FormAramaSecim({
     }
 
     function tusBas(e: KeyboardEvent) {
-      if (e.key === 'Escape') setAcik(false);
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      setAcik(false);
     }
 
     document.addEventListener('mousedown', disTik);
@@ -233,6 +265,15 @@ export function FormAramaSecim({
         aria-activedescendant={
           oneriGoster && filtrelenmis[odakIndex] ? `${listeId}-oge-${odakIndex}` : undefined
         }
+        role="combobox"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        data-lpignore="true"
+        data-1p-ignore="true"
+        data-form-type="other"
+        name={`ap-arama-${listeId.replace(/:/g, '')}`}
         onChange={(e) => {
           onChange(e.target.value);
           if (e.target.value.trim().length >= minAramaUzunlugu) setAcik(true);
@@ -282,6 +323,8 @@ export function FormAramaSecim({
             >
               {aramaYukleniyor ? (
                 <li className="ap-form-arama-secim-bos">Aranıyor…</li>
+              ) : filtrelenmis.length === 0 ? (
+                <li className="ap-form-arama-secim-bos">Sonuç bulunamadı</li>
               ) : (
                 filtrelenmis.map((secenek, index) => {
                   const seciliMi = normalizeMetin(secenek) === normalizeMetin(value);
@@ -306,7 +349,7 @@ export function FormAramaSecim({
                 })
               )}
             </ul>,
-            sekmePortalHedefi(kapsayiciRef.current)
+            aramaPortalHedefi(kapsayiciRef.current)
           )
         : null}
     </div>

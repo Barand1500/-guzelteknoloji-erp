@@ -136,6 +136,7 @@ function TanimDuzenlePanel({
     function tusHandler(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         onGeri();
         return;
       }
@@ -148,8 +149,8 @@ function TanimDuzenlePanel({
       }
     }
 
-    document.addEventListener('keydown', tusHandler);
-    return () => document.removeEventListener('keydown', tusHandler);
+    document.addEventListener('keydown', tusHandler, true);
+    return () => document.removeEventListener('keydown', tusHandler, true);
   }, [onGeri, kaydet]);
 
   return (

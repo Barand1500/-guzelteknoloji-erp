@@ -286,9 +286,18 @@
 .ap-tanim-girdi .ap-form-input,
 .ap-tanimlar-bolum .ap-form-input {
   border-radius: 0.55rem;
+  color: var(--ap-heading);
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease;
+}
+
+.ap-tanim-girdi .ap-input,
+.ap-tanimlar-bolum .ap-input,
+.ap-tanimlar-secim-alan .ap-input,
+.dg-duzenle--tanim .ap-input,
+.dg-duzenle--tanim textarea.ap-input {
+  color: var(--ap-heading);
 }
 
 .ap-tanim-girdi .ap-form-input:focus,
@@ -1465,6 +1474,14 @@ button.ap-tanimlar-panel-arka {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ap-tanimlar-panel-govde::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .ap-tanimlar-panel-govde .ap-tanimlar-bolum {

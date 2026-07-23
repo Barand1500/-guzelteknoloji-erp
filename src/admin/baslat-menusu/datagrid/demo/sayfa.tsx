@@ -815,7 +815,7 @@ export function DatagridDemoSayfasi() {
             placeholder: 'Ürün Adı veya Kodu…',
             ipucu: '% İle Ara, ENTER ile Ekle',
           },
-          { kolonId: 'miktar', placeholder: '1 veya 2*5', ipucu: 'Miktar ifadesi', varsayilan: '1' },
+          { kolonId: 'miktar', ipucu: 'Miktar ifadesi', varsayilan: '1' },
           {
             kolonId: 'birim',
             tip: 'secim',
@@ -824,13 +824,12 @@ export function DatagridDemoSayfasi() {
           },
           {
             kolonId: 'fiyat',
-            placeholder: '1000+%10',
             ipucu: kdvDahil ? 'Fiyat ifadesi (KDV dahil)' : 'Fiyat ifadesi (KDV hariç)',
           },
-          { kolonId: 'satirIskonto', placeholder: '0 veya 20+20', ipucu: 'Bileşik iskonto', varsayilan: '0' },
-          { kolonId: 'altIskonto', placeholder: '0', varsayilan: '0' },
-          { kolonId: 'toplamKdv', placeholder: '%20', ipucu: 'KDV oranı (%)', varsayilan: '20' },
-          { kolonId: 'etiketler', placeholder: 'Drone, Yeni', ipucu: 'Virgülle ayırın' },
+          { kolonId: 'satirIskonto', ipucu: 'Bileşik iskonto', varsayilan: '0' },
+          { kolonId: 'altIskonto', varsayilan: '0' },
+          { kolonId: 'toplamKdv', ipucu: 'KDV oranı (%)', varsayilan: '20' },
+          { kolonId: 'etiketler', ipucu: 'Virgülle ayırın' },
           { kolonId: 'durum', tip: 'toggle', varsayilan: 'true' },
         ]}
         satirSinifAdi={(s) => (!s.durum ? 'dg-satir--pasif' : undefined)}

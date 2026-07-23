@@ -1267,14 +1267,16 @@ td.dg-hucre--sabit,
 
 .dg-urun-kodu-alt {
   font-family: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
-  font-size: 0.6rem;
-  font-weight: 400;
-  color: var(--ap-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--ap-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .dg-satir--pasif .dg-urun-adi-ust,
@@ -1655,7 +1657,7 @@ td.dg-hucre--sabit,
   flex-shrink: 0;
 }
 
-.dg-switch--acik { background: #22c55e; }
+.dg-switch--acik { background: var(--ap-accent); }
 
 .dg-switch-thumb {
   position: absolute;
@@ -2464,6 +2466,14 @@ td.dg-hucre--sabit,
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dg-duzenle-govde::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .dg-duzenle-alanlar {
@@ -3044,7 +3054,7 @@ td.dg-hucre--sabit,
   border: 1px solid var(--dg-hizli-input-border);
   border-radius: 0.5rem;
   background: var(--dg-hizli-input-bg);
-  color: var(--ap-text);
+  color: var(--ap-heading);
   font-size: 0.8125rem;
   line-height: 1.35;
   font-family: inherit;
@@ -3054,7 +3064,7 @@ td.dg-hucre--sabit,
 .dg-hizli-giris-girdi--kucuk {
   font-size: 0.75rem;
   padding: 0.32rem 0.45rem;
-  color: var(--ap-muted);
+  color: var(--ap-heading);
 }
 
 .dg-hizli-giris-girdi--kucuk::placeholder {
