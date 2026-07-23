@@ -63,26 +63,50 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
       ];
     case 'sube':
       return [
-        { kolonId: 'subeKodu', placeholder: 'Şube kodu', degerFiltrele: kodFiltre },
-        { kolonId: 'subeAdi', placeholder: 'Şube adı' },
+        {
+          kolonId: 'subeKoduAdi',
+          birlesikDikey: true,
+          birlesik: [
+            { kolonId: 'subeKodu', placeholder: 'Şube kodu', degerFiltrele: kodFiltre },
+            { kolonId: 'subeAdi', placeholder: 'Şube adı' },
+          ],
+        },
         DURUM_GIRIS,
       ];
     case 'donem':
       return [
-        { kolonId: 'donemKodu', placeholder: 'Dönem kodu', degerFiltrele: kodFiltre },
-        { kolonId: 'donemAdi', placeholder: 'Dönem adı' },
+        {
+          kolonId: 'donemKoduAdi',
+          birlesikDikey: true,
+          birlesik: [
+            { kolonId: 'donemKodu', placeholder: 'Dönem kodu', degerFiltrele: kodFiltre },
+            { kolonId: 'donemAdi', placeholder: 'Dönem adı' },
+          ],
+        },
         DURUM_GIRIS,
       ];
     case 'depo':
       return [
-        { kolonId: 'depoKodu', placeholder: 'Depo kodu', degerFiltrele: kodFiltre },
-        { kolonId: 'depoAdi', placeholder: 'Depo adı' },
+        {
+          kolonId: 'depoKoduAdi',
+          birlesikDikey: true,
+          birlesik: [
+            { kolonId: 'depoKodu', placeholder: 'Depo kodu', degerFiltrele: kodFiltre },
+            { kolonId: 'depoAdi', placeholder: 'Depo adı' },
+          ],
+        },
         DURUM_GIRIS,
       ];
     case 'kasa':
       return [
-        { kolonId: 'kasaKodu', placeholder: 'Kasa kodu', degerFiltrele: kodFiltre },
-        { kolonId: 'kasaAdi', placeholder: 'Kasa adı' },
+        {
+          kolonId: 'kasaKoduAdi',
+          birlesikDikey: true,
+          birlesik: [
+            { kolonId: 'kasaKodu', placeholder: 'Kasa kodu', degerFiltrele: kodFiltre },
+            { kolonId: 'kasaAdi', placeholder: 'Kasa adı' },
+          ],
+        },
         {
           kolonId: 'paraBirimi',
           tip: 'secim',

@@ -100,6 +100,47 @@ function durumKolonu<TRow extends { aktif: boolean }>(): KolonTanimi<TRow> {
   };
 }
 
+function tanimKodAdGoster(kodHam: string, adHam: string) {
+  const ad = adHam.trim();
+  const kod = kodHam.trim();
+  const ikili = Boolean(ad && kod && ad.toLocaleLowerCase('tr') !== kod.toLocaleLowerCase('tr'));
+
+  if (!ad && !kod) return <>—</>;
+
+  if (ikili) {
+    return (
+      <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
+        <span className="dg-urun-kodu-alt">{kod}</span>
+        <span className="dg-urun-adi-ust">{ad}</span>
+      </div>
+    );
+  }
+
+  if (kod && !ad) return <span className="dg-urun-kodu-alt">{kod}</span>;
+  return <span className="dg-urun-adi-ust">{ad || kod}</span>;
+}
+
+function kodAdKolonu<TRow extends { id: string }>(opts: {
+  id: string;
+  baslik: string;
+  kodAl: (s: TRow) => string;
+  adAl: (s: TRow) => string;
+  genislik?: number;
+}): KolonTanimi<TRow> {
+  return {
+    id: opts.id,
+    baslik: opts.baslik,
+    tip: 'metin',
+    genislik: opts.genislik ?? 240,
+    minGenislik: 140,
+    zorunlu: true,
+    siralama: true,
+    degerAl: (s) => `${opts.kodAl(s)} ${opts.adAl(s)}`,
+    siralamaDegeri: (s) => `${opts.kodAl(s)} ${opts.adAl(s)}`,
+    goster: (s) => tanimKodAdGoster(opts.kodAl(s) ?? '', opts.adAl(s) ?? ''),
+  };
+}
+
 function olusturmaKolonu<TRow extends { olusturma: string }>(): KolonTanimi<TRow> {
   return {
     id: 'olusturma',
@@ -435,36 +476,12 @@ export function TanimKayitlarOzeti() {
   const firmaKolonlari = useMemo((): KolonTanimi<AdminFirma>[] => {
     return [
       secimKolonu<AdminFirma>(),
-      {
+      kodAdKolonu<AdminFirma>({
         id: 'firmaKoduAdi',
         baslik: 'Firma Kodu/Adı',
-        tip: 'metin',
-        genislik: 240,
-        minGenislik: 140,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (f) => `${f.firmaKodu} ${f.firmaAdi}`,
-        siralamaDegeri: (f) => `${f.firmaKodu} ${f.firmaAdi}`,
-        goster: (f) => {
-          const ad = f.firmaAdi?.trim() ?? '';
-          const kod = f.firmaKodu?.trim() ?? '';
-          const ikili = Boolean(ad && kod && ad.toLowerCase() !== kod.toLowerCase());
-
-          if (!ad && !kod) return <>—</>;
-
-          if (ikili) {
-            return (
-              <div className="dg-iskonto-hucre dg-urun-kodu-adi-hucre">
-                <span className="dg-urun-kodu-alt">{kod}</span>
-                <span className="dg-urun-adi-ust">{ad}</span>
-              </div>
-            );
-          }
-
-          if (kod && !ad) return <span className="dg-urun-kodu-alt">{kod}</span>;
-          return <span className="dg-urun-adi-ust">{ad || kod}</span>;
-        },
-      },
+        kodAl: (f) => f.firmaKodu,
+        adAl: (f) => f.firmaAdi,
+      }),
       {
         id: 'vergiDairesi',
         baslik: 'Vergi Dairesi',
@@ -513,28 +530,12 @@ export function TanimKayitlarOzeti() {
 
     return [
       secimKolonu<AdminSube>(),
-      {
-        id: 'subeKodu',
-        baslik: 'Şube Kodu',
-        tip: 'metin',
-        genislik: 100,
-        minGenislik: 88,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (s) => s.subeKodu,
-        goster: (s) => <span className="dg-urun-kodu-alt">{s.subeKodu || '—'}</span>,
-      },
-      {
-        id: 'subeAdi',
-        baslik: 'Şube Adı',
-        tip: 'metin',
-        genislik: 160,
-        minGenislik: 120,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (s) => s.subeAdi,
-        goster: (s) => <span className="dg-urun-adi-ust">{s.subeAdi || '—'}</span>,
-      },
+      kodAdKolonu<AdminSube>({
+        id: 'subeKoduAdi',
+        baslik: 'Şube Kodu/Adı',
+        kodAl: (s) => s.subeKodu,
+        adAl: (s) => s.subeAdi,
+      }),
       {
         id: 'adres',
         baslik: 'Adres',
@@ -567,28 +568,12 @@ export function TanimKayitlarOzeti() {
   const donemKolonlari = useMemo((): KolonTanimi<AdminDonem>[] => {
     return [
       secimKolonu<AdminDonem>(),
-      {
-        id: 'donemKodu',
-        baslik: 'Dönem Kodu',
-        tip: 'metin',
-        genislik: 110,
-        minGenislik: 90,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (d) => d.donemKodu,
-        goster: (d) => <span className="dg-urun-kodu-alt">{d.donemKodu || '—'}</span>,
-      },
-      {
-        id: 'donemAdi',
-        baslik: 'Dönem Adı',
-        tip: 'metin',
-        genislik: 160,
-        minGenislik: 120,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (d) => d.donemAdi,
-        goster: (d) => <span className="dg-urun-adi-ust">{d.donemAdi || '—'}</span>,
-      },
+      kodAdKolonu<AdminDonem>({
+        id: 'donemKoduAdi',
+        baslik: 'Dönem Kodu/Adı',
+        kodAl: (d) => d.donemKodu,
+        adAl: (d) => d.donemAdi,
+      }),
       olusturmaKolonu<AdminDonem>(),
       guncellemeKolonu<AdminDonem>(),
       durumKolonu<AdminDonem>(),
@@ -609,28 +594,12 @@ export function TanimKayitlarOzeti() {
 
     return [
       secimKolonu<AdminDepo>(),
-      {
-        id: 'depoKodu',
-        baslik: 'Depo Kodu',
-        tip: 'metin',
-        genislik: 100,
-        minGenislik: 88,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (d) => d.depoKodu,
-        goster: (d) => <span className="dg-urun-kodu-alt">{d.depoKodu || '—'}</span>,
-      },
-      {
-        id: 'depoAdi',
-        baslik: 'Depo Adı',
-        tip: 'metin',
-        genislik: 160,
-        minGenislik: 120,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (d) => d.depoAdi,
-        goster: (d) => <span className="dg-urun-adi-ust">{d.depoAdi || '—'}</span>,
-      },
+      kodAdKolonu<AdminDepo>({
+        id: 'depoKoduAdi',
+        baslik: 'Depo Kodu/Adı',
+        kodAl: (d) => d.depoKodu,
+        adAl: (d) => d.depoAdi,
+      }),
       metin('adres', 'Adres', 220, (d) => d.adres),
       metin('il', 'İl', 100, (d) => d.il),
       metin('ilce', 'İlçe', 100, (d) => d.ilce),
@@ -644,28 +613,12 @@ export function TanimKayitlarOzeti() {
   const kasaKolonlari = useMemo((): KolonTanimi<AdminKasa>[] => {
     return [
       secimKolonu<AdminKasa>(),
-      {
-        id: 'kasaKodu',
-        baslik: 'Kasa Kodu',
-        tip: 'metin',
-        genislik: 100,
-        minGenislik: 88,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (k) => k.kasaKodu,
-        goster: (k) => <span className="dg-urun-kodu-alt">{k.kasaKodu || '—'}</span>,
-      },
-      {
-        id: 'kasaAdi',
-        baslik: 'Kasa Adı',
-        tip: 'metin',
-        genislik: 160,
-        minGenislik: 120,
-        zorunlu: true,
-        siralama: true,
-        degerAl: (k) => k.kasaAdi,
-        goster: (k) => <span className="dg-urun-adi-ust">{k.kasaAdi || '—'}</span>,
-      },
+      kodAdKolonu<AdminKasa>({
+        id: 'kasaKoduAdi',
+        baslik: 'Kasa Kodu/Adı',
+        kodAl: (k) => k.kasaKodu,
+        adAl: (k) => k.kasaAdi,
+      }),
       {
         id: 'paraBirimi',
         baslik: 'Para Birimi',
@@ -755,12 +708,12 @@ export function TanimKayitlarOzeti() {
     if (konum.seviye === 'firmalar') {
       return (
         <DataGrid
-          key="tanimlar_kayitlar_firmalar_v7"
+          key="tanimlar_kayitlar_firmalar_v8"
           {...gridOrtak}
           tabloBaslik="Tanım Kayıtları"
           kolonlar={firmaKolonlari}
           satirlar={firmalar}
-          depolamaAnahtari="tanimlar_kayitlar_firmalar_v7"
+          depolamaAnahtari="tanimlar_kayitlar_firmalar_v8"
           bosMesaj="Henüz firma tanımı yok"
           satirSinifAdi={(f) => (!f.aktif ? 'dg-satir--pasif' : undefined)}
           onSatirTikla={(f) => setKonum({ seviye: 'firma', firmaId: f.id, sekme: 'subeler' })}
@@ -792,12 +745,12 @@ export function TanimKayitlarOzeti() {
           />
           {sekme === 'subeler' ? (
             <DataGrid
-              key="tanimlar_kayitlar_subeler_v7"
+              key="tanimlar_kayitlar_subeler_v8"
               {...gridOrtak}
               tabloBaslik="Şubeler"
               kolonlar={subeKolonlari}
               satirlar={firmaSubeler}
-              depolamaAnahtari="tanimlar_kayitlar_subeler_v7"
+              depolamaAnahtari="tanimlar_kayitlar_subeler_v8"
               bosMesaj="Bu firmaya bağlı şube yok"
               satirSinifAdi={(s) =>
                 firmaBagliPasifMi(s.aktif, s.firmaId) ? 'dg-satir--pasif' : undefined
@@ -814,12 +767,12 @@ export function TanimKayitlarOzeti() {
             />
           ) : (
             <DataGrid
-              key="tanimlar_kayitlar_donemler_v5"
+              key="tanimlar_kayitlar_donemler_v6"
               {...gridOrtak}
               tabloBaslik="Dönemler"
               kolonlar={donemKolonlari}
               satirlar={firmaDonemler}
-              depolamaAnahtari="tanimlar_kayitlar_donemler_v5"
+              depolamaAnahtari="tanimlar_kayitlar_donemler_v6"
               bosMesaj="Bu firmaya bağlı dönem yok"
               satirSinifAdi={(d) =>
                 firmaBagliPasifMi(d.aktif, d.firmaId) ? 'dg-satir--pasif' : undefined
@@ -856,12 +809,12 @@ export function TanimKayitlarOzeti() {
           />
           {sekme === 'depolar' ? (
             <DataGrid
-              key="tanimlar_kayitlar_depolar_v7"
+              key="tanimlar_kayitlar_depolar_v8"
               {...gridOrtak}
               tabloBaslik="Depolar"
               kolonlar={depoKolonlari}
               satirlar={subeDepolar}
-              depolamaAnahtari="tanimlar_kayitlar_depolar_v7"
+              depolamaAnahtari="tanimlar_kayitlar_depolar_v8"
               bosMesaj="Bu şubeye bağlı depo yok"
               satirSinifAdi={(d) =>
                 subeBagliPasifMi(d.aktif, d.subeId) ? 'dg-satir--pasif' : undefined
@@ -871,12 +824,12 @@ export function TanimKayitlarOzeti() {
             />
           ) : (
             <DataGrid
-              key="tanimlar_kayitlar_kasalar_v5"
+              key="tanimlar_kayitlar_kasalar_v6"
               {...gridOrtak}
               tabloBaslik="Kasalar"
               kolonlar={kasaKolonlari}
               satirlar={subeKasalar}
-              depolamaAnahtari="tanimlar_kayitlar_kasalar_v5"
+              depolamaAnahtari="tanimlar_kayitlar_kasalar_v6"
               bosMesaj="Bu şubeye bağlı kasa yok"
               satirSinifAdi={(k) =>
                 subeBagliPasifMi(k.aktif, k.subeId) ? 'dg-satir--pasif' : undefined
