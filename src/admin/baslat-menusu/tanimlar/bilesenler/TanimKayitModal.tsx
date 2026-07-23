@@ -66,6 +66,8 @@ export type TanimModalHedef =
 interface TanimKayitModalProps {
   hedef: TanimModalHedef | null;
   subeler: AdminSube[];
+  /** Bağlam bandı için (opsiyonel) */
+  firmalar?: AdminFirma[];
   onKapat: () => void;
   onKaydedildi: (tip: TanimSekmeId, firmaId?: string) => void;
 }
@@ -143,7 +145,13 @@ function donemdenForm(d: AdminDonem): DonemFormDegeri {
   return { donemKodu: d.donemKodu, donemAdi: d.donemAdi, aktif: d.aktif };
 }
 
-export function TanimKayitModal({ hedef, subeler, onKapat, onKaydedildi }: TanimKayitModalProps) {
+export function TanimKayitModal({
+  hedef,
+  subeler,
+  firmalar = [],
+  onKapat,
+  onKaydedildi,
+}: TanimKayitModalProps) {
   const logMesajiAyarla = useAdminLogMesaji();
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const [kaydediliyor, setKaydediliyor] = useState(false);
@@ -191,19 +199,52 @@ export function TanimKayitModal({ hedef, subeler, onKapat, onKaydedildi }: Tanim
     return '';
   }, [hedef, subeler]);
 
-  const firmaSubeleri = useMemo(
-    () => subeler.filter((s) => s.firmaId === firmaIdBaglam && s.aktif !== false),
-    [subeler, firmaIdBaglam]
-  );
+  const firmaSubeleri = useMemo(() => {
+    const seciliSubeId =
+      hedef?.tip === 'depo'
+        ? hedef.mod === 'duzenle'
+          ? hedef.kayit.subeId
+          : depoForm.subeId || hedef.subeId || ''
+        : hedef?.tip === 'kasa'
+          ? hedef.mod === 'duzenle'
+            ? hedef.kayit.subeId
+            : kasaForm.subeId || hedef.subeId || ''
+          : '';
+    return subeler.filter((s) => {
+      if (s.firmaId !== firmaIdBaglam) return false;
+      if (s.aktif !== false) return true;
+      return s.id === seciliSubeId;
+    });
+  }, [subeler, firmaIdBaglam, hedef, depoForm.subeId, kasaForm.subeId]);
 
   const subeSecenekleri = useMemo(
     () =>
       firmaSubeleri.map((s) => ({
         value: s.id,
-        label: `${s.subeKodu} — ${s.subeAdi}`,
+        label: `${s.subeKodu} — ${s.subeAdi}${s.aktif === false ? ' (Pasif)' : ''}`,
       })),
     [firmaSubeleri]
   );
+
+  const baglamBandi = useMemo(() => {
+    if (!hedef || hedef.tip === 'firma') return null;
+    const firma = firmalar.find((f) => f.id === firmaIdBaglam);
+    const firmaAd = firma ? `${firma.firmaAdi} (${firma.firmaKodu})` : 'Firma';
+    if (hedef.tip === 'sube' || hedef.tip === 'donem') {
+      return firmaAd;
+    }
+    const subeId =
+      hedef.tip === 'depo'
+        ? hedef.mod === 'duzenle'
+          ? hedef.kayit.subeId
+          : depoForm.subeId || hedef.subeId || ''
+        : hedef.mod === 'duzenle'
+          ? hedef.kayit.subeId
+          : kasaForm.subeId || hedef.subeId || '';
+    const sube = subeler.find((s) => s.id === subeId);
+    if (sube) return `${firmaAd} → ${sube.subeKodu} — ${sube.subeAdi}`;
+    return `${firmaAd} → Şube seçin`;
+  }, [hedef, firmalar, firmaIdBaglam, subeler, depoForm.subeId, kasaForm.subeId]);
 
   const kaydet = useCallback(async () => {
     if (!hedef || kaydediliyor) return;
@@ -355,13 +396,40 @@ export function TanimKayitModal({ hedef, subeler, onKapat, onKaydedildi }: Tanim
       acik
       onKapat={onKapat}
       baslik={baslik}
-      altBaslik="Aksiyon çubuğundan Kaydet · Esc ile kapat"
+      altBaslik="Ctrl+Enter ile kaydet · Esc ile kapat"
       ikon={TIP_IKON[tip]}
       genislik={tip === 'sube' || tip === 'depo' ? 'lg' : 'md'}
       kapatmaDevreDisi={kaydediliyor}
       ustCizgi={false}
+      footer={
+        <div className="ap-tanimlar-modal-footer">
+          <button
+            type="button"
+            className="ap-tanimlar-modal-iptal"
+            onClick={onKapat}
+            disabled={kaydediliyor}
+          >
+            İptal
+          </button>
+          <button
+            type="button"
+            className="ap-tanimlar-modal-kaydet"
+            onClick={() => void kaydet()}
+            disabled={kaydediliyor}
+          >
+            {kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}
+          </button>
+        </div>
+      }
     >
       <div className="ap-tanimlar-modal-govde">
+        {baglamBandi ? (
+          <div className="ap-tanimlar-modal-baglam" role="status">
+            <span className="ap-tanimlar-modal-baglam-etiket">Bağlam</span>
+            <span className="ap-tanimlar-modal-baglam-metin">{baglamBandi}</span>
+          </div>
+        ) : null}
+
         {tip === 'firma' && (
           <>
             <TanimFormBolum baslik="Temel Bilgiler">

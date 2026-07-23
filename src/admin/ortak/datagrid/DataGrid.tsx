@@ -552,7 +552,8 @@ export function DataGrid<TRow extends { id: string }>({
         (hataEl?.offsetHeight ?? 0) +
         (yatayScroll?.offsetHeight ?? 0) +
         (alt?.offsetHeight ?? 0);
-      setScrollYukseklik(Math.max(160, kabuk.clientHeight - disHaric));
+      const yeni = Math.max(160, kabuk.clientHeight - disHaric);
+      setScrollYukseklik((onceki) => (onceki === yeni ? onceki : yeni));
     };
 
     guncelle();
@@ -569,14 +570,14 @@ export function DataGrid<TRow extends { id: string }>({
     const scroll = scrollRef.current;
     const tablo = scroll?.querySelector('table');
     if (!scroll || !tablo) {
-      setYatayScrollGerekli(false);
-      setTabloGenisligi(0);
+      setYatayScrollGerekli((onceki) => (onceki ? false : onceki));
+      setTabloGenisligi((onceki) => (onceki === 0 ? onceki : 0));
       return;
     }
     const genislik = tablo.scrollWidth;
     const gerekli = genislik > scroll.clientWidth + 1;
-    setTabloGenisligi(genislik);
-    setYatayScrollGerekli(gerekli);
+    setTabloGenisligi((onceki) => (onceki === genislik ? onceki : genislik));
+    setYatayScrollGerekli((onceki) => (onceki === gerekli ? onceki : gerekli));
     if (gerekli && yatayScrollRef.current) {
       yatayScrollRef.current.scrollLeft = scroll.scrollLeft;
     }

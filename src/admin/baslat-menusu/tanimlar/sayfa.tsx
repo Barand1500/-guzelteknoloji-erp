@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { firmalariGetir } from '@/admin/baslat-menusu/tanimlar/api';
 import { KurulumSihirbazi } from '@/admin/baslat-menusu/tanimlar/bilesenler/KurulumSihirbazi';
-import { TanimKayitlarOzeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitlarOzeti';
+import { KayitlarSayfasi } from '@/admin/baslat-menusu/tanimlar/kayitlar/KayitlarSayfasi';
 import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { useYetkiler } from '@/kancalar/useYetkiler';
@@ -77,7 +77,7 @@ export function TanimlarSayfasi() {
   return (
     <AdminModulKabuk
       baslik="Tanımlar"
-      aciklama="Firma seçin, kayıtları tek gridde görün; ekleme ve düzenleme modal ile hızlı yapılır."
+      aciklama="Firma seçin, kayıtları gridde görün; ekleme ve düzenleme modal ile yapılır."
       ustAksiyon={
         <TanimModCubugu
           sekmeler={gorunurSekmeler}
@@ -98,7 +98,7 @@ export function TanimlarSayfasi() {
               onIptal={() => modDegistir('kayitlar')}
             />
           ) : (
-            <TanimKayitlarOzeti />
+            <KayitlarSayfasi />
           )}
         </div>
       </div>
