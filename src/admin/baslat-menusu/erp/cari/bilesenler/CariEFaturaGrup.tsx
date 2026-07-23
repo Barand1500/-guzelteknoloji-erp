@@ -1,5 +1,5 @@
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
-import { EFATURA_EVET_HAYIR, FATURA_TIPLERI } from '../tipler';
+import { EARSIV_TESLIM_SEKILLERI, EFATURA_EVET_HAYIR, FATURA_TIPLERI } from '../tipler';
 import { CariOutlinedSarmalayici } from './CariOutlinedGirdi';
 
 export function CariEFaturaGrup({
@@ -7,19 +7,25 @@ export function CariEFaturaGrup({
   onEfaturaChange,
   tip,
   onTipChange,
+  earsivTeslimSekli,
+  onEarsivTeslimChange,
   disabled = false,
 }: {
   efatura: boolean;
   onEfaturaChange: (evet: boolean) => void;
   tip: string;
   onTipChange: (tip: string) => void;
+  earsivTeslimSekli: string;
+  onEarsivTeslimChange: (sekil: string) => void;
   disabled?: boolean;
 }) {
-  const tipAktif = efatura && !disabled;
+  const sagAktif = !disabled;
   const tipEtiket =
     FATURA_TIPLERI.find((t) => t.value === tip)?.label ??
     FATURA_TIPLERI.find((t) => t.value === 'TEMEL')?.label ??
     'Temel';
+  const teslimEtiket =
+    EARSIV_TESLIM_SEKILLERI.find((t) => t.value === earsivTeslimSekli)?.label ?? 'Seçiniz…';
   const durumEtiket = efatura ? 'Evet' : 'Hayır';
 
   return (
@@ -44,21 +50,34 @@ export function CariEFaturaGrup({
           />
         </div>
         <span className="cari-fiyat-tanim-grup-ayirici" aria-hidden />
-        <div
-          className={`cari-fiyat-tanim-grup-hucre cari-fiyat-tanim-grup-hucre--fiyat ap-form-acilir-secim-liste-anchor${tipAktif ? '' : ' cari-efatura-grup-tip--pasif'}`}
-        >
-          <FormAcilirSecim
-            value={tip || 'TEMEL'}
-            onChange={onTipChange}
-            secenekler={[...FATURA_TIPLERI]}
-            disabled={!tipAktif}
-            aria-label="Fatura tipi"
-            className="cari-outlined-acilir-tus cari-fiyat-tanim-grup-fiyat"
-            listeSinifi="cari-fiyat-tanim-grup-liste"
-            listeAnchor="self"
-            listeMinGenislik={140}
-            tusMetin={tipEtiket}
-          />
+        <div className="cari-fiyat-tanim-grup-hucre cari-fiyat-tanim-grup-hucre--fiyat ap-form-acilir-secim-liste-anchor">
+          {efatura ? (
+            <FormAcilirSecim
+              value={tip || 'TEMEL'}
+              onChange={onTipChange}
+              secenekler={[...FATURA_TIPLERI]}
+              disabled={!sagAktif}
+              aria-label="Fatura tipi"
+              className="cari-outlined-acilir-tus cari-fiyat-tanim-grup-fiyat"
+              listeSinifi="cari-fiyat-tanim-grup-liste"
+              listeAnchor="self"
+              listeMinGenislik={140}
+              tusMetin={tipEtiket}
+            />
+          ) : (
+            <FormAcilirSecim
+              value={earsivTeslimSekli}
+              onChange={onEarsivTeslimChange}
+              secenekler={[...EARSIV_TESLIM_SEKILLERI]}
+              disabled={!sagAktif}
+              aria-label="E-Arşiv Teslim Şekli"
+              className="cari-outlined-acilir-tus cari-fiyat-tanim-grup-fiyat"
+              listeSinifi="cari-fiyat-tanim-grup-liste"
+              listeAnchor="self"
+              listeMinGenislik={140}
+              tusMetin={teslimEtiket}
+            />
+          )}
         </div>
       </div>
     </CariOutlinedSarmalayici>

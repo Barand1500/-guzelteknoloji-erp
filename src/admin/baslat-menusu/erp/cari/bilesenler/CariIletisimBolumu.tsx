@@ -165,78 +165,74 @@ export function CariIletisimBolumu({
                     disabled={disabled}
                     onChange={(gorevi) => kisiGuncelle(kisi.id, { gorevi })}
                   />
-                  <div className="cari-adres-il-ilce-satir">
-                    <CariOutlinedGirdi
-                      etiket="Adres"
-                      deger={kisi.adres}
-                      maxLength={500}
-                      odakPlaceholder="Adres bilgisi"
+                  <CariOutlinedGirdi
+                    etiket="Adres"
+                    deger={kisi.adres}
+                    maxLength={500}
+                    odakPlaceholder="Adres bilgisi"
+                    disabled={disabled}
+                    onChange={(adres) => kisiGuncelle(kisi.id, { adres })}
+                    sonek={
+                      cekGoster ? (
+                        <button
+                          type="button"
+                          className="cari-adres-cek"
+                          onClick={() => adresiCek(kisi.id)}
+                          title="Üstteki cari adresini buraya aktar"
+                        >
+                          Çek
+                        </button>
+                      ) : null
+                    }
+                  />
+                  <div className="cari-il-ilce-cift">
+                    <CariOutlinedIl
+                      deger={kisi.il}
                       disabled={disabled}
-                      onChange={(adres) => kisiGuncelle(kisi.id, { adres })}
-                      sonek={
-                        cekGoster ? (
-                          <button
-                            type="button"
-                            className="cari-adres-cek"
-                            onClick={() => adresiCek(kisi.id)}
-                            title="Üstteki cari adresini buraya aktar"
-                          >
-                            Çek
-                          </button>
-                        ) : null
+                      onChange={(il) =>
+                        kisiGuncelle(kisi.id, {
+                          il,
+                          ilce: il !== kisi.il ? '' : kisi.ilce,
+                        })
                       }
                     />
-                    <div className="cari-il-ilce-cift">
-                      <CariOutlinedIl
-                        deger={kisi.il}
-                        disabled={disabled}
-                        onChange={(il) =>
-                          kisiGuncelle(kisi.id, {
-                            il,
-                            ilce: il !== kisi.il ? '' : kisi.ilce,
-                          })
-                        }
-                      />
-                      <CariOutlinedIlce
-                        deger={kisi.ilce}
-                        il={kisi.il}
-                        disabled={disabled}
-                        onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
-                      />
-                    </div>
+                    <CariOutlinedIlce
+                      deger={kisi.ilce}
+                      il={kisi.il}
+                      disabled={disabled}
+                      onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
+                    />
                   </div>
-                  <div className="cari-iletisim-web-satir">
-                    <div className="cari-telefon-gsm-cift">
-                      <CariOutlinedTelefon
-                        deger={kisi.telefon}
-                        disabled={disabled}
-                        onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
-                      />
-                      <CariOutlinedTelefon
-                        etiket="GSM"
-                        deger={kisi.gsm}
-                        disabled={disabled}
-                        dogrulaAktif
-                        gsmMi
-                        onChange={(gsm) => kisiGuncelle(kisi.id, { gsm })}
-                      />
-                    </div>
-                    <div className="cari-eposta-web-cift">
-                      <CariOutlinedEposta
-                        deger={kisi.eposta}
-                        disabled={disabled}
-                        dogrulaAktif
-                        onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
-                      />
-                      <CariOutlinedGirdi
-                        etiket="Web"
-                        deger={kisi.web}
-                        maxLength={120}
-                        odakPlaceholder="www.ornek.com"
-                        disabled={disabled}
-                        onChange={(web) => kisiGuncelle(kisi.id, { web })}
-                      />
-                    </div>
+                  <div className="cari-telefon-gsm-cift">
+                    <CariOutlinedTelefon
+                      deger={kisi.telefon}
+                      disabled={disabled}
+                      onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
+                    />
+                    <CariOutlinedTelefon
+                      etiket="GSM"
+                      deger={kisi.gsm}
+                      disabled={disabled}
+                      dogrulaAktif
+                      gsmMi
+                      onChange={(gsm) => kisiGuncelle(kisi.id, { gsm })}
+                    />
+                  </div>
+                  <div className="cari-eposta-web-cift">
+                    <CariOutlinedEposta
+                      deger={kisi.eposta}
+                      disabled={disabled}
+                      dogrulaAktif
+                      onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
+                    />
+                    <CariOutlinedGirdi
+                      etiket="Web"
+                      deger={kisi.web}
+                      maxLength={120}
+                      odakPlaceholder="www.ornek.com"
+                      disabled={disabled}
+                      onChange={(web) => kisiGuncelle(kisi.id, { web })}
+                    />
                   </div>
                   {index === 0 && (efatura || earsiv) ? (
                     <>

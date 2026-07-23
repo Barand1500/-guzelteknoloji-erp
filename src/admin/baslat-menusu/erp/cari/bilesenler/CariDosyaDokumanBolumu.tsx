@@ -72,6 +72,17 @@ function filePdfMi(file: File): boolean {
   return /\.pdf$/i.test(file.name);
 }
 
+function dosyaAdiAyir(ad: string): { kok: string; uzanti: string } {
+  const indeks = ad.lastIndexOf('.');
+  if (indeks <= 0) return { kok: ad, uzanti: '' };
+  return { kok: ad.slice(0, indeks), uzanti: ad.slice(indeks) };
+}
+
+function dosyaAdiBirlestir(kok: string, uzanti: string): string {
+  const temiz = kok.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '').replace(/\.+$/g, '');
+  return `${temiz || 'dosya'}${uzanti}`;
+}
+
 function dosyaResimMi(dosya: CariDosya): boolean {
   if (dosya.tip.startsWith('image/')) return true;
   return /\.(png|jpe?g|gif|webp)$/i.test(dosya.ad);
@@ -206,6 +217,8 @@ function CiftSatir({
 type BekleyenDosya = {
   yerelId: string;
   file: File;
+  /** Kullanıcının düzenleyebildiği ad (uzantı sabit). */
+  ad: string;
   notlar: string[];
   onizlemeUrl: string;
 };
@@ -371,6 +384,7 @@ export function CariDosyaDokumanBolumu({
             eklenecek.push({
               yerelId: yeniKayitId('bd'),
               file: birlesik,
+              ad: birlesik.name,
               notlar: [],
               onizlemeUrl: URL.createObjectURL(birlesik),
             });
@@ -383,6 +397,7 @@ export function CariDosyaDokumanBolumu({
         eklenecek.push({
           yerelId: yeniKayitId('bd'),
           file: tek,
+          ad: tek.name,
           notlar: [],
           onizlemeUrl: URL.createObjectURL(tek),
         });
@@ -392,6 +407,7 @@ export function CariDosyaDokumanBolumu({
         eklenecek.push({
           yerelId: yeniKayitId('bd'),
           file: dosya,
+          ad: dosya.name,
           notlar: [],
           onizlemeUrl: URL.createObjectURL(dosya),
         });
@@ -401,6 +417,16 @@ export function CariDosyaDokumanBolumu({
         setBekleyenDosyalar((onceki) => [...onceki, ...eklenecek]);
       }
     })();
+  };
+
+  const bekleyenAdGuncelle = (yerelId: string, yeniKok: string) => {
+    setBekleyenDosyalar((onceki) =>
+      onceki.map((b) => {
+        if (b.yerelId !== yerelId) return b;
+        const { uzanti } = dosyaAdiAyir(b.ad || b.file.name);
+        return { ...b, ad: dosyaAdiBirlestir(yeniKok, uzanti) };
+      })
+    );
   };
 
   const bekleyenNotEkle = (yerelId: string) => {
@@ -450,7 +476,7 @@ export function CariDosyaDokumanBolumu({
         const dataUrl = await dosyayiOku(bekleyen.file);
         eklenen.push({
           id: yeniKayitId('cd'),
-          ad: bekleyen.file.name,
+          ad: bekleyen.ad || bekleyen.file.name,
           boyut: bekleyen.file.size,
           tip: dosyaTipiBelirle(bekleyen.file),
           dataUrl,
@@ -879,18 +905,35 @@ export function CariDosyaDokumanBolumu({
                 </header>
 
                 <div className="cari-dokuman-cift-liste">
-                  {bekleyenDosyalar.map((bekleyen) => {
+                  {bekleyenDosyalar.map((bekleyen, satirIndeks) => {
                     const resim = fileResimMi(bekleyen.file);
                     const pdf = filePdfMi(bekleyen.file);
+                    const gosterilenAd = bekleyen.ad || bekleyen.file.name;
+                    const { kok, uzanti } = dosyaAdiAyir(gosterilenAd);
                     return (
                       <CiftSatir
                         key={bekleyen.yerelId}
                         onizleme={
                           <>
                             <div className="cari-dokuman-cift-panel-ust">
-                              <span className="cari-dokuman-cift-panel-ad" title={bekleyen.file.name}>
-                                {bekleyen.file.name}
-                              </span>
+                              <label className="cari-dokuman-cift-panel-ad-alan" title={gosterilenAd}>
+                                <input
+                                  type="text"
+                                  className="cari-dokuman-cift-panel-ad"
+                                  value={kok}
+                                  disabled={yukleniyor}
+                                  autoFocus={satirIndeks === 0}
+                                  spellCheck={false}
+                                  aria-label="Dosya adı"
+                                  onFocus={(e) => e.currentTarget.select()}
+                                  onChange={(e) =>
+                                    bekleyenAdGuncelle(bekleyen.yerelId, e.target.value)
+                                  }
+                                />
+                                {uzanti ? (
+                                  <span className="cari-dokuman-cift-panel-uzanti">{uzanti}</span>
+                                ) : null}
+                              </label>
                               <span className="cari-dokuman-cift-panel-boyut">
                                 {boyutEtiketi(bekleyen.file.size)}
                               </span>
@@ -899,7 +942,7 @@ export function CariDosyaDokumanBolumu({
                                 className="cari-dokuman-ikon-btn cari-dokuman-ikon-btn--tehlike"
                                 onClick={() => bekleyenKaldir(bekleyen.yerelId)}
                                 title="Kaldır"
-                                aria-label={`${bekleyen.file.name} kaldır`}
+                                aria-label={`${gosterilenAd} kaldır`}
                                 disabled={yukleniyor}
                               >
                                 <DgIkon ad="sil" />
@@ -909,13 +952,13 @@ export function CariDosyaDokumanBolumu({
                               {resim ? (
                                 <img
                                   src={bekleyen.onizlemeUrl}
-                                  alt={bekleyen.file.name}
+                                  alt={gosterilenAd}
                                   className="cari-dokuman-cift-onizleme-resim"
                                 />
                               ) : pdf ? (
                                 <iframe
                                   src={bekleyen.onizlemeUrl}
-                                  title={bekleyen.file.name}
+                                  title={gosterilenAd}
                                   className="cari-dokuman-cift-onizleme-pdf"
                                 />
                               ) : (
