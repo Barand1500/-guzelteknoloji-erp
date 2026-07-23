@@ -113,18 +113,16 @@ export function RolMatrisi({
       <div
         className={`ap-roller-modul-baslik-kapsul${tumSayfalar ? ' ap-roller-modul-baslik-kapsul--toplu' : ''}`}
       >
-        <span className="ap-roller-modul-baslik-ikon" aria-hidden>
-          {aktifModul.ikon ?? '📄'}
-        </span>
+        {!tumSayfalar ? (
+          <span className="ap-roller-modul-baslik-ikon" aria-hidden>
+            {aktifModul.ikon ?? '📄'}
+          </span>
+        ) : null}
         <div>
           <div className="ap-roller-modul-baslik-ad">{aktifModul.ad}</div>
-          {(tumSayfalar || aktifModul.kategori) && (
-            <div className="ap-roller-modul-baslik-kategori">
-              {tumSayfalar
-                ? 'İşaretlenen yetki uygun tüm sayfalara uygulanır. Sayfalar arası fark varsa “−” görünür.'
-                : aktifModul.kategori}
-            </div>
-          )}
+          {!tumSayfalar && aktifModul.kategori ? (
+            <div className="ap-roller-modul-baslik-kategori">{aktifModul.kategori}</div>
+          ) : null}
         </div>
       </div>
 

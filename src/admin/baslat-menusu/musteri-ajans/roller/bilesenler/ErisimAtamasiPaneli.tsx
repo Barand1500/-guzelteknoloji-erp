@@ -732,7 +732,7 @@ export function ErisimAtamasiPaneli({
         ),
       },
       {
-        id: 'islemler',
+        id: 'aksiyon',
         baslik: '#',
         tip: 'salt-okunur',
         genislik: 56,
@@ -740,9 +740,66 @@ export function ErisimAtamasiPaneli({
         sabitSag: true,
         siralama: false,
         degerAl: () => null,
+        goster: (s) => {
+          if (s.id === TASLAK_ID) {
+            return (
+              <div className="dg-islem-grup" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="dg-islem-tus ap-erisim-ekle-tus"
+                  title="Satır ekle (Enter)"
+                  aria-label="Satır ekle"
+                  disabled={saltOkunur}
+                  onClick={() => satirEkle()}
+                >
+                  +
+                </button>
+              </div>
+            );
+          }
+          if (saltOkunur) return null;
+          return (
+            <div className="dg-islem-grup" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="dg-islem-tus dg-islem-tus--tehlike"
+                title="Satırı sil"
+                aria-label="Satırı sil"
+                onClick={() => setSilinecek(s)}
+              >
+                <DgIkon ad="sil" />
+              </button>
+            </div>
+          );
+        },
       },
     ];
-  }, [secenekler, saltOkunur, satirGuncelle]);
+  }, [secenekler, saltOkunur, satirGuncelle, satirEkle]);
+
+  useEffect(() => {
+    if (saltOkunur) return;
+
+    function enterIleEkle(e: KeyboardEvent) {
+      if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+      const hedef = e.target as HTMLElement | null;
+      if (!hedef) return;
+      if (!hedef.closest('.ap-erisim-ana')) return;
+      if (hedef.closest('textarea, input, .ap-erisim-sabit-bilgi, .ap-sil-onay-modal')) return;
+      if (hedef.closest('.ap-erisim-ekle-tus')) return;
+      if (document.querySelector('.ap-form-acilir-secim-liste, .ap-sil-onay-modal')) return;
+
+      const taslakCombobox = hedef.closest('.ap-erisim-satir--taslak .ap-form-acilir-secim-tus');
+      const hucreOdak = hedef.closest('.ap-erisim-satir--taslak td.dg-hucre');
+      if (!taslakCombobox && !hucreOdak) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      satirEkle();
+    }
+
+    document.addEventListener('keydown', enterIleEkle, true);
+    return () => document.removeEventListener('keydown', enterIleEkle, true);
+  }, [saltOkunur, satirEkle]);
 
   if (yukleniyor) {
     return <YukleniyorDurumu mesaj="Kullanıcı erişimleri yükleniyor..." />;
@@ -801,25 +858,17 @@ export function ErisimAtamasiPaneli({
             tabloBaslik="Erişim satırları"
             kolonlar={kolonlar}
             satirlar={gosterilenSatirlar}
-            depolamaAnahtari="roller-erisim-atamasi-v4"
+            depolamaAnahtari="roller-erisim-atamasi-v5"
             kompakt
             formulMenuGoster={false}
             sutunSabitleGoster={false}
             ustSagEk={
               <SecimSabitAraci seviye={secimSabit} onDegistir={secimSabitDegistir} />
             }
-            bosMesaj="Üst satırdan seçim yapıp Ekle’ye basın"
+            bosMesaj="Üst satırdan seçim yapıp + veya Ekle’ye basın"
             onSecimDegistir={setSeciliSatirIdleri}
             satirSinifAdi={(s) =>
               s.id === TASLAK_ID ? 'ap-erisim-satir--taslak' : 'ap-erisim-satir--kayit'
-            }
-            onSatirSil={
-              duzenlenebilir && !kaydediliyor
-                ? (s) => {
-                    if (s.id === TASLAK_ID) return;
-                    setSilinecek(s);
-                  }
-                : undefined
             }
           />
         )}

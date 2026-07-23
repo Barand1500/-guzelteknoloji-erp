@@ -47,7 +47,6 @@ export const TUM_SAYFALAR_MODUL: ModulTanimi = {
   id: 'tum-sayfalar',
   ad: 'Tüm sayfalar',
   prefix: TUM_SAYFALAR_PREFIX,
-  ikon: '▦',
   kategori: 'Toplu uygulama',
   sira: -1,
 };

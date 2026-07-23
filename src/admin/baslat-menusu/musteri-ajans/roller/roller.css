@@ -758,8 +758,9 @@ button.ap-roller-yetki-hucre:hover {
 
 /* Sayfa (modül) seçici — dikey liste, taşınca scroll */
 .ap-roller-modul-sarmal {
-  overflow-x: hidden;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   scrollbar-width: thin;
   max-height: min(70vh, 36rem);
   min-height: 0;
@@ -780,15 +781,48 @@ button.ap-roller-yetki-hucre:hover {
   align-self: stretch;
 }
 
+.ap-roller-modul-arama {
+  flex-shrink: 0;
+  padding: 0.45rem 0.45rem 0.2rem;
+}
+
+.ap-roller-modul-arama-input {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-surface);
+  color: var(--ap-heading);
+  font-size: 0.76rem;
+}
+
+.ap-roller-modul-arama-input:focus {
+  outline: none;
+  border-color: var(--ap-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 18%, transparent);
+}
+
 .ap-roller-modul-cubugu {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0.15rem;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   padding: 0.3rem;
   isolation: isolate;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.ap-roller-modul-bos {
+  margin: 0.5rem 0.35rem;
+  color: var(--ap-muted);
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .ap-roller-modul-gosterge {
@@ -838,7 +872,7 @@ button.ap-roller-yetki-hucre:hover {
 }
 
 .ap-roller-modul-sekme--toplu .ap-roller-modul-metin {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ap-roller-modul-ikon {
@@ -1122,27 +1156,50 @@ button.ap-roller-yetki-hucre:hover {
   opacity: 0.55;
 }
 
-/* Taslak satırda sil ikonu yok */
-.ap-erisim-ana tr.ap-erisim-satir--taslak .dg-islem-grup {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* # sütunu: başlık ve çöp ortalı */
+/* # sütunu: başlık, + ve çöp ortalı */
+.ap-erisim-ana .dg-baslik-hucre[data-kolon-id='aksiyon'] .dg-baslik-icerik,
 .ap-erisim-ana .dg-baslik-hucre[data-kolon-id='islemler'] .dg-baslik-icerik {
   justify-content: center;
   width: 100%;
 }
 
+.ap-erisim-ana td[data-kolon-id='aksiyon'],
 .ap-erisim-ana td.dg-hucre--sag-sabit {
+  position: sticky;
+  right: 0;
+  z-index: 2;
   text-align: center;
+  background: inherit;
+  box-shadow: -4px 0 8px color-mix(in srgb, var(--ap-border) 18%, transparent);
 }
 
+.ap-erisim-ana .dg-baslik-hucre[data-kolon-id='aksiyon'] {
+  z-index: 5;
+}
+
+.ap-erisim-ana td[data-kolon-id='aksiyon'] .dg-islem-grup,
 .ap-erisim-ana td.dg-hucre--sag-sabit .dg-islem-grup {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+
+.ap-erisim-ekle-tus {
+  color: var(--ap-accent) !important;
+  font-size: 1.15rem !important;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ap-erisim-ekle-tus:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-accent) 14%, transparent) !important;
+  color: var(--ap-accent) !important;
+}
+
+.ap-erisim-ekle-tus:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .ap-erisim-sabit-wrap {
@@ -1201,7 +1258,11 @@ button.ap-roller-yetki-hucre:hover {
 }
 
 .ap-erisim-sabit-radyo {
+  box-sizing: border-box;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 0.85rem;
   height: 0.85rem;
   margin-top: 0.12rem;
@@ -1212,7 +1273,15 @@ button.ap-roller-yetki-hucre:hover {
 
 .ap-erisim-sabit-secenek--aktif .ap-erisim-sabit-radyo {
   border-color: var(--ap-accent);
-  background: radial-gradient(circle at center, var(--ap-accent) 0 38%, transparent 42%);
+}
+
+.ap-erisim-sabit-secenek--aktif .ap-erisim-sabit-radyo::after {
+  content: '';
+  display: block;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: var(--ap-accent);
 }
 
 .ap-erisim-sabit-secenek-metin {
