@@ -449,23 +449,25 @@ export function CariKart({
                 disabled={saltOkunur}
                 onChange={(adres) => setAlan('adres', adres)}
               />
-              <CariOutlinedIl
-                deger={form.il}
-                disabled={saltOkunur}
-                onChange={(il) => {
-                  setForm((f) => ({
-                    ...f,
-                    il,
-                    ilce: il !== f.il ? '' : f.ilce,
-                  }));
-                }}
-              />
-              <CariOutlinedIlce
-                deger={form.ilce}
-                il={form.il}
-                disabled={saltOkunur}
-                onChange={(ilce) => setAlan('ilce', ilce)}
-              />
+              <div className="cari-il-ilce-cift">
+                <CariOutlinedIl
+                  deger={form.il}
+                  disabled={saltOkunur}
+                  onChange={(il) => {
+                    setForm((f) => ({
+                      ...f,
+                      il,
+                      ilce: il !== f.il ? '' : f.ilce,
+                    }));
+                  }}
+                />
+                <CariOutlinedIlce
+                  deger={form.ilce}
+                  il={form.il}
+                  disabled={saltOkunur}
+                  onChange={(ilce) => setAlan('ilce', ilce)}
+                />
+              </div>
             </div>
             <div className="cari-iletisim-web-satir">
               <div className="cari-telefon-gsm-cift">

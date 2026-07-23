@@ -6,6 +6,7 @@ import { sekmePortalHedefi } from '@/araclar/sekmePortal';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { yeniKayitId } from '../cariDosyaDokumanDeposu';
+import { pdfDosyalariniBirlestir } from '../pdfBirlestir';
 import type { CariDosya, CariDosyaDokuman, CariNot } from '../tipler';
 
 const KABUL_EDILEN_TIPLER = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp'];
@@ -179,7 +180,6 @@ function CiftSatir({
             : undefined
         }
       >
-        <div className="cari-dokuman-cift-not-liste">{notlar}</div>
         {onNotEkle ? (
           <button
             type="button"
@@ -197,6 +197,7 @@ function CiftSatir({
             + Not ekle
           </button>
         ) : null}
+        <div className="cari-dokuman-cift-not-liste">{notlar}</div>
       </div>
     </div>
   );
@@ -342,23 +343,64 @@ export function CariDosyaDokumanBolumu({
     const dosyalar = Array.from(liste);
     if (dosyalar.length === 0) return;
 
-    const eklenecek: BekleyenDosya[] = [];
-    for (const dosya of dosyalar) {
-      const hata = dosyaOkunabilirMi(dosya);
-      if (hata) {
-        onHata?.(hata);
-        continue;
+    void (async () => {
+      const gecerli: File[] = [];
+      for (const dosya of dosyalar) {
+        const hata = dosyaOkunabilirMi(dosya);
+        if (hata) {
+          onHata?.(hata);
+          continue;
+        }
+        gecerli.push(dosya);
       }
-      eklenecek.push({
-        yerelId: yeniKayitId('bd'),
-        file: dosya,
-        notlar: [],
-        onizlemeUrl: URL.createObjectURL(dosya),
-      });
-    }
-    if (eklenecek.length > 0) {
-      setBekleyenDosyalar((onceki) => [...onceki, ...eklenecek]);
-    }
+      if (gecerli.length === 0) return;
+
+      const pdfler = gecerli.filter(filePdfMi);
+      const digerler = gecerli.filter((d) => !filePdfMi(d));
+      const eklenecek: BekleyenDosya[] = [];
+
+      // Aynı seçimde birden fazla PDF → hemen birleştir; modalda tek dosya görünsün
+      if (pdfler.length >= 2) {
+        try {
+          const birlesik = await pdfDosyalariniBirlestir(pdfler);
+          if (birlesik.size > MAKS_BOYUT) {
+            onHata?.(
+              `Birleştirilen PDF boyutu çok büyük (${boyutEtiketi(birlesik.size)}). Maks. 10MB.`
+            );
+          } else {
+            eklenecek.push({
+              yerelId: yeniKayitId('bd'),
+              file: birlesik,
+              notlar: [],
+              onizlemeUrl: URL.createObjectURL(birlesik),
+            });
+          }
+        } catch {
+          onHata?.('PDF dosyaları birleştirilemedi');
+        }
+      } else if (pdfler.length === 1) {
+        const tek = pdfler[0]!;
+        eklenecek.push({
+          yerelId: yeniKayitId('bd'),
+          file: tek,
+          notlar: [],
+          onizlemeUrl: URL.createObjectURL(tek),
+        });
+      }
+
+      for (const dosya of digerler) {
+        eklenecek.push({
+          yerelId: yeniKayitId('bd'),
+          file: dosya,
+          notlar: [],
+          onizlemeUrl: URL.createObjectURL(dosya),
+        });
+      }
+
+      if (eklenecek.length > 0) {
+        setBekleyenDosyalar((onceki) => [...onceki, ...eklenecek]);
+      }
+    })();
   };
 
   const bekleyenNotEkle = (yerelId: string) => {
@@ -706,7 +748,7 @@ export function CariDosyaDokumanBolumu({
                   <span className="cari-dokuman-dropzone-link">tıklayarak seçin</span>
                 </p>
                 <p className="cari-dokuman-dropzone-ipucu">
-                  PDF, PNG, JPG, GIF, WEBP — maks. 10MB · notu modalda ekleyebilirsiniz
+                  PDF, PNG, JPG, GIF, WEBP — maks. 10MB · aynı anda seçilen PDF’ler birleştirilir
                 </p>
                 <input
                   ref={dosyaInputRef}
@@ -819,7 +861,7 @@ export function CariDosyaDokumanBolumu({
                   <div className="cari-dokuman-cift-baslik-grup">
                     <span className="cari-dokuman-cift-baslik">Dosya yükle</span>
                     <span className="cari-dokuman-cift-alt">
-                      {bekleyenDosyalar.length} dosya · her dosyaya özel not ekleyebilirsiniz
+                      {bekleyenDosyalar.length} dosya · aynı anda seçilen PDF’ler otomatik birleştirildi
                     </span>
                   </div>
                   <button

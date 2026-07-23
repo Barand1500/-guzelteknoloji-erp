@@ -186,22 +186,24 @@ export function CariIletisimBolumu({
                         ) : null
                       }
                     />
-                    <CariOutlinedIl
-                      deger={kisi.il}
-                      disabled={disabled}
-                      onChange={(il) =>
-                        kisiGuncelle(kisi.id, {
-                          il,
-                          ilce: il !== kisi.il ? '' : kisi.ilce,
-                        })
-                      }
-                    />
-                    <CariOutlinedIlce
-                      deger={kisi.ilce}
-                      il={kisi.il}
-                      disabled={disabled}
-                      onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
-                    />
+                    <div className="cari-il-ilce-cift">
+                      <CariOutlinedIl
+                        deger={kisi.il}
+                        disabled={disabled}
+                        onChange={(il) =>
+                          kisiGuncelle(kisi.id, {
+                            il,
+                            ilce: il !== kisi.il ? '' : kisi.ilce,
+                          })
+                        }
+                      />
+                      <CariOutlinedIlce
+                        deger={kisi.ilce}
+                        il={kisi.il}
+                        disabled={disabled}
+                        onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
+                      />
+                    </div>
                   </div>
                   <div className="cari-iletisim-web-satir">
                     <div className="cari-telefon-gsm-cift">

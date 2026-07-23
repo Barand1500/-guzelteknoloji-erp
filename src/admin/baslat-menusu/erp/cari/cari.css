@@ -143,12 +143,12 @@
   grid-column: 1 / -1;
 }
 
-/* Adres = Cari Kodu genişliği (yarı) · İl / İlçe kalan yarıyı paylaşır */
+/* Adres = sol yarı · İl / İlçe = sağ yarı (Tabela Adı / E-Posta ile aynı hiza) */
 .cari-adres-il-ilce-satir {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 0.5fr) minmax(5.5rem, 0.5fr);
-  gap: 1rem 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.1rem;
   align-items: start;
   min-width: 0;
 }
@@ -162,13 +162,14 @@
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem 0.75rem;
+  gap: 1rem 1.1rem;
   align-items: start;
   min-width: 0;
 }
 
 .cari-telefon-gsm-cift,
-.cari-eposta-web-cift {
+.cari-eposta-web-cift,
+.cari-il-ilce-cift {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
@@ -176,7 +177,8 @@
 }
 
 .cari-telefon-gsm-cift > *,
-.cari-eposta-web-cift > * {
+.cari-eposta-web-cift > *,
+.cari-il-ilce-cift > * {
   min-width: 0;
 }
 
@@ -526,7 +528,8 @@
 
   .cari-iletisim-web-satir,
   .cari-telefon-gsm-cift,
-  .cari-eposta-web-cift {
+  .cari-eposta-web-cift,
+  .cari-il-ilce-cift {
     grid-template-columns: 1fr;
   }
 
@@ -2037,7 +2040,7 @@
 
 .cari-dokuman-cift-not-ekle {
   flex: 0 0 auto;
-  margin: 0.35rem 0.7rem 0.7rem;
+  margin: 0.7rem 0.7rem 0.35rem;
   border: 1px dashed color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
   border-radius: 0.45rem;
   padding: 0.42rem 0.7rem;
