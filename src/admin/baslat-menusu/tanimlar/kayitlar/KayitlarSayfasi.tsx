@@ -498,6 +498,7 @@ export function KayitlarSayfasi() {
           <BasitKayitPaneli
             kayitlar={firmaDonemleri}
             yatayKart={yatayKart}
+            firmaAdi={seciliFirma?.firmaAdi}
             araPlaceholder="Dönem ara…"
             ekleEtiket="+ Dönem"
             bosMesaj="Bu firmada dönem yok — + Dönem ile ekleyin"
@@ -531,6 +532,7 @@ export function KayitlarSayfasi() {
             depolar={firmaDepolari}
             kasalar={firmaKasalari}
             yatayKart={yatayKart}
+            firmaAdi={seciliFirma?.firmaAdi}
             eklemeVar={eklemeVar}
             duzenlemeVar={duzenlemeVar}
             silmeVar={silmeVar}
@@ -550,6 +552,7 @@ export function KayitlarSayfasi() {
           <BasitKayitPaneli
             kayitlar={firmaDepolari}
             yatayKart={yatayKart}
+            firmaAdi={seciliFirma?.firmaAdi}
             araPlaceholder="Depo ara…"
             ekleEtiket="+ Depo"
             bosMesaj="Bu firmada depo yok — + Depo ile ekleyin"
@@ -593,6 +596,7 @@ export function KayitlarSayfasi() {
           <BasitKayitPaneli
             kayitlar={firmaKasalari}
             yatayKart={yatayKart}
+            firmaAdi={seciliFirma?.firmaAdi}
             araPlaceholder="Kasa ara…"
             ekleEtiket="+ Kasa"
             bosMesaj="Bu firmada kasa yok — + Kasa ile ekleyin"

@@ -10,6 +10,7 @@ interface SubelerPaneliProps {
   depolar: AdminDepo[];
   kasalar: AdminKasa[];
   yatayKart?: boolean;
+  firmaAdi?: string;
   eklemeVar: boolean;
   duzenlemeVar: boolean;
   silmeVar: boolean;
@@ -31,6 +32,7 @@ export function SubelerPaneli({
   depolar,
   kasalar,
   yatayKart = false,
+  firmaAdi,
   eklemeVar,
   duzenlemeVar,
   silmeVar,
@@ -80,7 +82,7 @@ export function SubelerPaneli({
   }, [kasalar]);
 
   function acikMi(id: string) {
-    return acikIdler.has(id);
+    return yatayKart || acikIdler.has(id);
   }
 
   function toggle(id: string) {
@@ -139,26 +141,43 @@ export function SubelerPaneli({
                 onMouseLeave={() => onKayitHover?.(null)}
               >
                 <div className="ap-tanimlar-sube-satir">
-                  <button
-                    type="button"
-                    className="ap-tanimlar-sube-ac"
-                    onClick={() => toggle(s.id)}
-                    aria-expanded={acik}
-                    title={acik ? 'Daralt' : 'Depo / kasa göster'}
-                  >
-                    <span aria-hidden>{acik ? '▾' : '▸'}</span>
-                  </button>
+                  {!yatayKart ? (
+                    <button
+                      type="button"
+                      className="ap-tanimlar-sube-ac"
+                      onClick={() => toggle(s.id)}
+                      aria-expanded={acik}
+                      title={acik ? 'Daralt' : 'Depo / kasa göster'}
+                    >
+                      <span aria-hidden>{acik ? '▾' : '▸'}</span>
+                    </button>
+                  ) : null}
                   <div className="ap-tanimlar-sube-bilgi">
-                    <span className="ap-tanimlar-sube-ad">{s.subeAdi}</span>
-                    <span className="ap-tanimlar-sube-meta">
-                      {s.subeKodu}
-                      {!s.aktif ? ' · Pasif' : ''}
-                      {altSayi > 0 ? ` · ${altSayi} kayıt` : ''}
-                    </span>
+                    {firmaAdi ? (
+                      <>
+                        <span className="ap-tanimlar-sube-ad">{firmaAdi}</span>
+                        <span className="ap-tanimlar-sube-meta">
+                          {s.subeAdi}
+                          {s.subeKodu ? ` · (${s.subeKodu})` : ''}
+                          {!s.aktif ? ' · Pasif' : ''}
+                          {altSayi > 0 ? ` · ${altSayi} kayıt` : ''}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="ap-tanimlar-sube-ad">{s.subeAdi}</span>
+                        <span className="ap-tanimlar-sube-meta">
+                          {s.subeKodu ? `(${s.subeKodu})` : ''}
+                          {!s.aktif ? ' · Pasif' : ''}
+                          {altSayi > 0 ? ` · ${altSayi} kayıt` : ''}
+                        </span>
+                      </>
+                    )}
                   </div>
                   <div className="ap-tanimlar-sube-aksiyon">
                     <div className="ap-tanimlar-ekle-grup">
-                      {!ekleKapali && s.aktif ? (
+                      {/* Liste: üstte; yatay kart: depo/kasa satır çizgisinde */}
+                      {!yatayKart && !ekleKapali && s.aktif ? (
                         <>
                           <button
                             type="button"
@@ -177,7 +196,7 @@ export function SubelerPaneli({
                         </>
                       ) : null}
                     </div>
-                    <div className="ap-tanimlar-ikon-grup ap-tanimlar-cizgi-aksiyon">
+                    <div className="ap-tanimlar-ikon-grup">
                       {duzenlemeVar ? (
                         <button
                           type="button"
@@ -211,12 +230,33 @@ export function SubelerPaneli({
                 {acik ? (
                   <div className="ap-tanimlar-sube-alt">
                     {subeDepolari.length === 0 && subeKasalari.length === 0 ? (
-                      <p className="ap-tanimlar-sube-alt-bos">
-                        Depo / kasa yok — yukarıdan ekleyin
-                      </p>
+                      yatayKart && !ekleKapali && s.aktif ? (
+                        <div className="ap-tanimlar-alt-aksiyon ap-tanimlar-alt-aksiyon--ekle">
+                          <button
+                            type="button"
+                            className="ap-tanimlar-satir-alt-tus"
+                            onClick={() => onDepoEkle(s.id)}
+                          >
+                            + Depo
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-tanimlar-satir-alt-tus"
+                            onClick={() => onKasaEkle(s.id)}
+                          >
+                            + Kasa
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="ap-tanimlar-sube-alt-bos">
+                          {!ekleKapali && s.aktif
+                            ? 'Depo / kasa yok — yukarıdan ekleyin'
+                            : 'Depo / kasa yok'}
+                        </p>
+                      )
                     ) : (
                       <>
-                        {subeDepolari.map((d) => (
+                        {subeDepolari.map((d, depoIdx) => (
                           <div
                             key={d.id}
                             className={`ap-tanimlar-alt-satir${!d.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
@@ -233,10 +273,26 @@ export function SubelerPaneli({
                             <span className="ap-tanimlar-alt-tip">Depo</span>
                             <span className="ap-tanimlar-alt-ad">
                               {d.depoAdi}
-                              <span className="ap-tanimlar-alt-kod">{d.depoKodu}</span>
+                              <span className="ap-tanimlar-alt-kod">({d.depoKodu})</span>
                             </span>
-                            <span className="ap-tanimlar-alt-aksiyon">
-                              <span className="ap-tanimlar-ekle-grup" />
+                            <span
+                              className={`ap-tanimlar-alt-aksiyon${
+                                yatayKart
+                                  ? ' ap-tanimlar-cizgi-aksiyon ap-tanimlar-cizgi-aksiyon--satir'
+                                  : ''
+                              }`}
+                            >
+                              <span className="ap-tanimlar-ekle-grup">
+                                {yatayKart && !ekleKapali && s.aktif && depoIdx === 0 ? (
+                                  <button
+                                    type="button"
+                                    className="ap-tanimlar-satir-alt-tus"
+                                    onClick={() => onDepoEkle(s.id)}
+                                  >
+                                    + Depo
+                                  </button>
+                                ) : null}
+                              </span>
                               <span className="ap-tanimlar-ikon-grup">
                                 {duzenlemeVar ? (
                                   <button
@@ -268,7 +324,7 @@ export function SubelerPaneli({
                             </span>
                           </div>
                         ))}
-                        {subeKasalari.map((k) => (
+                        {subeKasalari.map((k, kasaIdx) => (
                           <div
                             key={k.id}
                             className={`ap-tanimlar-alt-satir${!k.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
@@ -287,10 +343,26 @@ export function SubelerPaneli({
                             </span>
                             <span className="ap-tanimlar-alt-ad">
                               {k.kasaAdi}
-                              <span className="ap-tanimlar-alt-kod">{k.kasaKodu}</span>
+                              <span className="ap-tanimlar-alt-kod">({k.kasaKodu})</span>
                             </span>
-                            <span className="ap-tanimlar-alt-aksiyon">
-                              <span className="ap-tanimlar-ekle-grup" />
+                            <span
+                              className={`ap-tanimlar-alt-aksiyon${
+                                yatayKart
+                                  ? ' ap-tanimlar-cizgi-aksiyon ap-tanimlar-cizgi-aksiyon--satir'
+                                  : ''
+                              }`}
+                            >
+                              <span className="ap-tanimlar-ekle-grup">
+                                {yatayKart && !ekleKapali && s.aktif && kasaIdx === 0 ? (
+                                  <button
+                                    type="button"
+                                    className="ap-tanimlar-satir-alt-tus"
+                                    onClick={() => onKasaEkle(s.id)}
+                                  >
+                                    + Kasa
+                                  </button>
+                                ) : null}
+                              </span>
                               <span className="ap-tanimlar-ikon-grup">
                                 {duzenlemeVar ? (
                                   <button
@@ -322,6 +394,28 @@ export function SubelerPaneli({
                             </span>
                           </div>
                         ))}
+                        {yatayKart && !ekleKapali && s.aktif && subeDepolari.length === 0 ? (
+                          <div className="ap-tanimlar-alt-aksiyon ap-tanimlar-alt-aksiyon--ekle">
+                            <button
+                              type="button"
+                              className="ap-tanimlar-satir-alt-tus"
+                              onClick={() => onDepoEkle(s.id)}
+                            >
+                              + Depo
+                            </button>
+                          </div>
+                        ) : null}
+                        {yatayKart && !ekleKapali && s.aktif && subeKasalari.length === 0 ? (
+                          <div className="ap-tanimlar-alt-aksiyon ap-tanimlar-alt-aksiyon--ekle">
+                            <button
+                              type="button"
+                              className="ap-tanimlar-satir-alt-tus"
+                              onClick={() => onKasaEkle(s.id)}
+                            >
+                              + Kasa
+                            </button>
+                          </div>
+                        ) : null}
                       </>
                     )}
                   </div>

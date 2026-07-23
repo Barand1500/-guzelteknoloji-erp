@@ -192,7 +192,7 @@ export function FirmalarPaneli({
                         </button>
                       ) : null}
                     </div>
-                    <div className="ap-tanimlar-ikon-grup ap-tanimlar-cizgi-aksiyon">
+                    <div className="ap-tanimlar-ikon-grup">
                       {duzenlemeVar ? (
                         <button
                           type="button"
@@ -265,7 +265,7 @@ export function FirmalarPaneli({
                               <span className="ap-tanimlar-alt-ad">
                                 {s.subeAdi}
                                 <span className="ap-tanimlar-alt-kod">
-                                  {s.subeKodu}
+                                  ({s.subeKodu})
                                   {altSayi > 0 ? ` · ${altSayi}` : ''}
                                 </span>
                               </span>
@@ -301,138 +301,181 @@ export function FirmalarPaneli({
                             </div>
 
                             {subeAcik ? (
-                              <>
-                                {eklemeVar && f.aktif && s.aktif ? (
+                              <div className="ap-tanimlar-firma-sube-alt">
+                                {subeDepolari.length === 0 && subeKasalari.length === 0 ? (
                                   <div className="ap-tanimlar-alt-aksiyon ap-tanimlar-alt-aksiyon--ekle">
-                                    <button
-                                      type="button"
-                                      className="ap-tanimlar-satir-alt-tus"
-                                      onClick={() => onDepoEkle(f.id, s.id)}
-                                    >
-                                      + Depo
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="ap-tanimlar-satir-alt-tus"
-                                      onClick={() => onKasaEkle(f.id, s.id)}
-                                    >
-                                      + Kasa
-                                    </button>
+                                    {eklemeVar && f.aktif && s.aktif ? (
+                                      <>
+                                        <button
+                                          type="button"
+                                          className="ap-tanimlar-satir-alt-tus"
+                                          onClick={() => onDepoEkle(f.id, s.id)}
+                                        >
+                                          + Depo
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="ap-tanimlar-satir-alt-tus"
+                                          onClick={() => onKasaEkle(f.id, s.id)}
+                                        >
+                                          + Kasa
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <p className="ap-tanimlar-sube-alt-bos">Depo / kasa yok</p>
+                                    )}
                                   </div>
-                                ) : null}
-                                <div className="ap-tanimlar-firma-sube-alt">
-                                  {subeDepolari.length === 0 && subeKasalari.length === 0 ? (
-                                    <p className="ap-tanimlar-sube-alt-bos">Depo / kasa yok</p>
-                                  ) : (
-                                    <>
-                                      {subeDepolari.map((d) => (
-                                        <div
-                                          key={d.id}
-                                          className={`ap-tanimlar-alt-satir${!d.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
-                                          onMouseEnter={(e) => {
-                                            e.stopPropagation();
-                                            onKayitHover?.({
-                                              tip: 'depo',
-                                              mod: 'duzenle',
-                                              kayit: d,
-                                            });
-                                          }}
-                                          onMouseLeave={(e) => {
-                                            e.stopPropagation();
-                                            onKayitHover?.(subeHover);
-                                          }}
+                                ) : (
+                                  <>
+                                    {subeDepolari.map((d, depoIdx) => (
+                                      <div
+                                        key={d.id}
+                                        className={`ap-tanimlar-alt-satir${!d.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          onKayitHover?.({
+                                            tip: 'depo',
+                                            mod: 'duzenle',
+                                            kayit: d,
+                                          });
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.stopPropagation();
+                                          onKayitHover?.(subeHover);
+                                        }}
+                                      >
+                                        <span className="ap-tanimlar-alt-tip">Depo</span>
+                                        <span className="ap-tanimlar-alt-ad">
+                                          {d.depoAdi}
+                                          <span className="ap-tanimlar-alt-kod">({d.depoKodu})</span>
+                                        </span>
+                                        <span className="ap-tanimlar-alt-aksiyon ap-tanimlar-cizgi-aksiyon ap-tanimlar-cizgi-aksiyon--satir">
+                                          <span className="ap-tanimlar-ekle-grup">
+                                            {eklemeVar && f.aktif && s.aktif && depoIdx === 0 ? (
+                                              <button
+                                                type="button"
+                                                className="ap-tanimlar-satir-alt-tus"
+                                                onClick={() => onDepoEkle(f.id, s.id)}
+                                              >
+                                                + Depo
+                                              </button>
+                                            ) : null}
+                                          </span>
+                                          <span className="ap-tanimlar-ikon-grup">
+                                            {duzenlemeVar ? (
+                                              <button
+                                                type="button"
+                                                className="ap-tanimlar-ikon-tus"
+                                                onClick={() => onDepoDuzenle(d)}
+                                              >
+                                                <DgIkon ad="duzenle" />
+                                              </button>
+                                            ) : (
+                                              <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                            )}
+                                            {silmeVar ? (
+                                              <button
+                                                type="button"
+                                                className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
+                                                onClick={() => onDepoSil(d)}
+                                              >
+                                                <DgIkon ad="sil" />
+                                              </button>
+                                            ) : (
+                                              <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                            )}
+                                          </span>
+                                        </span>
+                                      </div>
+                                    ))}
+                                    {subeKasalari.map((k, kasaIdx) => (
+                                      <div
+                                        key={k.id}
+                                        className={`ap-tanimlar-alt-satir${!k.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
+                                        onMouseEnter={(e) => {
+                                          e.stopPropagation();
+                                          onKayitHover?.({
+                                            tip: 'kasa',
+                                            mod: 'duzenle',
+                                            kayit: k,
+                                          });
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.stopPropagation();
+                                          onKayitHover?.(subeHover);
+                                        }}
+                                      >
+                                        <span className="ap-tanimlar-alt-tip ap-tanimlar-alt-tip--kasa">
+                                          Kasa
+                                        </span>
+                                        <span className="ap-tanimlar-alt-ad">
+                                          {k.kasaAdi}
+                                          <span className="ap-tanimlar-alt-kod">({k.kasaKodu})</span>
+                                        </span>
+                                        <span className="ap-tanimlar-alt-aksiyon ap-tanimlar-cizgi-aksiyon ap-tanimlar-cizgi-aksiyon--satir">
+                                          <span className="ap-tanimlar-ekle-grup">
+                                            {eklemeVar && f.aktif && s.aktif && kasaIdx === 0 ? (
+                                              <button
+                                                type="button"
+                                                className="ap-tanimlar-satir-alt-tus"
+                                                onClick={() => onKasaEkle(f.id, s.id)}
+                                              >
+                                                + Kasa
+                                              </button>
+                                            ) : null}
+                                          </span>
+                                          <span className="ap-tanimlar-ikon-grup">
+                                            {duzenlemeVar ? (
+                                              <button
+                                                type="button"
+                                                className="ap-tanimlar-ikon-tus"
+                                                onClick={() => onKasaDuzenle(k)}
+                                              >
+                                                <DgIkon ad="duzenle" />
+                                              </button>
+                                            ) : (
+                                              <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                            )}
+                                            {silmeVar ? (
+                                              <button
+                                                type="button"
+                                                className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
+                                                onClick={() => onKasaSil(k)}
+                                              >
+                                                <DgIkon ad="sil" />
+                                              </button>
+                                            ) : (
+                                              <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                            )}
+                                          </span>
+                                        </span>
+                                      </div>
+                                    ))}
+                                    {eklemeVar && f.aktif && s.aktif && subeDepolari.length === 0 ? (
+                                      <div className="ap-tanimlar-alt-aksiyon ap-tanimlar-alt-aksiyon--ekle">
+                                        <button
+                                          type="button"
+                                          className="ap-tanimlar-satir-alt-tus"
+                                          onClick={() => onDepoEkle(f.id, s.id)}
                                         >
-                                          <span className="ap-tanimlar-alt-tip">Depo</span>
-                                          <span className="ap-tanimlar-alt-ad">
-                                            {d.depoAdi}
-                                            <span className="ap-tanimlar-alt-kod">{d.depoKodu}</span>
-                                          </span>
-                                          <span className="ap-tanimlar-alt-aksiyon">
-                                            <span className="ap-tanimlar-ekle-grup" />
-                                            <span className="ap-tanimlar-ikon-grup">
-                                              {duzenlemeVar ? (
-                                                <button
-                                                  type="button"
-                                                  className="ap-tanimlar-ikon-tus"
-                                                  onClick={() => onDepoDuzenle(d)}
-                                                >
-                                                  <DgIkon ad="duzenle" />
-                                                </button>
-                                              ) : (
-                                                <span className="ap-tanimlar-ikon-bos" aria-hidden />
-                                              )}
-                                              {silmeVar ? (
-                                                <button
-                                                  type="button"
-                                                  className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
-                                                  onClick={() => onDepoSil(d)}
-                                                >
-                                                  <DgIkon ad="sil" />
-                                                </button>
-                                              ) : (
-                                                <span className="ap-tanimlar-ikon-bos" aria-hidden />
-                                              )}
-                                            </span>
-                                          </span>
-                                        </div>
-                                      ))}
-                                      {subeKasalari.map((k) => (
-                                        <div
-                                          key={k.id}
-                                          className={`ap-tanimlar-alt-satir${!k.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
-                                          onMouseEnter={(e) => {
-                                            e.stopPropagation();
-                                            onKayitHover?.({
-                                              tip: 'kasa',
-                                              mod: 'duzenle',
-                                              kayit: k,
-                                            });
-                                          }}
-                                          onMouseLeave={(e) => {
-                                            e.stopPropagation();
-                                            onKayitHover?.(subeHover);
-                                          }}
+                                          + Depo
+                                        </button>
+                                      </div>
+                                    ) : null}
+                                    {eklemeVar && f.aktif && s.aktif && subeKasalari.length === 0 ? (
+                                      <div className="ap-tanimlar-alt-aksiyon ap-tanimlar-alt-aksiyon--ekle">
+                                        <button
+                                          type="button"
+                                          className="ap-tanimlar-satir-alt-tus"
+                                          onClick={() => onKasaEkle(f.id, s.id)}
                                         >
-                                          <span className="ap-tanimlar-alt-tip ap-tanimlar-alt-tip--kasa">
-                                            Kasa
-                                          </span>
-                                          <span className="ap-tanimlar-alt-ad">
-                                            {k.kasaAdi}
-                                            <span className="ap-tanimlar-alt-kod">{k.kasaKodu}</span>
-                                          </span>
-                                          <span className="ap-tanimlar-alt-aksiyon">
-                                            <span className="ap-tanimlar-ekle-grup" />
-                                            <span className="ap-tanimlar-ikon-grup">
-                                              {duzenlemeVar ? (
-                                                <button
-                                                  type="button"
-                                                  className="ap-tanimlar-ikon-tus"
-                                                  onClick={() => onKasaDuzenle(k)}
-                                                >
-                                                  <DgIkon ad="duzenle" />
-                                                </button>
-                                              ) : (
-                                                <span className="ap-tanimlar-ikon-bos" aria-hidden />
-                                              )}
-                                              {silmeVar ? (
-                                                <button
-                                                  type="button"
-                                                  className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
-                                                  onClick={() => onKasaSil(k)}
-                                                >
-                                                  <DgIkon ad="sil" />
-                                                </button>
-                                              ) : (
-                                                <span className="ap-tanimlar-ikon-bos" aria-hidden />
-                                              )}
-                                            </span>
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </>
-                                  )}
-                                </div>
-                              </>
+                                          + Kasa
+                                        </button>
+                                      </div>
+                                    ) : null}
+                                  </>
+                                )}
+                              </div>
                             ) : null}
                           </div>
                         );

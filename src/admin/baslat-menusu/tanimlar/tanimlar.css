@@ -7761,6 +7761,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-hiyerarsi {
+  --tanimlar-ara-genislik: 20rem;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -7779,7 +7780,8 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-hiyerarsi-arama {
   flex: 1 1 12rem;
-  max-width: 20rem;
+  max-width: var(--tanimlar-ara-genislik);
+  width: 100%;
 }
 
 .ap-tanimlar-sube-liste,
@@ -7802,13 +7804,15 @@ button.ap-tanimlar-panel-arka {
   align-items: flex-start;
   align-content: flex-start;
   gap: 0.75rem;
+  max-width: none;
 }
 
 .ap-tanimlar-sube-kart--yatay,
 .ap-tanimlar-donem-satir--yatay {
-  flex: 1 1 19rem;
-  max-width: 26rem;
-  min-width: 17rem;
+  flex: 0 0 var(--tanimlar-ara-genislik);
+  width: var(--tanimlar-ara-genislik);
+  max-width: var(--tanimlar-ara-genislik);
+  min-width: min(14rem, 100%);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -7824,16 +7828,49 @@ button.ap-tanimlar-panel-arka {
   gap: 0.35rem;
 }
 
-.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-bilgi,
+/* Dùnem / depo / kasa ù kompakt yatay kart (bo? alan yok) */
+.ap-tanimlar-donem-satir.ap-tanimlar-donem-satir--yatay {
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: 0.55rem 0.65rem;
+  gap: 0.4rem;
+}
+
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-donem-bilgi {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-sube-aksiyon {
+  position: static;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  flex-shrink: 0;
+}
+
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon,
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-ikon-grup {
+  position: static;
+  transform: none;
+  padding: 0;
+  background: transparent;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-bilgi {
   flex: 1 1 12rem;
   min-width: 0;
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-ad {
-  font-size: 0.9rem;
+  font-size: 0.86rem;
+  font-weight: 650;
   line-height: 1.25;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon,
@@ -7841,16 +7878,45 @@ button.ap-tanimlar-panel-arka {
   position: relative;
   width: 100%;
   justify-content: flex-end;
-  flex-wrap: wrap;
-  margin-top: 0.15rem;
-  padding-top: 0.45rem;
+  flex-wrap: nowrap;
+  margin-top: 0.35rem;
+  padding-top: 0;
+  min-height: 0.9rem;
   border-top: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
   gap: 0.3rem;
 }
 
+/* Yatay: + ?ube + ikonlar ùizgi ùzerinde, sa?a yasl? */
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ekle-grup,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ikon-grup {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  transform: translateY(-50%);
+  padding: 0 0.1rem;
+  background: var(--ap-surface);
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ikon-grup {
+  /* Alttaki ?ube dùzenle/sil ile ayn? sa? hiza */
+  right: 0.65rem;
+}
+
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ekle-grup {
-  flex: 1 1 auto;
-  justify-content: flex-start;
+  right: calc(0.65rem + 3.5rem);
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ekle-grup:empty {
+  display: none;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-satir-alt-tus {
+  font-size: 0.66rem;
+  padding: 0.15rem 0.38rem;
+  height: auto;
+  line-height: 1.2;
 }
 
 .ap-tanimlar-cizgi-aksiyon {
@@ -7871,7 +7937,23 @@ button.ap-tanimlar-panel-arka {
   background: var(--ap-surface);
 }
 
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon--satir,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube-alt .ap-tanimlar-cizgi-aksiyon--satir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  background: var(--ap-surface);
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon--satir .ap-tanimlar-satir-alt-tus {
+  font-size: 0.66rem;
+  padding: 0.15rem 0.38rem;
+  height: auto;
+  line-height: 1.2;
+}
+
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ikon-tus,
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus {
   width: auto;
   height: auto;
@@ -7882,6 +7964,8 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus .dg-svg-ikon,
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus svg,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ikon-tus .dg-svg-ikon,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ikon-tus svg,
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus .dg-svg-ikon,
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus svg {
   width: 0.85rem;
@@ -7889,12 +7973,14 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus:hover,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ikon-tus:hover,
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus:hover {
   background: transparent;
   color: var(--ap-heading);
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus--tehlike:hover,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ikon-tus--tehlike:hover,
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus--tehlike:hover {
   background: transparent;
   color: #ef4444;
@@ -7910,19 +7996,20 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube {
-  padding: 0.5rem 0.55rem;
+  padding: 0.4rem 0.45rem 0.4rem 0.3rem;
   border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
   border-radius: 0.45rem;
   background: var(--ap-surface);
-  gap: 0.35rem;
+  gap: 0.3rem;
+  min-height: 0;
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-alt-satir--ust {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.3rem 0.4rem;
-  padding: 0;
+  gap: 0.35rem 0.45rem;
+  padding: 0 0.35rem 0 0 !important;
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-alt-satir--ust .ap-tanimlar-alt-tip {
@@ -7981,21 +8068,61 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube-alt .ap-tanimlar-alt-satir {
-  flex-wrap: wrap;
+  position: relative;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 0.25rem 0.4rem;
-  padding: 0.4rem 0.45rem;
+  margin-top: 0.55rem;
+  min-height: 2.35rem;
+  padding: 0.95rem 0.55rem 0.45rem !important;
   border-radius: 0.35rem;
   background: color-mix(in srgb, var(--ap-heading) 2.5%, var(--ap-surface));
   border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
 }
 
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube-alt .ap-tanimlar-alt-satir:first-child {
+  margin-top: 0.35rem;
+}
+
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube-alt .ap-tanimlar-alt-ad {
   flex: 1 1 7rem;
   min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube-alt .ap-tanimlar-alt-aksiyon {
-  margin-left: auto;
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-alt-satir--ust .ap-tanimlar-alt-ad {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  overflow: hidden;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-alt-satir--ust .ap-tanimlar-alt-kod,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube-alt .ap-tanimlar-alt-kod {
+  display: inline;
+  flex-shrink: 0;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-firma-sube-alt .ap-tanimlar-cizgi-aksiyon--satir {
+  position: absolute;
+  top: 0;
+  right: 0.35rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0 0.1rem;
+  background: color-mix(in srgb, var(--ap-heading) 2.5%, var(--ap-surface));
+  border-top: 0;
+  display: inline-flex;
+  grid-template-columns: none;
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-alt-bos {
@@ -8010,21 +8137,55 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir {
-  flex-wrap: wrap;
+  position: relative;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 0.25rem 0.4rem;
-  padding: 0.4rem 0.45rem;
+  min-height: 2.35rem;
+  margin-top: 0.45rem;
+  padding: 0.95rem 0.55rem 0.45rem !important;
   border-radius: 0.35rem;
   background: var(--ap-surface);
   border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
 }
 
+.ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir:first-child {
+  margin-top: 0;
+}
+
 .ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-alt-ad {
   flex: 1 1 7rem;
   min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-alt-kod {
+  flex-shrink: 0;
 }
 
 .ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-alt-aksiyon {
   margin-left: auto;
+}
+
+.ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-cizgi-aksiyon--satir {
+  position: absolute;
+  top: 0;
+  right: 0.45rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0 0.1rem;
+  background: var(--ap-surface);
+  border-top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  grid-template-columns: none;
 }
 
 .ap-tanimlar-sube-kart,
@@ -8194,8 +8355,8 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-alt-satir--ust {
   align-items: center;
-  /* ?ube sat?r?: sola girinti, sa? padding firma sat?r?yla ayn? */
-  padding-left: 1.65rem !important;
+  /* ?ube sat?r?: ok sola yasl?, dùzenle/sil sa?da */
+  padding-left: 0.15rem !important;
   padding-right: 0.5rem !important;
   border-radius: 0;
   background: transparent;
@@ -8211,8 +8372,8 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-firma-sube-alt > .ap-tanimlar-alt-satir {
-  /* Depo / kasa: ?ubeden bir basamak i?eride (merdiven) */
-  padding-left: 4.55rem !important;
+  /* Depo / kasa: ?ubeden bir basamak iùeride */
+  padding-left: 2.85rem !important;
   padding-right: 0.5rem !important;
   margin: 0;
   border-radius: 0;
@@ -8220,7 +8381,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir {
-  /* Subeler sekmesi: depo/kasa dogrudan altta */
+  /* ?ubeler sekmesi: depo/kasa do?rudan altta */
   padding-left: 1.65rem !important;
   padding-right: 0.5rem !important;
   margin: 0;
@@ -8240,21 +8401,55 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir {
-  flex-wrap: wrap;
+  position: relative;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 0.25rem 0.4rem;
-  padding: 0.4rem 0.45rem;
+  min-height: 2.35rem;
+  margin-top: 0.45rem;
+  padding: 0.95rem 0.55rem 0.45rem !important;
   border-radius: 0.35rem;
   background: var(--ap-surface);
   border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
 }
 
+.ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir:first-child {
+  margin-top: 0;
+}
+
 .ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-alt-ad {
   flex: 1 1 7rem;
   min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-alt-kod {
+  flex-shrink: 0;
 }
 
 .ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-alt-aksiyon {
   margin-left: auto;
+}
+
+.ap-tanimlar-sube-kart--yatay > .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir .ap-tanimlar-cizgi-aksiyon--satir {
+  position: absolute;
+  top: 0;
+  right: 0.45rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0 0.1rem;
+  background: var(--ap-surface);
+  border-top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  grid-template-columns: none;
 }
 
 .ap-tanimlar-sube-kart,
@@ -8424,8 +8619,8 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-alt-satir--ust {
   align-items: center;
-  /* ?ube sat?r?: sola girinti, sa? padding firma sat?r?yla ayn? */
-  padding-left: 1.65rem !important;
+  /* ?ube sat?r?: ok sola yasl?, dùzenle/sil sa?da */
+  padding-left: 0.15rem !important;
   padding-right: 0.5rem !important;
   border-radius: 0;
   background: transparent;
@@ -8441,8 +8636,8 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-firma-sube-alt > .ap-tanimlar-alt-satir {
-  /* Depo / kasa: ?ubeden bir basamak iùeride (merdiven) */
-  padding-left: 4.55rem !important;
+  /* Depo / kasa: ?ubeden bir basamak iùeride */
+  padding-left: 2.85rem !important;
   padding-right: 0.5rem !important;
   margin: 0;
   border-radius: 0;
@@ -8450,7 +8645,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-alt > .ap-tanimlar-alt-satir {
-  /* ?ubeler sekmesi: depo/kasa do?rudan altta ? sa? hiza korunur */
+  /* ?ubeler sekmesi: depo/kasa do?rudan altta ù sa? hiza korunur */
   padding-left: 1.65rem !important;
   padding-right: 0.5rem !important;
   margin: 0;

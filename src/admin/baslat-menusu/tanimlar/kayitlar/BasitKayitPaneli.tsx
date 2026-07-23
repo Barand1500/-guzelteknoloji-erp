@@ -4,6 +4,7 @@ import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 interface BasitKayitPaneliProps<T> {
   kayitlar: T[];
   yatayKart?: boolean;
+  firmaAdi?: string;
   araPlaceholder: string;
   ekleEtiket: string;
   bosMesaj: string;
@@ -27,6 +28,7 @@ interface BasitKayitPaneliProps<T> {
 export function BasitKayitPaneli<T>({
   kayitlar,
   yatayKart = false,
+  firmaAdi,
   araPlaceholder,
   ekleEtiket,
   bosMesaj,
@@ -88,6 +90,7 @@ export function BasitKayitPaneli<T>({
         >
           {filtreli.map((k) => {
             const ad = adAl(k);
+            const meta = metaAl(k);
             const aktif = aktifMi(k);
             return (
               <li
@@ -98,8 +101,20 @@ export function BasitKayitPaneli<T>({
                 onMouseLeave={() => onKayitHover?.(null)}
               >
                 <div className="ap-tanimlar-donem-bilgi">
-                  <span className="ap-tanimlar-donem-ad">{ad}</span>
-                  <span className="ap-tanimlar-donem-meta">{metaAl(k)}</span>
+                  {firmaAdi ? (
+                    <>
+                      <span className="ap-tanimlar-donem-ad">{firmaAdi}</span>
+                      <span className="ap-tanimlar-donem-meta">
+                        {ad}
+                        {meta ? ` · ${meta}` : ''}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="ap-tanimlar-donem-ad">{ad}</span>
+                      <span className="ap-tanimlar-donem-meta">{meta}</span>
+                    </>
+                  )}
                 </div>
                 <div className="ap-tanimlar-sube-aksiyon">
                   <div className="ap-tanimlar-ikon-grup">
