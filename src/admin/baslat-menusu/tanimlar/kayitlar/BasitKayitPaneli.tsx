@@ -102,28 +102,34 @@ export function BasitKayitPaneli<T>({
                   <span className="ap-tanimlar-donem-meta">{metaAl(k)}</span>
                 </div>
                 <div className="ap-tanimlar-sube-aksiyon">
-                  {duzenlemeVar ? (
-                    <button
-                      type="button"
-                      className="ap-tanimlar-ikon-tus"
-                      title="Düzenle"
-                      aria-label={`${ad} düzenle`}
-                      onClick={() => onDuzenle(k)}
-                    >
-                      <DgIkon ad="duzenle" />
-                    </button>
-                  ) : null}
-                  {silmeVar ? (
-                    <button
-                      type="button"
-                      className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
-                      title="Sil"
-                      aria-label={`${ad} sil`}
-                      onClick={() => onSil(k)}
-                    >
-                      <DgIkon ad="sil" />
-                    </button>
-                  ) : null}
+                  <div className="ap-tanimlar-ikon-grup">
+                    {duzenlemeVar ? (
+                      <button
+                        type="button"
+                        className="ap-tanimlar-ikon-tus"
+                        title="Düzenle"
+                        aria-label={`${ad} düzenle`}
+                        onClick={() => onDuzenle(k)}
+                      >
+                        <DgIkon ad="duzenle" />
+                      </button>
+                    ) : (
+                      <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                    )}
+                    {silmeVar ? (
+                      <button
+                        type="button"
+                        className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
+                        title="Sil"
+                        aria-label={`${ad} sil`}
+                        onClick={() => onSil(k)}
+                      >
+                        <DgIkon ad="sil" />
+                      </button>
+                    ) : (
+                      <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                    )}
+                  </div>
                 </div>
               </li>
             );

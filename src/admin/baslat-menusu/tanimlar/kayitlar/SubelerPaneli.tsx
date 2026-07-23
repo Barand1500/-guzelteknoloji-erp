@@ -159,46 +159,54 @@ export function SubelerPaneli({
                     </span>
                   </div>
                   <div className="ap-tanimlar-sube-aksiyon">
-                    {!ekleKapali && s.aktif ? (
-                      <>
+                    <div className="ap-tanimlar-ekle-grup">
+                      {!ekleKapali && s.aktif ? (
+                        <>
+                          <button
+                            type="button"
+                            className="ap-tanimlar-satir-alt-tus"
+                            onClick={() => onDepoEkle(s.id)}
+                          >
+                            + Depo
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-tanimlar-satir-alt-tus"
+                            onClick={() => onKasaEkle(s.id)}
+                          >
+                            + Kasa
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="ap-tanimlar-ikon-grup">
+                      {duzenlemeVar ? (
                         <button
                           type="button"
-                          className="ap-tanimlar-satir-alt-tus"
-                          onClick={() => onDepoEkle(s.id)}
+                          className="ap-tanimlar-ikon-tus"
+                          title="Düzenle"
+                          aria-label={`${s.subeAdi} düzenle`}
+                          onClick={() => onSubeDuzenle(s)}
                         >
-                          + Depo
+                          <DgIkon ad="duzenle" />
                         </button>
+                      ) : (
+                        <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                      )}
+                      {silmeVar ? (
                         <button
                           type="button"
-                          className="ap-tanimlar-satir-alt-tus"
-                          onClick={() => onKasaEkle(s.id)}
+                          className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
+                          title="Sil"
+                          aria-label={`${s.subeAdi} sil`}
+                          onClick={() => onSubeSil(s)}
                         >
-                          + Kasa
+                          <DgIkon ad="sil" />
                         </button>
-                      </>
-                    ) : null}
-                    {duzenlemeVar ? (
-                      <button
-                        type="button"
-                        className="ap-tanimlar-ikon-tus"
-                        title="Düzenle"
-                        aria-label={`${s.subeAdi} düzenle`}
-                        onClick={() => onSubeDuzenle(s)}
-                      >
-                        <DgIkon ad="duzenle" />
-                      </button>
-                    ) : null}
-                    {silmeVar ? (
-                      <button
-                        type="button"
-                        className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
-                        title="Sil"
-                        aria-label={`${s.subeAdi} sil`}
-                        onClick={() => onSubeSil(s)}
-                      >
-                        <DgIkon ad="sil" />
-                      </button>
-                    ) : null}
+                      ) : (
+                        <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -230,28 +238,35 @@ export function SubelerPaneli({
                               <span className="ap-tanimlar-alt-kod">{d.depoKodu}</span>
                             </span>
                             <span className="ap-tanimlar-alt-aksiyon">
-                              {duzenlemeVar ? (
-                                <button
-                                  type="button"
-                                  className="ap-tanimlar-ikon-tus"
-                                  onClick={() => onDepoDuzenle(d)}
-                                  title="Düzenle"
-                                  aria-label={`${d.depoAdi} düzenle`}
-                                >
-                                  <DgIkon ad="duzenle" />
-                                </button>
-                              ) : null}
-                              {silmeVar ? (
-                                <button
-                                  type="button"
-                                  className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
-                                  onClick={() => onDepoSil(d)}
-                                  title="Sil"
-                                  aria-label={`${d.depoAdi} sil`}
-                                >
-                                  <DgIkon ad="sil" />
-                                </button>
-                              ) : null}
+                              <span className="ap-tanimlar-ekle-grup" />
+                              <span className="ap-tanimlar-ikon-grup">
+                                {duzenlemeVar ? (
+                                  <button
+                                    type="button"
+                                    className="ap-tanimlar-ikon-tus"
+                                    onClick={() => onDepoDuzenle(d)}
+                                    title="Düzenle"
+                                    aria-label={`${d.depoAdi} düzenle`}
+                                  >
+                                    <DgIkon ad="duzenle" />
+                                  </button>
+                                ) : (
+                                  <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                )}
+                                {silmeVar ? (
+                                  <button
+                                    type="button"
+                                    className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
+                                    onClick={() => onDepoSil(d)}
+                                    title="Sil"
+                                    aria-label={`${d.depoAdi} sil`}
+                                  >
+                                    <DgIkon ad="sil" />
+                                  </button>
+                                ) : (
+                                  <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                )}
+                              </span>
                             </span>
                           </div>
                         ))}
@@ -277,28 +292,35 @@ export function SubelerPaneli({
                               <span className="ap-tanimlar-alt-kod">{k.kasaKodu}</span>
                             </span>
                             <span className="ap-tanimlar-alt-aksiyon">
-                              {duzenlemeVar ? (
-                                <button
-                                  type="button"
-                                  className="ap-tanimlar-ikon-tus"
-                                  onClick={() => onKasaDuzenle(k)}
-                                  title="Düzenle"
-                                  aria-label={`${k.kasaAdi} düzenle`}
-                                >
-                                  <DgIkon ad="duzenle" />
-                                </button>
-                              ) : null}
-                              {silmeVar ? (
-                                <button
-                                  type="button"
-                                  className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
-                                  onClick={() => onKasaSil(k)}
-                                  title="Sil"
-                                  aria-label={`${k.kasaAdi} sil`}
-                                >
-                                  <DgIkon ad="sil" />
-                                </button>
-                              ) : null}
+                              <span className="ap-tanimlar-ekle-grup" />
+                              <span className="ap-tanimlar-ikon-grup">
+                                {duzenlemeVar ? (
+                                  <button
+                                    type="button"
+                                    className="ap-tanimlar-ikon-tus"
+                                    onClick={() => onKasaDuzenle(k)}
+                                    title="Düzenle"
+                                    aria-label={`${k.kasaAdi} düzenle`}
+                                  >
+                                    <DgIkon ad="duzenle" />
+                                  </button>
+                                ) : (
+                                  <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                )}
+                                {silmeVar ? (
+                                  <button
+                                    type="button"
+                                    className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
+                                    onClick={() => onKasaSil(k)}
+                                    title="Sil"
+                                    aria-label={`${k.kasaAdi} sil`}
+                                  >
+                                    <DgIkon ad="sil" />
+                                  </button>
+                                ) : (
+                                  <span className="ap-tanimlar-ikon-bos" aria-hidden />
+                                )}
+                              </span>
                             </span>
                           </div>
                         ))}
