@@ -1833,12 +1833,58 @@
 .cari-dokuman-dosya-not-ozetler {
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
+  gap: 0;
+  margin-top: 0.15rem;
+}
+
+.cari-dokuman-dosya-not-yazar {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.28rem;
+  margin: 0.1rem 0 0.35rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-heading) 5%, var(--ap-surface));
+  color: var(--ap-heading);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.cari-dokuman-dosya-not-yazar svg {
+  flex-shrink: 0;
+  color: var(--ap-text-muted);
 }
 
 .cari-dokuman-dosya-not-ozet {
   margin: 0;
-  padding: 0.15rem 0 0;
+  padding: 0.28rem 0 0.32rem;
+  position: relative;
+}
+
+.cari-dokuman-dosya-not-ozet:not(:last-child)::after {
+  content: '';
+  display: block;
+  width: 7.2rem;
+  height: 1px;
+  margin: 0.2rem 0 0 auto;
+  background: color-mix(in srgb, var(--ap-border) 90%, transparent);
+}
+
+.cari-dokuman-dosya-not-ozet-satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.cari-dokuman-dosya-not-ozet-metin {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 0.76rem;
   line-height: 1.35;
   color: var(--ap-text-muted);
@@ -1854,9 +1900,24 @@
   color: var(--ap-heading);
 }
 
+.cari-dokuman-not-meta--satir {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.cari-dokuman-cift-not-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
 .cari-dokuman-cift-not-etiket {
   display: block;
-  margin: 0 0 0.2rem 0.05rem;
+  margin: 0;
   font-size: 0.72rem;
   font-weight: 650;
   color: var(--ap-heading);
@@ -1864,9 +1925,13 @@
 }
 
 .cari-dokuman-cift-not-metin .cari-dokuman-cift-not-etiket {
-  display: inline;
+  display: block;
   margin: 0;
-  font-size: inherit;
+  font-size: 0.72rem;
+}
+
+.cari-dokuman-cift-not-liste > .cari-dokuman-dosya-not-yazar {
+  margin: 0 0.15rem 0.15rem auto;
 }
 
 .cari-dokuman-cift-modal {
@@ -2210,6 +2275,13 @@
   font-size: 0.84rem;
   line-height: 1.4;
   color: var(--ap-text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.cari-dokuman-cift-not-metin-govde {
+  margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
 }

@@ -1,4 +1,4 @@
-import type { CariDosyaDokuman } from './tipler';
+import type { CariDosya, CariDosyaDokuman, CariDosyaNot } from './tipler';
 
 const DEPOLAMA_ANAHTARI = 'cari_dosya_dokuman_v1';
 
@@ -17,6 +17,21 @@ function yaz(veri: Record<string, CariDosyaDokuman>) {
   localStorage.setItem(DEPOLAMA_ANAHTARI, JSON.stringify(veri));
 }
 
+function dosyaNotNormalize(n: unknown): CariDosyaNot | null {
+  if (typeof n === 'string') {
+    const metin = n.trim();
+    if (!metin) return null;
+    return { metin, yazar: '', tarih: '' };
+  }
+  if (!n || typeof n !== 'object') return null;
+  const o = n as Partial<CariDosyaNot>;
+  return {
+    metin: String(o.metin ?? ''),
+    yazar: String(o.yazar ?? ''),
+    tarih: String(o.tarih ?? ''),
+  };
+}
+
 export function cariDosyaDokumanGetir(cariId: string): CariDosyaDokuman {
   if (!cariId) return { notlar: [], dosyalar: [], etiketler: [] };
   const kayit = oku()[cariId];
@@ -25,15 +40,14 @@ export function cariDosyaDokumanGetir(cariId: string): CariDosyaDokuman {
     notlar: Array.isArray(kayit.notlar) ? kayit.notlar : [],
     dosyalar: Array.isArray(kayit.dosyalar)
       ? kayit.dosyalar.map((d) => {
-          const eski = d as { not?: string; dosyaNotlari?: string[] };
-          let dosyaNotlari: string[] = [];
+          const eski = d as { not?: string; dosyaNotlari?: unknown[] };
+          let dosyaNotlari: CariDosyaNot[] = [];
           if (Array.isArray(eski.dosyaNotlari)) {
             dosyaNotlari = eski.dosyaNotlari
-              .filter((n): n is string => typeof n === 'string')
-              .map((n) => n.trim())
-              .filter(Boolean);
+              .map(dosyaNotNormalize)
+              .filter((n): n is CariDosyaNot => n !== null);
           } else if (typeof eski.not === 'string' && eski.not.trim()) {
-            dosyaNotlari = [eski.not.trim()];
+            dosyaNotlari = [{ metin: eski.not.trim(), yazar: '', tarih: '' }];
           }
           return { ...d, dosyaNotlari };
         })

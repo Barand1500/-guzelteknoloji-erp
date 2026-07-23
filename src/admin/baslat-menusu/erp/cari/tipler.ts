@@ -53,6 +53,13 @@ export interface CariNot {
   tarih: string;
 }
 
+/** Dosyaya özel not (metin + kim / ne zaman) */
+export interface CariDosyaNot {
+  metin: string;
+  yazar: string;
+  tarih: string;
+}
+
 export interface CariDosya {
   id: string;
   ad: string;
@@ -61,7 +68,7 @@ export interface CariDosya {
   dataUrl: string;
   tarih: string;
   /** Dosyaya özel notlar (birden fazla olabilir) */
-  dosyaNotlari: string[];
+  dosyaNotlari: CariDosyaNot[];
 }
 
 export interface CariDosyaDokuman {

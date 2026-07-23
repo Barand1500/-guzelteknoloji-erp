@@ -7,7 +7,7 @@ import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { yeniKayitId } from '../cariDosyaDokumanDeposu';
 import { pdfDosyalariniBirlestir } from '../pdfBirlestir';
-import type { CariDosya, CariDosyaDokuman, CariNot } from '../tipler';
+import type { CariDosya, CariDosyaDokuman, CariDosyaNot, CariNot } from '../tipler';
 
 const KABUL_EDILEN_TIPLER = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 const KABUL_UZANTILAR = '.pdf,.png,.jpg,.jpeg,.gif,.webp';
@@ -25,6 +25,85 @@ function notTarihEtiketi(iso: string): string {
   const saat = String(d.getHours()).padStart(2, '0');
   const dakika = String(d.getMinutes()).padStart(2, '0');
   return `${gun} ${ay} ${yil} ${saat}:${dakika}`;
+}
+
+function bosDosyaNot(yazar: string): CariDosyaNot {
+  return { metin: '', yazar, tarih: new Date().toISOString() };
+}
+
+/** Tüm notlar aynı kişiyse o ismi döner; değilse null. */
+function ortakYazarAdi(notlar: CariDosyaNot[]): string | null {
+  const yazarlar = notlar.map((n) => n.yazar.trim()).filter(Boolean);
+  if (yazarlar.length === 0) return null;
+  const ilk = yazarlar[0]!;
+  return yazarlar.every((y) => y === ilk) ? ilk : null;
+}
+
+function NotMeta({
+  yazar,
+  tarih,
+  yazarGoster = true,
+  className,
+}: {
+  yazar?: string;
+  tarih?: string;
+  yazarGoster?: boolean;
+  className?: string;
+}) {
+  const yazarVar = yazarGoster && Boolean(yazar?.trim());
+  const tarihVar = Boolean(tarih?.trim());
+  if (!yazarVar && !tarihVar) return null;
+  return (
+    <div className={`cari-dokuman-not-meta${className ? ` ${className}` : ''}`}>
+      {yazarVar ? (
+        <span className="cari-dokuman-not-meta-oge">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
+            <circle cx="8" cy="5.5" r="2.4" stroke="currentColor" strokeWidth="1.3" />
+            <path
+              d="M3.2 13c.7-2.2 2.4-3.3 4.8-3.3s4.1 1.1 4.8 3.3"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            />
+          </svg>
+          {yazar}
+        </span>
+      ) : null}
+      {tarihVar ? (
+        <span className="cari-dokuman-not-meta-oge">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3" />
+            <path
+              d="M8 5v3.2l2 1.3"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {notTarihEtiketi(tarih!)}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function DosyaNotYazarBaslik({ yazar }: { yazar: string }) {
+  if (!yazar.trim()) return null;
+  return (
+    <div className="cari-dokuman-dosya-not-yazar">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
+        <circle cx="8" cy="5.5" r="2.4" stroke="currentColor" strokeWidth="1.3" />
+        <path
+          d="M3.2 13c.7-2.2 2.4-3.3 4.8-3.3s4.1 1.1 4.8 3.3"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
+      </svg>
+      <span>{yazar}</span>
+    </div>
+  );
 }
 
 function boyutEtiketi(bayt: number): string {
@@ -487,7 +566,14 @@ export function CariDosyaDokumanBolumu({
           tip: dosyaTipiBelirle(bekleyen.file),
           dataUrl,
           tarih: new Date().toISOString(),
-          dosyaNotlari: bekleyen.notlar.map((n) => n.trim()).filter(Boolean),
+          dosyaNotlari: bekleyen.notlar
+            .map((n) => n.trim())
+            .filter(Boolean)
+            .map((metin) => ({
+              metin,
+              yazar: yazarAdi,
+              tarih: new Date().toISOString(),
+            })),
         });
       } catch {
         onHata?.(`${bekleyen.file.name} okunamadı`);
@@ -501,7 +587,7 @@ export function CariDosyaDokumanBolumu({
     setYukleniyor(false);
   };
 
-  const dosyaNotlariGuncelle = (id: string, dosyaNotlari: string[]) => {
+  const dosyaNotlariGuncelle = (id: string, dosyaNotlari: CariDosyaNot[]) => {
     guncelle({
       dosyalar: deger.dosyalar.map((d) => (d.id === id ? { ...d, dosyaNotlari } : d)),
     });
@@ -509,22 +595,29 @@ export function CariDosyaDokumanBolumu({
   };
 
   const dosyaNotEkle = (id: string) => {
-    const hedef = deger.dosyalar.find((d) => d.id === id);
-    if (!hedef) return;
+    const hedef = deger.dosyalar.find((d) => d.id === id) ?? onizleme;
+    if (!hedef || disabled) return;
     if ((hedef.dosyaNotlari ?? []).length >= MAKS_DOSYA_NOT) return;
-    dosyaNotlariGuncelle(id, [...(hedef.dosyaNotlari ?? []), '']);
+    dosyaNotlariGuncelle(id, [...(hedef.dosyaNotlari ?? []), bosDosyaNot(yazarAdi)]);
   };
 
   const dosyaNotGuncelle = (id: string, indeks: number, metin: string) => {
-    const hedef = deger.dosyalar.find((d) => d.id === id);
+    const hedef = deger.dosyalar.find((d) => d.id === id) ?? onizleme;
     if (!hedef) return;
     const dosyaNotlari = [...(hedef.dosyaNotlari ?? [])];
-    dosyaNotlari[indeks] = metin;
+    const onceki = dosyaNotlari[indeks];
+    if (!onceki) return;
+    dosyaNotlari[indeks] = {
+      ...onceki,
+      metin,
+      yazar: onceki.yazar || yazarAdi,
+      tarih: onceki.tarih || new Date().toISOString(),
+    };
     dosyaNotlariGuncelle(id, dosyaNotlari);
   };
 
   const dosyaNotSil = (id: string, indeks: number) => {
-    const hedef = deger.dosyalar.find((d) => d.id === id);
+    const hedef = deger.dosyalar.find((d) => d.id === id) ?? onizleme;
     if (!hedef) return;
     dosyaNotlariGuncelle(
       id,
@@ -676,33 +769,7 @@ export function CariDosyaDokumanBolumu({
                         <p className="cari-dokuman-not-metin">{not.metin}</p>
                       )}
 
-                      <div className="cari-dokuman-not-meta">
-                        <span className="cari-dokuman-not-meta-oge">
-                          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
-                            <circle cx="8" cy="5.5" r="2.4" stroke="currentColor" strokeWidth="1.3" />
-                            <path
-                              d="M3.2 13c.7-2.2 2.4-3.3 4.8-3.3s4.1 1.1 4.8 3.3"
-                              stroke="currentColor"
-                              strokeWidth="1.3"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          {not.yazar}
-                        </span>
-                        <span className="cari-dokuman-not-meta-oge">
-                          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
-                            <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.3" />
-                            <path
-                              d="M8 5v3.2l2 1.3"
-                              stroke="currentColor"
-                              strokeWidth="1.3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          {notTarihEtiketi(not.tarih)}
-                        </span>
-                      </div>
+                      <NotMeta yazar={not.yazar} tarih={not.tarih} />
                     </article>
                   );
                 })}
@@ -848,22 +915,35 @@ export function CariDosyaDokumanBolumu({
                         </button>
                       ) : null}
                     </div>
-                    {(dosya.dosyaNotlari ?? []).some((n) => n.trim()) ? (
+                    {(dosya.dosyaNotlari ?? []).some((n) => n.metin.trim()) ? (
                       <div className="cari-dokuman-dosya-not-ozetler">
-                        {(dosya.dosyaNotlari ?? []).map((not, i) =>
-                          not.trim() ? (
-                            <p
-                              key={`${dosya.id}-n-${i}`}
-                              className="cari-dokuman-dosya-not-ozet"
-                              title={not}
-                            >
-                              <span className="cari-dokuman-dosya-not-ozet-etiket">
-                                Not {i + 1}:
-                              </span>{' '}
-                              {not}
-                            </p>
-                          ) : null
-                        )}
+                        {(() => {
+                          const doluNotlar = (dosya.dosyaNotlari ?? []).filter((n) => n.metin.trim());
+                          const ortak = ortakYazarAdi(doluNotlar);
+                          return (
+                            <>
+                              {ortak ? <DosyaNotYazarBaslik yazar={ortak} /> : null}
+                              {doluNotlar.map((not, i) => (
+                                <div key={`${dosya.id}-n-${i}`} className="cari-dokuman-dosya-not-ozet">
+                                  <div className="cari-dokuman-dosya-not-ozet-satir">
+                                    <p className="cari-dokuman-dosya-not-ozet-metin" title={not.metin}>
+                                      <span className="cari-dokuman-dosya-not-ozet-etiket">
+                                        Not {i + 1}:
+                                      </span>{' '}
+                                      {not.metin}
+                                    </p>
+                                    <NotMeta
+                                      yazar={not.yazar}
+                                      tarih={not.tarih}
+                                      yazarGoster={!ortak}
+                                      className="cari-dokuman-not-meta--satir"
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </>
+                          );
+                        })()}
                       </div>
                     ) : null}
                   </li>
@@ -1126,40 +1206,88 @@ export function CariDosyaDokumanBolumu({
                     notlar={
                       !disabled ? (
                         <>
-                          {(onizleme.dosyaNotlari ?? []).map((not, indeks) => (
-                            <div key={`${onizleme.id}-n-${indeks}`} className="cari-dokuman-cift-not-oge">
-                              <span className="cari-dokuman-cift-not-etiket">Not {indeks + 1}:</span>
-                              <div className="cari-dokuman-cift-not-kutu">
-                                <DosyaNotTextarea
-                                  value={not}
-                                  autoFocus={not === '' && indeks === (onizleme.dosyaNotlari?.length ?? 0) - 1}
-                                  placeholder="Notunuzu yazın…"
-                                  onChange={(metin) =>
-                                    dosyaNotGuncelle(onizleme.id, indeks, metin)
-                                  }
-                                />
-                                <button
-                                  type="button"
-                                  className="cari-dokuman-cift-not-sil"
-                                  onClick={() => dosyaNotSil(onizleme.id, indeks)}
-                                  title="Notu sil"
-                                  aria-label={`Not ${indeks + 1} sil`}
-                                >
-                                  <DgIkon ad="sil" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                          {(() => {
+                            const dosyaNotlari = onizleme.dosyaNotlari ?? [];
+                            const ortak = ortakYazarAdi(dosyaNotlari);
+                            return (
+                              <>
+                                {ortak ? <DosyaNotYazarBaslik yazar={ortak} /> : null}
+                                {dosyaNotlari.map((not, indeks) => (
+                                  <div
+                                    key={`${onizleme.id}-n-${indeks}`}
+                                    className="cari-dokuman-cift-not-oge"
+                                  >
+                                    <div className="cari-dokuman-cift-not-baslik">
+                                      <span className="cari-dokuman-cift-not-etiket">
+                                        Not {indeks + 1}:
+                                      </span>
+                                      <NotMeta
+                                        yazar={not.yazar}
+                                        tarih={not.tarih}
+                                        yazarGoster={!ortak}
+                                        className="cari-dokuman-not-meta--satir"
+                                      />
+                                    </div>
+                                    <div className="cari-dokuman-cift-not-kutu">
+                                      <DosyaNotTextarea
+                                        value={not.metin}
+                                        autoFocus={
+                                          not.metin === '' &&
+                                          indeks === dosyaNotlari.length - 1
+                                        }
+                                        placeholder="Notunuzu yazın…"
+                                        onChange={(metin) =>
+                                          dosyaNotGuncelle(onizleme.id, indeks, metin)
+                                        }
+                                      />
+                                      <button
+                                        type="button"
+                                        className="cari-dokuman-cift-not-sil"
+                                        onClick={() => dosyaNotSil(onizleme.id, indeks)}
+                                        title="Notu sil"
+                                        aria-label={`Not ${indeks + 1} sil`}
+                                      >
+                                        <DgIkon ad="sil" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            );
+                          })()}
                         </>
                       ) : (
                         <>
-                          {(onizleme.dosyaNotlari ?? []).map((not, i) =>
-                            not.trim() ? (
-                              <p key={`${onizleme.id}-r-${i}`} className="cari-dokuman-cift-not-metin">
-                                <span className="cari-dokuman-cift-not-etiket">Not {i + 1}:</span> {not}
-                              </p>
-                            ) : null
-                          )}
+                          {(() => {
+                            const dosyaNotlari = (onizleme.dosyaNotlari ?? []).filter((n) =>
+                              n.metin.trim()
+                            );
+                            const ortak = ortakYazarAdi(dosyaNotlari);
+                            return (
+                              <>
+                                {ortak ? <DosyaNotYazarBaslik yazar={ortak} /> : null}
+                                {dosyaNotlari.map((not, i) => (
+                                  <div
+                                    key={`${onizleme.id}-r-${i}`}
+                                    className="cari-dokuman-cift-not-metin"
+                                  >
+                                    <div className="cari-dokuman-cift-not-baslik">
+                                      <span className="cari-dokuman-cift-not-etiket">
+                                        Not {i + 1}:
+                                      </span>
+                                      <NotMeta
+                                        yazar={not.yazar}
+                                        tarih={not.tarih}
+                                        yazarGoster={!ortak}
+                                        className="cari-dokuman-not-meta--satir"
+                                      />
+                                    </div>
+                                    <p className="cari-dokuman-cift-not-metin-govde">{not.metin}</p>
+                                  </div>
+                                ))}
+                              </>
+                            );
+                          })()}
                         </>
                       )
                     }
