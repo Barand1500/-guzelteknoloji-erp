@@ -246,8 +246,9 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
       degerAl: (s) => ({ yuzde: s.satirIskontoYuzde, tutar: s.satirIskontoTutar }),
 
       degerYaz: (s, d) => {
-        const yuzde =
+        const ham =
           typeof d === 'number' ? d : ifadeHesapla(String(d), 'iskonto') ?? parseFloat(String(d).replace(',', '.')) ?? 0;
+        const yuzde = Math.min(100, Math.max(0, Number.isFinite(ham) ? ham : 0));
         return hesapla(s, { satirIskontoYuzde: yuzde });
       },
 
@@ -291,8 +292,9 @@ function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
       degerAl: (s) => ({ yuzde: s.altIskontoYuzde, tutar: s.altIskontoTutar }),
 
       degerYaz: (s, d) => {
-        const yuzde =
+        const ham =
           typeof d === 'number' ? d : ifadeHesapla(String(d), 'iskonto') ?? parseFloat(String(d).replace(',', '.')) ?? 0;
+        const yuzde = Math.min(100, Math.max(0, Number.isFinite(ham) ? ham : 0));
         return hesapla(s, { altIskontoYuzde: yuzde });
       },
 
@@ -599,6 +601,7 @@ export function DatagridDemoSayfasi() {
   const urunSecVeEkle = useCallback(
     (urun: UrunKaydi) => {
       const yeni = yeniSiparisSatiriOlustur({ urunKoduAdi: urun.sku, miktar: '1' }, kdvDahil, URUN_KATALOGU);
+      let eklenenId = yeni.id;
 
       if (satirEkleBaglam) {
         const { satirId, konum } = satirEkleBaglam;
@@ -617,6 +620,7 @@ export function DatagridDemoSayfasi() {
           urunKoduAdi: urun.sku,
         };
         const hizliGirisSatiri = yeniSiparisSatiriOlustur(degerler, kdvDahil, URUN_KATALOGU);
+        eklenenId = hizliGirisSatiri.id;
         setSatirlar((onceki) => [hizliGirisSatiri, ...onceki]);
         hizliGirisApiRef.current?.sifirla();
       }
@@ -625,7 +629,10 @@ export function DatagridDemoSayfasi() {
       setAramaSorgusu('');
       setAramaSonuclari([]);
       setSeciliIndeks(0);
-      requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.dg-hizli-giris-girdi')?.focus());
+      /* Odağı eklenen satıra ver — hızlı girişte imleç takılı kalmasın */
+      requestAnimationFrame(() => {
+        gridApiRef.current?.odakAyarla(eklenenId, 'urunKoduAdi');
+      });
     },
     [kdvDahil, satirEkleBaglam]
   );

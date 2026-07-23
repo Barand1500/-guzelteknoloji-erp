@@ -46,7 +46,6 @@ function depoFormDogrula(form: DepoFormDegeri): string | null {
   if (!form.subeId) return 'Şube seçimi zorunludur';
   if (!kodGecerliMi(form.depoKodu)) return 'Depo kodu zorunludur (en fazla 20 harf/rakam)';
   if (!adGecerliMi(form.depoAdi)) return 'Depo adı zorunludur';
-  if (!postaKoduGecerliMi(form.postaKodu)) return 'Posta kodu 5 haneli olmalıdır';
   return null;
 }
 
@@ -55,9 +54,6 @@ function depoAdimDogrula(adim: number, form: DepoFormDegeri): string | null {
     if (!form.subeId) return 'Şube seçimi zorunludur';
     if (!kodGecerliMi(form.depoKodu)) return 'Depo kodu zorunludur';
     if (!adGecerliMi(form.depoAdi)) return 'Depo adı zorunludur';
-  }
-  if (adim === 1 && !postaKoduGecerliMi(form.postaKodu)) {
-    return 'Posta kodu 5 haneli olmalıdır';
   }
   return null;
 }
@@ -69,11 +65,21 @@ function depodanForm(d: AdminDepo): DepoFormDegeri {
     depoAdi: d.depoAdi,
     il: d.il,
     ilce: d.ilce,
-    mahalle: d.mahalle,
-    postaKodu: d.postaKodu,
+    mahalle: d.mahalle ?? '',
+    /* Posta kodu UI'dan kalktı; bozuk değer kaydı engellemesin */
+    postaKodu: postaKoduGecerliMi(d.postaKodu ?? '') ? (d.postaKodu ?? '') : '',
     adres: adresMetniniOku(d),
     aktif: d.aktif,
   };
+}
+
+function onizlemeDepoMu(v: unknown): v is AdminDepo {
+  return (
+    !!v &&
+    typeof v === 'object' &&
+    typeof (v as AdminDepo).id === 'string' &&
+    typeof (v as AdminDepo).depoKodu === 'string'
+  );
 }
 
 function formlarEsit(a: DepoFormDegeri, b: DepoFormDegeri): boolean {
@@ -89,19 +95,22 @@ export function DepoSekme({
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
   const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
-  const [kayitlar, setKayitlar] = useState<AdminDepo[]>([]);
+  const onizleme = onizlemeDepoMu(gomuluDuzenle?.onizleme) ? gomuluDuzenle.onizleme : null;
+  const [kayitlar, setKayitlar] = useState<AdminDepo[]>(() => (onizleme ? [onizleme] : []));
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
-  const [form, setForm] = useState<DepoFormDegeri>(bosDepoForm);
+  const [form, setForm] = useState<DepoFormDegeri>(() =>
+    onizleme ? depodanForm(onizleme) : bosDepoForm
+  );
   const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
   const [sihirbazAdim, setSihirbazAdim] = useState(0);
-  const [yukleniyor, setYukleniyor] = useState(true);
+  const [yukleniyor, setYukleniyor] = useState(!onizleme);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
   const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
 
   async function yukle() {
-    setYukleniyor(true);
+    if (!onizleme) setYukleniyor(true);
     try {
       const [depolar, subeListesi] = await Promise.all([depolariGetir(), subeleriGetir()]);
       setKayitlar(depolar);
@@ -122,7 +131,39 @@ export function DepoSekme({
     return kayitlar.filter((k) => k.subeId === subeFiltre);
   }, [kayitlar, subeFiltre]);
 
-  const aktifSubeler = useMemo(() => subeler.filter((s) => s.aktif), [subeler]);
+  const subeSecenekleri = useMemo(() => {
+    const aktif = subeler.filter((s) => s.aktif);
+    const mevcutId = form.subeId || onizleme?.subeId;
+    if (!mevcutId) return aktif;
+    if (aktif.some((s) => s.id === mevcutId)) return aktif;
+    const mevcut = subeler.find((s) => s.id === mevcutId);
+    if (mevcut) return [...aktif, mevcut];
+    if (onizleme?.subeId === mevcutId) {
+      return [
+        ...aktif,
+        {
+          id: onizleme.subeId,
+          firmaId: '',
+          subeKodu: onizleme.subeKodu || '—',
+          subeAdi: onizleme.subeAdi || '—',
+          il: '',
+          ilce: '',
+          mahalle: '',
+          postaKodu: '',
+          adres: '',
+          efaturaSeri: '',
+          earsivSeri: '',
+          eirsaliyeSeri: '',
+          mersis: '',
+          ticaretSicil: '',
+          aktif: true,
+          olusturma: '',
+          guncelleme: '',
+        } satisfies AdminSube,
+      ];
+    }
+    return aktif;
+  }, [subeler, form.subeId, onizleme]);
 
   const listeyeDon = useCallback(() => {
     if (gomuluDuzenle) {
@@ -139,16 +180,19 @@ export function DepoSekme({
     setSeciliId(null);
     setForm({
       ...bosDepoForm,
-      subeId: subeFiltre || aktifSubeler[0]?.id || '',
+      subeId: subeFiltre || subeSecenekleri[0]?.id || '',
     });
     setSihirbazAdim(0);
     setGorunum('ekle');
-  }, [subeFiltre, aktifSubeler]);
+  }, [subeFiltre, subeSecenekleri]);
 
-  const seciliKayit = useMemo(
-    () => (seciliId ? kayitlar.find((k) => k.id === seciliId) ?? null : null),
-    [seciliId, kayitlar]
-  );
+  const seciliKayit = useMemo(() => {
+    if (!seciliId) return null;
+    return (
+      kayitlar.find((k) => k.id === seciliId) ??
+      (onizleme?.id === seciliId ? onizleme : null)
+    );
+  }, [seciliId, kayitlar, onizleme]);
 
   const kirli = useMemo(() => {
     if (gorunum === 'duzenle' && seciliKayit) {
@@ -260,7 +304,7 @@ export function DepoSekme({
         <FormAcilirSecim
           value={form.subeId}
           onChange={(subeId) => setForm({ ...form, subeId })}
-          secenekler={aktifSubeler.map((s) => ({
+          secenekler={subeSecenekleri.map((s) => ({
             value: s.id,
             label: `${s.subeKodu} — ${s.subeAdi}`,
           }))}
@@ -285,7 +329,7 @@ export function DepoSekme({
     </>
   );
 
-  if (yukleniyor) return <TanimYukleniyor />;
+  if (yukleniyor && !gomuluDuzenle) return <TanimYukleniyor />;
 
   if (gorunum === 'ekle' && !gomuluDuzenle) {
     return (
@@ -338,7 +382,19 @@ export function DepoSekme({
   }
 
   if (gorunum === 'duzenle' || gomuluDuzenle) {
-    if (!seciliKayit) return <TanimYukleniyor />;
+    if (!seciliKayit) {
+      if (yukleniyor) return <TanimYukleniyor />;
+      return (
+        <TanimDuzenleEkrani
+          panel={gomuluDuzenle?.panel}
+          ustEtiket="Depo Düzenle"
+          baslik="Kayıt bulunamadı"
+          onGeri={listeyeDon}
+        >
+          <p className="ap-tanimlar-panel-alt">Bu depo yüklenemedi. Paneli kapatıp tekrar deneyin.</p>
+        </TanimDuzenleEkrani>
+      );
+    }
     return (
       <>
         <TanimDuzenleEkrani

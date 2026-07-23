@@ -6,6 +6,11 @@ export interface GomuluDuzenleSecenek {
   id: string;
   onKapat: () => void;
   panel?: boolean;
+  /**
+   * Grid satırından gelen anlık kayıt.
+   * API yeniden yüklenene kadar formu doldurur; sonsuz yükleme spinner'ını önler.
+   */
+  onizleme?: unknown;
 }
 
 export const TANIM_SEKMELER: { id: TanimSekmeId; ad: string; ikon: string }[] = [

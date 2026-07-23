@@ -2697,25 +2697,26 @@ td.dg-hucre--sabit,
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0;
-  line-height: 1;
+  gap: 0.28rem;
+  line-height: 1.15;
 }
 
 .dg-iskonto-hucre.dg-urun-kodu-adi-hucre {
   align-items: flex-start;
-  line-height: 1.2;
+  gap: 0.12rem;
+  line-height: 1.25;
 }
 
 .dg-iskonto-yuzde {
   font-size: 0.6rem;
-  line-height: 1;
+  line-height: 1.15;
   color: var(--ap-muted);
 }
 
 .dg-iskonto-tutar {
   font-size: 0.6875rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
   color: var(--ap-heading);
 }
@@ -2760,7 +2761,7 @@ td.dg-hucre--sabit,
 .dg-kdv-vurgu {
   font-size: 0.6875rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.15;
   color: var(--ap-accent);
 }
 

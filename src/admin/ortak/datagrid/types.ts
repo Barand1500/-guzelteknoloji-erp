@@ -103,6 +103,8 @@ export interface DataGridApi {
   sutunMenuToggle: (anchor?: HTMLElement | null) => void;
   hizliGirisOdakla: () => void;
   hizliGirisKapat: () => void;
+  /** Hücre odağını ayarla (klavye gezinmesi için) */
+  odakAyarla: (satirId: string, kolonId: string) => void;
   seciliIdler: () => string[];
   secimAyarla: (idler: string[]) => void;
 }
