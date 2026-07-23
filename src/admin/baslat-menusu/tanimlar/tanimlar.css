@@ -7799,6 +7799,7 @@ button.ap-tanimlar-panel-arka {
 .ap-tanimlar-donem-liste--yatay {
   flex-direction: row;
   flex-wrap: wrap;
+  align-items: flex-start;
   align-content: flex-start;
   gap: 0.75rem;
 }
@@ -7825,7 +7826,7 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-bilgi,
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-donem-bilgi {
-  flex: 1 1 100%;
+  flex: 1 1 12rem;
   min-width: 0;
 }
 
@@ -7837,6 +7838,7 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon,
 .ap-tanimlar-donem-satir--yatay .ap-tanimlar-sube-aksiyon {
+  position: relative;
   width: 100%;
   justify-content: flex-end;
   flex-wrap: wrap;
@@ -7849,6 +7851,53 @@ button.ap-tanimlar-panel-arka {
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-aksiyon .ap-tanimlar-ekle-grup {
   flex: 1 1 auto;
   justify-content: flex-start;
+}
+
+.ap-tanimlar-cizgi-aksiyon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.05rem;
+  flex-shrink: 0;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon,
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon {
+  position: absolute;
+  top: 0;
+  right: 0.35rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  padding: 0 0.12rem;
+  background: var(--ap-surface);
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus,
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  padding: 0 0.18rem;
+  background: transparent;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus .dg-svg-ikon,
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus svg,
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus .dg-svg-ikon,
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus:hover,
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus:hover {
+  background: transparent;
+  color: var(--ap-heading);
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus--tehlike:hover,
+.ap-tanimlar-donem-satir--yatay .ap-tanimlar-cizgi-aksiyon .ap-tanimlar-ikon-tus--tehlike:hover {
+  background: transparent;
+  color: #ef4444;
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-sube-alt {
@@ -7870,8 +7919,8 @@ button.ap-tanimlar-panel-arka {
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-alt-satir--ust {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 0.3rem 0.4rem;
   padding: 0;
 }
@@ -7881,7 +7930,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-sube-kart--yatay .ap-tanimlar-alt-satir--ust .ap-tanimlar-alt-ad {
-  flex: 1 1 8rem;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -7894,6 +7943,17 @@ button.ap-tanimlar-panel-arka {
   align-items: center;
   column-gap: 0.28rem;
   margin-left: auto;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ap-tanimlar-sube-kart--yatay .ap-tanimlar-alt-aksiyon--ekle {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.28rem;
   margin-top: 0.15rem;
   padding-top: 0.35rem;
   border-top: 1px dashed color-mix(in srgb, var(--ap-border) 75%, transparent);
@@ -8381,7 +8441,7 @@ button.ap-tanimlar-panel-arka {
 }
 
 .ap-tanimlar-firma-sube-alt > .ap-tanimlar-alt-satir {
-  /* Depo / kasa: ?ubeden bir basamak iÁeride (merdiven) */
+  /* Depo / kasa: ?ubeden bir basamak iùeride (merdiven) */
   padding-left: 4.55rem !important;
   padding-right: 0.5rem !important;
   margin: 0;
@@ -8453,12 +8513,12 @@ button.ap-tanimlar-panel-arka {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #38bdf8;
+  color: var(--ap-accent);
   min-width: 2.4rem;
 }
 
 .ap-tanimlar-alt-tip--kasa {
-  color: #34d399;
+  color: var(--ap-accent);
 }
 
 .ap-tanimlar-alt-ad {
@@ -8477,6 +8537,15 @@ button.ap-tanimlar-panel-arka {
   font-size: 0.7rem;
   font-weight: 500;
   color: var(--ap-text-muted);
+}
+
+.ap-tanimlar-alt-aksiyon--ekle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  padding: 0.2rem 0 0.05rem 1.7rem;
+  margin-left: 0;
+  grid-template-columns: none;
 }
 
 .ap-modul-panel:has(.ap-tanimlar-kayit-sayfa) .ap-tanimlar-icerik {
@@ -8586,20 +8655,32 @@ button.ap-tanimlar-panel-arka {
 .ap-tanimlar-modal-kaydet {
   appearance: none;
   margin: 0;
-  padding: 0.55rem 1.1rem;
+  padding: 0.5rem 1.15rem;
   border-radius: 0.625rem;
   font: inherit;
   font-size: 0.875rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
+.ap-tanimlar-modal-tus-metin {
+  display: block;
+}
+
 .ap-tanimlar-modal-kisayol {
-  font-size: 0.7rem;
-  font-weight: 600;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
   opacity: 0.72;
+  text-transform: uppercase;
 }
 
 .ap-tanimlar-modal-iptal {

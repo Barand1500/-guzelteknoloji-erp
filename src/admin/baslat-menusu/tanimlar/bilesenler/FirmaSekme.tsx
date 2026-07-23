@@ -269,7 +269,6 @@ export function FirmaSekme({
         deger={form.vergiNo}
         kural="vergiNo"
         onChange={(vergiNo) => setForm((f) => ({ ...f, vergiNo }))}
-        placeholder="10 haneli vergi numarası"
       />
     </>
   );

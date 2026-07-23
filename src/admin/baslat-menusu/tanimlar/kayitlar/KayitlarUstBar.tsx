@@ -52,7 +52,7 @@ export function KayitlarUstBar({
               disabled={firmaPasif}
               title={firmaPasif ? 'Pasif firma' : 'Seçili firmayı düzenle'}
             >
-              Firmayı düzenle
+              Firmayı Düzenle
             </button>
           ) : null}
         </div>

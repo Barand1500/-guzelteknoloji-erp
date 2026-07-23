@@ -90,27 +90,31 @@ export function DonemlerPaneli({
                 </span>
               </div>
               <div className="ap-tanimlar-sube-aksiyon">
-                {duzenlemeVar ? (
-                  <button
-                    type="button"
-                    className="ap-tanimlar-ikon-tus"
-                    title="Düzenle"
-                    aria-label={`${d.donemAdi} düzenle`}
-                    onClick={() => onDonemDuzenle(d)}
-                  >
-                    <DgIkon ad="duzenle" />
-                  </button>
-                ) : null}
-                {silmeVar ? (
-                  <button
-                    type="button"
-                    className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
-                    title="Sil"
-                    aria-label={`${d.donemAdi} sil`}
-                    onClick={() => onDonemSil(d)}
-                  >
-                    <DgIkon ad="sil" />
-                  </button>
+                {duzenlemeVar || silmeVar ? (
+                  <span className="ap-tanimlar-cizgi-aksiyon">
+                    {duzenlemeVar ? (
+                      <button
+                        type="button"
+                        className="ap-tanimlar-ikon-tus"
+                        title="Düzenle"
+                        aria-label={`${d.donemAdi} düzenle`}
+                        onClick={() => onDonemDuzenle(d)}
+                      >
+                        <DgIkon ad="duzenle" />
+                      </button>
+                    ) : null}
+                    {silmeVar ? (
+                      <button
+                        type="button"
+                        className="ap-tanimlar-ikon-tus ap-tanimlar-ikon-tus--tehlike"
+                        title="Sil"
+                        aria-label={`${d.donemAdi} sil`}
+                        onClick={() => onDonemSil(d)}
+                      >
+                        <DgIkon ad="sil" />
+                      </button>
+                    ) : null}
+                  </span>
                 ) : null}
               </div>
             </li>

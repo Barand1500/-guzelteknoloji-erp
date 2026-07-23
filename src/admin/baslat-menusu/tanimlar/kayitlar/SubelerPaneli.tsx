@@ -125,7 +125,7 @@ export function SubelerPaneli({
       ) : (
         <ul className={`ap-tanimlar-sube-liste${yatayKart ? ' ap-tanimlar-sube-liste--yatay' : ''}`}>
           {filtreli.map((s) => {
-            const acik = yatayKart || acikMi(s.id);
+            const acik = acikMi(s.id);
             const subeDepolari = depoBySube.get(s.id) ?? [];
             const subeKasalari = kasaBySube.get(s.id) ?? [];
             const altSayi = subeDepolari.length + subeKasalari.length;
@@ -139,17 +139,15 @@ export function SubelerPaneli({
                 onMouseLeave={() => onKayitHover?.(null)}
               >
                 <div className="ap-tanimlar-sube-satir">
-                  {!yatayKart ? (
-                    <button
-                      type="button"
-                      className="ap-tanimlar-sube-ac"
-                      onClick={() => toggle(s.id)}
-                      aria-expanded={acik}
-                      title={acik ? 'Daralt' : 'Depo / kasa göster'}
-                    >
-                      <span aria-hidden>{acik ? '▾' : '▸'}</span>
-                    </button>
-                  ) : null}
+                  <button
+                    type="button"
+                    className="ap-tanimlar-sube-ac"
+                    onClick={() => toggle(s.id)}
+                    aria-expanded={acik}
+                    title={acik ? 'Daralt' : 'Depo / kasa göster'}
+                  >
+                    <span aria-hidden>{acik ? '▾' : '▸'}</span>
+                  </button>
                   <div className="ap-tanimlar-sube-bilgi">
                     <span className="ap-tanimlar-sube-ad">{s.subeAdi}</span>
                     <span className="ap-tanimlar-sube-meta">
@@ -179,7 +177,7 @@ export function SubelerPaneli({
                         </>
                       ) : null}
                     </div>
-                    <div className="ap-tanimlar-ikon-grup">
+                    <div className="ap-tanimlar-ikon-grup ap-tanimlar-cizgi-aksiyon">
                       {duzenlemeVar ? (
                         <button
                           type="button"

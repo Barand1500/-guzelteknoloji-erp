@@ -61,7 +61,7 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
           }
           maxLength={500}
           rows={3}
-          placeholder="CADDE, SOKAK, BINA NO VE DIĞER ADRES BİLGİLERİ"
+          placeholder=""
           aria-label="Adres"
           autoComplete="off"
           autoCorrect="off"
@@ -106,7 +106,7 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
           }}
           secenekAra={turkiyeIlAra}
           minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
-          placeholder="EN AZ 2 HARF YAZIN…"
+          placeholder=""
           aria-label="İl"
         />
       </label>
@@ -125,7 +125,7 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
           secenekAra={ilSecildi ? ilceAra : undefined}
           minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
           disabled={!ilSecildi}
-          placeholder={ilSecildi ? 'EN AZ 2 HARF YAZIN…' : 'ÖNCE İL SEÇİN'}
+          placeholder=""
           aria-label="İlçe"
         />
       </label>

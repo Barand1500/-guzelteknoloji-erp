@@ -34,7 +34,7 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
         buyukHarf
         secenekler={secenekler}
         minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
-        placeholder="En az 2 harf yazın…"
+        placeholder=""
         aria-label="Vergi dairesi"
       />
     </label>

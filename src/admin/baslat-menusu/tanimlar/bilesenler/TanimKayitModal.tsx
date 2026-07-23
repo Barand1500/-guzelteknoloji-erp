@@ -460,7 +460,6 @@ export function TanimKayitModal({
                   deger={firmaForm.vergiNo}
                   kural="vergiNo"
                   onChange={(vergiNo) => setFirmaForm((f) => ({ ...f, vergiNo }))}
-                  placeholder="10 haneli vergi numarası"
                 />
               </div>
             )}
@@ -493,21 +492,18 @@ export function TanimKayitModal({
                     etiket="e-Fatura Seri"
                     deger={subeForm.efaturaSeri}
                     kural="ebelgeSeri"
-                    placeholder="ABC"
                     onChange={(efaturaSeri) => setSubeForm((f) => ({ ...f, efaturaSeri }))}
                   />
                   <TanimGirdi
                     etiket="e-Arşiv Seri"
                     deger={subeForm.earsivSeri}
                     kural="ebelgeSeri"
-                    placeholder="ABC"
                     onChange={(earsivSeri) => setSubeForm((f) => ({ ...f, earsivSeri }))}
                   />
                   <TanimGirdi
                     etiket="e-İrsaliye Seri"
                     deger={subeForm.eirsaliyeSeri}
                     kural="ebelgeSeri"
-                    placeholder="ABC"
                     onChange={(eirsaliyeSeri) => setSubeForm((f) => ({ ...f, eirsaliyeSeri }))}
                   />
                 </div>
@@ -515,7 +511,6 @@ export function TanimKayitModal({
                   etiket="MERSİS"
                   deger={subeForm.mersis}
                   kural="mersis"
-                  placeholder="16 haneli numara"
                   onChange={(mersis) => setSubeForm((f) => ({ ...f, mersis }))}
                 />
                 <TanimGirdi
@@ -635,7 +630,8 @@ export function TanimKayitModal({
               onClick={kapat}
               disabled={kaydediliyor}
             >
-              İptal <span className="ap-tanimlar-modal-kisayol">(Esc)</span>
+              <span className="ap-tanimlar-modal-tus-metin">İptal</span>
+              <span className="ap-tanimlar-modal-kisayol">(ESC)</span>
             </button>
             <button
               type="button"
@@ -643,8 +639,10 @@ export function TanimKayitModal({
               onClick={() => void kaydet()}
               disabled={kaydediliyor}
             >
-              {kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}{' '}
-              <span className="ap-tanimlar-modal-kisayol">(Enter)</span>
+              <span className="ap-tanimlar-modal-tus-metin">
+                {kaydediliyor ? 'Kaydediliyor…' : 'Kaydet'}
+              </span>
+              <span className="ap-tanimlar-modal-kisayol">(ENTER)</span>
             </button>
           </div>
         </div>
