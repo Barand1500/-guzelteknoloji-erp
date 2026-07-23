@@ -1164,6 +1164,38 @@
   margin-bottom: 0;
 }
 
+.cari-bolum-kucult {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-heading));
+  color: var(--ap-text-muted);
+  line-height: 0;
+  cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    color 0.14s ease,
+    background 0.14s ease;
+}
+
+.cari-bolum-kucult svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.cari-bolum-kucult:hover {
+  border-color: color-mix(in srgb, var(--ap-border) 55%, var(--ap-text));
+  color: var(--ap-heading);
+  background: var(--ap-surface);
+}
+
 .cari-iletisim-bolumu:has(.cari-iletisim-liste) .cari-iletisim-baslik-satir {
   margin-bottom: 0.85rem;
 }

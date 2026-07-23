@@ -260,7 +260,13 @@ export function CariDosyaDokumanBolumu({
 
   const veriVar = deger.notlar.length > 0 || deger.dosyalar.length > 0;
   const [acik, setAcik] = useState(veriVar);
-  const panelAcik = acik || veriVar;
+  const [bolumAcildi, setBolumAcildi] = useState(veriVar);
+  const panelAcik = acik;
+
+  const bolumuIlkAc = () => {
+    setAcik(true);
+    setBolumAcildi(true);
+  };
 
   const yazarAdi = kullanici?.ad?.trim() || 'Kullanıcı';
 
@@ -553,11 +559,11 @@ export function CariDosyaDokumanBolumu({
     <section className="cari-dokuman-bolumu">
       <div className="cari-iletisim-baslik-satir">
         <h3 className="cari-iletisim-baslik">Dosya ve Dökümanlar</h3>
-        {!disabled && !panelAcik ? (
+        {!bolumAcildi && !disabled ? (
           <button
             type="button"
             className="cari-iletisim-ekle"
-            onClick={() => setAcik(true)}
+            onClick={bolumuIlkAc}
             title="Dosya ve döküman alanını aç"
             aria-label="Dosya ve doküman alanını aç"
           >
@@ -567,6 +573,26 @@ export function CariDosyaDokumanBolumu({
                 stroke="currentColor"
                 strokeWidth="2.2"
                 strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        ) : null}
+        {bolumAcildi ? (
+          <button
+            type="button"
+            className="cari-bolum-kucult"
+            onClick={() => setAcik((v) => !v)}
+            title={acik ? 'Küçült' : 'Aç'}
+            aria-label={acik ? 'Dosya ve döküman alanını küçült' : 'Dosya ve döküman alanını aç'}
+            aria-expanded={acik}
+          >
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
+              <path
+                d={acik ? 'M4.2 9.8 8 6.2l3.8 3.6' : 'M4.2 6.2 8 9.8l3.8-3.6'}
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </button>

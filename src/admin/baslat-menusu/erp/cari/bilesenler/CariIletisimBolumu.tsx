@@ -57,9 +57,12 @@ export function CariIletisimBolumu({
   const [adresCekildi, setAdresCekildi] = useState<Record<string, true>>({});
   const [silinecekId, setSilinecekId] = useState<string | null>(null);
   const [baslikOdakId, setBaslikOdakId] = useState<string | null>(null);
+  const [acik, setAcik] = useState(kisiler.length > 0);
   const bosFormVar = kisiler.some((k) => iletisimKisiBosMu(k));
   const ustAdres = varsayilanAdres.trim();
   const silinecek = silinecekId ? kisiler.find((k) => k.id === silinecekId) : undefined;
+  const panelAcik = acik && kisiler.length > 0;
+  const kucultGoster = kisiler.length > 0;
 
   const kisiGuncelle = (id: string, parca: Partial<CariIletisimKisi>) => {
     onChange(kisiler.map((k) => (k.id === id ? { ...k, ...parca } : k)));
@@ -72,6 +75,7 @@ export function CariIletisimBolumu({
   const kisiEkle = () => {
     if (bosFormVar) return;
     onChange([bosIletisimKisi(varsayilanIl, varsayilanIlce), ...kisiler]);
+    setAcik(true);
   };
 
   const adresiCek = (id: string) => {
@@ -103,9 +107,29 @@ export function CariIletisimBolumu({
             </svg>
           </button>
         ) : null}
+        {kucultGoster ? (
+          <button
+            type="button"
+            className="cari-bolum-kucult"
+            onClick={() => setAcik((v) => !v)}
+            title={acik ? 'Küçült' : 'Aç'}
+            aria-label={acik ? 'Adres iletişim alanını küçült' : 'Adres iletişim alanını aç'}
+            aria-expanded={acik}
+          >
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
+              <path
+                d={acik ? 'M4.2 9.8 8 6.2l3.8 3.6' : 'M4.2 6.2 8 9.8l3.8-3.6'}
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : null}
       </div>
 
-      {kisiler.length > 0 ? (
+      {panelAcik ? (
         <div className="cari-iletisim-liste">
           {kisiler.map((kisi, index) => {
             const cekGoster = !disabled && !!ustAdres && !adresCekildi[kisi.id];
@@ -155,6 +179,7 @@ export function CariIletisimBolumu({
                     maxLength={120}
                     odakPlaceholder="Ad ve soyad"
                     disabled={disabled}
+                    buyukHarf
                     onChange={(adSoyad) => kisiGuncelle(kisi.id, { adSoyad })}
                   />
                   <CariOutlinedGirdi
@@ -163,6 +188,7 @@ export function CariIletisimBolumu({
                     maxLength={80}
                     odakPlaceholder="Görevi"
                     disabled={disabled}
+                    buyukHarf
                     onChange={(gorevi) => kisiGuncelle(kisi.id, { gorevi })}
                   />
                   <CariOutlinedGirdi
