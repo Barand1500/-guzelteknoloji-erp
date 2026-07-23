@@ -429,18 +429,43 @@ export function TanimKayitlarOzeti() {
     [yukle, seciliFirmaId]
   );
 
+  const aksiyonEkleTipi = useMemo((): KayitTipi | null => {
+    if (
+      tipFiltre === 'firma' ||
+      tipFiltre === 'sube' ||
+      tipFiltre === 'depo' ||
+      tipFiltre === 'kasa' ||
+      tipFiltre === 'donem'
+    ) {
+      return tipFiltre;
+    }
+    return null;
+  }, [tipFiltre]);
+
+  const aksiyonEkle = useCallback(() => {
+    if (!aksiyonEkleTipi) {
+      hataBildir('Yeni eklemek için önce tip filtresinden kayıt türü seçin (Firma, Şube, Depo…)');
+      return;
+    }
+    ekleAc(aksiyonEkleTipi);
+  }, [aksiyonEkleTipi, ekleAc, hataBildir]);
+
   useModulAksiyonlari(
     {
-      ekle: eklemeVar
-        ? () => ekleAc(tipFiltre === 'firma' || tipFiltre === 'sube' || tipFiltre === 'depo' || tipFiltre === 'kasa' || tipFiltre === 'donem' ? tipFiltre : seciliFirmaId ? 'sube' : 'firma')
-        : undefined,
+      ekle: eklemeVar ? aksiyonEkle : undefined,
       sil: undefined,
     },
     {
-      ekle: eklemeVar && (tipFiltre === 'firma' || !!seciliFirmaId),
+      ekle:
+        eklemeVar &&
+        !!aksiyonEkleTipi &&
+        (aksiyonEkleTipi === 'firma' || !!seciliFirmaId),
       sil: false,
     },
-    false
+    false,
+    {
+      ekle: aksiyonEkleTipi ? `Yeni ${TIP_ETIKET[aksiyonEkleTipi]}` : 'Yeni Ekle',
+    }
   );
 
   const kolonlar = useMemo((): KolonTanimi<TanimSatir>[] => {
