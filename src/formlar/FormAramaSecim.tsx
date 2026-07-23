@@ -68,22 +68,9 @@ function listeKonumuHesapla(anchor: HTMLElement) {
   }
   if (left < KENAR_BOSLUK) left = KENAR_BOSLUK;
 
+  /* Her zaman aşağı aç — alan altta kalsa bile yukarı taşma yok */
   const asagiBosluk = window.innerHeight - rect.bottom - KENAR_BOSLUK;
-  const yukariBosluk = rect.top - KENAR_BOSLUK;
-  const listeHedefH = 240;
-
-  /* Panel altta (aksiyon çubuğu üstü) ise listeyi yukarı aç — aksi halde görünmez */
-  if (asagiBosluk < listeHedefH && yukariBosluk > asagiBosluk) {
-    const maxHeight = Math.max(120, Math.min(320, yukariBosluk - 4));
-    return {
-      top: Math.max(KENAR_BOSLUK, rect.top - maxHeight - 4),
-      left,
-      width: genislik,
-      maxHeight,
-    };
-  }
-
-  const maxHeight = Math.max(120, Math.min(320, asagiBosluk));
+  const maxHeight = Math.max(100, Math.min(280, Math.max(asagiBosluk, 100)));
   return { top: rect.bottom + 4, left, width: genislik, maxHeight };
 }
 
@@ -176,9 +163,26 @@ export function FormAramaSecim({
 
   const aramaYeterli = value.trim().length >= minAramaUzunlugu;
   const oneriGoster = acik && aramaYeterli;
+  const kaydirildiRef = useRef(false);
 
-  const konumGuncelle = useCallback(() => {
+  const konumGuncelle = useCallback((kaydir = false) => {
     if (!kapsayiciRef.current) return;
+
+    const input = inputRef.current;
+    if (kaydir && input && !kaydirildiRef.current) {
+      const scrollParent = input.closest(
+        '.dg-duzenle-govde, .ap-tanimlar-panel-govde, .ap-scroll'
+      ) as HTMLElement | null;
+      if (scrollParent) {
+        const parentRect = scrollParent.getBoundingClientRect();
+        const inputRect = input.getBoundingClientRect();
+        if (parentRect.bottom - inputRect.bottom < 160) {
+          kaydirildiRef.current = true;
+          input.scrollIntoView({ block: 'center', inline: 'nearest' });
+        }
+      }
+    }
+
     const { top, left, width, maxHeight } = listeKonumuHesapla(kapsayiciRef.current);
     setListeStil({
       position: 'fixed',
@@ -197,13 +201,17 @@ export function FormAramaSecim({
   useSekmeDegisinceYenile(sekmeSonrasi);
 
   useLayoutEffect(() => {
-    if (!oneriGoster) return;
-    konumGuncelle();
-    window.addEventListener('resize', konumGuncelle);
-    window.addEventListener('scroll', konumGuncelle, true);
+    if (!oneriGoster) {
+      kaydirildiRef.current = false;
+      return;
+    }
+    konumGuncelle(true);
+    const scrollIleGuncelle = () => konumGuncelle();
+    window.addEventListener('resize', scrollIleGuncelle);
+    window.addEventListener('scroll', scrollIleGuncelle, true);
     return () => {
-      window.removeEventListener('resize', konumGuncelle);
-      window.removeEventListener('scroll', konumGuncelle, true);
+      window.removeEventListener('resize', scrollIleGuncelle);
+      window.removeEventListener('scroll', scrollIleGuncelle, true);
     };
   }, [oneriGoster, konumGuncelle, filtrelenmis.length, aramaYukleniyor]);
 
@@ -266,13 +274,15 @@ export function FormAramaSecim({
           oneriGoster && filtrelenmis[odakIndex] ? `${listeId}-oge-${odakIndex}` : undefined
         }
         role="combobox"
-        autoComplete="off"
+        autoComplete="new-password"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
         data-lpignore="true"
         data-1p-ignore="true"
+        data-bwignore="true"
         data-form-type="other"
+        inputMode="search"
         name={`ap-arama-${listeId.replace(/:/g, '')}`}
         onChange={(e) => {
           onChange(e.target.value);
