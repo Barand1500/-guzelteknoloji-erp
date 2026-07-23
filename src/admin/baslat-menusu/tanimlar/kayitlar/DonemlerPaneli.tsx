@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { AdminDonem } from '@/admin/baslat-menusu/tanimlar/tipler';
+import type { TanimModalHedef } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitModal';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+
+type DuzenleHoverHedef = Extract<TanimModalHedef, { mod: 'duzenle' }>;
 
 interface DonemlerPaneliProps {
   donemler: AdminDonem[];
@@ -9,6 +12,7 @@ interface DonemlerPaneliProps {
   duzenlemeVar: boolean;
   silmeVar: boolean;
   firmaPasif: boolean;
+  onKayitHover?: (hedef: DuzenleHoverHedef | null) => void;
   onDonemEkle: () => void;
   onDonemDuzenle: (d: AdminDonem) => void;
   onDonemSil: (d: AdminDonem) => void;
@@ -21,6 +25,7 @@ export function DonemlerPaneli({
   duzenlemeVar,
   silmeVar,
   firmaPasif,
+  onKayitHover,
   onDonemEkle,
   onDonemDuzenle,
   onDonemSil,
@@ -71,6 +76,11 @@ export function DonemlerPaneli({
             <li
               key={d.id}
               className={`ap-tanimlar-donem-satir${yatayKart ? ' ap-tanimlar-donem-satir--yatay' : ''}${!d.aktif ? ' ap-tanimlar-donem-satir--pasif' : ''}`}
+              title={duzenlemeVar ? 'G: düzenle' : undefined}
+              onMouseEnter={() =>
+                onKayitHover?.({ tip: 'donem', mod: 'duzenle', kayit: d })
+              }
+              onMouseLeave={() => onKayitHover?.(null)}
             >
               <div className="ap-tanimlar-donem-bilgi">
                 <span className="ap-tanimlar-donem-ad">{d.donemAdi}</span>

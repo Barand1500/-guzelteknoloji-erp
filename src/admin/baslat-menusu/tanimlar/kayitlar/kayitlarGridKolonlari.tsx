@@ -2,12 +2,6 @@ import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import type { TanimSatir } from './tipler';
 
-function hucreMetin(deger: string) {
-  const v = deger.trim();
-  if (!v) return <span className="ap-tanimlar-hucre-bos">—</span>;
-  return <span className="ap-tanimlar-hucre-metin">{v}</span>;
-}
-
 /** Göz (tablo) görünümü — boş başlıklı sütun yok. */
 export function kayitlarGridKolonlari(): KolonTanimi<TanimSatir>[] {
   return [
@@ -31,19 +25,6 @@ export function kayitlarGridKolonlari(): KolonTanimi<TanimSatir>[] {
       zorunlu: true,
       siralama: true,
       degerAl: (s) => s.ad,
-    },
-    {
-      id: 'baglam',
-      baslik: 'Bağlam',
-      tip: 'metin',
-      genislik: 180,
-      minGenislik: 130,
-      siralama: true,
-      degerAl: (s) => (s.tip === 'sube' ? '' : s.baglamMetin),
-      goster: (s) => {
-        if (s.tip === 'sube' || s.tip === 'firma') return hucreMetin('');
-        return hucreMetin(s.baglamMetin);
-      },
     },
     {
       id: 'durum',

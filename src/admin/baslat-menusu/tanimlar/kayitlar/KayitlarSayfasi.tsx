@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   TanimKayitModal,
   type TanimModalHedef,
@@ -29,6 +29,16 @@ import { TIP_ETIKET, type KayitTipi, type SilmeHedef, type TanimSatir } from './
 import { useKayitlarVeri } from './useKayitlarVeri';
 
 type FirmaIcSekme = 'subeler' | 'donemler';
+type DuzenleHoverHedef = Extract<TanimModalHedef, { mod: 'duzenle' }>;
+
+function satirDuzenleHedefi(satir: TanimSatir): DuzenleHoverHedef | null {
+  if (satir.tip === 'firma') return { tip: 'firma', mod: 'duzenle', kayit: satir.kayit as AdminFirma };
+  if (satir.tip === 'sube') return { tip: 'sube', mod: 'duzenle', kayit: satir.kayit as AdminSube };
+  if (satir.tip === 'depo') return { tip: 'depo', mod: 'duzenle', kayit: satir.kayit as AdminDepo };
+  if (satir.tip === 'kasa') return { tip: 'kasa', mod: 'duzenle', kayit: satir.kayit as AdminKasa };
+  if (satir.tip === 'donem') return { tip: 'donem', mod: 'duzenle', kayit: satir.kayit as AdminDonem };
+  return null;
+}
 
 function GozIkon({ kapali }: { kapali?: boolean }) {
   if (kapali) {
@@ -101,6 +111,11 @@ export function KayitlarSayfasi() {
   const [yatayKart, setYatayKart] = useState(false);
   const [modalHedef, setModalHedef] = useState<TanimModalHedef | null>(null);
   const [sonEkleTipi, setSonEkleTipi] = useState<KayitTipi>('firma');
+  const hoverDuzenleRef = useRef<DuzenleHoverHedef | null>(null);
+
+  const kayitHoverAyarla = useCallback((hedef: DuzenleHoverHedef | null) => {
+    hoverDuzenleRef.current = hedef;
+  }, []);
 
   useEffect(() => {
     setRehberModulId('tanimlar');
@@ -110,7 +125,31 @@ export function KayitlarSayfasi() {
   useEffect(() => {
     setGozAcik(false);
     setYatayKart(false);
+    hoverDuzenleRef.current = null;
   }, [seciliFirmaId]);
+
+  useEffect(() => {
+    hoverDuzenleRef.current = null;
+  }, [icSekme, gozAcik, yatayKart]);
+
+  useEffect(() => {
+    if (!duzenlemeVar) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'g' && e.key !== 'G') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (modalHedef || silinecek || bagliSil) return;
+      const hedef = hoverDuzenleRef.current;
+      if (!hedef) return;
+      e.preventDefault();
+      setModalHedef(hedef);
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [duzenlemeVar, modalHedef, silinecek, bagliSil]);
 
   const firmaDonemleri = useMemo(
     () => donemler.filter((d) => d.firmaId === seciliFirmaId),
@@ -360,7 +399,7 @@ export function KayitlarSayfasi() {
                   tabloBaslik=""
                   kolonlar={kolonlar}
                   satirlar={gridSatirlari}
-                  depolamaAnahtari="tanimlar-kayitlar-goz-v3"
+                  depolamaAnahtari="tanimlar-kayitlar-goz-v4"
                   kompakt
                   formulMenuGoster={false}
                   sutunSabitleGoster={false}
@@ -371,6 +410,17 @@ export function KayitlarSayfasi() {
                   }
                   onSatirTikla={duzenlemeVar ? duzenleAc : undefined}
                   onSatirDuzenle={duzenlemeVar ? duzenleAc : undefined}
+                  onSatirHover={
+                    duzenlemeVar
+                      ? (satir) => {
+                          if (!satir) {
+                            kayitHoverAyarla(null);
+                            return;
+                          }
+                          kayitHoverAyarla(satirDuzenleHedefi(satir));
+                        }
+                      : undefined
+                  }
                   onSatirSil={silmeVar ? gridSil : undefined}
                   satirSinifAdi={satirSinifAdi}
                 />
@@ -385,6 +435,7 @@ export function KayitlarSayfasi() {
                 duzenlemeVar={duzenlemeVar}
                 silmeVar={silmeVar}
                 firmaPasif={firmaPasif}
+                onKayitHover={duzenlemeVar ? kayitHoverAyarla : undefined}
                 onSubeEkle={() => ekleAc('sube')}
                 onSubeDuzenle={(s) =>
                   setModalHedef({ tip: 'sube', mod: 'duzenle', kayit: s })
@@ -409,6 +460,7 @@ export function KayitlarSayfasi() {
                 duzenlemeVar={duzenlemeVar}
                 silmeVar={silmeVar}
                 firmaPasif={firmaPasif}
+                onKayitHover={duzenlemeVar ? kayitHoverAyarla : undefined}
                 onDonemEkle={() => ekleAc('donem')}
                 onDonemDuzenle={(d) =>
                   setModalHedef({ tip: 'donem', mod: 'duzenle', kayit: d })

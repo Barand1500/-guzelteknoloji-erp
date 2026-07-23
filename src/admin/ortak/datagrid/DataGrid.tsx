@@ -350,6 +350,7 @@ export function DataGrid<TRow extends { id: string }>({
   onSatirTikla,
   onSatirDuzenle,
   onSatirSil,
+  onSatirHover,
   hizliGirisIstegeBagli = false,
   hizliGirisVarsayilanAlan = false,
   formulMenuGoster = true,
@@ -1130,6 +1131,18 @@ export function DataGrid<TRow extends { id: string }>({
       hucreVeyaSatirDuzenle(satir, kolon);
       return;
     }
+    // G: satır düzenleme (modal / panel) — hücre düzenlemesi yoksa
+    if ((e.key === 'g' || e.key === 'G') && !duzenleme && !ctrl && !e.altKey) {
+      e.preventDefault();
+      if (onSatirDuzenle) {
+        onSatirDuzenle(satir);
+        return;
+      }
+      if (satirDuzenlePaneli) {
+        setSatirPanel(satir);
+      }
+      return;
+    }
     // Enter: yalnızca seçenekli hücrelerde (birim, pb vb.) düzenleme aç
     if (e.key === 'Enter' && !duzenleme) {
       e.preventDefault();
@@ -1452,8 +1465,14 @@ export function DataGrid<TRow extends { id: string }>({
           key={satir.id}
           data-satir-id={satir.id}
           className={`dg-satir${secili ? ' dg-satir--secili' : ''}${hover ? ' dg-satir--hover' : ''}${duzenleme?.satirId === satir.id ? ' dg-satir--duzenleniyor' : ''}${tiklanabilir ? ' dg-satir--tiklanabilir' : ''}${ekSatirSinif ? ` ${ekSatirSinif}` : ''}`}
-          onMouseEnter={() => setHoverSatirId(satir.id)}
-          onMouseLeave={() => setHoverSatirId(null)}
+          onMouseEnter={() => {
+            setHoverSatirId(satir.id);
+            onSatirHover?.(satir);
+          }}
+          onMouseLeave={() => {
+            setHoverSatirId(null);
+            onSatirHover?.(null);
+          }}
           onClick={(e) => {
             if (!onSatirTikla) return;
             const hedef = e.target as HTMLElement;

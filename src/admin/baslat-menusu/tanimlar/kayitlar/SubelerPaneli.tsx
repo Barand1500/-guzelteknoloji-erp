@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { AdminDepo, AdminKasa, AdminSube } from '@/admin/baslat-menusu/tanimlar/tipler';
+import type { TanimModalHedef } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitModal';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+
+type DuzenleHoverHedef = Extract<TanimModalHedef, { mod: 'duzenle' }>;
 
 interface SubelerPaneliProps {
   subeler: AdminSube[];
@@ -11,6 +14,7 @@ interface SubelerPaneliProps {
   duzenlemeVar: boolean;
   silmeVar: boolean;
   firmaPasif: boolean;
+  onKayitHover?: (hedef: DuzenleHoverHedef | null) => void;
   onSubeEkle: () => void;
   onSubeDuzenle: (s: AdminSube) => void;
   onSubeSil: (s: AdminSube) => void;
@@ -31,6 +35,7 @@ export function SubelerPaneli({
   duzenlemeVar,
   silmeVar,
   firmaPasif,
+  onKayitHover,
   onSubeEkle,
   onSubeDuzenle,
   onSubeSil,
@@ -124,10 +129,14 @@ export function SubelerPaneli({
             const subeDepolari = depoBySube.get(s.id) ?? [];
             const subeKasalari = kasaBySube.get(s.id) ?? [];
             const altSayi = subeDepolari.length + subeKasalari.length;
+            const subeHover: DuzenleHoverHedef = { tip: 'sube', mod: 'duzenle', kayit: s };
             return (
               <li
                 key={s.id}
                 className={`ap-tanimlar-sube-kart${yatayKart ? ' ap-tanimlar-sube-kart--yatay' : ''}${!s.aktif ? ' ap-tanimlar-sube-kart--pasif' : ''}`}
+                title={duzenlemeVar ? 'G: düzenle' : undefined}
+                onMouseEnter={() => onKayitHover?.(subeHover)}
+                onMouseLeave={() => onKayitHover?.(null)}
               >
                 <div className="ap-tanimlar-sube-satir">
                   {!yatayKart ? (
@@ -205,6 +214,15 @@ export function SubelerPaneli({
                           <div
                             key={d.id}
                             className={`ap-tanimlar-alt-satir${!d.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
+                            title={duzenlemeVar ? 'G: düzenle' : undefined}
+                            onMouseEnter={(e) => {
+                              e.stopPropagation();
+                              onKayitHover?.({ tip: 'depo', mod: 'duzenle', kayit: d });
+                            }}
+                            onMouseLeave={(e) => {
+                              e.stopPropagation();
+                              onKayitHover?.(subeHover);
+                            }}
                           >
                             <span className="ap-tanimlar-alt-tip">Depo</span>
                             <span className="ap-tanimlar-alt-ad">
@@ -241,6 +259,15 @@ export function SubelerPaneli({
                           <div
                             key={k.id}
                             className={`ap-tanimlar-alt-satir${!k.aktif ? ' ap-tanimlar-alt-satir--pasif' : ''}`}
+                            title={duzenlemeVar ? 'G: düzenle' : undefined}
+                            onMouseEnter={(e) => {
+                              e.stopPropagation();
+                              onKayitHover?.({ tip: 'kasa', mod: 'duzenle', kayit: k });
+                            }}
+                            onMouseLeave={(e) => {
+                              e.stopPropagation();
+                              onKayitHover?.(subeHover);
+                            }}
                           >
                             <span className="ap-tanimlar-alt-tip ap-tanimlar-alt-tip--kasa">
                               Kasa
