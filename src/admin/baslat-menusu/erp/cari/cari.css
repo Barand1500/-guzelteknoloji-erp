@@ -1210,24 +1210,29 @@
 
 .cari-iletisim-ekle {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  box-sizing: border-box;
+  display: inline-grid;
+  place-content: center;
+  place-items: center;
   width: 1.45rem;
   height: 1.45rem;
   padding: 0;
+  margin: 0;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
   color: var(--ap-accent);
   line-height: 0;
+  font-size: 0;
   cursor: pointer;
 }
 
 .cari-iletisim-ekle svg {
   display: block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: 0;
   flex-shrink: 0;
-  transform: translateX(0.5px);
 }
 
 .cari-iletisim-ekle:disabled {
