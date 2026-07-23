@@ -87,6 +87,8 @@ interface FormAramaSecimProps {
   'aria-label'?: string;
   /** Liste satırında özel içerik (ör. bayrak + ad). */
   ogeIcerik?: (secenek: string) => ReactNode;
+  /** Yazarken / seçince Türkçe büyük harf */
+  buyukHarf?: boolean;
 }
 
 export function FormAramaSecim({
@@ -101,6 +103,7 @@ export function FormAramaSecim({
   disabled = false,
   'aria-label': ariaLabel,
   ogeIcerik,
+  buyukHarf = false,
 }: FormAramaSecimProps) {
   const listeId = useId();
   const kapsayiciRef = useRef<HTMLDivElement>(null);
@@ -163,36 +166,30 @@ export function FormAramaSecim({
 
   const aramaYeterli = value.trim().length >= minAramaUzunlugu;
   const oneriGoster = acik && aramaYeterli;
-  const kaydirildiRef = useRef(false);
 
-  const konumGuncelle = useCallback((kaydir = false) => {
-    if (!kapsayiciRef.current) return;
-
-    const input = inputRef.current;
-    if (kaydir && input && !kaydirildiRef.current) {
-      const scrollParent = input.closest(
-        '.dg-duzenle-govde, .ap-tanimlar-panel-govde, .ap-scroll'
-      ) as HTMLElement | null;
-      if (scrollParent) {
-        const parentRect = scrollParent.getBoundingClientRect();
-        const inputRect = input.getBoundingClientRect();
-        if (parentRect.bottom - inputRect.bottom < 160) {
-          kaydirildiRef.current = true;
-          input.scrollIntoView({ block: 'center', inline: 'nearest' });
-        }
-      }
-    }
-
+  const stilHesapla = useCallback((): CSSProperties | null => {
+    if (!kapsayiciRef.current) return null;
     const { top, left, width, maxHeight } = listeKonumuHesapla(kapsayiciRef.current);
-    setListeStil({
+    return {
       position: 'fixed',
       top,
       left,
       width,
       maxHeight,
       zIndex: LISTE_Z_INDEX,
-    });
+    };
   }, []);
+
+  const konumGuncelle = useCallback(() => {
+    const stil = stilHesapla();
+    if (stil) setListeStil(stil);
+  }, [stilHesapla]);
+
+  const listeyiHazirla = useCallback(() => {
+    const stil = stilHesapla();
+    if (stil) setListeStil(stil);
+    setAcik(true);
+  }, [stilHesapla]);
 
   const sekmeSonrasi = useCallback(() => {
     if (!acik) return;
@@ -201,11 +198,8 @@ export function FormAramaSecim({
   useSekmeDegisinceYenile(sekmeSonrasi);
 
   useLayoutEffect(() => {
-    if (!oneriGoster) {
-      kaydirildiRef.current = false;
-      return;
-    }
-    konumGuncelle(true);
+    if (!oneriGoster) return;
+    konumGuncelle();
     const scrollIleGuncelle = () => konumGuncelle();
     window.addEventListener('resize', scrollIleGuncelle);
     window.addEventListener('scroll', scrollIleGuncelle, true);
@@ -217,8 +211,14 @@ export function FormAramaSecim({
 
   useLayoutEffect(() => {
     if (!oneriGoster || !listeRef.current) return;
-    const el = listeRef.current.querySelector<HTMLElement>(`[data-odak-index="${odakIndex}"]`);
-    el?.scrollIntoView({ block: 'nearest' });
+    const liste = listeRef.current;
+    const el = liste.querySelector<HTMLElement>(`[data-odak-index="${odakIndex}"]`);
+    if (!el) return;
+    /** scrollIntoView düzenle panelini kaydırır; yalnızca liste içinde kaydır */
+    const lRect = liste.getBoundingClientRect();
+    const oRect = el.getBoundingClientRect();
+    if (oRect.bottom > lRect.bottom) liste.scrollTop += oRect.bottom - lRect.bottom;
+    else if (oRect.top < lRect.top) liste.scrollTop -= lRect.top - oRect.top;
   }, [odakIndex, oneriGoster, filtrelenmis]);
 
   useEffect(() => {
@@ -247,14 +247,15 @@ export function FormAramaSecim({
   }, [acik]);
 
   const sec = (yeni: string) => {
-    onChange(yeni);
-    onSecildi?.(yeni);
+    const deger = buyukHarf ? yeni.toLocaleUpperCase('tr') : yeni;
+    onChange(deger);
+    onSecildi?.(deger);
     setAcik(false);
     inputRef.current?.focus();
   };
 
   const alanAc = () => {
-    if (aramaYeterli) setAcik(true);
+    if (aramaYeterli) listeyiHazirla();
   };
 
   return (
@@ -274,9 +275,9 @@ export function FormAramaSecim({
           oneriGoster && filtrelenmis[odakIndex] ? `${listeId}-oge-${odakIndex}` : undefined
         }
         role="combobox"
-        autoComplete="new-password"
+        autoComplete="off"
         autoCorrect="off"
-        autoCapitalize="off"
+        autoCapitalize={buyukHarf ? 'characters' : 'off'}
         spellCheck={false}
         data-lpignore="true"
         data-1p-ignore="true"
@@ -285,8 +286,10 @@ export function FormAramaSecim({
         inputMode="search"
         name={`ap-arama-${listeId.replace(/:/g, '')}`}
         onChange={(e) => {
-          onChange(e.target.value);
-          if (e.target.value.trim().length >= minAramaUzunlugu) setAcik(true);
+          const ham = e.target.value;
+          const sonraki = buyukHarf ? ham.toLocaleUpperCase('tr') : ham;
+          onChange(sonraki);
+          if (sonraki.trim().length >= minAramaUzunlugu) listeyiHazirla();
           else setAcik(false);
         }}
         onFocus={alanAc}
@@ -294,7 +297,7 @@ export function FormAramaSecim({
           if (e.key === 'ArrowDown') {
             e.preventDefault();
             if (!acik && aramaYeterli) {
-              setAcik(true);
+              listeyiHazirla();
               setOdakIndex(0);
               return;
             }
@@ -305,7 +308,7 @@ export function FormAramaSecim({
           if (e.key === 'ArrowUp') {
             e.preventDefault();
             if (!acik && aramaYeterli) {
-              setAcik(true);
+              listeyiHazirla();
               setOdakIndex(0);
               return;
             }
@@ -322,7 +325,7 @@ export function FormAramaSecim({
         }}
       />
 
-      {oneriGoster
+      {oneriGoster && listeStil.position === 'fixed'
         ? createPortal(
             <ul
               ref={listeRef}
@@ -340,6 +343,7 @@ export function FormAramaSecim({
                 filtrelenmis.map((secenek, index) => {
                   const seciliMi = normalizeMetin(secenek) === normalizeMetin(value);
                   const odakMi = index === odakIndex;
+                  const goster = buyukHarf ? secenek.toLocaleUpperCase('tr') : secenek;
                   return (
                     <li key={`${secenek}-${index}`}>
                       <button
@@ -353,7 +357,7 @@ export function FormAramaSecim({
                         onMouseEnter={() => setOdakIndex(index)}
                         onClick={() => sec(secenek)}
                       >
-                        {ogeIcerik ? ogeIcerik(secenek) : secenek}
+                        {ogeIcerik ? ogeIcerik(secenek) : goster}
                       </button>
                     </li>
                   );

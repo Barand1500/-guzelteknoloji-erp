@@ -27,7 +27,7 @@ export type AksiyonId =
   | 'stokFiyatDuzenle';
 
 export interface AksiyonHandlerlar {
-  kaydet?: () => Promise<void> | void;
+  kaydet?: () => Promise<boolean | void> | boolean | void;
   hizliKaydet?: () => Promise<void> | void;
   guncelle?: () => Promise<void> | void;
   ekle?: () => void;
@@ -255,7 +255,8 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
       const aksiyonId = id as AksiyonId;
 
       try {
-        if (id === 'kaydet' && handlers.kaydet) await handlers.kaydet();
+        let sonuc: boolean | void = undefined;
+        if (id === 'kaydet' && handlers.kaydet) sonuc = await handlers.kaydet();
         else if (id === 'hizliKaydet' && handlers.hizliKaydet) await handlers.hizliKaydet();
         else if (id === 'guncelle' && handlers.guncelle) await handlers.guncelle();
         else if (id === 'ekle' && handlers.ekle) handlers.ekle();
@@ -271,6 +272,9 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
         else if (id === 'stokBirimListesi' && handlers.stokBirimListesi) handlers.stokBirimListesi();
         else if (id === 'stokFiyatDuzenle' && handlers.stokFiyatDuzenle) handlers.stokFiyatDuzenle();
         else return false;
+
+        /* Handler false dönerse kendi bildirimini göstermiş demektir */
+        if (sonuc === false) return false;
 
         if (bildirimGoster && AKSİYON_BASARI[aksiyonId]) {
           aksiyonGeriBildirimiGoster(aksiyonId);

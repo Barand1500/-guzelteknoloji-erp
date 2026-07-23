@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import type { AdresFormDegeri } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { tanimBuyukHarf } from '@/admin/baslat-menusu/tanimlar/alanKurallari';
 import { TanimFormBolum } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFormBolum';
 import { formInputSinifi } from '@/formlar/FormAlani';
 import { FormAramaSecim } from '@/formlar/FormAramaSecim';
@@ -31,7 +32,12 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
 
   const adresGuncelle = useCallback(
     (alanlar: Partial<AdresFormDegeri>) => {
-      onChange(adresSifirla(degerRef.current, alanlar));
+      const buyuk: Partial<AdresFormDegeri> = {};
+      for (const [k, v] of Object.entries(alanlar)) {
+        buyuk[k as keyof AdresFormDegeri] =
+          typeof v === 'string' ? tanimBuyukHarf(v) : (v as never);
+      }
+      onChange(adresSifirla(degerRef.current, buyuk));
     },
     [onChange]
   );
@@ -50,21 +56,34 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
         <textarea
           className={`${formInputSinifi} ap-tanimlar-adres-metin`}
           value={deger.adres}
-          onChange={(e) => adresGuncelle({ adres: e.target.value.slice(0, 500) })}
+          onChange={(e) =>
+            adresGuncelle({ adres: tanimBuyukHarf(e.target.value).slice(0, 500) })
+          }
           maxLength={500}
           rows={3}
-          placeholder="Cadde, sokak, bina no ve diğer adres bilgileri"
+          placeholder="CADDE, SOKAK, BINA NO VE DIĞER ADRES BİLGİLERİ"
           aria-label="Adres"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          data-lpignore="true"
+          data-1p-ignore="true"
+          data-bwignore="true"
+          data-form-type="other"
+          name="ap-tanim-adres-metin"
         />
       </label>
       <label className="ap-tanimlar-secim-alan block">
         <span className="ap-tanim-girdi-etiket">İl</span>
         <FormAramaSecim
           value={deger.il}
+          buyukHarf
           onChange={(il) => {
             const mevcut = degerRef.current;
-            const kanonik = turkiyeIlKayitliMi(il) ? turkiyeIlAdiniDuzelt(il) : il;
-            if (kanonik !== mevcut.il) void turkiyeIlceOnbellekYukle(kanonik);
+            const kanonikHam = turkiyeIlKayitliMi(il) ? turkiyeIlAdiniDuzelt(il) : il;
+            const kanonik = tanimBuyukHarf(kanonikHam);
+            if (kanonik !== mevcut.il) void turkiyeIlceOnbellekYukle(kanonikHam);
             adresGuncelle({
               il: kanonik,
               ilce: kanonik !== mevcut.il ? '' : mevcut.ilce,
@@ -73,9 +92,10 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
             });
           }}
           onSecildi={(il) => {
-            const duzeltilmis = turkiyeIlAdiniDuzelt(il);
-            void turkiyeIlceOnbellekYukle(duzeltilmis);
-            if (duzeltilmis !== il) {
+            const duzeltilmisHam = turkiyeIlAdiniDuzelt(il);
+            const duzeltilmis = tanimBuyukHarf(duzeltilmisHam);
+            void turkiyeIlceOnbellekYukle(duzeltilmisHam);
+            if (duzeltilmis !== tanimBuyukHarf(il)) {
               adresGuncelle({
                 il: duzeltilmis,
                 ilce: '',
@@ -86,7 +106,7 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
           }}
           secenekAra={turkiyeIlAra}
           minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
-          placeholder="En az 2 harf yazın…"
+          placeholder="EN AZ 2 HARF YAZIN…"
           aria-label="İl"
         />
       </label>
@@ -94,6 +114,7 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
         <span className="ap-tanim-girdi-etiket">İlçe</span>
         <FormAramaSecim
           value={deger.ilce}
+          buyukHarf
           onChange={(ilce) => {
             adresGuncelle({
               ilce,
@@ -104,7 +125,7 @@ export function OrtakAdresFormu({ deger, onChange, bolumsuz = false }: OrtakAdre
           secenekAra={ilSecildi ? ilceAra : undefined}
           minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
           disabled={!ilSecildi}
-          placeholder={ilSecildi ? 'En az 2 harf yazın…' : 'Önce il seçin'}
+          placeholder={ilSecildi ? 'EN AZ 2 HARF YAZIN…' : 'ÖNCE İL SEÇİN'}
           aria-label="İlçe"
         />
       </label>

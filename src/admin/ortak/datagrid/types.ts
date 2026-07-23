@@ -103,6 +103,9 @@ export interface DataGridApi {
   sutunMenuToggle: (anchor?: HTMLElement | null) => void;
   hizliGirisOdakla: () => void;
   hizliGirisKapat: () => void;
+  /** Hızlı giriş satırı açıksa kaydı gönderir (Enter / + ile aynı) */
+  hizliGirisKaydet: () => void | Promise<boolean>;
+  hizliGirisAcikMi: () => boolean;
   /** Hücre odağını ayarla (klavye gezinmesi için) */
   odakAyarla: (satirId: string, kolonId: string) => void;
   seciliIdler: () => string[];
@@ -147,6 +150,8 @@ export interface DataGridProps<TRow extends { id: string }> {
   onSatirSil?: (satir: TRow) => void;
   /** true ise hızlı giriş satırı yalnızca hizliGirisOdakla ile açılır */
   hizliGirisIstegeBagli?: boolean;
+  /** Hızlı giriş satırının açık/kapalı durumu değişince */
+  onHizliGirisAcikDegisti?: (acik: boolean) => void;
   /** true ise tanımlı olmayan veri kolonları için varsayılan metin kutusu gösterilir */
   hizliGirisVarsayilanAlan?: boolean;
   /** false ise üst araç çubuğundaki sayı formülleri (ƒx) gizlenir */

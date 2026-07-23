@@ -3,6 +3,7 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -22,8 +23,13 @@ export interface FormAcilirSecimSecenek {
 }
 
 interface FormAcilirSecimProps {
-  value: string;
-  onChange: (value: string) => void;
+  value?: string;
+  onChange?: (value: string) => void;
+  /** Çoklu seçim: seçili değerler */
+  values?: readonly string[];
+  onChangeCoklu?: (values: string[]) => void;
+  /** true ise listede checkbox ile birden fazla seçim */
+  coklu?: boolean;
   secenekler: readonly FormAcilirSecimSecenek[];
   className?: string;
   listeSinifi?: string;
@@ -133,9 +139,26 @@ function listeKonumuHesapla(
   return { top: ust, left, width: genislik, maxHeight, usteAc: false as const };
 }
 
+function cokluEtiket(
+  secenekler: readonly FormAcilirSecimSecenek[],
+  values: readonly string[]
+): string {
+  if (!values.length) return 'Seçin';
+  const etiketler = values
+    .map((v) => secenekler.find((s) => s.value === v)?.label)
+    .filter(Boolean) as string[];
+  if (!etiketler.length) return `${values.length} seçili`;
+  if (etiketler.length === 1) return etiketler[0];
+  if (etiketler.length === 2) return `${etiketler[0]}, ${etiketler[1]}`;
+  return `${etiketler[0]} +${etiketler.length - 1}`;
+}
+
 export function FormAcilirSecim({
-  value,
+  value = '',
   onChange,
+  values,
+  onChangeCoklu,
+  coklu = false,
   secenekler,
   className = '',
   listeSinifi = '',
@@ -153,35 +176,71 @@ export function FormAcilirSecim({
   const listeRef = useRef<HTMLUListElement>(null);
   const [acik, setAcik] = useState(false);
   const [listeStil, setListeStil] = useState<CSSProperties>({});
+  const [usteAcik, setUsteAcik] = useState(false);
   const [odakIndex, setOdakIndex] = useState(0);
 
+  const seciliDegerler = useMemo(
+    () => (coklu ? [...(values ?? [])] : value ? [value] : []),
+    [coklu, values, value]
+  );
+  const seciliSet = useMemo(() => new Set(seciliDegerler), [seciliDegerler]);
+
   const secili = secenekler.find((s) => s.value === value);
-  const gosterilenEtiket = tusMetin ?? secili?.label ?? (value ? String(value) : 'Seçin');
+  const gosterilenEtiket =
+    tusMetin ??
+    (coklu ? cokluEtiket(secenekler, seciliDegerler) : (secili?.label ?? (value ? String(value) : 'Seçin')));
   const inlineListe = listeInline;
 
   const seciliIndex = Math.max(
     0,
-    secenekler.findIndex((s) => s.value === value)
+    secenekler.findIndex((s) => seciliSet.has(s.value))
   );
 
-  const konumGuncelle = useCallback(() => {
-    if (!tusRef.current || inlineListe) return;
+  const stilHesapla = useCallback((): { stil: CSSProperties; usteAc: boolean } | null => {
+    if (!tusRef.current || inlineListe) return null;
+    /** Düzenle / satır panelinde portal listeyi her zaman aşağı aç */
+    const panelIci = Boolean(
+      tusRef.current.closest('.dg-duzenle, .dg-satir-panel-cubuk, .ap-tanimlar-duzenle')
+    );
+    const yon = panelIci ? 'asagi' : listeYonu;
     const sonuc = listeKonumuHesapla(
       tusRef.current,
       listeMinGenislik,
       listeAnchor,
       listeDikeyBosluk,
-      listeYonu
+      yon
     );
-    setListeStil({
-      position: 'fixed',
-      left: sonuc.left,
-      width: sonuc.width,
-      maxHeight: sonuc.maxHeight,
-      zIndex: 10300,
-      ...(sonuc.usteAc ? { bottom: sonuc.bottom } : { top: sonuc.top }),
-    });
+    return {
+      usteAc: sonuc.usteAc,
+      stil: {
+        position: 'fixed',
+        left: sonuc.left,
+        width: sonuc.width,
+        maxHeight: sonuc.maxHeight,
+        zIndex: 13000,
+        ...(sonuc.usteAc
+          ? { top: 'auto', bottom: sonuc.bottom }
+          : { bottom: 'auto', top: sonuc.top }),
+      },
+    };
   }, [inlineListe, listeMinGenislik, listeAnchor, listeDikeyBosluk, listeYonu]);
+
+  const konumGuncelle = useCallback(() => {
+    const hesap = stilHesapla();
+    if (!hesap) return;
+    setUsteAcik(hesap.usteAc);
+    setListeStil(hesap.stil);
+  }, [stilHesapla]);
+
+  const listeyiAc = useCallback(() => {
+    const hesap = stilHesapla();
+    if (hesap) {
+      setUsteAcik(hesap.usteAc);
+      setListeStil(hesap.stil);
+    }
+    setOdakIndex(seciliIndex);
+    setAcik(true);
+  }, [stilHesapla, seciliIndex]);
 
   const sekmeSonrasi = useCallback(() => {
     if (!acik || inlineListe) return;
@@ -205,22 +264,26 @@ export function FormAcilirSecim({
     if (!acik || inlineListe) return;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (tusRef.current && listeRef.current) {
-          acilirListeGorunurKaydir(tusRef.current, listeRef.current, 16, listeYonu);
+        if (!tusRef.current || !listeRef.current) return;
+        /** Portal overlay: düzenle panelini kaydırma — modal yapısı bozulmasın */
+        if (tusRef.current.closest('.dg-duzenle, .dg-satir-panel-cubuk, .ap-tanimlar-duzenle')) {
+          return;
         }
+        acilirListeGorunurKaydir(tusRef.current, listeRef.current, 16, listeYonu);
       });
     });
   }, [acik, inlineListe, listeYonu]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!acik) return;
-    setOdakIndex(seciliIndex);
-  }, [acik, seciliIndex]);
-
-  useEffect(() => {
-    if (!acik) return;
+    const liste = listeRef.current;
     const el = document.getElementById(`${listeId}-oge-${odakIndex}`);
-    el?.scrollIntoView({ block: 'nearest' });
+    if (!liste || !el) return;
+    /** scrollIntoView dış paneli kaydırır → liste alanın üstüne biner; sadece liste içinde kaydır */
+    const lRect = liste.getBoundingClientRect();
+    const oRect = el.getBoundingClientRect();
+    if (oRect.bottom > lRect.bottom) liste.scrollTop += oRect.bottom - lRect.bottom;
+    else if (oRect.top < lRect.top) liste.scrollTop -= lRect.top - oRect.top;
   }, [acik, odakIndex, listeId]);
 
   useEffect(() => {
@@ -237,18 +300,25 @@ export function FormAcilirSecim({
     return () => document.removeEventListener('mousedown', disTik);
   }, [acik]);
 
-  const sec = (yeni: string) => {
-    onChange(yeni);
+  const tekSec = (yeni: string) => {
+    onChange?.(yeni);
     setAcik(false);
     tusRef.current?.focus();
   };
 
+  const cokluToggle = (yeni: string) => {
+    if (!onChangeCoklu) return;
+    const mevcut = seciliDegerler;
+    const sonraki = mevcut.includes(yeni)
+      ? mevcut.filter((v) => v !== yeni)
+      : [...mevcut, yeni];
+    onChangeCoklu(sonraki);
+  };
+
   const acKapat = () => {
     if (disabled) return;
-    setAcik((o) => {
-      if (!o) setOdakIndex(seciliIndex);
-      return !o;
-    });
+    if (acik) setAcik(false);
+    else listeyiAc();
   };
 
   const tusTuslari = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -257,8 +327,7 @@ export function FormAcilirSecim({
     if (!acik) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        setOdakIndex(seciliIndex);
-        setAcik(true);
+        listeyiAc();
       }
       return;
     }
@@ -276,7 +345,9 @@ export function FormAcilirSecim({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       const hedef = secenekler[odakIndex];
-      if (hedef) sec(hedef.value);
+      if (!hedef) return;
+      if (coklu) cokluToggle(hedef.value);
+      else tekSec(hedef.value);
       return;
     }
     if (e.key === 'Escape') {
@@ -290,31 +361,44 @@ export function FormAcilirSecim({
     <ul
       ref={listeRef}
       id={listeId}
-      className={`ap-form-acilir-secim-liste${listeSinifi ? ` ${listeSinifi}` : ''}${inlineListe ? ' ap-form-acilir-secim-liste--inline' : ''}${listeYonu === 'yukari' ? ' ap-form-acilir-secim-liste--uste' : ''}`.trim()}
-      role="listbox"
+      className={`ap-form-acilir-secim-liste${listeSinifi ? ` ${listeSinifi}` : ''}${inlineListe ? ' ap-form-acilir-secim-liste--inline' : ''}${usteAcik ? ' ap-form-acilir-secim-liste--uste' : ''}${coklu ? ' ap-form-acilir-secim-liste--coklu' : ''}`.trim()}
+      role={coklu ? 'group' : 'listbox'}
       aria-label={ariaLabel}
       style={inlineListe ? undefined : listeStil}
     >
-      {secenekler.map((s, index) => {
-        const seciliMi = s.value === value;
-        const odakMi = index === odakIndex;
-        return (
-          <li key={s.value}>
-            <button
-              type="button"
-              id={`${listeId}-oge-${index}`}
-              role="option"
-              aria-selected={seciliMi || odakMi}
-              className={`ap-form-acilir-secim-oge${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}${odakMi ? ' ap-form-acilir-secim-oge-odak' : ''}`}
-              onMouseDown={(e) => e.preventDefault()}
-              onMouseEnter={() => setOdakIndex(index)}
-              onClick={() => sec(s.value)}
-            >
-              {s.label}
-            </button>
-          </li>
-        );
-      })}
+      {secenekler.length === 0 ? (
+        <li className="ap-form-acilir-secim-bos">Seçenek yok</li>
+      ) : (
+        secenekler.map((s, index) => {
+          const seciliMi = seciliSet.has(s.value);
+          const odakMi = index === odakIndex;
+          return (
+            <li key={s.value}>
+              <button
+                type="button"
+                id={`${listeId}-oge-${index}`}
+                role={coklu ? 'checkbox' : 'option'}
+                aria-checked={coklu ? seciliMi : undefined}
+                aria-selected={!coklu ? seciliMi || odakMi : undefined}
+                className={`ap-form-acilir-secim-oge${coklu ? ' ap-form-acilir-secim-oge--coklu' : ''}${seciliMi ? ' ap-form-acilir-secim-oge-secili' : ''}${odakMi ? ' ap-form-acilir-secim-oge-odak' : ''}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onMouseEnter={() => setOdakIndex(index)}
+                onClick={() => (coklu ? cokluToggle(s.value) : tekSec(s.value))}
+              >
+                {coklu ? (
+                  <span
+                    className={`ap-form-acilir-secim-check${seciliMi ? ' ap-form-acilir-secim-check--on' : ''}`}
+                    aria-hidden
+                  >
+                    {seciliMi ? '✓' : ''}
+                  </span>
+                ) : null}
+                <span className="ap-form-acilir-secim-oge-metin">{s.label}</span>
+              </button>
+            </li>
+          );
+        })
+      )}
     </ul>
   );
 
@@ -326,7 +410,7 @@ export function FormAcilirSecim({
         className={`${formSelectSinifi} ap-form-acilir-secim-tus ${className}`.trim()}
         disabled={disabled}
         aria-label={ariaLabel}
-        aria-haspopup="listbox"
+        aria-haspopup={coklu ? 'true' : 'listbox'}
         aria-expanded={acik}
         aria-controls={acik ? listeId : undefined}
         aria-activedescendant={acik ? `${listeId}-oge-${odakIndex}` : undefined}
@@ -342,7 +426,9 @@ export function FormAcilirSecim({
       {acik
         ? inlineListe
           ? listeIcerik
-          : createPortal(listeIcerik, sekmePortalHedefi(tusRef.current))
+          : listeStil.position === 'fixed'
+            ? createPortal(listeIcerik, sekmePortalHedefi(tusRef.current))
+            : null
         : null}
     </div>
   );

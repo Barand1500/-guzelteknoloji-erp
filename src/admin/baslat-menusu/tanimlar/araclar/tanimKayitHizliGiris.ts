@@ -46,6 +46,9 @@ export function tanimEkleEtiketi(tip: TanimSekmeId): string {
 
 export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] {
   const kodFiltre = (ham: string) => alanDegeriniFiltrele('kod', ham);
+  const adFiltre = (ham: string) => alanDegeriniFiltrele('ad', ham);
+  const metinFiltre = (ham: string) => alanDegeriniFiltrele('serbestMetin', ham);
+  const vergiNoFiltre = (ham: string) => alanDegeriniFiltrele('vergiNo', ham);
   switch (tip) {
     case 'firma':
       return [
@@ -54,11 +57,16 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
           birlesikDikey: true,
           birlesik: [
             { kolonId: 'firmaKodu', placeholder: 'Firma kodu', degerFiltrele: kodFiltre },
-            { kolonId: 'firmaAdi', placeholder: 'Firma adı' },
+            { kolonId: 'firmaAdi', placeholder: 'Firma adı', degerFiltrele: metinFiltre },
           ],
         },
-        { kolonId: 'vergiDairesi', placeholder: 'Vergi dairesi' },
-        { kolonId: 'vergiNo', placeholder: 'Vergi no', ipucu: '10 haneli vergi no' },
+        { kolonId: 'vergiDairesi', placeholder: 'Vergi dairesi', degerFiltrele: metinFiltre },
+        {
+          kolonId: 'vergiNo',
+          placeholder: 'Vergi no',
+          ipucu: '10 haneli vergi no',
+          degerFiltrele: vergiNoFiltre,
+        },
         DURUM_GIRIS,
       ];
     case 'sube':
@@ -68,7 +76,7 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
           birlesikDikey: true,
           birlesik: [
             { kolonId: 'subeKodu', placeholder: 'Şube kodu', degerFiltrele: kodFiltre },
-            { kolonId: 'subeAdi', placeholder: 'Şube adı' },
+            { kolonId: 'subeAdi', placeholder: 'Şube adı', degerFiltrele: adFiltre },
           ],
         },
         DURUM_GIRIS,
@@ -80,7 +88,7 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
           birlesikDikey: true,
           birlesik: [
             { kolonId: 'donemKodu', placeholder: 'Dönem kodu', degerFiltrele: kodFiltre },
-            { kolonId: 'donemAdi', placeholder: 'Dönem adı' },
+            { kolonId: 'donemAdi', placeholder: 'Dönem adı', degerFiltrele: metinFiltre },
           ],
         },
         DURUM_GIRIS,
@@ -92,7 +100,7 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
           birlesikDikey: true,
           birlesik: [
             { kolonId: 'depoKodu', placeholder: 'Depo kodu', degerFiltrele: kodFiltre },
-            { kolonId: 'depoAdi', placeholder: 'Depo adı' },
+            { kolonId: 'depoAdi', placeholder: 'Depo adı', degerFiltrele: adFiltre },
           ],
         },
         DURUM_GIRIS,
@@ -104,7 +112,7 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
           birlesikDikey: true,
           birlesik: [
             { kolonId: 'kasaKodu', placeholder: 'Kasa kodu', degerFiltrele: kodFiltre },
-            { kolonId: 'kasaAdi', placeholder: 'Kasa adı' },
+            { kolonId: 'kasaAdi', placeholder: 'Kasa adı', degerFiltrele: adFiltre },
           ],
         },
         {
@@ -170,7 +178,7 @@ export async function tanimHizliGirisKaydet(
     const vergiNo = alanDegeriniFiltrele('vergiNo', degerler.vergiNo ?? '');
     if (!kodGecerliMi(kod)) return { ok: false, mesaj: 'Firma kodu zorunludur' };
     if (!adGecerliMi(ad, 255)) return { ok: false, mesaj: 'Firma adı zorunludur' };
-    if (!vergiNoGecerliMi(vergiNo) || vergiNo.length !== 10) {
+    if (!vergiNoGecerliMi(vergiNo)) {
       return { ok: false, mesaj: 'Vergi no 10 haneli olmalıdır' };
     }
     const form = { ...bosFirmaForm, firmaKodu: kod, firmaAdi: ad, vergiDairesi, vergiNo, aktif };

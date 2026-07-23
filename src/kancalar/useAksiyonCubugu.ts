@@ -48,6 +48,8 @@ const MODUL_VARSAYILAN: Record<string, Partial<Record<StandartAksiyonId, Aksiyon
   'kisayol-ayarlari': { kaydet: a(true) },
   kullanicilar: { kaydet: a(true), ekle: a(), sil: a() },
   roller: { kaydet: a(), ekle: a(), sil: a() },
+  /** Kaydet yalnızca hızlı giriş / düzenle paneli handler bağlayınca aktif olsun */
+  tanimlar: { kaydet: { aktif: false }, ekle: a(), sil: { aktif: false }, guncelle: { aktif: false } },
   'datagrid-demo': { sil: { aktif: false }, guncelle: { aktif: false } },
   loglar: { sil: a() },
 };

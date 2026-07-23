@@ -20,8 +20,21 @@ function panelKokBul(el: Element | null): HTMLElement | null {
  * Açılır liste / modal portal hedefi — sekme paneline bağlanır.
  * Gizli sekme display:none iken overlay başka sekmeye sızmaz;
  * keep-alive ile geri dönünce açık state korunur.
+ *
+ * Aksiyon çubuğu üstü satır paneli (Depo/Kasa düzenle) footer stacking
+ * context’inde (z-index 40). Listeyi ap-modul-panel’e basmak listeyi
+ * panelin ARKASINA düşürür — combobox “açılmıyor” gibi görünür.
  */
 export function sekmePortalHedefi(trigger?: HTMLElement | null, sekmeId?: string | null): HTMLElement {
+  /* Footer / düzenle paneli z-index 40 — listeyi admin-panel'e bas ki üstte kalsın */
+  if (
+    trigger?.closest(
+      '.dg-satir-panel-cubuk, .ap-gorev-cubugu, .ap-footer, .dg-duzenle, .ap-tanimlar-duzenle'
+    )
+  ) {
+    return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
+  }
+
   if (trigger) {
     const kok = panelKokBul(trigger);
     if (kok) return kok;

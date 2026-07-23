@@ -201,6 +201,8 @@ export function TanimKayitlarOzeti() {
   const gridApiRef = useRef<DataGridApi | null>(null);
   const [seciliSatirSayisi, setSeciliSatirSayisi] = useState(0);
   const [yukleniyor, setYukleniyor] = useState(true);
+  const [hizliGirisAcik, setHizliGirisAcik] = useState(false);
+  const [aksiyonSurum, setAksiyonSurum] = useState(0);
   const [firmalar, setFirmalar] = useState<AdminFirma[]>([]);
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [depolar, setDepolar] = useState<AdminDepo[]>([]);
@@ -310,15 +312,26 @@ export function TanimKayitlarOzeti() {
     gridApiRef.current?.hizliGirisOdakla();
   }, []);
 
+  const aksiyonKaydet = useCallback(async (): Promise<boolean> => {
+    await gridApiRef.current?.hizliGirisKaydet?.();
+    /* Bildirim hizliGirisKaydet içinde; çubuk “Kaydedildi” göstermesin */
+    return false;
+  }, [aksiyonSurum]);
+
   useModulAksiyonlari(
-    { ekle: yeniEkle },
-    { ekle: eklemeVar },
+    { ekle: yeniEkle, kaydet: aksiyonKaydet },
+    {
+      ekle: eklemeVar,
+      /* false yazma — düzenle panelinin kaydet:true durumunu ezmesin */
+      ...(eklemeVar && hizliGirisAcik ? { kaydet: true } : {}),
+    },
     undefined,
     { ekle: ekleEtiketi }
   );
 
   useEffect(() => {
     gridApiRef.current?.hizliGirisKapat();
+    setHizliGirisAcik(false);
     setSeciliSatirSayisi(0);
   }, [konum, aktifKayitTipi]);
 
@@ -376,6 +389,8 @@ export function TanimKayitlarOzeti() {
     (onKapat: () => void) => {
       void yukle();
       onKapat();
+      /* Düzenle paneli unmount olunca kaydet handler silinir — yeniden bağla */
+      setAksiyonSurum((s) => s + 1);
     },
     [yukle]
   );
@@ -700,6 +715,7 @@ export function TanimKayitlarOzeti() {
       hizliGirisVarsayilanAlan: true,
       hizliGirisKolonlari: eklemeVar ? tanimHizliGirisKolonlari(aktifKayitTipi) : undefined,
       onHizliGiris: eklemeVar ? hizliGirisKaydet : undefined,
+      onHizliGirisAcikDegisti: setHizliGirisAcik,
       onSecimDegistir: (ids: string[]) => setSeciliSatirSayisi(ids.length),
     }),
     [yukleniyor, satirDuzenlePaneli, aktifKayitTipi, hizliGirisKaydet, duzenlemeVar, eklemeVar]

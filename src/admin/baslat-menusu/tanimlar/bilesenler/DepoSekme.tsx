@@ -306,7 +306,7 @@ export function DepoSekme({
           onChange={(subeId) => setForm({ ...form, subeId })}
           secenekler={subeSecenekleri.map((s) => ({
             value: s.id,
-            label: `${s.subeKodu} — ${s.subeAdi}`,
+            label: `${s.subeKodu} — ${s.subeAdi}`.toLocaleUpperCase('tr'),
           }))}
         />
       </label>

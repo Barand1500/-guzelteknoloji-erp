@@ -46,11 +46,18 @@ export function alanDegeriniFiltrele(tip: AlanKuralTipi, ham: string): string {
       return ham.replace(HARF_RAKAM, '').toLocaleUpperCase('tr').slice(0, max);
     case 'stokKod':
       return ham.replace(/[^a-zA-Z0-9.çğıöşüÇĞİÖŞÜ]/g, '').toLocaleUpperCase('tr').slice(0, max);
+    case 'ad':
+    case 'serbestMetin':
     case 'binaNo':
-      return ham.slice(0, max);
+      return ham.toLocaleUpperCase('tr').slice(0, max);
     default:
-      return ham.slice(0, max);
+      return ham.toLocaleUpperCase('tr').slice(0, max);
   }
+}
+
+/** Tanımlar ekranı serbest metin — yazarken Türkçe büyük harf */
+export function tanimBuyukHarf(ham: string): string {
+  return ham.toLocaleUpperCase('tr');
 }
 
 export function vergiNoGecerliMi(deger: string): boolean {

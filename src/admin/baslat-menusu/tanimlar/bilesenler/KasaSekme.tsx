@@ -56,13 +56,23 @@ function kasaAdimDogrula(adim: number, form: KasaFormDegeri): string | null {
 }
 
 function kasadanForm(k: AdminKasa): KasaFormDegeri {
+  const para = (k.paraBirimi ?? '').trim();
   return {
-    subeId: k.subeId,
-    kasaKodu: k.kasaKodu,
-    kasaAdi: k.kasaAdi,
-    paraBirimi: k.paraBirimi,
-    aktif: k.aktif,
+    subeId: k.subeId ?? '',
+    kasaKodu: k.kasaKodu ?? '',
+    kasaAdi: k.kasaAdi ?? '',
+    paraBirimi: para || 'TL',
+    aktif: k.aktif !== false,
   };
+}
+
+function onizlemeKasaMu(v: unknown): v is AdminKasa {
+  return (
+    !!v &&
+    typeof v === 'object' &&
+    typeof (v as AdminKasa).id === 'string' &&
+    typeof (v as AdminKasa).kasaKodu === 'string'
+  );
 }
 
 function formlarEsit(a: KasaFormDegeri, b: KasaFormDegeri): boolean {
@@ -78,19 +88,22 @@ export function KasaSekme({
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { subeBagliPasifMi } = useTanimFirmaDurumu();
   const { duzenlemeVar, eklemeVar, silmeVar } = useYetkiler('tanimlar');
-  const [kayitlar, setKayitlar] = useState<AdminKasa[]>([]);
+  const onizleme = onizlemeKasaMu(gomuluDuzenle?.onizleme) ? gomuluDuzenle.onizleme : null;
+  const [kayitlar, setKayitlar] = useState<AdminKasa[]>(() => (onizleme ? [onizleme] : []));
   const [subeler, setSubeler] = useState<AdminSube[]>([]);
   const [subeFiltre, setSubeFiltre] = useState('');
-  const [form, setForm] = useState<KasaFormDegeri>(bosKasaForm);
+  const [form, setForm] = useState<KasaFormDegeri>(() =>
+    onizleme ? kasadanForm(onizleme) : bosKasaForm
+  );
   const [gorunum, setGorunum] = useState<TanimGorunumModu>(gomuluDuzenle ? 'duzenle' : 'liste');
   const [sihirbazAdim, setSihirbazAdim] = useState(0);
-  const [yukleniyor, setYukleniyor] = useState(true);
+  const [yukleniyor, setYukleniyor] = useState(!onizleme);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silModalAcik, setSilModalAcik] = useState(false);
   const [seciliId, setSeciliId] = useState<string | null>(gomuluDuzenle?.id ?? null);
 
   async function yukle() {
-    setYukleniyor(true);
+    if (!onizleme) setYukleniyor(true);
     try {
       const [kasalar, subeListesi] = await Promise.all([kasalariGetir(), subeleriGetir()]);
       setKayitlar(kasalar);
@@ -111,7 +124,39 @@ export function KasaSekme({
     return kayitlar.filter((k) => k.subeId === subeFiltre);
   }, [kayitlar, subeFiltre]);
 
-  const aktifSubeler = useMemo(() => subeler.filter((s) => s.aktif), [subeler]);
+  const subeSecenekleri = useMemo(() => {
+    const aktif = subeler.filter((s) => s.aktif);
+    const mevcutId = form.subeId || onizleme?.subeId;
+    if (!mevcutId) return aktif;
+    if (aktif.some((s) => s.id === mevcutId)) return aktif;
+    const mevcut = subeler.find((s) => s.id === mevcutId);
+    if (mevcut) return [...aktif, mevcut];
+    if (onizleme?.subeId === mevcutId) {
+      return [
+        ...aktif,
+        {
+          id: onizleme.subeId,
+          firmaId: '',
+          subeKodu: onizleme.subeKodu || '—',
+          subeAdi: onizleme.subeAdi || '—',
+          il: '',
+          ilce: '',
+          mahalle: '',
+          postaKodu: '',
+          adres: '',
+          efaturaSeri: '',
+          earsivSeri: '',
+          eirsaliyeSeri: '',
+          mersis: '',
+          ticaretSicil: '',
+          aktif: true,
+          olusturma: '',
+          guncelleme: '',
+        } satisfies AdminSube,
+      ];
+    }
+    return aktif;
+  }, [subeler, form.subeId, onizleme]);
 
   const listeyeDon = useCallback(() => {
     if (gomuluDuzenle) {
@@ -128,16 +173,19 @@ export function KasaSekme({
     setSeciliId(null);
     setForm({
       ...bosKasaForm,
-      subeId: subeFiltre || aktifSubeler[0]?.id || '',
+      subeId: subeFiltre || subeSecenekleri[0]?.id || '',
     });
     setSihirbazAdim(0);
     setGorunum('ekle');
-  }, [subeFiltre, aktifSubeler]);
+  }, [subeFiltre, subeSecenekleri]);
 
-  const seciliKayit = useMemo(
-    () => (seciliId ? kayitlar.find((k) => k.id === seciliId) ?? null : null),
-    [seciliId, kayitlar]
-  );
+  const seciliKayit = useMemo(() => {
+    if (!seciliId) return null;
+    return (
+      kayitlar.find((k) => k.id === seciliId) ??
+      (onizleme?.id === seciliId ? onizleme : null)
+    );
+  }, [seciliId, kayitlar, onizleme]);
 
   const kirli = useMemo(() => {
     if (gorunum === 'duzenle' && seciliKayit) {
@@ -248,10 +296,10 @@ export function KasaSekme({
         <span className="ap-tanim-girdi-etiket">Şube *</span>
         <FormAcilirSecim
           value={form.subeId}
-          onChange={(subeId) => setForm({ ...form, subeId })}
-          secenekler={aktifSubeler.map((s) => ({
+          onChange={(subeId) => setForm((f) => ({ ...f, subeId }))}
+          secenekler={subeSecenekleri.map((s) => ({
             value: s.id,
-            label: `${s.subeKodu} — ${s.subeAdi}`,
+            label: `${s.subeKodu} — ${s.subeAdi}`.toLocaleUpperCase('tr'),
           }))}
         />
       </label>
@@ -261,28 +309,29 @@ export function KasaSekme({
           deger={form.kasaKodu}
           kural="kod"
           zorunlu
-          onChange={(kasaKodu) => setForm({ ...form, kasaKodu })}
+          autoFocus={Boolean(gomuluDuzenle)}
+          onChange={(kasaKodu) => setForm((f) => ({ ...f, kasaKodu }))}
         />
         <TanimGirdi
           etiket="Kasa Adı"
           deger={form.kasaAdi}
           kural="ad"
           zorunlu
-          onChange={(kasaAdi) => setForm({ ...form, kasaAdi })}
+          onChange={(kasaAdi) => setForm((f) => ({ ...f, kasaAdi }))}
         />
       </div>
       <label className="ap-tanimlar-secim-alan block">
         <span className="ap-tanim-girdi-etiket">Para Birimi *</span>
         <FormAcilirSecim
           value={form.paraBirimi}
-          onChange={(paraBirimi) => setForm({ ...form, paraBirimi })}
+          onChange={(paraBirimi) => setForm((f) => ({ ...f, paraBirimi }))}
           secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
         />
       </label>
     </>
   );
 
-  if (yukleniyor) return <TanimYukleniyor />;
+  if (yukleniyor && !gomuluDuzenle) return <TanimYukleniyor />;
 
   if (gorunum === 'ekle' && !gomuluDuzenle) {
     return (
@@ -306,7 +355,10 @@ export function KasaSekme({
               baslik: 'Durum',
               aciklama: 'Kasanın aktif/pasif durumunu belirleyin',
               icerik: (
-                <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+                <OrtakDurumAlani
+                  aktif={form.aktif}
+                  onChange={(aktif) => setForm((f) => ({ ...f, aktif }))}
+                />
               ),
             },
           ]}
@@ -324,20 +376,35 @@ export function KasaSekme({
   }
 
   if (gorunum === 'duzenle' || gomuluDuzenle) {
-    if (!seciliKayit) return <TanimYukleniyor />;
+    if (!seciliKayit) {
+      if (yukleniyor) return <TanimYukleniyor />;
+      return (
+        <TanimDuzenleEkrani
+          panel={gomuluDuzenle?.panel}
+          ustEtiket="Kasa Düzenle"
+          baslik="Kayıt bulunamadı"
+          onGeri={listeyeDon}
+        >
+          <p className="ap-tanimlar-panel-alt">Bu kasa yüklenemedi. Paneli kapatıp tekrar deneyin.</p>
+        </TanimDuzenleEkrani>
+      );
+    }
     return (
       <>
         <TanimDuzenleEkrani
           panel={gomuluDuzenle?.panel}
           ustEtiket="Kasa Düzenle"
-          baslik={seciliKayit.kasaAdi}
+          baslik={seciliKayit.kasaAdi || seciliKayit.kasaKodu || 'Kasa'}
           onGeri={listeyeDon}
           onKaydet={duzenlemeVar ? () => void kaydet() : undefined}
           kaydediliyor={kaydediliyor}
           saltOkunur={!duzenlemeVar}
         >
           <TanimFormBolum baslik="Temel Bilgiler">{temelAlanlar}</TanimFormBolum>
-          <OrtakDurumAlani aktif={form.aktif} onChange={(aktif) => setForm({ ...form, aktif })} />
+          <OrtakDurumAlani
+            aktif={form.aktif}
+            onChange={(aktif) => setForm((f) => ({ ...f, aktif }))}
+          />
         </TanimDuzenleEkrani>
         <SilmeOnayModal
           acik={silModalAcik}

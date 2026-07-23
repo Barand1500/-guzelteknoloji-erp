@@ -26,7 +26,14 @@ function kullaniciOturumYetkileri(kullanici: {
   donemId: number | null;
   oturumYetkileri: unknown;
 }): OturumYetkisi[] {
-  const ham = Array.isArray(kullanici.oturumYetkileri) ? kullanici.oturumYetkileri : [];
+  const hamPaket = kullanici.oturumYetkileri;
+  const ham = Array.isArray(hamPaket)
+    ? hamPaket
+    : hamPaket && typeof hamPaket === 'object'
+      ? Array.isArray((hamPaket as { yetkiler?: unknown }).yetkiler)
+        ? ((hamPaket as { yetkiler: unknown[] }).yetkiler)
+        : []
+      : [];
   const yetkiler = ham
     .filter((y): y is Record<string, unknown> => Boolean(y && typeof y === 'object'))
     .map((y) => ({ firmaId: Number(y.firmaId), donemId: Number(y.donemId) }))

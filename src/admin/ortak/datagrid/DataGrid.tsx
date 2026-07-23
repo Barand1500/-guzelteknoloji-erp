@@ -337,6 +337,7 @@ export function DataGrid<TRow extends { id: string }>({
   hizliGirisKarti,
   onHizliGiris,
   onHizliGirisEnter,
+  onHizliGirisAcikDegisti,
   hizliGirisInputSinif,
   hizliGirisInputPlaceholder,
   hizliGirisApiRef,
@@ -725,7 +726,16 @@ export function DataGrid<TRow extends { id: string }>({
 
   const hizliGirisDoluMu = useCallback(() => {
     if (hizliGirisVarsayilanAlan) {
-      return Object.entries(hizliGiris).some(([id, deger]) => id !== 'durum' && deger.trim());
+      return Object.entries(hizliGiris).some(([id, deger]) => {
+        if (id === 'durum') return false;
+        /* Varsayılan para birimi dolu sayılmasın — aksi halde boş satır Enter ile “kaydet” dener */
+        if (id === 'paraBirimi') {
+          const varsayilan =
+            hizliGirisKolonlari?.find((k) => k.kolonId === 'paraBirimi')?.varsayilan ?? 'TL';
+          return deger.trim() !== '' && deger.trim() !== varsayilan;
+        }
+        return Boolean(deger.trim());
+      });
     }
     if (!hizliGirisKolonlari) return false;
     return hizliGirisKolonlari.some((k) => {
@@ -738,8 +748,12 @@ export function DataGrid<TRow extends { id: string }>({
     });
   }, [hizliGirisKolonlari, hizliGiris, hizliGirisVarsayilanAlan]);
 
-  const hizliGirisGonder = useCallback(async () => {
-    if (!onHizliGiris || !hizliGirisKolonlari) return;
+  useEffect(() => {
+    onHizliGirisAcikDegisti?.(hizliGirisIstegeBagli ? hizliGirisAcik : hizliGirisAktif);
+  }, [hizliGirisAcik, hizliGirisIstegeBagli, hizliGirisAktif, onHizliGirisAcikDegisti]);
+
+  const hizliGirisGonder = useCallback(async (): Promise<boolean> => {
+    if (!onHizliGiris || !hizliGirisKolonlari) return false;
 
     let engellendi = false;
     if (onHizliGirisEnter) {
@@ -754,16 +768,16 @@ export function DataGrid<TRow extends { id: string }>({
         });
       }
     }
-    if (engellendi) return;
+    if (engellendi) return false;
 
     if (!hizliGirisDoluMu()) {
       if (hizliGirisIstegeBagli) setHizliGirisAcik(false);
-      return;
+      return false;
     }
 
     const sonuc = onHizliGiris(hizliGiris);
     const beklenen = sonuc instanceof Promise ? await sonuc : sonuc;
-    if (beklenen === false) return;
+    if (beklenen === false) return false;
 
     hizliGirisSifirla();
     dg.setSayfa(0);
@@ -772,6 +786,7 @@ export function DataGrid<TRow extends { id: string }>({
     } else {
       requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
     }
+    return true;
   }, [
     onHizliGiris,
     onHizliGirisEnter,
@@ -1335,6 +1350,8 @@ export function DataGrid<TRow extends { id: string }>({
         setHizliGirisAcik(false);
         hizliGirisSifirla();
       },
+      hizliGirisKaydet: () => hizliGirisGonder(),
+      hizliGirisAcikMi: () => (hizliGirisIstegeBagli ? hizliGirisAcik : hizliGirisAktif),
       odakAyarla,
       seciliIdler: () => [...dg.seciliIdler],
       secimAyarla: (idler) => dg.tumunuSec(idler, idler.length > 0),
@@ -1342,7 +1359,19 @@ export function DataGrid<TRow extends { id: string }>({
     return () => {
       gridApiRef.current = null;
     };
-  }, [gridApiRef, satirlar, dg.seciliIdler, dg.tumunuSec, satirDuzenlePaneli, hizliGirisIstegeBagli, hizliGirisSifirla, odakAyarla]);
+  }, [
+    gridApiRef,
+    satirlar,
+    dg.seciliIdler,
+    dg.tumunuSec,
+    satirDuzenlePaneli,
+    hizliGirisIstegeBagli,
+    hizliGirisSifirla,
+    odakAyarla,
+    hizliGirisGonder,
+    hizliGirisAcik,
+    hizliGirisAktif,
+  ]);
 
   const topluDurum = (aktif: boolean) => {
     if (!onSatirlarDegistir) return;

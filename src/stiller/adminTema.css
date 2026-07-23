@@ -2618,6 +2618,21 @@ html:has(.admin-panel[data-tema='acik']) body {
   color: var(--ap-text);
 }
 
+/* Number input spinner (ok) gizle */
+.admin-panel input[type='number'].ap-input,
+.admin-panel .ap-input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.admin-panel input[type='number'].ap-input::-webkit-outer-spin-button,
+.admin-panel input[type='number'].ap-input::-webkit-inner-spin-button,
+.admin-panel .ap-input[type='number']::-webkit-outer-spin-button,
+.admin-panel .ap-input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .admin-panel select {
   accent-color: var(--ap-accent);
   background-color: var(--ap-input-bg);
@@ -12206,6 +12221,22 @@ html:has(.admin-panel[data-tema='acik']) body {
   opacity: 1;
 }
 
+.ap-form-acilir-secim--inline {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.ap-form-acilir-secim-liste--inline {
+  position: relative;
+  width: 100%;
+  max-height: 11rem;
+  z-index: 2;
+  box-shadow: 0 6px 16px color-mix(in srgb, #000 28%, transparent);
+}
+
 .admin-panel[data-tema='acik'] .ap-form-acilir-secim-liste {
   background: var(--ap-surface, #ffffff);
   background-color: var(--ap-surface, #ffffff);
@@ -12219,7 +12250,9 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-form-acilir-secim-oge {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -12231,6 +12264,40 @@ html:has(.admin-panel[data-tema='acik']) body {
   font-size: 0.8125rem;
   color: var(--ap-text);
   cursor: pointer;
+}
+
+.ap-form-acilir-secim-oge-metin {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ap-form-acilir-secim-check {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--ap-border, #64748b);
+  background: color-mix(in srgb, var(--ap-input-bg, #0f172a) 80%, transparent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: #fff;
+}
+
+.ap-form-acilir-secim-check--on {
+  border-color: var(--ap-accent, #f97316);
+  background: var(--ap-accent, #f97316);
+}
+
+.ap-form-acilir-secim-bos {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--ap-muted);
+  list-style: none;
 }
 
 .ap-form-acilir-secim-oge-bayrakli {

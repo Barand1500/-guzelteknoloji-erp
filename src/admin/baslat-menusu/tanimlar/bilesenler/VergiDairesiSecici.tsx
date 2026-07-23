@@ -30,7 +30,8 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
       <span className="ap-tanim-girdi-etiket">Vergi Dairesi</span>
       <FormAramaSecim
         value={deger}
-        onChange={onChange}
+        onChange={(v) => onChange(v.toLocaleUpperCase('tr'))}
+        buyukHarf
         secenekler={secenekler}
         minAramaUzunlugu={MIN_ADRES_ARAMA_UZUNLUGU}
         placeholder="En az 2 harf yazın…"

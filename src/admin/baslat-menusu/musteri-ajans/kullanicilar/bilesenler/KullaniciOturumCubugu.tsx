@@ -3,10 +3,8 @@ import type {
   KullaniciOturumYetkisi,
 } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
 import {
-  firmaDegistir,
   firmaDonemleri,
   firmaSubeleri,
-  subeDegistir,
   subeDepolari,
   subeKasalari,
   type KullaniciOturumSecenekleri,
@@ -28,14 +26,28 @@ export function KullaniciOturumCubugu({
   variant = 'yeni',
 }: KullaniciOturumCubuguProps) {
   const { firmalar, donemler, subeler, depolar, kasalar } = oturumSecenekleri;
-  const subeListe = firmaSubeleri(subeler, form.firmaId);
-  const depoListe = subeDepolari(depolar, form.subeId);
-  const kasaListe = subeKasalari(kasalar, form.subeId);
-  const atanmisFirmaIdleri = new Set(form.oturumYetkileri.map((y) => y.firmaId));
-  const atanmisFirmalar = firmalar.filter((f) => atanmisFirmaIdleri.has(f.id));
-  const varsayilanDonemListe = firmaDonemleri(donemler, form.firmaId).filter((d) =>
-    form.oturumYetkileri.some((y) => y.firmaId === form.firmaId && y.donemId === d.id)
-  );
+  const atanmisFirmaIdleri = [...new Set(form.oturumYetkileri.map((y) => y.firmaId))];
+  const seciliDonemIdleri = form.oturumYetkileri.map((y) => y.donemId);
+  const seciliSubeIdleri = form.subeIds.length
+    ? form.subeIds
+    : form.subeId
+      ? [form.subeId]
+      : [];
+  const seciliDepoIdleri = form.depoIds.length
+    ? form.depoIds
+    : form.depoId
+      ? [form.depoId]
+      : [];
+  const seciliKasaIdleri = form.kasaIds.length
+    ? form.kasaIds
+    : form.kasaId
+      ? [form.kasaId]
+      : [];
+
+  const donemSecenekleri = donemler.filter((d) => atanmisFirmaIdleri.includes(d.firmaId));
+  const subeSecenekleri = subeler.filter((s) => atanmisFirmaIdleri.includes(s.firmaId));
+  const depoSecenekleri = depolar.filter((d) => seciliSubeIdleri.includes(d.subeId));
+  const kasaSecenekleri = kasalar.filter((k) => seciliSubeIdleri.includes(k.subeId));
 
   const formIci = variant === 'form-ici-yeni' || variant === 'form-ici-eski';
   const eski = variant === 'eski' || variant === 'form-ici-eski';
@@ -62,203 +74,190 @@ export function KullaniciOturumCubugu({
 
   const inputSinifi = formIci || !eski ? 'ap-kullanici-yeni-input' : 'ap-kullanici-oturum-pin-input';
 
-  function yetkileriUygula(yeniYetkiler: KullaniciOturumYetkisi[]) {
-    const varsayilanHalaGecerli = yeniYetkiler.some(
-      (y) => y.firmaId === form.firmaId && y.donemId === form.donemId
-    );
-    if (varsayilanHalaGecerli) {
-      onChange({ ...form, oturumYetkileri: yeniYetkiler });
-      return;
-    }
-
-    const ilk = yeniYetkiler[0];
-    if (!ilk) {
-      onChange({
-        ...form,
-        oturumYetkileri: [],
-        firmaId: '',
-        donemId: '',
-        subeId: '',
-        depoId: '',
-        kasaId: '',
-      });
-      return;
-    }
-
-    const firmaAyarli = firmaDegistir(form, ilk.firmaId, oturumSecenekleri);
-    onChange({
-      ...firmaAyarli,
-      oturumYetkileri: yeniYetkiler,
-      donemId: ilk.donemId,
-    });
-  }
-
-  function yetkiDegistir(firmaId: string, donemId: string, secili: boolean) {
-    const anahtar = (y: KullaniciOturumYetkisi) =>
-      y.firmaId === firmaId && y.donemId === donemId;
-    const yeniYetkiler = secili
-      ? form.oturumYetkileri.some(anahtar)
-        ? form.oturumYetkileri
-        : [...form.oturumYetkileri, { firmaId, donemId }]
-      : form.oturumYetkileri.filter((y) => !anahtar(y));
-    yetkileriUygula(yeniYetkiler);
-  }
-
-  function firmaEkle(firmaId: string) {
-    if (!firmaId || atanmisFirmaIdleri.has(firmaId)) return;
-
-    const ilkDonem = firmaDonemleri(donemler, firmaId)[0];
-    if (!ilkDonem) return;
-
-    const yeniYetkiler = [...form.oturumYetkileri, { firmaId, donemId: ilkDonem.id }];
-    if (!form.firmaId) {
-      const firmaAyarli = firmaDegistir(form, firmaId, oturumSecenekleri);
-      onChange({
-        ...firmaAyarli,
-        oturumYetkileri: yeniYetkiler,
-        donemId: ilkDonem.id,
-      });
-      return;
-    }
-    onChange({ ...form, oturumYetkileri: yeniYetkiler });
-  }
-
-  function varsayilanFirmaDegistir(firmaId: string) {
+  function baglamUygula(
+    yetkiler: KullaniciOturumYetkisi[],
+    subeIds: string[],
+    depoIds: string[],
+    kasaIds: string[]
+  ) {
+    const firmaId =
+      (form.firmaId && yetkiler.some((y) => y.firmaId === form.firmaId)
+        ? form.firmaId
+        : yetkiler[0]?.firmaId) ?? '';
     const donemId =
-      form.oturumYetkileri.find((y) => y.firmaId === firmaId)?.donemId ?? '';
+      (firmaId &&
+        yetkiler.find((y) => y.firmaId === firmaId && y.donemId === form.donemId)?.donemId) ||
+      yetkiler.find((y) => y.firmaId === firmaId)?.donemId ||
+      yetkiler[0]?.donemId ||
+      '';
+    const gecerliSubeler = subeIds.filter((id) =>
+      subeler.some(
+        (s) =>
+          s.id === id &&
+          (yetkiler.length === 0 || yetkiler.some((y) => y.firmaId === s.firmaId))
+      )
+    );
+    const subeId =
+      (form.subeId && gecerliSubeler.includes(form.subeId) ? form.subeId : gecerliSubeler[0]) ?? '';
+    const gecerliDepolar = depoIds.filter((id) =>
+      depolar.some((d) => d.id === id && (!subeId || gecerliSubeler.includes(d.subeId)))
+    );
+    const depoId =
+      (form.depoId && gecerliDepolar.includes(form.depoId) ? form.depoId : gecerliDepolar[0]) ?? '';
+    const gecerliKasalar = kasaIds.filter((id) =>
+      kasalar.some((k) => k.id === id && (!subeId || gecerliSubeler.includes(k.subeId)))
+    );
+    const kasaId =
+      (form.kasaId && gecerliKasalar.includes(form.kasaId) ? form.kasaId : gecerliKasalar[0]) ?? '';
+
     onChange({
-      ...firmaDegistir(form, firmaId, oturumSecenekleri),
+      ...form,
+      oturumYetkileri: yetkiler,
+      firmaId,
       donemId,
+      subeId,
+      depoId,
+      kasaId,
+      subeIds: gecerliSubeler,
+      depoIds: gecerliDepolar,
+      kasaIds: gecerliKasalar,
     });
   }
 
-  const eklenebilirFirmalar = firmalar.filter((f) => !atanmisFirmaIdleri.has(f.id));
+  function firmalariDegistir(firmaIds: string[]) {
+    const onceki = new Set(atanmisFirmaIdleri);
+    const sonraki = new Set(firmaIds);
+    let yetkiler = form.oturumYetkileri.filter((y) => sonraki.has(y.firmaId));
 
-  const yetkiAlani = (
-    <div className="ap-kullanici-oturum-yetkileri">
-      <div className="ap-kullanici-oturum-yetkileri-baslik">
-        <span>Firma / Dönem Yetkileri</span>
-        <div className="ap-kullanici-oturum-yetkileri-baslik-sag">
-          <small>
-            {atanmisFirmalar.length} firma · {form.oturumYetkileri.length} dönem
-          </small>
-          {eklenebilirFirmalar.length > 0 && (
-            <div className="ap-kullanici-oturum-firma-ekle">
-              <FormAcilirSecim
-                aria-label="Firma ekle"
-                value=""
-                onChange={(firmaId) => {
-                  if (firmaId) firmaEkle(firmaId);
-                }}
-                secenekler={[
-                  { value: '', label: 'Firma ekle…' },
-                  ...eklenebilirFirmalar.map((f) => ({
-                    value: f.id,
-                    label: `${f.firmaKodu} — ${f.firmaAdi}`,
-                  })),
-                ]}
-              />
-            </div>
-          )}
-        </div>
-      </div>
+    for (const firmaId of firmaIds) {
+      if (onceki.has(firmaId)) continue;
+      const ilkDonem = firmaDonemleri(donemler, firmaId)[0];
+      if (ilkDonem) yetkiler = [...yetkiler, { firmaId, donemId: ilkDonem.id }];
+    }
 
-      {atanmisFirmalar.length === 0 ? (
-        <p className="ap-kullanici-oturum-yetki-bos">
-          Yetki için yukarıdan firma ekleyin; firmanın dönemleri burada listelenir.
-        </p>
-      ) : (
-        <div className="ap-kullanici-oturum-yetki-listesi">
-          {atanmisFirmalar.map((firma) => {
-            const firmaDonemListe = firmaDonemleri(donemler, firma.id);
-            return (
-              <fieldset key={firma.id} className="ap-kullanici-oturum-yetki-grup">
-                <legend>
-                  {firma.firmaKodu} — {firma.firmaAdi}
-                </legend>
-                <div className="ap-kullanici-oturum-donemler">
-                  {firmaDonemListe.map((donem) => {
-                    const secili = form.oturumYetkileri.some(
-                      (y) => y.firmaId === firma.id && y.donemId === donem.id
-                    );
-                    const varsayilan =
-                      form.firmaId === firma.id && form.donemId === donem.id;
-                    return (
-                      <label
-                        key={donem.id}
-                        className={`ap-kullanici-oturum-donem${secili ? ' ap-kullanici-oturum-donem--secili' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={secili}
-                          onChange={(e) =>
-                            yetkiDegistir(firma.id, donem.id, e.target.checked)
-                          }
-                        />
-                        <span>
-                          {donem.donemKodu} — {donem.donemAdi}
-                        </span>
-                        {varsayilan && <b>Default</b>}
-                      </label>
-                    );
-                  })}
-                  {firmaDonemListe.length === 0 && (
-                    <small className="ap-kullanici-oturum-yetki-uyari">Aktif dönem yok</small>
-                  )}
-                </div>
-              </fieldset>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+    const subeIds = form.subeIds.filter((id) =>
+      subeler.some((s) => s.id === id && sonraki.has(s.firmaId))
+    );
+    const depoIds = form.depoIds.filter((id) =>
+      depolar.some((d) => d.id === id && subeIds.includes(d.subeId))
+    );
+    const kasaIds = form.kasaIds.filter((id) =>
+      kasalar.some((k) => k.id === id && subeIds.includes(k.subeId))
+    );
+
+    // Yeni firmalar için ilk şube/depo/kasa ekle
+    for (const firmaId of firmaIds) {
+      if (onceki.has(firmaId)) continue;
+      const subeId = firmaSubeleri(subeler, firmaId)[0]?.id;
+      if (subeId && !subeIds.includes(subeId)) {
+        subeIds.push(subeId);
+        const depoId = subeDepolari(depolar, subeId)[0]?.id;
+        const kasaId = subeKasalari(kasalar, subeId)[0]?.id;
+        if (depoId && !depoIds.includes(depoId)) depoIds.push(depoId);
+        if (kasaId && !kasaIds.includes(kasaId)) kasaIds.push(kasaId);
+      }
+    }
+
+    baglamUygula(yetkiler, subeIds, depoIds, kasaIds);
+  }
+
+  function donemleriDegistir(donemIds: string[]) {
+    const yetkiler: KullaniciOturumYetkisi[] = [];
+    for (const donemId of donemIds) {
+      const donem = donemler.find((d) => d.id === donemId);
+      if (!donem || !atanmisFirmaIdleri.includes(donem.firmaId)) continue;
+      yetkiler.push({ firmaId: donem.firmaId, donemId: donem.id });
+    }
+    baglamUygula(yetkiler, seciliSubeIdleri, seciliDepoIdleri, seciliKasaIdleri);
+  }
+
+  function subeleriDegistir(subeIds: string[]) {
+    const onceki = new Set(seciliSubeIdleri);
+    const depoIds = form.depoIds.filter((id) =>
+      depolar.some((d) => d.id === id && subeIds.includes(d.subeId))
+    );
+    const kasaIds = form.kasaIds.filter((id) =>
+      kasalar.some((k) => k.id === id && subeIds.includes(k.subeId))
+    );
+    for (const subeId of subeIds) {
+      if (onceki.has(subeId)) continue;
+      const depoId = subeDepolari(depolar, subeId)[0]?.id;
+      const kasaId = subeKasalari(kasalar, subeId)[0]?.id;
+      if (depoId && !depoIds.includes(depoId)) depoIds.push(depoId);
+      if (kasaId && !kasaIds.includes(kasaId)) kasaIds.push(kasaId);
+    }
+    baglamUygula(form.oturumYetkileri, subeIds, depoIds, kasaIds);
+  }
 
   const alanlar = (
     <>
       <label className={alanSinifi}>
-        <span className={etiketSinifi}>Default Firma</span>
+        <span className={etiketSinifi}>Firma</span>
         <FormAcilirSecim
-          aria-label="Default firma"
-          value={form.firmaId}
-          onChange={varsayilanFirmaDegistir}
-          secenekler={atanmisFirmalar.map((f) => ({ value: f.id, label: `${f.firmaKodu} — ${f.firmaAdi}` }))}
+          coklu
+          aria-label="Firma"
+          values={atanmisFirmaIdleri}
+          onChangeCoklu={firmalariDegistir}
+          secenekler={firmalar.map((f) => ({
+            value: f.id,
+            label: `${f.firmaKodu} — ${f.firmaAdi}`,
+          }))}
         />
       </label>
       <label className={alanSinifi}>
-        <span className={etiketSinifi}>Default Dönem</span>
+        <span className={etiketSinifi}>Dönem</span>
         <FormAcilirSecim
-          aria-label="Default dönem"
-          value={form.donemId}
-          onChange={(donemId) => onChange({ ...form, donemId })}
-          secenekler={varsayilanDonemListe.map((d) => ({ value: d.id, label: `${d.donemKodu} — ${d.donemAdi}` }))}
+          coklu
+          aria-label="Dönem"
+          values={seciliDonemIdleri}
+          onChangeCoklu={donemleriDegistir}
+          secenekler={donemSecenekleri.map((d) => ({
+            value: d.id,
+            label: `${d.donemKodu} — ${d.donemAdi}`,
+          }))}
         />
       </label>
       <label className={alanSinifi}>
         <span className={etiketSinifi}>Şube</span>
         <FormAcilirSecim
+          coklu
           aria-label="Şube"
-          value={form.subeId}
-          onChange={(subeId) => onChange(subeDegistir(form, subeId, oturumSecenekleri))}
-          secenekler={subeListe.map((s) => ({ value: s.id, label: `${s.subeKodu} — ${s.subeAdi}` }))}
+          values={seciliSubeIdleri}
+          onChangeCoklu={subeleriDegistir}
+          secenekler={subeSecenekleri.map((s) => ({
+            value: s.id,
+            label: `${s.subeKodu} — ${s.subeAdi}`,
+          }))}
         />
       </label>
       <label className={alanSinifi}>
         <span className={etiketSinifi}>Depo</span>
         <FormAcilirSecim
+          coklu
           aria-label="Depo"
-          value={form.depoId}
-          onChange={(depoId) => onChange({ ...form, depoId })}
-          secenekler={depoListe.map((d) => ({ value: d.id, label: `${d.depoKodu} — ${d.depoAdi}` }))}
+          values={seciliDepoIdleri}
+          onChangeCoklu={(depoIds) =>
+            baglamUygula(form.oturumYetkileri, seciliSubeIdleri, depoIds, seciliKasaIdleri)
+          }
+          secenekler={depoSecenekleri.map((d) => ({
+            value: d.id,
+            label: `${d.depoKodu} — ${d.depoAdi}`,
+          }))}
         />
       </label>
       <label className={alanSinifi}>
         <span className={etiketSinifi}>Kasa</span>
         <FormAcilirSecim
+          coklu
           aria-label="Kasa"
-          value={form.kasaId}
-          onChange={(kasaId) => onChange({ ...form, kasaId })}
-          secenekler={kasaListe.map((k) => ({ value: k.id, label: `${k.kasaKodu} — ${k.kasaAdi}` }))}
+          values={seciliKasaIdleri}
+          onChangeCoklu={(kasaIds) =>
+            baglamUygula(form.oturumYetkileri, seciliSubeIdleri, seciliDepoIdleri, kasaIds)
+          }
+          secenekler={kasaSecenekleri.map((k) => ({
+            value: k.id,
+            label: `${k.kasaKodu} — ${k.kasaAdi}`,
+          }))}
         />
       </label>
       <label
@@ -285,12 +284,9 @@ export function KullaniciOturumCubugu({
 
   if (formIci) {
     return (
-      <>
-        {yetkiAlani}
-        <div className={satirSinifi} role="group" aria-label="Varsayılan oturum bağlamı">
-          {alanlar}
-        </div>
-      </>
+      <div className={satirSinifi} role="group" aria-label="Oturum bağlamı">
+        {alanlar}
+      </div>
     );
   }
 
@@ -298,7 +294,6 @@ export function KullaniciOturumCubugu({
     <div className="ap-kullanici-oturum-cubuk" role="group" aria-label="Oturum bağlamı">
       <span className="ap-kullanici-oturum-cubuk-baslik">Oturum</span>
       <div className="ap-kullanici-oturum-cubuk-icerik">
-        {yetkiAlani}
         <div className={satirSinifi}>{alanlar}</div>
       </div>
     </div>

@@ -15,7 +15,7 @@ interface TanimGirdiProps {
   placeholder?: string;
   inputMode?: 'text' | 'numeric' | 'decimal';
   className?: string;
-  buyukHarf?: boolean;
+  autoFocus?: boolean;
 }
 
 export function TanimGirdi({
@@ -28,10 +28,11 @@ export function TanimGirdi({
   placeholder,
   inputMode,
   className,
-  buyukHarf,
+  autoFocus,
 }: TanimGirdiProps) {
   const kuralBilgi = ALAN_KURALLARI[kural];
   const limit = maxLength ?? kuralBilgi.max;
+  const sayisal = kural === 'vergiNo' || kural === 'mersis' || kural === 'postaKodu';
 
   return (
     <label className={`ap-tanim-girdi block ${className ?? ''}`}>
@@ -42,20 +43,22 @@ export function TanimGirdi({
       <input
         className={formInputSinifi}
         value={deger}
+        autoFocus={autoFocus}
         onChange={(e) => {
-          let sonraki =
-            kural === 'serbestMetin'
-              ? e.target.value.slice(0, limit)
-              : alanDegeriniFiltrele(kural, e.target.value);
-          if (buyukHarf) sonraki = sonraki.toLocaleUpperCase('tr');
-          onChange(sonraki);
+          const ham = maxLength != null ? e.target.value.slice(0, limit) : e.target.value;
+          onChange(alanDegeriniFiltrele(kural, ham));
         }}
         maxLength={limit}
         required={zorunlu}
         placeholder={placeholder}
-        inputMode={
-          inputMode ?? (kural === 'vergiNo' || kural === 'mersis' || kural === 'postaKodu' ? 'numeric' : 'text')
-        }
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize={sayisal ? 'off' : 'characters'}
+        spellCheck={false}
+        data-lpignore="true"
+        data-1p-ignore="true"
+        data-form-type="other"
+        inputMode={inputMode ?? (sayisal ? 'numeric' : 'text')}
       />
     </label>
   );

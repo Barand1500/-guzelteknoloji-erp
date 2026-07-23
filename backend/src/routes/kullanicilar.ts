@@ -22,6 +22,23 @@ interface OturumYetkisi {
   donemId: number;
 }
 
+interface OturumYetkiPaketi {
+  yetkiler: OturumYetkisi[];
+  subeIds: number[];
+  depoIds: number[];
+  kasaIds: number[];
+}
+
+function idListesiAl(deger: unknown): number[] {
+  if (!Array.isArray(deger)) return [];
+  const ids: number[] = [];
+  for (const ham of deger) {
+    const n = sayiAl(ham);
+    if (n) ids.push(n);
+  }
+  return [...new Set(ids)];
+}
+
 function oturumYetkileriAl(deger: unknown): OturumYetkisi[] {
   if (!Array.isArray(deger)) return [];
   const benzersiz = new Map<string, OturumYetkisi>();
@@ -34,6 +51,24 @@ function oturumYetkileriAl(deger: unknown): OturumYetkisi[] {
     benzersiz.set(`${firmaId}:${donemId}`, { firmaId, donemId });
   }
   return [...benzersiz.values()];
+}
+
+function oturumPaketiAl(deger: unknown, body?: Record<string, unknown>): OturumYetkiPaketi {
+  if (deger && typeof deger === 'object' && !Array.isArray(deger)) {
+    const o = deger as Record<string, unknown>;
+    return {
+      yetkiler: oturumYetkileriAl(o.yetkiler),
+      subeIds: idListesiAl(o.subeIds),
+      depoIds: idListesiAl(o.depoIds),
+      kasaIds: idListesiAl(o.kasaIds),
+    };
+  }
+  return {
+    yetkiler: oturumYetkileriAl(deger),
+    subeIds: idListesiAl(body?.subeIds),
+    depoIds: idListesiAl(body?.depoIds),
+    kasaIds: idListesiAl(body?.kasaIds),
+  };
 }
 
 async function oturumYetkileriniDogrula(yetkiler: OturumYetkisi[]) {
@@ -73,7 +108,8 @@ router.post('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response)
   const subeId = sayiAl(body.subeId);
   const depoId = sayiAl(body.depoId);
   const kasaId = sayiAl(body.kasaId);
-  const oturumYetkileri = oturumYetkileriAl(body.oturumYetkileri);
+  const paket = oturumPaketiAl(body.oturumYetkileri, body);
+  const oturumYetkileri = paket.yetkiler;
   const pin = body.pin != null && String(body.pin).trim() ? String(body.pin).trim() : null;
 
   if (!kullaniciKodu || !ad || !sifre) {
@@ -92,10 +128,15 @@ router.post('/', kullaniciYonetimiYazma, async (req: AuthRequest, res: Response)
     data: {
       firmaId,
       donemId,
-      subeId,
-      depoId,
-      kasaId,
-      oturumYetkileri: oturumYetkileri.map(({ firmaId, donemId }) => ({ firmaId, donemId })),
+      subeId: subeId ?? paket.subeIds[0] ?? null,
+      depoId: depoId ?? paket.depoIds[0] ?? null,
+      kasaId: kasaId ?? paket.kasaIds[0] ?? null,
+      oturumYetkileri: {
+        yetkiler: oturumYetkileri.map(({ firmaId, donemId }) => ({ firmaId, donemId })),
+        subeIds: paket.subeIds.length ? paket.subeIds : subeId ? [subeId] : [],
+        depoIds: paket.depoIds.length ? paket.depoIds : depoId ? [depoId] : [],
+        kasaIds: paket.kasaIds.length ? paket.kasaIds : kasaId ? [kasaId] : [],
+      },
       kullaniciKodu,
       adSoyad: ad,
       sifreHash: sifreHashle(sifre),
@@ -134,7 +175,8 @@ router.put('/:id', kullaniciYonetimiYazma, async (req: AuthRequest, res: Respons
   if ('depoId' in body) veri.depoId = sayiAl(body.depoId);
   if ('kasaId' in body) veri.kasaId = sayiAl(body.kasaId);
   if ('oturumYetkileri' in body) {
-    const oturumYetkileri = oturumYetkileriAl(body.oturumYetkileri);
+    const paket = oturumPaketiAl(body.oturumYetkileri, body);
+    const oturumYetkileri = paket.yetkiler;
     try {
       await oturumYetkileriniDogrula(oturumYetkileri);
     } catch (err) {
@@ -151,7 +193,15 @@ router.put('/:id', kullaniciYonetimiYazma, async (req: AuthRequest, res: Respons
     ) {
       return res.status(400).json({ mesaj: 'Varsayilan firma/donem, kullaniciya atanan yetkilerden biri olmalidir' });
     }
-    veri.oturumYetkileri = oturumYetkileri;
+    veri.oturumYetkileri = {
+      yetkiler: oturumYetkileri,
+      subeIds: paket.subeIds,
+      depoIds: paket.depoIds,
+      kasaIds: paket.kasaIds,
+    };
+    if (!('subeId' in body) && paket.subeIds[0]) veri.subeId = paket.subeIds[0];
+    if (!('depoId' in body) && paket.depoIds[0]) veri.depoId = paket.depoIds[0];
+    if (!('kasaId' in body) && paket.kasaIds[0]) veri.kasaId = paket.kasaIds[0];
   }
   if ('pin' in body) {
     veri.pin = body.pin != null && String(body.pin).trim() ? String(body.pin).trim() : null;

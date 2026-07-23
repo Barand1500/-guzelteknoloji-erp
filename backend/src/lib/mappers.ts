@@ -135,11 +135,28 @@ export async function kullaniciYanit(
 }
 
 export async function adminKullaniciYanit(k: Kullanici) {
-  const oturumYetkileri = Array.isArray(k.oturumYetkileri)
-    ? k.oturumYetkileri
-    : k.firmaId && k.donemId
-      ? [{ firmaId: k.firmaId, donemId: k.donemId }]
-      : [];
+  const ham = k.oturumYetkileri;
+  let oturumYetkileri: unknown[] = [];
+  let subeIds: string[] = [];
+  let depoIds: string[] = [];
+  let kasaIds: string[] = [];
+
+  if (Array.isArray(ham)) {
+    oturumYetkileri = ham;
+  } else if (ham && typeof ham === 'object') {
+    const o = ham as Record<string, unknown>;
+    oturumYetkileri = Array.isArray(o.yetkiler) ? o.yetkiler : [];
+    subeIds = Array.isArray(o.subeIds) ? o.subeIds.map(String) : [];
+    depoIds = Array.isArray(o.depoIds) ? o.depoIds.map(String) : [];
+    kasaIds = Array.isArray(o.kasaIds) ? o.kasaIds.map(String) : [];
+  } else if (k.firmaId && k.donemId) {
+    oturumYetkileri = [{ firmaId: k.firmaId, donemId: k.donemId }];
+  }
+
+  if (!subeIds.length && k.subeId != null) subeIds = [String(k.subeId)];
+  if (!depoIds.length && k.depoId != null) depoIds = [String(k.depoId)];
+  if (!kasaIds.length && k.kasaId != null) kasaIds = [String(k.kasaId)];
+
   return {
     id: String(k.id),
     kullaniciKodu: k.kullaniciKodu,
@@ -151,6 +168,9 @@ export async function adminKullaniciYanit(k: Kullanici) {
     subeId: k.subeId != null ? String(k.subeId) : '',
     depoId: k.depoId != null ? String(k.depoId) : '',
     kasaId: k.kasaId != null ? String(k.kasaId) : '',
+    subeIds,
+    depoIds,
+    kasaIds,
     oturumYetkileri,
     pin: k.pin ?? '',
     olusturma: tarihIso(k.kayitTarihi),
