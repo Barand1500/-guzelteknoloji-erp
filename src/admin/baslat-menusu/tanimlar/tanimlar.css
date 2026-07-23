@@ -2692,7 +2692,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.45rem;
 }
 
-/* Ok: border ùùgeni ù renk border-color / accent */
+/* Ok: border ??geni ? renk border-color / accent */
 .stok-kart-tarih-bilgi-panel::before {
   content: '';
   position: absolute;
@@ -2738,7 +2738,7 @@ button.ap-tanimlar-panel-arka {
   word-break: break-word;
 }
 
-/* Eski sat?r stili ? art?k kullan?lm?yor; geriye dùnùk temiz b?rak?ld? */
+/* Eski sat?r stili ? art?k kullan?lm?yor; geriye d?n?k temiz b?rak?ld? */
 .stok-karti-tarih-bilgi {
   display: none;
 }
@@ -7365,7 +7365,7 @@ button.ap-tanimlar-panel-arka {
 
 /* ??? Kay?tlar: ?st bar + grid ??? */
 
-/* ùùù Kay?tlar: hiyerar?i (firma ara ? ?ube/dùnem) ùùù */
+/* ??? Kay?tlar: hiyerar?i (firma ara ? ?ube/d?nem) ??? */
 
 .ap-tanimlar-kayit-sayfa {
   display: flex;
@@ -7614,6 +7614,7 @@ button.ap-tanimlar-panel-arka {
   gap: 0.25rem;
   flex-shrink: 0;
   border-bottom: 1px solid var(--ap-border);
+  flex-wrap: wrap;
 }
 
 .ap-tanimlar-ic-sekme-tus {
@@ -7946,6 +7947,27 @@ button.ap-tanimlar-panel-arka {
   flex-direction: column;
   gap: 0.2rem;
   padding: 0 0.55rem 0.55rem 1.7rem;
+}
+
+.ap-tanimlar-firma-sube {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.15rem 0;
+  border-radius: 0.4rem;
+}
+
+.ap-tanimlar-alt-satir--ust {
+  align-items: center;
+}
+
+.ap-tanimlar-firma-sube-alt {
+  margin: 0 0 0.25rem 1.35rem;
+  padding: 0.25rem 0.35rem;
+  border-left: 2px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .ap-tanimlar-sube-alt-bos {

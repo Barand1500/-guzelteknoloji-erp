@@ -20,7 +20,8 @@ import { tanimHedefMetni } from '@/admin/baslat-menusu/tanimlar/araclar/tanimBag
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
-import { DonemlerPaneli } from './DonemlerPaneli';
+import { BasitKayitPaneli } from './BasitKayitPaneli';
+import { FirmalarPaneli } from './FirmalarPaneli';
 import { KayitlarUstBar } from './KayitlarUstBar';
 import { kayitlarGridKolonlari } from './kayitlarGridKolonlari';
 import { satirlariKur } from './satirlariKur';
@@ -28,8 +29,24 @@ import { SubelerPaneli } from './SubelerPaneli';
 import { TIP_ETIKET, type KayitTipi, type SilmeHedef, type TanimSatir } from './tipler';
 import { useKayitlarVeri } from './useKayitlarVeri';
 
-type FirmaIcSekme = 'subeler' | 'donemler';
+type KayitIcSekme = 'firmalar' | 'donemler' | 'subeler' | 'depolar' | 'kasalar';
 type DuzenleHoverHedef = Extract<TanimModalHedef, { mod: 'duzenle' }>;
+
+const IC_SEKMELER: { id: KayitIcSekme; etiket: string }[] = [
+  { id: 'firmalar', etiket: 'Firmalar' },
+  { id: 'donemler', etiket: 'Dönemler' },
+  { id: 'subeler', etiket: 'Şubeler' },
+  { id: 'depolar', etiket: 'Depolar' },
+  { id: 'kasalar', etiket: 'Kasalar' },
+];
+
+function sekmedenTip(sekme: KayitIcSekme): KayitTipi {
+  if (sekme === 'firmalar') return 'firma';
+  if (sekme === 'donemler') return 'donem';
+  if (sekme === 'subeler') return 'sube';
+  if (sekme === 'depolar') return 'depo';
+  return 'kasa';
+}
 
 function satirDuzenleHedefi(satir: TanimSatir): DuzenleHoverHedef | null {
   if (satir.tip === 'firma') return { tip: 'firma', mod: 'duzenle', kayit: satir.kayit as AdminFirma };
@@ -38,6 +55,21 @@ function satirDuzenleHedefi(satir: TanimSatir): DuzenleHoverHedef | null {
   if (satir.tip === 'kasa') return { tip: 'kasa', mod: 'duzenle', kayit: satir.kayit as AdminKasa };
   if (satir.tip === 'donem') return { tip: 'donem', mod: 'duzenle', kayit: satir.kayit as AdminDonem };
   return null;
+}
+
+function firmalariSatirYap(liste: AdminFirma[]): TanimSatir[] {
+  return liste.map((f) => ({
+    id: `firma:${f.id}`,
+    tip: 'firma' as const,
+    kod: f.firmaKodu,
+    ad: f.firmaAdi,
+    baglamMetin: '',
+    aktif: f.aktif,
+    olusturma: f.olusturma,
+    guncelleme: f.guncelleme,
+    firmaId: f.id,
+    kayit: f,
+  }));
 }
 
 function GozIkon({ kapali }: { kapali?: boolean }) {
@@ -106,7 +138,7 @@ export function KayitlarSayfasi() {
     hataBildir,
   } = useKayitlarVeri();
 
-  const [icSekme, setIcSekme] = useState<FirmaIcSekme>('subeler');
+  const [icSekme, setIcSekme] = useState<KayitIcSekme>('firmalar');
   const [gozAcik, setGozAcik] = useState(false);
   const [yatayKart, setYatayKart] = useState(false);
   const [modalHedef, setModalHedef] = useState<TanimModalHedef | null>(null);
@@ -165,7 +197,20 @@ export function KayitlarSayfasi() {
     return kasalar.filter((k) => idler.has(k.subeId));
   }, [kasalar, firmaSubeleri]);
 
+  const sekmeSayilari = useMemo(
+    () => ({
+      firmalar: firmalar.length,
+      donemler: firmaDonemleri.length,
+      subeler: firmaSubeleri.length,
+      depolar: firmaDepolari.length,
+      kasalar: firmaKasalari.length,
+    }),
+    [firmalar.length, firmaDonemleri.length, firmaSubeleri.length, firmaDepolari.length, firmaKasalari.length]
+  );
+
   const gridSatirlari = useMemo(() => {
+    if (icSekme === 'firmalar') return firmalariSatirYap(firmalar);
+
     const tum = satirlariKur({
       firma: seciliFirma,
       firmaSubeleri,
@@ -173,11 +218,13 @@ export function KayitlarSayfasi() {
       depolar,
       kasalar,
       subeMap,
-    }).filter((s) => s.tip !== 'firma');
+    });
 
     if (icSekme === 'donemler') return tum.filter((s) => s.tip === 'donem');
-    return tum.filter((s) => s.tip === 'sube');
-  }, [seciliFirma, firmaSubeleri, donemler, depolar, kasalar, subeMap, icSekme]);
+    if (icSekme === 'subeler') return tum.filter((s) => s.tip === 'sube');
+    if (icSekme === 'depolar') return tum.filter((s) => s.tip === 'depo');
+    return tum.filter((s) => s.tip === 'kasa');
+  }, [icSekme, firmalar, seciliFirma, firmaSubeleri, donemler, depolar, kasalar, subeMap]);
 
   const ekleAc = useCallback(
     (tip: KayitTipi, subeId?: string) => {
@@ -206,15 +253,7 @@ export function KayitlarSayfasi() {
         return;
       }
       if (tip === 'depo' || tip === 'kasa') {
-        if (!subeId) {
-          hataBildir(
-            tip === 'depo'
-              ? 'Depo eklemek için şube satırından + Depo kullanın'
-              : 'Kasa eklemek için şube satırından + Kasa kullanın'
-          );
-          return;
-        }
-        setAktifSubeId(subeId);
+        if (subeId) setAktifSubeId(subeId);
         setModalHedef({ tip, mod: 'ekle', firmaId: seciliFirmaId, subeId });
       }
     },
@@ -228,27 +267,20 @@ export function KayitlarSayfasi() {
     [yukle, seciliFirmaId]
   );
 
-  const aksiyonEkleTipi = useMemo((): KayitTipi => {
-    if (!seciliFirmaId) return 'firma';
-    return icSekme === 'donemler' ? 'donem' : 'sube';
-  }, [seciliFirmaId, icSekme]);
-
-  const aksiyonEkle = useCallback(() => {
-    ekleAc(aksiyonEkleTipi);
-  }, [ekleAc, aksiyonEkleTipi]);
+  const aktifTip = sekmedenTip(icSekme);
 
   useModulAksiyonlari(
     {
-      ekle: eklemeVar ? aksiyonEkle : undefined,
+      ekle: eklemeVar ? () => ekleAc(aktifTip) : undefined,
       sil: undefined,
     },
     {
-      ekle: eklemeVar && (aksiyonEkleTipi === 'firma' || !!seciliFirmaId),
+      ekle: eklemeVar && (aktifTip === 'firma' || !!seciliFirmaId),
       sil: false,
     },
     false,
     {
-      ekle: `Yeni ${TIP_ETIKET[aksiyonEkleTipi]}`,
+      ekle: `Yeni ${TIP_ETIKET[aktifTip]}`,
     }
   );
 
@@ -315,9 +347,22 @@ export function KayitlarSayfasi() {
     [firmaPasifMi, subePasifMi]
   );
 
-  if (yukleniyor && firmalar.length === 0) return <TanimYukleniyor />;
-
   const firmaPasif = !!seciliFirmaId && firmaPasifMi(seciliFirmaId);
+  const firmaGerekli = icSekme !== 'firmalar';
+  const firmaYok = firmaGerekli && !seciliFirma;
+
+  const gridBosMesaj =
+    icSekme === 'firmalar'
+      ? 'Firma kaydı yok'
+      : icSekme === 'donemler'
+        ? 'Bu firmada dönem kaydı yok'
+        : icSekme === 'subeler'
+          ? 'Bu firmada şube kaydı yok'
+          : icSekme === 'depolar'
+            ? 'Bu firmada depo kaydı yok'
+            : 'Bu firmada kasa kaydı yok';
+
+  if (yukleniyor && firmalar.length === 0) return <TanimYukleniyor />;
 
   return (
     <div className="ap-tanimlar-kayit-sayfa">
@@ -338,136 +383,255 @@ export function KayitlarSayfasi() {
       <div
         className={`ap-tanimlar-kayit-ana ap-tanimlar-kayit-ana--hiyerarsi${gozAcik ? ' ap-tanimlar-kayit-ana--grid' : ''}`}
       >
-        {!seciliFirma && firmalar.length === 0 ? (
-          <p className="ap-tanimlar-firma-bos">Henüz firma yok — + Firma ile ekleyin</p>
-        ) : !seciliFirma ? (
-          <p className="ap-tanimlar-firma-bos">Firma arayıp seçin</p>
+        <div className="ap-tanimlar-ic-sekme" role="tablist" aria-label="Kayıt türleri">
+          {IC_SEKMELER.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              role="tab"
+              aria-selected={icSekme === s.id}
+              className={`ap-tanimlar-ic-sekme-tus${icSekme === s.id ? ' ap-tanimlar-ic-sekme-tus--aktif' : ''}`}
+              onClick={() => setIcSekme(s.id)}
+            >
+              {s.etiket}
+              <span className="ap-tanimlar-ic-sekme-sayi">{sekmeSayilari[s.id]}</span>
+            </button>
+          ))}
+
+          <div className="ap-tanimlar-gorunum-grup" role="group" aria-label="Görünüm">
+            {!gozAcik ? (
+              <button
+                type="button"
+                className={`ap-tanimlar-goz-tus${yatayKart ? ' ap-tanimlar-goz-tus--aktif' : ''}`}
+                onClick={() => setYatayKart((v) => !v)}
+                title={yatayKart ? 'Liste görünümü' : 'Yatay kart görünümü'}
+                aria-pressed={yatayKart}
+                aria-label={yatayKart ? 'Liste görünümü' : 'Yatay kart görünümü'}
+              >
+                <KartIkon />
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={`ap-tanimlar-goz-tus${gozAcik ? ' ap-tanimlar-goz-tus--aktif' : ''}`}
+              onClick={() => setGozAcik((v) => !v)}
+              title={gozAcik ? 'Tabloyu kapat' : 'Tablo görünümü'}
+              aria-pressed={gozAcik}
+              aria-label={gozAcik ? 'Tabloyu kapat' : 'Tablo görünümü'}
+            >
+              <GozIkon kapali={gozAcik} />
+            </button>
+          </div>
+        </div>
+
+        {firmaYok ? (
+          <p className="ap-tanimlar-firma-bos">
+            {firmalar.length === 0
+              ? 'Henüz firma yok — Firmalar sekmesinden ekleyin'
+              : 'Bu sekme için önce üstten bir firma seçin'}
+          </p>
+        ) : gozAcik ? (
+          <div className="ap-tanimlar-goz-grid">
+            <DataGrid
+              tabloBaslik=""
+              kolonlar={kolonlar}
+              satirlar={gridSatirlari}
+              depolamaAnahtari={`tanimlar-kayitlar-goz-v5-${icSekme}`}
+              kompakt
+              formulMenuGoster={false}
+              sutunSabitleGoster={false}
+              bosMesaj={gridBosMesaj}
+              onSatirTikla={duzenlemeVar ? duzenleAc : undefined}
+              onSatirDuzenle={duzenlemeVar ? duzenleAc : undefined}
+              onSatirHover={
+                duzenlemeVar
+                  ? (satir) => {
+                      if (!satir) {
+                        kayitHoverAyarla(null);
+                        return;
+                      }
+                      kayitHoverAyarla(satirDuzenleHedefi(satir));
+                    }
+                  : undefined
+              }
+              onSatirSil={silmeVar ? gridSil : undefined}
+              satirSinifAdi={satirSinifAdi}
+            />
+          </div>
+        ) : icSekme === 'firmalar' ? (
+          <FirmalarPaneli
+            firmalar={firmalar}
+            subeler={subeler}
+            depolar={depolar}
+            kasalar={kasalar}
+            yatayKart={yatayKart}
+            eklemeVar={eklemeVar}
+            duzenlemeVar={duzenlemeVar}
+            silmeVar={silmeVar}
+            onKayitHover={duzenlemeVar ? kayitHoverAyarla : undefined}
+            onFirmaEkle={() => ekleAc('firma')}
+            onFirmaDuzenle={(f) => setModalHedef({ tip: 'firma', mod: 'duzenle', kayit: f })}
+            onFirmaSil={(f) => silHedef({ tip: 'firma', kayit: f })}
+            onSubeEkle={(firmaId) => {
+              if (firmaPasifMi(firmaId)) {
+                hataBildir('Pasif firmaya şube eklenemez');
+                return;
+              }
+              setModalHedef({ tip: 'sube', mod: 'ekle', firmaId });
+            }}
+            onSubeDuzenle={(s) => setModalHedef({ tip: 'sube', mod: 'duzenle', kayit: s })}
+            onSubeSil={(s) => silHedef({ tip: 'sube', kayit: s })}
+            onDepoEkle={(firmaId, subeId) => {
+              setAktifSubeId(subeId);
+              setModalHedef({ tip: 'depo', mod: 'ekle', firmaId, subeId });
+            }}
+            onKasaEkle={(firmaId, subeId) => {
+              setAktifSubeId(subeId);
+              setModalHedef({ tip: 'kasa', mod: 'ekle', firmaId, subeId });
+            }}
+            onDepoDuzenle={(d) => setModalHedef({ tip: 'depo', mod: 'duzenle', kayit: d })}
+            onKasaDuzenle={(k) => setModalHedef({ tip: 'kasa', mod: 'duzenle', kayit: k })}
+            onDepoSil={(d) => silHedef({ tip: 'depo', kayit: d })}
+            onKasaSil={(k) => silHedef({ tip: 'kasa', kayit: k })}
+          />
+        ) : icSekme === 'donemler' ? (
+          <BasitKayitPaneli
+            kayitlar={firmaDonemleri}
+            yatayKart={yatayKart}
+            araPlaceholder="Dönem ara…"
+            ekleEtiket="+ Dönem"
+            bosMesaj="Bu firmada dönem yok — + Dönem ile ekleyin"
+            bulunamadiMesaj="Dönem bulunamadı"
+            eklemeVar={eklemeVar}
+            duzenlemeVar={duzenlemeVar}
+            silmeVar={silmeVar}
+            ekleKapali={firmaPasif}
+            ekleKapaliTitle="Pasif firmaya dönem eklenemez"
+            idAl={(d) => d.id}
+            adAl={(d) => d.donemAdi}
+            metaAl={(d) => `${d.donemKodu}${!d.aktif ? ' · Pasif' : ''}`}
+            aktifMi={(d) => d.aktif}
+            araEsles={(d, q) =>
+              d.donemAdi.toLocaleLowerCase('tr').includes(q) ||
+              d.donemKodu.toLocaleLowerCase('tr').includes(q)
+            }
+            onEkle={() => ekleAc('donem')}
+            onDuzenle={(d) => setModalHedef({ tip: 'donem', mod: 'duzenle', kayit: d })}
+            onSil={(d) => silHedef({ tip: 'donem', kayit: d })}
+            onKayitHover={
+              duzenlemeVar
+                ? (d) =>
+                    kayitHoverAyarla(d ? { tip: 'donem', mod: 'duzenle', kayit: d } : null)
+                : undefined
+            }
+          />
+        ) : icSekme === 'subeler' ? (
+          <SubelerPaneli
+            subeler={firmaSubeleri}
+            depolar={firmaDepolari}
+            kasalar={firmaKasalari}
+            yatayKart={yatayKart}
+            eklemeVar={eklemeVar}
+            duzenlemeVar={duzenlemeVar}
+            silmeVar={silmeVar}
+            firmaPasif={firmaPasif}
+            onKayitHover={duzenlemeVar ? kayitHoverAyarla : undefined}
+            onSubeEkle={() => ekleAc('sube')}
+            onSubeDuzenle={(s) => setModalHedef({ tip: 'sube', mod: 'duzenle', kayit: s })}
+            onSubeSil={(s) => silHedef({ tip: 'sube', kayit: s })}
+            onDepoEkle={(subeId) => ekleAc('depo', subeId)}
+            onKasaEkle={(subeId) => ekleAc('kasa', subeId)}
+            onDepoDuzenle={(d) => setModalHedef({ tip: 'depo', mod: 'duzenle', kayit: d })}
+            onKasaDuzenle={(k) => setModalHedef({ tip: 'kasa', mod: 'duzenle', kayit: k })}
+            onDepoSil={(d) => silHedef({ tip: 'depo', kayit: d })}
+            onKasaSil={(k) => silHedef({ tip: 'kasa', kayit: k })}
+          />
+        ) : icSekme === 'depolar' ? (
+          <BasitKayitPaneli
+            kayitlar={firmaDepolari}
+            yatayKart={yatayKart}
+            araPlaceholder="Depo ara…"
+            ekleEtiket="+ Depo"
+            bosMesaj="Bu firmada depo yok — + Depo ile ekleyin"
+            bulunamadiMesaj="Depo bulunamadı"
+            eklemeVar={eklemeVar}
+            duzenlemeVar={duzenlemeVar}
+            silmeVar={silmeVar}
+            ekleKapali={firmaPasif || firmaSubeleri.length === 0}
+            ekleKapaliTitle={
+              firmaPasif
+                ? 'Pasif firmaya depo eklenemez'
+                : 'Önce şube ekleyin'
+            }
+            idAl={(d) => d.id}
+            adAl={(d) => d.depoAdi}
+            metaAl={(d) => {
+              const sube = subeMap.get(d.subeId);
+              const baglam = sube ? `${sube.subeKodu} — ${sube.subeAdi}` : (d.subeKodu ?? '');
+              return `${d.depoKodu}${baglam ? ` · ${baglam}` : ''}${!d.aktif ? ' · Pasif' : ''}`;
+            }}
+            aktifMi={(d) => d.aktif}
+            araEsles={(d, q) => {
+              const sube = subeMap.get(d.subeId);
+              return (
+                d.depoAdi.toLocaleLowerCase('tr').includes(q) ||
+                d.depoKodu.toLocaleLowerCase('tr').includes(q) ||
+                (sube?.subeAdi.toLocaleLowerCase('tr').includes(q) ?? false)
+              );
+            }}
+            onEkle={() => ekleAc('depo')}
+            onDuzenle={(d) => setModalHedef({ tip: 'depo', mod: 'duzenle', kayit: d })}
+            onSil={(d) => silHedef({ tip: 'depo', kayit: d })}
+            onKayitHover={
+              duzenlemeVar
+                ? (d) =>
+                    kayitHoverAyarla(d ? { tip: 'depo', mod: 'duzenle', kayit: d } : null)
+                : undefined
+            }
+          />
         ) : (
-          <>
-            <div className="ap-tanimlar-ic-sekme" role="tablist" aria-label="Firma içeriği">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={icSekme === 'subeler'}
-                className={`ap-tanimlar-ic-sekme-tus${icSekme === 'subeler' ? ' ap-tanimlar-ic-sekme-tus--aktif' : ''}`}
-                onClick={() => setIcSekme('subeler')}
-              >
-                Şubeler
-                <span className="ap-tanimlar-ic-sekme-sayi">{firmaSubeleri.length}</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={icSekme === 'donemler'}
-                className={`ap-tanimlar-ic-sekme-tus${icSekme === 'donemler' ? ' ap-tanimlar-ic-sekme-tus--aktif' : ''}`}
-                onClick={() => setIcSekme('donemler')}
-              >
-                Dönemler
-                <span className="ap-tanimlar-ic-sekme-sayi">{firmaDonemleri.length}</span>
-              </button>
-
-              <div className="ap-tanimlar-gorunum-grup" role="group" aria-label="Görünüm">
-                {!gozAcik ? (
-                  <button
-                    type="button"
-                    className={`ap-tanimlar-goz-tus${yatayKart ? ' ap-tanimlar-goz-tus--aktif' : ''}`}
-                    onClick={() => setYatayKart((v) => !v)}
-                    title={yatayKart ? 'Liste görünümü' : 'Yatay kart görünümü'}
-                    aria-pressed={yatayKart}
-                    aria-label={yatayKart ? 'Liste görünümü' : 'Yatay kart görünümü'}
-                  >
-                    <KartIkon />
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className={`ap-tanimlar-goz-tus${gozAcik ? ' ap-tanimlar-goz-tus--aktif' : ''}`}
-                  onClick={() => setGozAcik((v) => !v)}
-                  title={gozAcik ? 'Tabloyu kapat' : 'Tablo görünümü'}
-                  aria-pressed={gozAcik}
-                  aria-label={gozAcik ? 'Tabloyu kapat' : 'Tablo görünümü'}
-                >
-                  <GozIkon kapali={gozAcik} />
-                </button>
-              </div>
-            </div>
-
-            {gozAcik ? (
-              <div className="ap-tanimlar-goz-grid">
-                <DataGrid
-                  tabloBaslik=""
-                  kolonlar={kolonlar}
-                  satirlar={gridSatirlari}
-                  depolamaAnahtari="tanimlar-kayitlar-goz-v4"
-                  kompakt
-                  formulMenuGoster={false}
-                  sutunSabitleGoster={false}
-                  bosMesaj={
-                    icSekme === 'donemler'
-                      ? 'Bu firmada dönem kaydı yok'
-                      : 'Bu firmada şube kaydı yok'
-                  }
-                  onSatirTikla={duzenlemeVar ? duzenleAc : undefined}
-                  onSatirDuzenle={duzenlemeVar ? duzenleAc : undefined}
-                  onSatirHover={
-                    duzenlemeVar
-                      ? (satir) => {
-                          if (!satir) {
-                            kayitHoverAyarla(null);
-                            return;
-                          }
-                          kayitHoverAyarla(satirDuzenleHedefi(satir));
-                        }
-                      : undefined
-                  }
-                  onSatirSil={silmeVar ? gridSil : undefined}
-                  satirSinifAdi={satirSinifAdi}
-                />
-              </div>
-            ) : icSekme === 'subeler' ? (
-              <SubelerPaneli
-                subeler={firmaSubeleri}
-                depolar={firmaDepolari}
-                kasalar={firmaKasalari}
-                yatayKart={yatayKart}
-                eklemeVar={eklemeVar}
-                duzenlemeVar={duzenlemeVar}
-                silmeVar={silmeVar}
-                firmaPasif={firmaPasif}
-                onKayitHover={duzenlemeVar ? kayitHoverAyarla : undefined}
-                onSubeEkle={() => ekleAc('sube')}
-                onSubeDuzenle={(s) =>
-                  setModalHedef({ tip: 'sube', mod: 'duzenle', kayit: s })
-                }
-                onSubeSil={(s) => silHedef({ tip: 'sube', kayit: s })}
-                onDepoEkle={(subeId) => ekleAc('depo', subeId)}
-                onKasaEkle={(subeId) => ekleAc('kasa', subeId)}
-                onDepoDuzenle={(d) =>
-                  setModalHedef({ tip: 'depo', mod: 'duzenle', kayit: d })
-                }
-                onKasaDuzenle={(k) =>
-                  setModalHedef({ tip: 'kasa', mod: 'duzenle', kayit: k })
-                }
-                onDepoSil={(d) => silHedef({ tip: 'depo', kayit: d })}
-                onKasaSil={(k) => silHedef({ tip: 'kasa', kayit: k })}
-              />
-            ) : (
-              <DonemlerPaneli
-                donemler={firmaDonemleri}
-                yatayKart={yatayKart}
-                eklemeVar={eklemeVar}
-                duzenlemeVar={duzenlemeVar}
-                silmeVar={silmeVar}
-                firmaPasif={firmaPasif}
-                onKayitHover={duzenlemeVar ? kayitHoverAyarla : undefined}
-                onDonemEkle={() => ekleAc('donem')}
-                onDonemDuzenle={(d) =>
-                  setModalHedef({ tip: 'donem', mod: 'duzenle', kayit: d })
-                }
-                onDonemSil={(d) => silHedef({ tip: 'donem', kayit: d })}
-              />
-            )}
-          </>
+          <BasitKayitPaneli
+            kayitlar={firmaKasalari}
+            yatayKart={yatayKart}
+            araPlaceholder="Kasa ara…"
+            ekleEtiket="+ Kasa"
+            bosMesaj="Bu firmada kasa yok — + Kasa ile ekleyin"
+            bulunamadiMesaj="Kasa bulunamadı"
+            eklemeVar={eklemeVar}
+            duzenlemeVar={duzenlemeVar}
+            silmeVar={silmeVar}
+            ekleKapali={firmaPasif || firmaSubeleri.length === 0}
+            ekleKapaliTitle={
+              firmaPasif
+                ? 'Pasif firmaya kasa eklenemez'
+                : 'Önce şube ekleyin'
+            }
+            idAl={(k) => k.id}
+            adAl={(k) => k.kasaAdi}
+            metaAl={(k) => {
+              const sube = subeMap.get(k.subeId);
+              const baglam = sube ? `${sube.subeKodu} — ${sube.subeAdi}` : (k.subeKodu ?? '');
+              return `${k.kasaKodu}${baglam ? ` · ${baglam}` : ''}${!k.aktif ? ' · Pasif' : ''}`;
+            }}
+            aktifMi={(k) => k.aktif}
+            araEsles={(k, q) => {
+              const sube = subeMap.get(k.subeId);
+              return (
+                k.kasaAdi.toLocaleLowerCase('tr').includes(q) ||
+                k.kasaKodu.toLocaleLowerCase('tr').includes(q) ||
+                (sube?.subeAdi.toLocaleLowerCase('tr').includes(q) ?? false)
+              );
+            }}
+            onEkle={() => ekleAc('kasa')}
+            onDuzenle={(k) => setModalHedef({ tip: 'kasa', mod: 'duzenle', kayit: k })}
+            onSil={(k) => silHedef({ tip: 'kasa', kayit: k })}
+            onKayitHover={
+              duzenlemeVar
+                ? (k) =>
+                    kayitHoverAyarla(k ? { tip: 'kasa', mod: 'duzenle', kayit: k } : null)
+                : undefined
+            }
+          />
         )}
       </div>
 

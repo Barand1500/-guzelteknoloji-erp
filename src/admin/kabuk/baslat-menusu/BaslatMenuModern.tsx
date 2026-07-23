@@ -61,7 +61,6 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
     ? gorunurModuller.filter((m) => m.kategori === seciliKategori)
     : [];
 
-  const toplamModul = arama ? sonuclar.length : gorunurModuller.length;
   const tamEkran = modernAyar.kutuBoyutu === 'buyuk';
 
   return (
@@ -84,9 +83,6 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
         <div className="ap-baslat-modern-ust-icerik">
           <div className="ap-baslat-modern-baslik-alan">
             <p className="ap-baslat-modern-baslik">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
-            <p className="ap-baslat-modern-alt">
-              {toplamModul} modül · {t('header.modulAra', 'Modül veya Ayar Ara')}
-            </p>
           </div>
           <button
             type="button"
@@ -159,8 +155,8 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
       </div>
 
       <div className="ap-baslat-modern-alt-cubuk">
-        <span>Modern görünüm · {tamEkran ? 'Tam ekran' : 'Panel'}</span>
-        <span className="ap-muted">Sekme Yönetimi&apos;nden değiştirebilirsiniz</span>
+        <span>Modern Görünüm · {tamEkran ? 'Tam ekran' : 'Panel'}</span>
+        <span className="ap-muted">Sekme Yönetimi&apos;nden Değiştirebilirsiniz</span>
       </div>
     </div>
   );
