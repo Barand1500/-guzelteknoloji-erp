@@ -148,6 +148,14 @@ function kullaniciMap(ham: Record<string, unknown>): AdminKullanici {
 }
 
 export function kullanicidanForm(k: AdminKullanici): KullaniciFormDegeri {
+  const oturumYetkileri = Array.isArray(k.oturumYetkileri)
+    ? k.oturumYetkileri
+    : k.firmaId && k.donemId
+      ? [{ firmaId: k.firmaId, donemId: k.donemId }]
+      : [];
+  const subeIds = Array.isArray(k.subeIds) ? k.subeIds : k.subeId ? [k.subeId] : [];
+  const depoIds = Array.isArray(k.depoIds) ? k.depoIds : k.depoId ? [k.depoId] : [];
+  const kasaIds = Array.isArray(k.kasaIds) ? k.kasaIds : k.kasaId ? [k.kasaId] : [];
   return {
     kullaniciKodu: k.kullaniciKodu,
     ad: k.ad,
@@ -159,11 +167,11 @@ export function kullanicidanForm(k: AdminKullanici): KullaniciFormDegeri {
     subeId: k.subeId,
     depoId: k.depoId,
     kasaId: k.kasaId,
-    subeIds: k.subeIds.length ? k.subeIds : k.subeId ? [k.subeId] : [],
-    depoIds: k.depoIds.length ? k.depoIds : k.depoId ? [k.depoId] : [],
-    kasaIds: k.kasaIds.length ? k.kasaIds : k.kasaId ? [k.kasaId] : [],
-    oturumYetkileri: k.oturumYetkileri.length
-      ? k.oturumYetkileri
+    subeIds: subeIds.length ? subeIds : k.subeId ? [k.subeId] : [],
+    depoIds: depoIds.length ? depoIds : k.depoId ? [k.depoId] : [],
+    kasaIds: kasaIds.length ? kasaIds : k.kasaId ? [k.kasaId] : [],
+    oturumYetkileri: oturumYetkileri.length
+      ? oturumYetkileri
       : k.firmaId && k.donemId
         ? [{ firmaId: k.firmaId, donemId: k.donemId }]
         : [],
@@ -175,7 +183,8 @@ export async function adminKullanicilariGetir(): Promise<AdminKullanici[]> {
   const veri = await adminJsonFetch<{ kullanicilar: Record<string, unknown>[] }>('/kullanicilar', {
     headers: adminHeaders(),
   });
-  return (veri.kullanicilar ?? []).map(kullaniciMap);
+  const liste = Array.isArray(veri.kullanicilar) ? veri.kullanicilar : [];
+  return liste.map(kullaniciMap);
 }
 
 export async function adminKullaniciOlustur(form: KullaniciFormDegeri): Promise<AdminKullanici> {
@@ -218,10 +227,44 @@ export function rolEtiketi(kod: string, etiketler: Record<string, string> = VARS
   return etiketler[kod] ?? kod.replace(/_/g, ' ');
 }
 
+function idDizisi(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return [...new Set(v.map((x) => String(x ?? '').trim()).filter(Boolean))];
+}
+
+function yetkiDizisi(v: unknown): KullaniciOturumYetkisi[] {
+  if (!Array.isArray(v)) {
+    if (v && typeof v === 'object' && Array.isArray((v as { yetkiler?: unknown }).yetkiler)) {
+      return yetkiDizisi((v as { yetkiler: unknown }).yetkiler);
+    }
+    return [];
+  }
+  return v
+    .filter((y): y is Record<string, unknown> => Boolean(y && typeof y === 'object'))
+    .map((y) => ({
+      firmaId: String(y.firmaId ?? ''),
+      donemId: String(y.donemId ?? ''),
+    }))
+    .filter((y) => y.firmaId && y.donemId);
+}
+
 function payloadHazirla(form: KullaniciFormDegeri, sifreDahil: boolean) {
-  const subeIds = form.subeIds.length ? form.subeIds : form.subeId ? [form.subeId] : [];
-  const depoIds = form.depoIds.length ? form.depoIds : form.depoId ? [form.depoId] : [];
-  const kasaIds = form.kasaIds.length ? form.kasaIds : form.kasaId ? [form.kasaId] : [];
+  const subeIds = idDizisi(form.subeIds).length
+    ? idDizisi(form.subeIds)
+    : form.subeId
+      ? [form.subeId]
+      : [];
+  const depoIds = idDizisi(form.depoIds).length
+    ? idDizisi(form.depoIds)
+    : form.depoId
+      ? [form.depoId]
+      : [];
+  const kasaIds = idDizisi(form.kasaIds).length
+    ? idDizisi(form.kasaIds)
+    : form.kasaId
+      ? [form.kasaId]
+      : [];
+  const oturumYetkileri = yetkiDizisi(form.oturumYetkileri);
   const payload: Record<string, unknown> = {
     kullaniciKodu: form.kullaniciKodu.trim().toUpperCase(),
     ad: form.ad.trim(),
@@ -236,7 +279,7 @@ function payloadHazirla(form: KullaniciFormDegeri, sifreDahil: boolean) {
     depoIds: depoIds.map(Number).filter(Number.isFinite),
     kasaIds: kasaIds.map(Number).filter(Number.isFinite),
     oturumYetkileri: {
-      yetkiler: form.oturumYetkileri.map((y) => ({
+      yetkiler: oturumYetkileri.map((y) => ({
         firmaId: Number(y.firmaId),
         donemId: Number(y.donemId),
       })),

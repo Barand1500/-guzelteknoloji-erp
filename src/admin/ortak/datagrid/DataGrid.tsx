@@ -353,6 +353,8 @@ export function DataGrid<TRow extends { id: string }>({
   hizliGirisIstegeBagli = false,
   hizliGirisVarsayilanAlan = false,
   formulMenuGoster = true,
+  sutunSabitleGoster = true,
+  ustSagEk,
   ustSolAraclarGoster = true,
   ustSagAraclarGoster = true,
   ustAracGoster = true,
@@ -2188,15 +2190,17 @@ export function DataGrid<TRow extends { id: string }>({
                   <label>
                     <span>{kolon.baslik}</span>
                   </label>
-                  <button
-                    type="button"
-                    className={`dg-sutun-ok${sabitli ? ' dg-sutun-ok--aktif' : ''}`}
-                    title={dgTooltipMetni(sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle')}
-                    aria-label={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
-                    onClick={() => dg.sabitlenmisToggle(id)}
-                  >
-                    •
-                  </button>
+                  {sutunSabitleGoster ? (
+                    <button
+                      type="button"
+                      className={`dg-sutun-ok${sabitli ? ' dg-sutun-ok--aktif' : ''}`}
+                      title={dgTooltipMetni(sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle')}
+                      aria-label={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
+                      onClick={() => dg.sabitlenmisToggle(id)}
+                    >
+                      •
+                    </button>
+                  ) : null}
                   <div className="dg-sutun-oklar">
                     <button
                       type="button"
@@ -2366,6 +2370,7 @@ export function DataGrid<TRow extends { id: string }>({
               </button>
             </div>
             )}
+            {ustSagEk}
             <div className="dg-menu-wrap">
               <button
                 ref={sutunTusRef}

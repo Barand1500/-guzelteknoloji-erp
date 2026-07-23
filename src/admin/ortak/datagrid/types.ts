@@ -156,6 +156,10 @@ export interface DataGridProps<TRow extends { id: string }> {
   hizliGirisVarsayilanAlan?: boolean;
   /** false ise üst araç çubuğundaki sayı formülleri (ƒx) gizlenir */
   formulMenuGoster?: boolean;
+  /** false ise sütun menüsündeki «Sütunu sabitle» düğmeleri gizlenir */
+  sutunSabitleGoster?: boolean;
+  /** Sütunlar ikonunun soluna eklenen özel araçlar */
+  ustSagEk?: ReactNode;
   /** false ise sol üstteki sayfa boyutu ve çizgi ayarları gizlenir */
   ustSolAraclarGoster?: boolean;
   /** false ise sağ üstteki sütun / CSV (ve formül) ikonları gizlenir */

@@ -1,7 +1,5 @@
 import type { AdminKullanici, KullaniciFormDegeri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
 import type { AtanabilirRol } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleri';
-import { KullaniciOturumCubugu } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciOturumCubugu';
-import type { KullaniciOturumSecenekleri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/kullaniciOturumYardimci';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 
 function basHarf(ad: string, kullaniciKodu: string): string {
@@ -64,7 +62,6 @@ interface KullaniciDuzenleFormuYeniProps {
   form: KullaniciFormDegeri;
   seciliId: string | null;
   atanabilirRoller: AtanabilirRol[];
-  oturumSecenekleri: KullaniciOturumSecenekleri;
   onSifreDegisti: (v: boolean) => void;
   onChange: (form: KullaniciFormDegeri) => void;
   saltOkunur?: boolean;
@@ -74,7 +71,6 @@ export function KullaniciDuzenleFormuYeni({
   form,
   seciliId,
   atanabilirRoller,
-  oturumSecenekleri,
   onSifreDegisti,
   onChange,
 }: KullaniciDuzenleFormuYeniProps) {
@@ -151,12 +147,6 @@ export function KullaniciDuzenleFormuYeni({
           </div>
         </div>
       </div>
-      <KullaniciOturumCubugu
-        form={form}
-        oturumSecenekleri={oturumSecenekleri}
-        onChange={onChange}
-        variant="form-ici-yeni"
-      />
     </div>
   );
 }

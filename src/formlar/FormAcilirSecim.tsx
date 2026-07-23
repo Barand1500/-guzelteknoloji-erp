@@ -143,7 +143,7 @@ function cokluEtiket(
   secenekler: readonly FormAcilirSecimSecenek[],
   values: readonly string[]
 ): string {
-  if (!values.length) return 'Seçin';
+  if (!values.length) return 'seçiniz';
   const etiketler = values
     .map((v) => secenekler.find((s) => s.value === v)?.label)
     .filter(Boolean) as string[];
@@ -159,7 +159,7 @@ export function FormAcilirSecim({
   values,
   onChangeCoklu,
   coklu = false,
-  secenekler,
+  secenekler: seceneklerHam = [],
   className = '',
   listeSinifi = '',
   listeMinGenislik = 0,
@@ -171,6 +171,7 @@ export function FormAcilirSecim({
   disabled = false,
   'aria-label': ariaLabel,
 }: FormAcilirSecimProps) {
+  const secenekler = Array.isArray(seceneklerHam) ? seceneklerHam : [];
   const listeId = useId();
   const tusRef = useRef<HTMLButtonElement>(null);
   const listeRef = useRef<HTMLUListElement>(null);
@@ -188,7 +189,9 @@ export function FormAcilirSecim({
   const secili = secenekler.find((s) => s.value === value);
   const gosterilenEtiket =
     tusMetin ??
-    (coklu ? cokluEtiket(secenekler, seciliDegerler) : (secili?.label ?? (value ? String(value) : 'Seçin')));
+    (coklu
+      ? cokluEtiket(secenekler, seciliDegerler)
+      : (secili?.label ?? (value ? String(value) : 'seçiniz')));
   const inlineListe = listeInline;
 
   const seciliIndex = Math.max(
@@ -296,8 +299,8 @@ export function FormAcilirSecim({
       setAcik(false);
     }
 
-    document.addEventListener('mousedown', disTik);
-    return () => document.removeEventListener('mousedown', disTik);
+    document.addEventListener('mousedown', disTik, true);
+    return () => document.removeEventListener('mousedown', disTik, true);
   }, [acik]);
 
   const tekSec = (yeni: string) => {

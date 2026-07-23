@@ -15,14 +15,14 @@ export function RolModulCubugu({
   ariaLabel = 'Sayfa seçimi',
 }: RolModulCubuguProps) {
   const konteynerRef = useRef<HTMLDivElement>(null);
-  const [gosterge, setGosterge] = useState({ sol: 0, genislik: 0 });
+  const [gosterge, setGosterge] = useState({ ust: 0, yukseklik: 0 });
 
   const gostergeyiGuncelle = useCallback(() => {
     const kok = konteynerRef.current;
     if (!kok) return;
     const dugme = kok.querySelector<HTMLButtonElement>(`[data-roller-modul="${aktif}"]`);
     if (!dugme) return;
-    setGosterge({ sol: dugme.offsetLeft, genislik: dugme.offsetWidth });
+    setGosterge({ ust: dugme.offsetTop, yukseklik: dugme.offsetHeight });
   }, [aktif]);
 
   useLayoutEffect(() => {
@@ -38,7 +38,7 @@ export function RolModulCubugu({
     const dugme = konteynerRef.current?.querySelector<HTMLButtonElement>(
       `[data-roller-modul="${aktif}"]`
     );
-    dugme?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    dugme?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [aktif]);
 
   if (!moduller.length) return null;
@@ -50,11 +50,15 @@ export function RolModulCubugu({
         ref={konteynerRef}
         role="tablist"
         aria-label={ariaLabel}
+        aria-orientation="vertical"
       >
         <span
           className="ap-roller-modul-gosterge"
           aria-hidden
-          style={{ transform: `translateX(${gosterge.sol}px)`, width: gosterge.genislik }}
+          style={{
+            transform: `translateY(${gosterge.ust}px)`,
+            height: gosterge.yukseklik,
+          }}
         />
         {moduller.map((m) => {
           const secili = aktif === m.prefix;

@@ -521,7 +521,6 @@ export function KullanicilarSayfasiYeni() {
                 form={form}
                 seciliId={seciliId}
                 atanabilirRoller={atanabilirRoller}
-                oturumSecenekleri={oturumSecenekleri}
                 onSifreDegisti={setSifreDegisti}
                 onChange={setForm}
                 saltOkunur={saltOkunur}
