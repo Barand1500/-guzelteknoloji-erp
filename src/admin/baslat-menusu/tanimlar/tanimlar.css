@@ -3079,33 +3079,95 @@ button.ap-tanimlar-panel-arka {
   min-width: 0;
   width: 100%;
   display: block;
-  padding-top: 0.55rem;
+  padding: 0.7rem 0.65rem 0.55rem;
+  min-height: 0;
 }
 
 .stok-yb-fiyat-ust-icerik {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.65rem;
+  align-items: center;
   width: 100%;
   min-width: 0;
 }
 
-.stok-yb-fiyat-sol {
-  flex: 1 1 auto;
-  min-width: 0;
+.stok-yb-fiyat-govde {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.stok-yb-fiyat-segment {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.18rem;
+  min-width: 0;
+  padding: 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, var(--ap-text));
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--ap-text) 3.5%, var(--ap-input-bg));
+}
+
+.stok-yb-fiyat-segment-oge {
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.36rem 0.78rem;
+  background: transparent;
+  color: var(--ap-text);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.stok-yb-fiyat-segment-oge:hover:not(.stok-yb-fiyat-segment-oge--aktif) {
+  background: color-mix(in srgb, var(--ap-surface) 80%, transparent);
+  color: var(--ap-heading, var(--ap-text));
+}
+
+.stok-yb-fiyat-segment-oge--aktif {
+  background: var(--ap-accent);
+  color: #fff;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--ap-accent) 40%, transparent);
 }
 
 .stok-yb-fiyat-araclar {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.22rem;
   flex: none;
   margin-left: auto;
-  padding-bottom: 0.1rem;
+  padding: 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, var(--ap-text));
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--ap-text) 3.5%, var(--ap-input-bg));
+}
+
+.stok-yb-fiyat-araclar .stok-yb-tus--ikon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.4rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ap-accent);
+}
+
+.stok-yb-fiyat-araclar .stok-yb-tus--ikon:hover {
+  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
+  filter: none;
+}
+
+.stok-yb-fiyat-araclar .stok-yb-tus--ikon svg {
+  width: 0.98rem;
+  height: 0.98rem;
 }
 
 .stok-yb-baslik-birim {
@@ -5441,8 +5503,16 @@ button.ap-tanimlar-panel-arka {
     align-items: stretch;
   }
 
+  .stok-yb-fiyat-govde {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .stok-yb-fiyat-araclar {
+    margin-left: 0;
     justify-content: flex-end;
+    width: fit-content;
+    align-self: flex-end;
   }
 }
 

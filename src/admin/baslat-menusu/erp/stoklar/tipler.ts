@@ -247,7 +247,7 @@ export const bosStokForm: StokForm = {
   eTicaret: '',
   fKasa: '',
   gtip: '',
-  envanterTakibi: 'YOK',
+  envanterTakibi: 'NORMAL',
   asgariStok: '',
   azamiStok: '',
   seriNoZorunlu: 'HAYIR',

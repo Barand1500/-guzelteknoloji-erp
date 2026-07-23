@@ -23,7 +23,21 @@ export function cariDosyaDokumanGetir(cariId: string): CariDosyaDokuman {
   if (!kayit) return { notlar: [], dosyalar: [], etiketler: [] };
   return {
     notlar: Array.isArray(kayit.notlar) ? kayit.notlar : [],
-    dosyalar: Array.isArray(kayit.dosyalar) ? kayit.dosyalar : [],
+    dosyalar: Array.isArray(kayit.dosyalar)
+      ? kayit.dosyalar.map((d) => {
+          const eski = d as { not?: string; dosyaNotlari?: string[] };
+          let dosyaNotlari: string[] = [];
+          if (Array.isArray(eski.dosyaNotlari)) {
+            dosyaNotlari = eski.dosyaNotlari
+              .filter((n): n is string => typeof n === 'string')
+              .map((n) => n.trim())
+              .filter(Boolean);
+          } else if (typeof eski.not === 'string' && eski.not.trim()) {
+            dosyaNotlari = [eski.not.trim()];
+          }
+          return { ...d, dosyaNotlari };
+        })
+      : [],
     etiketler: Array.isArray(kayit.etiketler) ? kayit.etiketler : [],
   };
 }

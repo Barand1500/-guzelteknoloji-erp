@@ -30,7 +30,6 @@ import { StokEnvanterTakibiDetay } from './StokEnvanterTakibiDetay';
 import {
   stokKdvDepartmaniEkle,
   stokKdvDepartmaniGuncelle,
-  stokKdvDepartmaniGosterimEtiketi,
   stokKdvDepartmaniSil,
   stokKdvDepartmanlariGetir,
   kdvYuzdeFiltrele,
@@ -378,7 +377,7 @@ export function StokKarti({
               disabled={saltOkunur}
               secenekler={kdvDepartmanlari.map((x) => ({
                 value: x.value,
-                label: stokKdvDepartmaniGosterimEtiketi(x),
+                label: x.label,
               }))}
               aramaPlaceholder="KDV departmanı ara…"
               bosMetin="KDV Departmanı"

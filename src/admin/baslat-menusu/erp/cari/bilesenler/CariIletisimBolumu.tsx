@@ -13,6 +13,20 @@ function kisiSilMetni(kisi: CariIletisimKisi): string {
   return baslik || 'Adsız adres başlığı';
 }
 
+function AdresBaslikPinIkon() {
+  return (
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden>
+      <path
+        d="M8 1.6c-2.4 0-4.4 1.9-4.4 4.3 0 3.2 4.4 8.5 4.4 8.5s4.4-5.3 4.4-8.5C12.4 3.5 10.4 1.6 8 1.6Z"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinejoin="round"
+      />
+      <circle cx="8" cy="5.9" r="1.45" stroke="currentColor" strokeWidth="1.35" />
+    </svg>
+  );
+}
+
 export function CariIletisimBolumu({
   kisiler,
   efatura = false,
@@ -42,6 +56,7 @@ export function CariIletisimBolumu({
 }) {
   const [adresCekildi, setAdresCekildi] = useState<Record<string, true>>({});
   const [silinecekId, setSilinecekId] = useState<string | null>(null);
+  const [baslikOdakId, setBaslikOdakId] = useState<string | null>(null);
   const bosFormVar = kisiler.some((k) => iletisimKisiBosMu(k));
   const ustAdres = varsayilanAdres.trim();
   const silinecek = silinecekId ? kisiler.find((k) => k.id === silinecekId) : undefined;
@@ -94,9 +109,33 @@ export function CariIletisimBolumu({
         <div className="cari-iletisim-liste">
           {kisiler.map((kisi, index) => {
             const cekGoster = !disabled && !!ustAdres && !adresCekildi[kisi.id];
+            const baslikVar = !!kisi.adresBasligi.trim();
+            const baslikOdakta = baslikOdakId === kisi.id;
 
             return (
               <article key={kisi.id} className="cari-iletisim-kart">
+                <label
+                  className={`cari-iletisim-kart-baslik${baslikOdakta ? ' cari-iletisim-kart-baslik--odak' : ''}${baslikVar ? '' : ' cari-iletisim-kart-baslik--bos'}${disabled ? ' cari-iletisim-kart-baslik--pasif' : ''}`}
+                  title="Adres başlığı"
+                >
+                  <span className="cari-iletisim-kart-baslik-ikon" aria-hidden>
+                    <AdresBaslikPinIkon />
+                  </span>
+                  <input
+                    type="text"
+                    className="cari-iletisim-kart-baslik-input"
+                    value={kisi.adresBasligi}
+                    maxLength={80}
+                    placeholder="Merkez, Şube…"
+                    size={Math.max(1, kisi.adresBasligi.length || 1)}
+                    disabled={disabled}
+                    aria-label="Adres başlığı"
+                    onFocus={() => setBaslikOdakId(kisi.id)}
+                    onBlur={() => setBaslikOdakId((id) => (id === kisi.id ? null : id))}
+                    onChange={(e) => kisiGuncelle(kisi.id, { adresBasligi: e.target.value })}
+                  />
+                </label>
+
                 {!disabled ? (
                   <button
                     type="button"
@@ -110,15 +149,6 @@ export function CariIletisimBolumu({
                 ) : null}
 
                 <div className="cari-iletisim-kart-grid">
-                  <CariOutlinedGirdi
-                    etiket="Adres Başlığı"
-                    deger={kisi.adresBasligi}
-                    className="cari-alan-tam"
-                    maxLength={80}
-                    odakPlaceholder="Merkez, Şube, Depo…"
-                    disabled={disabled}
-                    onChange={(adresBasligi) => kisiGuncelle(kisi.id, { adresBasligi })}
-                  />
                   <CariOutlinedGirdi
                     etiket="Ad Soyad"
                     deger={kisi.adSoyad}
@@ -135,54 +165,77 @@ export function CariIletisimBolumu({
                     disabled={disabled}
                     onChange={(gorevi) => kisiGuncelle(kisi.id, { gorevi })}
                   />
-                  <CariOutlinedTelefon
-                    deger={kisi.telefon}
-                    disabled={disabled}
-                    onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
-                  />
-                  <CariOutlinedEposta
-                    deger={kisi.eposta}
-                    disabled={disabled}
-                    dogrulaAktif
-                    onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
-                  />
-                  <CariOutlinedGirdi
-                    etiket="Adres"
-                    deger={kisi.adres}
-                    className="cari-alan-tam"
-                    maxLength={500}
-                    odakPlaceholder="Adres bilgisi"
-                    disabled={disabled}
-                    onChange={(adres) => kisiGuncelle(kisi.id, { adres })}
-                    sonek={
-                      cekGoster ? (
-                        <button
-                          type="button"
-                          className="cari-adres-cek"
-                          onClick={() => adresiCek(kisi.id)}
-                          title="Üstteki cari adresini buraya aktar"
-                        >
-                          Çek
-                        </button>
-                      ) : null
-                    }
-                  />
-                  <CariOutlinedIl
-                    deger={kisi.il}
-                    disabled={disabled}
-                    onChange={(il) =>
-                      kisiGuncelle(kisi.id, {
-                        il,
-                        ilce: il !== kisi.il ? '' : kisi.ilce,
-                      })
-                    }
-                  />
-                  <CariOutlinedIlce
-                    deger={kisi.ilce}
-                    il={kisi.il}
-                    disabled={disabled}
-                    onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
-                  />
+                  <div className="cari-adres-il-ilce-satir">
+                    <CariOutlinedGirdi
+                      etiket="Adres"
+                      deger={kisi.adres}
+                      maxLength={500}
+                      odakPlaceholder="Adres bilgisi"
+                      disabled={disabled}
+                      onChange={(adres) => kisiGuncelle(kisi.id, { adres })}
+                      sonek={
+                        cekGoster ? (
+                          <button
+                            type="button"
+                            className="cari-adres-cek"
+                            onClick={() => adresiCek(kisi.id)}
+                            title="Üstteki cari adresini buraya aktar"
+                          >
+                            Çek
+                          </button>
+                        ) : null
+                      }
+                    />
+                    <CariOutlinedIl
+                      deger={kisi.il}
+                      disabled={disabled}
+                      onChange={(il) =>
+                        kisiGuncelle(kisi.id, {
+                          il,
+                          ilce: il !== kisi.il ? '' : kisi.ilce,
+                        })
+                      }
+                    />
+                    <CariOutlinedIlce
+                      deger={kisi.ilce}
+                      il={kisi.il}
+                      disabled={disabled}
+                      onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
+                    />
+                  </div>
+                  <div className="cari-iletisim-web-satir">
+                    <div className="cari-telefon-gsm-cift">
+                      <CariOutlinedTelefon
+                        deger={kisi.telefon}
+                        disabled={disabled}
+                        onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
+                      />
+                      <CariOutlinedTelefon
+                        etiket="GSM"
+                        deger={kisi.gsm}
+                        disabled={disabled}
+                        dogrulaAktif
+                        gsmMi
+                        onChange={(gsm) => kisiGuncelle(kisi.id, { gsm })}
+                      />
+                    </div>
+                    <div className="cari-eposta-web-cift">
+                      <CariOutlinedEposta
+                        deger={kisi.eposta}
+                        disabled={disabled}
+                        dogrulaAktif
+                        onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
+                      />
+                      <CariOutlinedGirdi
+                        etiket="Web"
+                        deger={kisi.web}
+                        maxLength={120}
+                        odakPlaceholder="www.ornek.com"
+                        disabled={disabled}
+                        onChange={(web) => kisiGuncelle(kisi.id, { web })}
+                      />
+                    </div>
+                  </div>
                   {index === 0 && (efatura || earsiv) ? (
                     <>
                       {efatura ? (

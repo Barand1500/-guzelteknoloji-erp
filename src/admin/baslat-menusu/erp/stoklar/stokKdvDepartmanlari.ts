@@ -74,7 +74,7 @@ export function stokKdvDepartmaniEkle(
 ): StokKdvDepartmaniSecenek | null {
   const ad = label.trim();
   const temizYuzde = kdvYuzdeFiltrele(yuzde.trim());
-  if (!ad || !temizYuzde) return null;
+  if (!ad) return null;
   const value = ad
     .toLocaleUpperCase('tr')
     .replace(/\s+/g, '_')
@@ -105,7 +105,7 @@ export function stokKdvDepartmaniGuncelle(
 ): boolean {
   const ad = yeniLabel.trim();
   const temizYuzde = kdvYuzdeFiltrele(yuzde.trim());
-  if (!ad || !temizYuzde) return false;
+  if (!ad) return false;
   const mevcut = oku();
   const hedef = mevcut.find((d) => d.value === value);
   if (!hedef) return false;

@@ -10,6 +10,8 @@ function kisiNormalize(k: Partial<CariIletisimKisi> & { id?: string }): CariIlet
     gorevi: k.gorevi ?? '',
     eposta: k.eposta ?? '',
     telefon: k.telefon ?? '',
+    gsm: k.gsm ?? '',
+    web: k.web ?? '',
     il: k.il ?? '',
     ilce: k.ilce ?? '',
     adres: k.adres ?? '',
@@ -61,6 +63,8 @@ export function iletisimKisiBosMu(kisi: CariIletisimKisi): boolean {
     kisi.gorevi.trim() ||
     kisi.eposta.trim() ||
     kisi.telefon.trim() ||
+    kisi.gsm.trim() ||
+    kisi.web.trim() ||
     kisi.il.trim() ||
     kisi.ilce.trim() ||
     kisi.adres.trim()
@@ -75,6 +79,8 @@ export function bosIletisimKisi(il = '', ilce = ''): CariIletisimKisi {
     gorevi: '',
     eposta: '',
     telefon: '',
+    gsm: '',
+    web: '',
     il,
     ilce,
     adres: '',

@@ -367,56 +367,57 @@ export function StokYeniBirimler({
     <div className="stok-yb-kabuk stok-karti-bolum-panel">
       <div className="cari-secili-alan stok-yb-fiyat-secim">
         <div className="stok-yb-fiyat-ust-icerik">
-          <div className="stok-yb-fiyat-sol">
-            <div className="cari-secili-etiket-satir">
-              <span className="cari-secili-etiket">Fiyat Adı</span>
-              <button
-                type="button"
-                className="cari-secili-yonet"
-                onClick={() => setFiyatModalAcik(true)}
-                title="Fiyat adı yönet"
-                aria-label="Fiyat adı yönet"
-              >
-                +
-              </button>
-            </div>
-            <div className="cari-secili-chip-grup" role="group" aria-label="Fiyat adı">
+          <div className="cari-secili-etiket-satir">
+            <span className="cari-secili-etiket">Fiyat Adı</span>
+            <button
+              type="button"
+              className="cari-secili-yonet"
+              onClick={() => setFiyatModalAcik(true)}
+              title="Fiyat adı yönet"
+              aria-label="Fiyat adı yönet"
+            >
+              +
+            </button>
+          </div>
+          <div className="stok-yb-fiyat-govde">
+            <div className="stok-yb-fiyat-segment" role="group" aria-label="Fiyat adı">
               {fiyatAdlari.map((f) => (
                 <button
                   key={f.value}
                   type="button"
-                  className={`cari-secili-chip${seciliFiyatAdi === f.label ? ' cari-secili-chip--aktif' : ''}`}
+                  className={`stok-yb-fiyat-segment-oge${seciliFiyatAdi === f.label ? ' stok-yb-fiyat-segment-oge--aktif' : ''}`}
                   onClick={() => setSeciliFiyatAdi(f.label)}
+                  aria-pressed={seciliFiyatAdi === f.label}
                 >
                   {f.label}
                 </button>
               ))}
             </div>
-          </div>
-          <div className="stok-yb-fiyat-araclar">
-            <button
-              type="button"
-              className="stok-yb-tus stok-yb-tus--ikon"
-              onClick={digerFiyatlariHesapla}
-              title="Diğer Fiyatları Hesapla"
-              aria-label="Diğer Fiyatları Hesapla"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <rect x="4" y="2" width="16" height="20" rx="2" />
-                <path strokeLinecap="round" d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h4" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="stok-yb-tus stok-yb-tus--ikon"
-              onClick={fiyatEkle}
-              title="Birim Ekle"
-              aria-label="Birim Ekle"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-                <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-              </svg>
-            </button>
+            <div className="stok-yb-fiyat-araclar" role="group" aria-label="Fiyat araçları">
+              <button
+                type="button"
+                className="stok-yb-tus stok-yb-tus--ikon"
+                onClick={digerFiyatlariHesapla}
+                title="Diğer Fiyatları Hesapla"
+                aria-label="Diğer Fiyatları Hesapla"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <rect x="4" y="2" width="16" height="20" rx="2" />
+                  <path strokeLinecap="round" d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h4" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="stok-yb-tus stok-yb-tus--ikon"
+                onClick={fiyatEkle}
+                title="Birim Ekle"
+                aria-label="Birim Ekle"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+                  <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/baglamlar/AuthContext';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
@@ -11,6 +11,7 @@ import type { CariDosya, CariDosyaDokuman, CariNot } from '../tipler';
 const KABUL_EDILEN_TIPLER = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 const KABUL_UZANTILAR = '.pdf,.png,.jpg,.jpeg,.gif,.webp';
 const MAKS_BOYUT = 10 * 1024 * 1024;
+const MAKS_DOSYA_NOT = 5;
 
 const AY_KISA = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
 
@@ -60,6 +61,16 @@ function dosyayiOku(dosya: File): Promise<string> {
   });
 }
 
+function fileResimMi(file: File): boolean {
+  if (file.type.startsWith('image/')) return true;
+  return /\.(png|jpe?g|gif|webp)$/i.test(file.name);
+}
+
+function filePdfMi(file: File): boolean {
+  if (file.type === 'application/pdf') return true;
+  return /\.pdf$/i.test(file.name);
+}
+
 function dosyaResimMi(dosya: CariDosya): boolean {
   if (dosya.tip.startsWith('image/')) return true;
   return /\.(png|jpe?g|gif|webp)$/i.test(dosya.ad);
@@ -73,6 +84,130 @@ function dosyaPdfMi(dosya: CariDosya): boolean {
 function dosyaOnizlenebilirMi(dosya: CariDosya): boolean {
   return dosyaResimMi(dosya) || dosyaPdfMi(dosya);
 }
+
+function DosyaNotTextarea({
+  value,
+  disabled,
+  autoFocus,
+  placeholder,
+  onChange,
+}: {
+  value: string;
+  disabled?: boolean;
+  autoFocus?: boolean;
+  placeholder?: string;
+  onChange: (value: string) => void;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const MAKS_YUKSEKLIK = 96;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = '0px';
+    const hedef = Math.max(el.scrollHeight, 44);
+    el.style.height = `${Math.min(hedef, MAKS_YUKSEKLIK)}px`;
+    el.style.overflowY = hedef > MAKS_YUKSEKLIK ? 'auto' : 'hidden';
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      className="cari-dokuman-cift-not-girdi"
+      value={value}
+      placeholder={placeholder ?? 'Not yazın…'}
+      rows={1}
+      maxLength={500}
+      disabled={disabled}
+      autoFocus={autoFocus}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+}
+
+function CiftSatir({
+  onizleme,
+  notlar,
+  notSayisi,
+  onNotEkle,
+  notEkleDisabled,
+}: {
+  onizleme: ReactNode;
+  notlar: ReactNode;
+  notSayisi: number;
+  onNotEkle?: () => void;
+  notEkleDisabled?: boolean;
+}) {
+  const onizlemeRef = useRef<HTMLDivElement>(null);
+  const [notYukseklik, setNotYukseklik] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const el = onizlemeRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+
+    const guncelle = () => {
+      const olculen = Math.round(el.getBoundingClientRect().height);
+      setNotYukseklik(Math.max(224, olculen));
+    };
+
+    guncelle();
+    const gozlemci = new ResizeObserver(guncelle);
+    gozlemci.observe(el);
+    window.addEventListener('resize', guncelle);
+    return () => {
+      gozlemci.disconnect();
+      window.removeEventListener('resize', guncelle);
+    };
+  }, []);
+
+  const limitDoldu = notSayisi >= MAKS_DOSYA_NOT;
+  const ekleKapali = Boolean(notEkleDisabled) || limitDoldu;
+
+  return (
+    <div className="cari-dokuman-cift-satir">
+      <div
+        ref={onizlemeRef}
+        className="cari-dokuman-cift-panel cari-dokuman-cift-panel--onizleme"
+      >
+        {onizleme}
+      </div>
+      <div
+        className="cari-dokuman-cift-panel cari-dokuman-cift-panel--not"
+        style={
+          notYukseklik
+            ? { height: notYukseklik, maxHeight: notYukseklik, minHeight: notYukseklik }
+            : undefined
+        }
+      >
+        <div className="cari-dokuman-cift-not-liste">{notlar}</div>
+        {onNotEkle ? (
+          <button
+            type="button"
+            className={`cari-dokuman-cift-not-ekle${notEkleDisabled ? ' cari-dokuman-cift-not-ekle--bekliyor' : ''}`}
+            disabled={ekleKapali}
+            title={
+              limitDoldu
+                ? `En fazla ${MAKS_DOSYA_NOT} not eklenebilir`
+                : undefined
+            }
+            onClick={() => {
+              if (!ekleKapali) onNotEkle();
+            }}
+          >
+            + Not ekle
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+type BekleyenDosya = {
+  yerelId: string;
+  file: File;
+  notlar: string[];
+  onizlemeUrl: string;
+};
 
 export function CariDosyaDokumanBolumu({
   deger,
@@ -92,21 +227,24 @@ export function CariDosyaDokumanBolumu({
   const [notMetin, setNotMetin] = useState('');
   const [duzenlenenNotId, setDuzenlenenNotId] = useState<string | null>(null);
   const [duzenlenenMetin, setDuzenlenenMetin] = useState('');
-  const [etiketMetin, setEtiketMetin] = useState('');
+  const [bekleyenDosyalar, setBekleyenDosyalar] = useState<BekleyenDosya[]>([]);
+  const [yukleniyor, setYukleniyor] = useState(false);
   const [surukleUzerinde, setSurukleUzerinde] = useState(false);
   const [silinecek, setSilinecek] = useState<
     | { tur: 'not'; id: string; metin: string }
-    | { tur: 'etiket'; metin: string }
     | { tur: 'dosya'; id: string; metin: string }
     | null
   >(null);
   const [onizleme, setOnizleme] = useState<CariDosya | null>(null);
-  const onizlemePortalKok = useMemo(
-    () => (onizleme ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
-    [onizleme, sekme?.sekmeId]
+
+  const yukleModalAcik = bekleyenDosyalar.length > 0;
+  const portalKok = useMemo(
+    () =>
+      yukleModalAcik || onizleme ? sekmePortalHedefi(null, sekme?.sekmeId) : null,
+    [yukleModalAcik, onizleme, sekme?.sekmeId]
   );
-  const veriVar =
-    deger.notlar.length > 0 || deger.dosyalar.length > 0 || deger.etiketler.length > 0;
+
+  const veriVar = deger.notlar.length > 0 || deger.dosyalar.length > 0;
   const [acik, setAcik] = useState(veriVar);
   const panelAcik = acik || veriVar;
 
@@ -118,6 +256,28 @@ export function CariDosyaDokumanBolumu({
     },
     [deger, onChange]
   );
+
+  const bekleyenTemizle = useCallback((liste: BekleyenDosya[]) => {
+    for (const b of liste) {
+      URL.revokeObjectURL(b.onizlemeUrl);
+    }
+  }, []);
+
+  const bekleyenRef = useRef(bekleyenDosyalar);
+  bekleyenRef.current = bekleyenDosyalar;
+
+  const bekleyenleriIptal = useCallback(() => {
+    setBekleyenDosyalar((onceki) => {
+      bekleyenTemizle(onceki);
+      return [];
+    });
+  }, [bekleyenTemizle]);
+
+  useEffect(() => {
+    return () => {
+      bekleyenTemizle(bekleyenRef.current);
+    };
+  }, [bekleyenTemizle]);
 
   const notEkle = () => {
     const metin = notMetin.trim();
@@ -165,65 +325,137 @@ export function CariDosyaDokumanBolumu({
     guncelle({ notlar: deger.notlar.filter((n) => n.id !== id) });
   };
 
-  const etiketEkle = () => {
-    const etiket = etiketMetin.trim();
-    if (!etiket || disabled) return;
-    const varMi = deger.etiketler.some(
-      (e) => e.toLocaleLowerCase('tr') === etiket.toLocaleLowerCase('tr')
-    );
-    if (varMi) {
-      setEtiketMetin('');
-      return;
-    }
-    guncelle({ etiketler: [...deger.etiketler, etiket] });
-    setEtiketMetin('');
-  };
-
-  const etiketSil = (etiket: string) => {
-    guncelle({ etiketler: deger.etiketler.filter((e) => e !== etiket) });
+  const dosyaSil = (id: string) => {
+    guncelle({ dosyalar: deger.dosyalar.filter((d) => d.id !== id) });
+    if (onizleme?.id === id) setOnizleme(null);
   };
 
   const silOnayla = () => {
     if (!silinecek) return;
     if (silinecek.tur === 'not') notSil(silinecek.id);
-    else if (silinecek.tur === 'dosya') dosyaSil(silinecek.id);
-    else etiketSil(silinecek.metin);
+    else dosyaSil(silinecek.id);
     setSilinecek(null);
   };
 
-  const dosyalariEkle = async (liste: FileList | File[]) => {
+  const beklemeyeAl = (liste: FileList | File[]) => {
     if (disabled) return;
     const dosyalar = Array.from(liste);
     if (dosyalar.length === 0) return;
 
-    const eklenen: CariDosya[] = [];
+    const eklenecek: BekleyenDosya[] = [];
     for (const dosya of dosyalar) {
       const hata = dosyaOkunabilirMi(dosya);
       if (hata) {
         onHata?.(hata);
         continue;
       }
+      eklenecek.push({
+        yerelId: yeniKayitId('bd'),
+        file: dosya,
+        notlar: [],
+        onizlemeUrl: URL.createObjectURL(dosya),
+      });
+    }
+    if (eklenecek.length > 0) {
+      setBekleyenDosyalar((onceki) => [...onceki, ...eklenecek]);
+    }
+  };
+
+  const bekleyenNotEkle = (yerelId: string) => {
+    setBekleyenDosyalar((onceki) =>
+      onceki.map((b) => {
+        if (b.yerelId !== yerelId) return b;
+        if (b.notlar.length >= MAKS_DOSYA_NOT) return b;
+        return { ...b, notlar: [...b.notlar, ''] };
+      })
+    );
+  };
+
+  const bekleyenNotGuncelle = (yerelId: string, indeks: number, metin: string) => {
+    setBekleyenDosyalar((onceki) =>
+      onceki.map((b) => {
+        if (b.yerelId !== yerelId) return b;
+        const notlar = [...b.notlar];
+        notlar[indeks] = metin;
+        return { ...b, notlar };
+      })
+    );
+  };
+
+  const bekleyenNotSil = (yerelId: string, indeks: number) => {
+    setBekleyenDosyalar((onceki) =>
+      onceki.map((b) => {
+        if (b.yerelId !== yerelId) return b;
+        return { ...b, notlar: b.notlar.filter((_, i) => i !== indeks) };
+      })
+    );
+  };
+
+  const bekleyenKaldir = (yerelId: string) => {
+    setBekleyenDosyalar((onceki) => {
+      const hedef = onceki.find((b) => b.yerelId === yerelId);
+      if (hedef) URL.revokeObjectURL(hedef.onizlemeUrl);
+      return onceki.filter((b) => b.yerelId !== yerelId);
+    });
+  };
+
+  const bekleyenleriYukle = async () => {
+    if (disabled || bekleyenDosyalar.length === 0 || yukleniyor) return;
+    setYukleniyor(true);
+    const eklenen: CariDosya[] = [];
+    for (const bekleyen of bekleyenDosyalar) {
       try {
-        const dataUrl = await dosyayiOku(dosya);
+        const dataUrl = await dosyayiOku(bekleyen.file);
         eklenen.push({
           id: yeniKayitId('cd'),
-          ad: dosya.name,
-          boyut: dosya.size,
-          tip: dosyaTipiBelirle(dosya),
+          ad: bekleyen.file.name,
+          boyut: bekleyen.file.size,
+          tip: dosyaTipiBelirle(bekleyen.file),
           dataUrl,
           tarih: new Date().toISOString(),
+          dosyaNotlari: bekleyen.notlar.map((n) => n.trim()).filter(Boolean),
         });
       } catch {
-        onHata?.('Dosya okunamadı');
+        onHata?.(`${bekleyen.file.name} okunamadı`);
       }
     }
     if (eklenen.length > 0) {
       guncelle({ dosyalar: [...eklenen, ...deger.dosyalar] });
     }
+    bekleyenTemizle(bekleyenDosyalar);
+    setBekleyenDosyalar([]);
+    setYukleniyor(false);
   };
 
-  const dosyaSil = (id: string) => {
-    guncelle({ dosyalar: deger.dosyalar.filter((d) => d.id !== id) });
+  const dosyaNotlariGuncelle = (id: string, dosyaNotlari: string[]) => {
+    guncelle({
+      dosyalar: deger.dosyalar.map((d) => (d.id === id ? { ...d, dosyaNotlari } : d)),
+    });
+    setOnizleme((onceki) => (onceki?.id === id ? { ...onceki, dosyaNotlari } : onceki));
+  };
+
+  const dosyaNotEkle = (id: string) => {
+    const hedef = deger.dosyalar.find((d) => d.id === id);
+    if (!hedef) return;
+    if ((hedef.dosyaNotlari ?? []).length >= MAKS_DOSYA_NOT) return;
+    dosyaNotlariGuncelle(id, [...(hedef.dosyaNotlari ?? []), '']);
+  };
+
+  const dosyaNotGuncelle = (id: string, indeks: number, metin: string) => {
+    const hedef = deger.dosyalar.find((d) => d.id === id);
+    if (!hedef) return;
+    const dosyaNotlari = [...(hedef.dosyaNotlari ?? [])];
+    dosyaNotlari[indeks] = metin;
+    dosyaNotlariGuncelle(id, dosyaNotlari);
+  };
+
+  const dosyaNotSil = (id: string, indeks: number) => {
+    const hedef = deger.dosyalar.find((d) => d.id === id);
+    if (!hedef) return;
+    dosyaNotlariGuncelle(
+      id,
+      (hedef.dosyaNotlari ?? []).filter((_, i) => i !== indeks)
+    );
   };
 
   const dosyaAc = (dosya: CariDosya) => {
@@ -235,16 +467,19 @@ export function CariDosyaDokumanBolumu({
   };
 
   useEffect(() => {
-    if (!onizleme) return;
+    if (!yukleModalAcik && !onizleme) return;
     function tusHandler(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setOnizleme(null);
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      if (yukleModalAcik && !yukleniyor) {
+        bekleyenleriIptal();
+        return;
       }
+      if (onizleme) setOnizleme(null);
     }
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [onizleme]);
+  }, [yukleModalAcik, onizleme, yukleniyor, bekleyenleriIptal]);
 
   return (
     <section className="cari-dokuman-bolumu">
@@ -431,7 +666,7 @@ export function CariDosyaDokumanBolumu({
                 onDrop={(e) => {
                   e.preventDefault();
                   setSurukleUzerinde(false);
-                  void dosyalariEkle(e.dataTransfer.files);
+                  beklemeyeAl(e.dataTransfer.files);
                 }}
                 onClick={() => dosyaInputRef.current?.click()}
                 role="button"
@@ -470,7 +705,9 @@ export function CariDosyaDokumanBolumu({
                   Dosya sürükleyip bırakın veya{' '}
                   <span className="cari-dokuman-dropzone-link">tıklayarak seçin</span>
                 </p>
-                <p className="cari-dokuman-dropzone-ipucu">PDF, PNG, JPG, GIF, WEBP — maks. 10MB</p>
+                <p className="cari-dokuman-dropzone-ipucu">
+                  PDF, PNG, JPG, GIF, WEBP — maks. 10MB · notu modalda ekleyebilirsiniz
+                </p>
                 <input
                   ref={dosyaInputRef}
                   id={dosyaInputId}
@@ -480,7 +717,7 @@ export function CariDosyaDokumanBolumu({
                   multiple
                   onChange={(e) => {
                     const files = e.target.files;
-                    if (files) void dosyalariEkle(files);
+                    if (files) beklemeyeAl(files);
                     e.target.value = '';
                   }}
                 />
@@ -493,94 +730,51 @@ export function CariDosyaDokumanBolumu({
               <ul className="cari-dokuman-dosya-liste">
                 {deger.dosyalar.map((dosya) => (
                   <li key={dosya.id} className="cari-dokuman-dosya-oge">
-                    <button
-                      type="button"
-                      className="cari-dokuman-dosya-ad"
-                      title={dosyaOnizlenebilirMi(dosya) ? 'Görüntüle' : 'Aç'}
-                      onClick={() => dosyaAc(dosya)}
-                    >
-                      {dosya.ad}
-                    </button>
-                    <span className="cari-dokuman-dosya-boyut">{boyutEtiketi(dosya.boyut)}</span>
-                    {!disabled ? (
+                    <div className="cari-dokuman-dosya-ust">
                       <button
                         type="button"
-                        className="cari-dokuman-ikon-btn cari-dokuman-ikon-btn--tehlike"
-                        onClick={() =>
-                          setSilinecek({ tur: 'dosya', id: dosya.id, metin: dosya.ad })
-                        }
-                        title="Sil"
-                        aria-label={`${dosya.ad} dosyasını sil`}
+                        className="cari-dokuman-dosya-ad"
+                        title={dosyaOnizlenebilirMi(dosya) ? 'Görüntüle' : 'Aç'}
+                        onClick={() => dosyaAc(dosya)}
                       >
-                        <DgIkon ad="sil" />
+                        {dosya.ad}
                       </button>
+                      <span className="cari-dokuman-dosya-boyut">{boyutEtiketi(dosya.boyut)}</span>
+                      {!disabled ? (
+                        <button
+                          type="button"
+                          className="cari-dokuman-ikon-btn cari-dokuman-ikon-btn--tehlike"
+                          onClick={() =>
+                            setSilinecek({ tur: 'dosya', id: dosya.id, metin: dosya.ad })
+                          }
+                          title="Sil"
+                          aria-label={`${dosya.ad} dosyasını sil`}
+                        >
+                          <DgIkon ad="sil" />
+                        </button>
+                      ) : null}
+                    </div>
+                    {(dosya.dosyaNotlari ?? []).some((n) => n.trim()) ? (
+                      <div className="cari-dokuman-dosya-not-ozetler">
+                        {(dosya.dosyaNotlari ?? []).map((not, i) =>
+                          not.trim() ? (
+                            <p
+                              key={`${dosya.id}-n-${i}`}
+                              className="cari-dokuman-dosya-not-ozet"
+                              title={not}
+                            >
+                              <span className="cari-dokuman-dosya-not-ozet-etiket">
+                                Not {i + 1}:
+                              </span>{' '}
+                              {not}
+                            </p>
+                          ) : null
+                        )}
+                      </div>
                     ) : null}
                   </li>
                 ))}
               </ul>
-            ) : null}
-          </div>
-
-          {/* Etiketler */}
-          <div className="cari-dokuman-alan">
-            <span className="cari-dokuman-alan-etiket">Etiketler</span>
-
-            {deger.etiketler.length > 0 ? (
-              <div className="cari-dokuman-etiket-liste">
-                {deger.etiketler.map((etiket) => (
-                  <span key={etiket} className="cari-dokuman-etiket-chip">
-                    {etiket}
-                    {!disabled ? (
-                      <button
-                        type="button"
-                        className="cari-dokuman-etiket-sil"
-                        onClick={() => setSilinecek({ tur: 'etiket', metin: etiket })}
-                        aria-label={`${etiket} etiketini kaldır`}
-                      >
-                        ×
-                      </button>
-                    ) : null}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-
-            {!disabled ? (
-              <div className="cari-dokuman-satir">
-                <input
-                  type="text"
-                  className="cari-dokuman-girdi"
-                  value={etiketMetin}
-                  placeholder="Etiket yazın ve ekleyin"
-                  maxLength={40}
-                  onChange={(e) => setEtiketMetin(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      etiketEkle();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  className="cari-dokuman-ekle-btn cari-dokuman-ekle-btn--ikon"
-                  onClick={etiketEkle}
-                  disabled={!etiketMetin.trim()}
-                  aria-label="Etiket ekle"
-                  title="Etiket ekle"
-                >
-                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden>
-                    <path
-                      d="M8 3v10M3 8h10"
-                      stroke="currentColor"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ) : deger.etiketler.length === 0 ? (
-              <p className="cari-dokuman-bos">Etiket yok</p>
             ) : null}
           </div>
         </div>
@@ -600,19 +794,174 @@ export function CariDosyaDokumanBolumu({
               : silinecek.metin
             : ''
         }
-        ariaLabel={
-          silinecek?.tur === 'etiket'
-            ? 'Etiket silme onayı'
-            : silinecek?.tur === 'dosya'
-              ? 'Dosya silme onayı'
-              : 'Not silme onayı'
-        }
+        ariaLabel={silinecek?.tur === 'dosya' ? 'Dosya silme onayı' : 'Not silme onayı'}
       />
 
-      {onizleme && onizlemePortalKok
+      {yukleModalAcik && portalKok
         ? createPortal(
             <div
-              className="cari-dokuman-onizleme"
+              className="cari-dokuman-cift-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Dosya yükleme"
+            >
+              <button
+                type="button"
+                className="cari-dokuman-onizleme-arka"
+                aria-label="Kapat"
+                disabled={yukleniyor}
+                onClick={() => {
+                  if (!yukleniyor) bekleyenleriIptal();
+                }}
+              />
+              <div className="cari-dokuman-cift-kabuk">
+                <header className="cari-dokuman-cift-ust">
+                  <div className="cari-dokuman-cift-baslik-grup">
+                    <span className="cari-dokuman-cift-baslik">Dosya yükle</span>
+                    <span className="cari-dokuman-cift-alt">
+                      {bekleyenDosyalar.length} dosya · her dosyaya özel not ekleyebilirsiniz
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="cari-dokuman-onizleme-kapat"
+                    onClick={() => {
+                      if (!yukleniyor) bekleyenleriIptal();
+                    }}
+                    disabled={yukleniyor}
+                    aria-label="Kapat (Esc)"
+                    title="Kapat (Esc)"
+                  >
+                    ×
+                  </button>
+                </header>
+
+                <div className="cari-dokuman-cift-liste">
+                  {bekleyenDosyalar.map((bekleyen) => {
+                    const resim = fileResimMi(bekleyen.file);
+                    const pdf = filePdfMi(bekleyen.file);
+                    return (
+                      <CiftSatir
+                        key={bekleyen.yerelId}
+                        onizleme={
+                          <>
+                            <div className="cari-dokuman-cift-panel-ust">
+                              <span className="cari-dokuman-cift-panel-ad" title={bekleyen.file.name}>
+                                {bekleyen.file.name}
+                              </span>
+                              <span className="cari-dokuman-cift-panel-boyut">
+                                {boyutEtiketi(bekleyen.file.size)}
+                              </span>
+                              <button
+                                type="button"
+                                className="cari-dokuman-ikon-btn cari-dokuman-ikon-btn--tehlike"
+                                onClick={() => bekleyenKaldir(bekleyen.yerelId)}
+                                title="Kaldır"
+                                aria-label={`${bekleyen.file.name} kaldır`}
+                                disabled={yukleniyor}
+                              >
+                                <DgIkon ad="sil" />
+                              </button>
+                            </div>
+                            <div className="cari-dokuman-cift-onizleme-govde">
+                              {resim ? (
+                                <img
+                                  src={bekleyen.onizlemeUrl}
+                                  alt={bekleyen.file.name}
+                                  className="cari-dokuman-cift-onizleme-resim"
+                                />
+                              ) : pdf ? (
+                                <iframe
+                                  src={bekleyen.onizlemeUrl}
+                                  title={bekleyen.file.name}
+                                  className="cari-dokuman-cift-onizleme-pdf"
+                                />
+                              ) : (
+                                <span className="cari-dokuman-cift-onizleme-bos">
+                                  Önizleme yok
+                                </span>
+                              )}
+                            </div>
+                          </>
+                        }
+                        notlar={
+                          <>
+                            {bekleyen.notlar.map((not, indeks) => (
+                              <div key={`${bekleyen.yerelId}-n-${indeks}`} className="cari-dokuman-cift-not-oge">
+                                <span className="cari-dokuman-cift-not-etiket">Not {indeks + 1}:</span>
+                                <div className="cari-dokuman-cift-not-kutu">
+                                  <DosyaNotTextarea
+                                    value={not}
+                                    disabled={yukleniyor}
+                                    autoFocus={not === '' && indeks === bekleyen.notlar.length - 1}
+                                    placeholder="Notunuzu yazın…"
+                                    onChange={(metin) =>
+                                      bekleyenNotGuncelle(bekleyen.yerelId, indeks, metin)
+                                    }
+                                  />
+                                  <button
+                                    type="button"
+                                    className="cari-dokuman-cift-not-sil"
+                                    onClick={() => bekleyenNotSil(bekleyen.yerelId, indeks)}
+                                    title="Notu sil"
+                                    aria-label={`Not ${indeks + 1} sil`}
+                                    disabled={yukleniyor}
+                                  >
+                                    <DgIkon ad="sil" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        }
+                        notSayisi={bekleyen.notlar.length}
+                        onNotEkle={() => bekleyenNotEkle(bekleyen.yerelId)}
+                        notEkleDisabled={yukleniyor}
+                      />
+                    );
+                  })}
+                </div>
+
+                <footer className="cari-dokuman-cift-altbar">
+                  <div className="cari-dokuman-cift-altbar-sol">
+                    <button
+                      type="button"
+                      className="cari-dokuman-cift-btn cari-dokuman-cift-btn--ikincil"
+                      onClick={() => dosyaInputRef.current?.click()}
+                      disabled={yukleniyor}
+                    >
+                      Dosya ekle
+                    </button>
+                  </div>
+                  <div className="cari-dokuman-cift-altbar-sag">
+                    <button
+                      type="button"
+                      className="cari-dokuman-cift-btn cari-dokuman-cift-btn--ikincil"
+                      onClick={bekleyenleriIptal}
+                      disabled={yukleniyor}
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="button"
+                      className="cari-dokuman-cift-btn cari-dokuman-cift-btn--birincil"
+                      onClick={() => void bekleyenleriYukle()}
+                      disabled={yukleniyor || bekleyenDosyalar.length === 0}
+                    >
+                      {yukleniyor ? 'Yükleniyor…' : 'Yükle'}
+                    </button>
+                  </div>
+                </footer>
+              </div>
+            </div>,
+            portalKok
+          )
+        : null}
+
+      {onizleme && portalKok && !yukleModalAcik
+        ? createPortal(
+            <div
+              className="cari-dokuman-cift-modal"
               role="dialog"
               aria-modal="true"
               aria-label={dosyaPdfMi(onizleme) ? 'PDF önizleme' : 'Resim önizleme'}
@@ -623,13 +972,16 @@ export function CariDosyaDokumanBolumu({
                 aria-label="Kapat"
                 onClick={() => setOnizleme(null)}
               />
-              <div
-                className={`cari-dokuman-onizleme-panel${dosyaPdfMi(onizleme) ? ' cari-dokuman-onizleme-panel--pdf' : ''}`}
-              >
-                <header className="cari-dokuman-onizleme-ust">
-                  <span className="cari-dokuman-onizleme-baslik" title={onizleme.ad}>
-                    {onizleme.ad}
-                  </span>
+              <div className="cari-dokuman-cift-kabuk cari-dokuman-cift-kabuk--tek">
+                <header className="cari-dokuman-cift-ust">
+                  <div className="cari-dokuman-cift-baslik-grup">
+                    <span className="cari-dokuman-cift-baslik" title={onizleme.ad}>
+                      {onizleme.ad}
+                    </span>
+                    <span className="cari-dokuman-cift-alt">
+                      {boyutEtiketi(onizleme.boyut)}
+                    </span>
+                  </div>
                   <button
                     type="button"
                     className="cari-dokuman-onizleme-kapat"
@@ -640,24 +992,88 @@ export function CariDosyaDokumanBolumu({
                     ×
                   </button>
                 </header>
-                <div className="cari-dokuman-onizleme-govde">
-                  {dosyaPdfMi(onizleme) ? (
-                    <iframe
-                      src={onizleme.dataUrl}
-                      title={onizleme.ad}
-                      className="cari-dokuman-onizleme-pdf"
-                    />
-                  ) : (
-                    <img
-                      src={onizleme.dataUrl}
-                      alt={onizleme.ad}
-                      className="cari-dokuman-onizleme-resim"
-                    />
-                  )}
+
+                <div className="cari-dokuman-cift-liste">
+                  <CiftSatir
+                    onizleme={
+                      <div className="cari-dokuman-cift-onizleme-govde">
+                        {dosyaPdfMi(onizleme) ? (
+                          <iframe
+                            src={onizleme.dataUrl}
+                            title={onizleme.ad}
+                            className="cari-dokuman-cift-onizleme-pdf"
+                          />
+                        ) : (
+                          <img
+                            src={onizleme.dataUrl}
+                            alt={onizleme.ad}
+                            className="cari-dokuman-cift-onizleme-resim"
+                          />
+                        )}
+                      </div>
+                    }
+                    notlar={
+                      !disabled ? (
+                        <>
+                          {(onizleme.dosyaNotlari ?? []).map((not, indeks) => (
+                            <div key={`${onizleme.id}-n-${indeks}`} className="cari-dokuman-cift-not-oge">
+                              <span className="cari-dokuman-cift-not-etiket">Not {indeks + 1}:</span>
+                              <div className="cari-dokuman-cift-not-kutu">
+                                <DosyaNotTextarea
+                                  value={not}
+                                  autoFocus={not === '' && indeks === (onizleme.dosyaNotlari?.length ?? 0) - 1}
+                                  placeholder="Notunuzu yazın…"
+                                  onChange={(metin) =>
+                                    dosyaNotGuncelle(onizleme.id, indeks, metin)
+                                  }
+                                />
+                                <button
+                                  type="button"
+                                  className="cari-dokuman-cift-not-sil"
+                                  onClick={() => dosyaNotSil(onizleme.id, indeks)}
+                                  title="Notu sil"
+                                  aria-label={`Not ${indeks + 1} sil`}
+                                >
+                                  <DgIkon ad="sil" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      ) : (
+                        <>
+                          {(onizleme.dosyaNotlari ?? []).map((not, i) =>
+                            not.trim() ? (
+                              <p key={`${onizleme.id}-r-${i}`} className="cari-dokuman-cift-not-metin">
+                                <span className="cari-dokuman-cift-not-etiket">Not {i + 1}:</span> {not}
+                              </p>
+                            ) : null
+                          )}
+                        </>
+                      )
+                    }
+                    notSayisi={(onizleme.dosyaNotlari ?? []).length}
+                    onNotEkle={!disabled ? () => dosyaNotEkle(onizleme.id) : undefined}
+                  />
                 </div>
+
+                {!disabled ? (
+                  <footer className="cari-dokuman-cift-altbar">
+                    <div className="cari-dokuman-cift-altbar-sol" />
+                    <div className="cari-dokuman-cift-altbar-sag">
+                      <button
+                        type="button"
+                        className="cari-dokuman-cift-btn cari-dokuman-cift-btn--birincil"
+                        onClick={() => setOnizleme(null)}
+                      >
+                        Tamam
+                      </button>
+                    </div>
+                  </footer>
+                ) : null}
               </div>
             </div>,
-            onizlemePortalKok
+            portalKok
           )
         : null}
     </section>

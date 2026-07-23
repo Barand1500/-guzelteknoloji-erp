@@ -50,6 +50,8 @@ function iletisimKisileriniHazirla(c: AdminCari): CariIletisimKisi[] {
       gorevi: 'Yetkili',
       eposta: c.eposta.trim(),
       telefon: c.telefon.trim(),
+      gsm: c.gsm?.trim() ?? '',
+      web: c.web?.trim() ?? '',
       il: c.il.trim(),
       ilce: c.ilce.trim(),
       adres: c.adres.trim(),

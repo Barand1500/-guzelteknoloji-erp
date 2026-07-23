@@ -61,7 +61,7 @@ export function StokKdvDepartmanModal({
 
   const ekle = useCallback(() => {
     if (!onEkle(yeniAd, yeniYuzde)) {
-      setHata('Geçerli ve benzersiz bir ad ile KDV yüzdesi girin.');
+      setHata('Geçerli ve benzersiz bir ad girin.');
       return;
     }
     setYeniAd('');
@@ -72,7 +72,7 @@ export function StokKdvDepartmanModal({
   const satirKaydet = useCallback(() => {
     if (!satirDuzenle) return;
     if (!onGuncelle(satirDuzenle, satirAd, satirYuzde)) {
-      setHata('Geçerli ve benzersiz bir ad ile KDV yüzdesi girin.');
+      setHata('Geçerli ve benzersiz bir ad girin.');
       return;
     }
     setSatirDuzenle(null);

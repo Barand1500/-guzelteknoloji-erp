@@ -143,6 +143,43 @@
   grid-column: 1 / -1;
 }
 
+/* Adres = Cari Kodu genişliği (yarı) · İl / İlçe kalan yarıyı paylaşır */
+.cari-adres-il-ilce-satir {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 0.5fr) minmax(5.5rem, 0.5fr);
+  gap: 1rem 0.75rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.cari-adres-il-ilce-satir > * {
+  min-width: 0;
+}
+
+/* Sol: Telefon+GSM · Sağ: E-posta+Web */
+.cari-iletisim-web-satir {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 0.75rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.cari-telefon-gsm-cift,
+.cari-eposta-web-cift {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.cari-telefon-gsm-cift > *,
+.cari-eposta-web-cift > * {
+  min-width: 0;
+}
+
 .cari-unvan-fiyat-satir {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -185,11 +222,11 @@
   grid-template-columns: minmax(7.25rem, 8.75rem);
 }
 
-/* E-Posta altında: E-Fatura | E-İrsaliye — Web altında: E-Arşiv | Alış | Satış */
+/* Sol (E-Fatura|E-İrsaliye) biraz daha dar · sağ alanlar genişler */
 .cari-besli-satir {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: 0.9rem 1.1rem;
   align-items: stretch;
   min-width: 0;
@@ -214,6 +251,21 @@
 
 .cari-besli-sol > *,
 .cari-besli-sag > * {
+  min-width: 0;
+  width: 100%;
+}
+
+.cari-efatura-blok,
+.cari-eirsaliye-blok {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.cari-efatura-blok > *,
+.cari-eirsaliye-blok > * {
   min-width: 0;
   width: 100%;
 }
@@ -294,7 +346,7 @@
   min-height: 2.2rem;
   height: 100%;
   width: 100%;
-  padding: 0.35rem 0.28rem;
+  padding: 0.35rem 0.5rem !important;
   font-size: 0.8125rem;
   border: none;
   background: transparent;
@@ -325,11 +377,11 @@
   flex-shrink: 0;
 }
 
-/* Alias satırı — üstteki 3’lü ile aynı sütun genişlikleri */
+/* Alias satırı — E-Fatura / E-İrsaliye alias */
 .cari-alias-fatura-satir {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem 1.05rem;
   align-items: start;
   min-width: 0;
@@ -348,18 +400,22 @@
   grid-column: 2;
 }
 
-/* E-İrsaliye Hayır: Fatura Tipi 2. sütunda (boşluğu doldurur) */
-.cari-alias-fatura-tipi {
-  grid-column: 2;
-}
-
-/* E-İrsaliye Evet: Fatura Tipi 3. sütuna kayar */
-.cari-alias-fatura-satir--ikili .cari-alias-fatura-tipi {
-  grid-column: 3;
+.cari-alias-fatura-satir:not(.cari-alias-fatura-satir--ikili) .cari-alias-efatura,
+.cari-alias-fatura-satir:not(.cari-alias-fatura-satir--ikili) .cari-alias-eirsaliye {
+  grid-column: 1;
 }
 
 .cari-earsiv-teslim {
   max-width: 12rem;
+}
+
+/* E-Fatura içindeki tip — Hayır iken pasif görünüm */
+.cari-efatura-grup-tip--pasif {
+  opacity: 0.55;
+}
+
+.cari-efatura-grup .cari-fiyat-tanim-grup-icerik {
+  grid-template-columns: minmax(4.2rem, 0.85fr) auto minmax(0, 1.25fr);
 }
 
 .cari-outlined-kucuk.cari-outlined-field {
@@ -395,11 +451,6 @@
   .cari-alias-eirsaliye {
     grid-column: 2;
   }
-
-  .cari-alias-fatura-tipi,
-  .cari-alias-fatura-satir--ikili .cari-alias-fatura-tipi {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 720px) {
@@ -416,9 +467,7 @@
   }
 
   .cari-alias-efatura,
-  .cari-alias-eirsaliye,
-  .cari-alias-fatura-tipi,
-  .cari-alias-fatura-satir--ikili .cari-alias-fatura-tipi {
+  .cari-alias-eirsaliye {
     grid-column: 1;
   }
 }
@@ -426,9 +475,21 @@
 .cari-kart-ust-satir {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1.35fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem 1.1rem;
   align-items: start;
+}
+
+.cari-kart-ust-sol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 0.85rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.cari-kart-ust-sol > * {
+  min-width: 0;
 }
 
 .cari-kart-ust-kimlik {
@@ -444,12 +505,8 @@
 }
 
 @media (max-width: 980px) {
-  .cari-kart-ust-satir {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .cari-kart-ust-kimlik {
-    grid-column: 1 / -1;
+  .cari-kart-ust-sol {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -463,7 +520,18 @@
     grid-column: auto;
   }
 
-  .cari-kart-ust-satir {
+  .cari-adres-il-ilce-satir {
+    grid-template-columns: 1fr;
+  }
+
+  .cari-iletisim-web-satir,
+  .cari-telefon-gsm-cift,
+  .cari-eposta-web-cift {
+    grid-template-columns: 1fr;
+  }
+
+  .cari-kart-ust-satir,
+  .cari-kart-ust-sol {
     grid-template-columns: 1fr;
   }
 
@@ -627,6 +695,14 @@
   min-height: unset;
   border-radius: 0 !important;
   color: var(--ap-text) !important;
+}
+
+/* Input grup (E-Fatura / Fiyat Tanımı) — diğer outlined alanlarla aynı sol boşluk */
+.cari-fiyat-tanim-grup.cari-outlined-acilir .cari-outlined-acilir-tus,
+.cari-fiyat-tanim-grup.cari-outlined-acilir .ap-form-acilir-secim-tus,
+.cari-efatura-grup.cari-outlined-acilir .cari-outlined-acilir-tus,
+.cari-efatura-grup.cari-outlined-acilir .ap-form-acilir-secim-tus {
+  padding: 0.35rem 0.55rem !important;
 }
 
 .cari-outlined-icerik .ap-input {
@@ -1139,6 +1215,90 @@
   color: #ef4444;
 }
 
+/* Adres başlığı — kutusu yok, kenarda; yazıldıkça çizgi açılır */
+.cari-iletisim-kart-baslik {
+  position: absolute;
+  top: 0;
+  left: 0.85rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: min(18rem, calc(100% - 4.5rem));
+  width: max-content;
+  margin: 0;
+  padding: 0 0.3rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--cari-alan-zemin, var(--ap-surface));
+  color: var(--ap-muted);
+  cursor: text;
+}
+
+.cari-iletisim-kart-baslik--pasif {
+  cursor: default;
+  pointer-events: none;
+}
+
+.cari-iletisim-kart-baslik-ikon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ap-text-muted);
+  opacity: 0.8;
+  transition:
+    color 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.cari-iletisim-kart-baslik:hover .cari-iletisim-kart-baslik-ikon,
+.cari-iletisim-kart-baslik--odak .cari-iletisim-kart-baslik-ikon {
+  color: var(--ap-accent);
+  opacity: 1;
+}
+
+.cari-iletisim-kart-baslik-input {
+  flex: 0 1 auto;
+  min-width: 0.75rem;
+  max-width: 14rem;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ap-heading);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  field-sizing: content;
+}
+
+.cari-iletisim-kart-baslik-input::placeholder {
+  color: var(--ap-text-muted);
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.cari-iletisim-kart-baslik--bos .cari-iletisim-kart-baslik-input {
+  font-weight: 500;
+  color: var(--ap-text-muted);
+  min-width: 0.75rem;
+}
+
+.cari-iletisim-kart-baslik--odak .cari-iletisim-kart-baslik-input {
+  color: var(--ap-accent);
+}
+
+.cari-iletisim-kart-baslik-input:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
 .cari-iletisim-kart-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1562,13 +1722,20 @@
 
 .cari-dokuman-dosya-oge {
   display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  flex-direction: column;
+  gap: 0.28rem;
   min-width: 0;
-  padding: 0.45rem 0.55rem;
+  padding: 0.45rem 0.55rem 0.5rem;
   border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
   border-radius: 0.5rem;
   background: var(--ap-surface);
+}
+
+.cari-dokuman-dosya-ust {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
 }
 
 .cari-dokuman-dosya-ad {
@@ -1597,14 +1764,428 @@
   color: var(--ap-text-muted);
 }
 
-.cari-dokuman-onizleme {
+.cari-dokuman-dosya-not-ozetler {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.cari-dokuman-dosya-not-ozet {
+  margin: 0;
+  padding: 0.15rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--ap-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.cari-dokuman-dosya-not-ozet-etiket {
+  font-weight: 650;
+  color: var(--ap-heading);
+}
+
+.cari-dokuman-cift-not-etiket {
+  display: block;
+  margin: 0 0 0.2rem 0.05rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--ap-heading);
+  letter-spacing: 0.01em;
+}
+
+.cari-dokuman-cift-not-metin .cari-dokuman-cift-not-etiket {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+}
+
+.cari-dokuman-cift-modal {
   position: fixed;
   inset: 0;
   z-index: 12000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 1.15rem 2rem;
+  padding: 1rem 1.15rem 1.5rem;
+}
+
+.cari-dokuman-cift-kabuk {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(96vw, 68rem);
+  max-height: min(88vh, 46rem);
+  border-radius: 0.95rem;
+  overflow: hidden;
+  background: transparent;
+}
+
+.cari-dokuman-cift-kabuk--tek {
+  width: min(96vw, 62rem);
+}
+
+.cari-dokuman-cift-ust {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.75rem;
+  padding: 0.7rem 0.9rem 0.7rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  border-radius: 0.75rem;
+  background: var(--ap-surface);
+  box-shadow: 0 10px 28px color-mix(in srgb, #000 28%, transparent);
+}
+
+.cari-dokuman-cift-baslik-grup {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.cari-dokuman-cift-baslik {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ap-accent, #f97316);
+  letter-spacing: -0.01em;
+}
+
+.cari-dokuman-cift-alt {
+  font-size: 0.72rem;
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-cift-liste {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-right: 0.15rem;
+}
+
+.cari-dokuman-cift-satir {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+  flex: 0 0 auto;
+  height: auto;
+}
+
+.cari-dokuman-cift-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  border-radius: 0.85rem;
+  background: var(--ap-surface);
+  box-shadow: 0 14px 36px color-mix(in srgb, #000 32%, transparent);
+  overflow: hidden;
+}
+
+.cari-dokuman-cift-panel--onizleme {
+  height: max-content;
+  align-self: start;
+  width: 100%;
+}
+
+.cari-dokuman-cift-panel-ust {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  background: color-mix(in srgb, var(--ap-heading) 3%, var(--ap-surface));
+}
+
+.cari-dokuman-cift-panel-ad {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--ap-heading);
+}
+
+.cari-dokuman-cift-panel-boyut {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-cift-onizleme-govde {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--ap-heading) 6%, #e8eaee);
+}
+
+.cari-dokuman-cift-onizleme-resim {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 0.35rem;
+}
+
+.cari-dokuman-cift-onizleme-pdf {
+  display: block;
+  width: 100%;
+  height: min(62vh, 34rem);
+  min-height: 18rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: #fff;
+}
+
+.cari-dokuman-cift-onizleme-bos {
+  font-size: 0.85rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ap-text-muted) 80%, transparent);
+  padding: 3rem 1rem;
+}
+
+.cari-dokuman-cift-panel--not {
+  align-self: start;
+  width: 100%;
+  min-height: 14rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.cari-dokuman-cift-not-liste {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem 0.55rem 0.35rem 0.7rem;
+}
+
+.cari-dokuman-cift-not-oge {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cari-dokuman-cift-not-kutu {
+  position: relative;
+}
+
+/* Adres / İletişim silme ile aynı tasarım */
+.cari-dokuman-cift-not-sil {
+  position: absolute;
+  top: 0;
+  right: 0.55rem;
+  z-index: 2;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0 0.28rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--ap-surface);
+  color: var(--ap-text-muted);
+  line-height: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.12s ease;
+}
+
+.cari-dokuman-cift-not-sil .dg-svg-ikon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.cari-dokuman-cift-not-sil:hover:not(:disabled) {
+  color: #ef4444;
+}
+
+.cari-dokuman-cift-not-sil:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cari-dokuman-cift-not-ekle {
+  flex: 0 0 auto;
+  margin: 0.35rem 0.7rem 0.7rem;
+  border: 1px dashed color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
+  border-radius: 0.45rem;
+  padding: 0.42rem 0.7rem;
+  background: color-mix(in srgb, var(--ap-accent) 5%, var(--ap-surface));
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--ap-accent);
+  cursor: pointer;
+  text-align: center;
+}
+
+.cari-dokuman-cift-not-ekle:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+}
+
+.cari-dokuman-cift-not-ekle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cari-dokuman-cift-not-ekle--bekliyor:disabled {
+  cursor: wait;
+}
+
+.cari-dokuman-cift-not-girdi {
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  margin: 0;
+  padding: 0.55rem 2rem 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--ap-heading) 3%, var(--ap-surface));
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--ap-text);
+  min-height: 2.75rem;
+  max-height: 6rem;
+}
+
+.cari-dokuman-cift-not-girdi:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
+  background: var(--ap-surface);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 16%, transparent);
+}
+
+.cari-dokuman-cift-not-girdi::placeholder {
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-cift-not-metin {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--ap-heading) 3%, var(--ap-surface));
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--ap-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cari-dokuman-cift-not-bos {
+  margin: 0;
+  padding: 1.1rem 0.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ap-text-muted);
+}
+
+.cari-dokuman-cift-altbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  border-radius: 0.75rem;
+  background: var(--ap-surface);
+  box-shadow: 0 10px 28px color-mix(in srgb, #000 28%, transparent);
+}
+
+.cari-dokuman-cift-altbar-sol,
+.cari-dokuman-cift-altbar-sag {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.cari-dokuman-cift-btn {
+  border: 0;
+  border-radius: 0.45rem;
+  padding: 0.42rem 0.9rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.cari-dokuman-cift-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cari-dokuman-cift-btn--ikincil {
+  background: color-mix(in srgb, var(--ap-heading) 6%, var(--ap-surface));
+  color: var(--ap-heading);
+}
+
+.cari-dokuman-cift-btn--ikincil:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-heading) 10%, var(--ap-surface));
+}
+
+.cari-dokuman-cift-btn--birincil {
+  background: var(--ap-accent, #f97316);
+  color: #fff;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+}
+
+.cari-dokuman-cift-btn--birincil:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+@media (max-width: 820px) {
+  .cari-dokuman-cift-satir {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  .cari-dokuman-cift-panel--onizleme {
+    height: max-content;
+  }
+
+  .cari-dokuman-cift-panel--not {
+    position: static;
+  }
+
+  .cari-dokuman-cift-altbar {
+    flex-wrap: wrap;
+  }
 }
 
 .cari-dokuman-onizleme-arka {
@@ -1617,51 +2198,6 @@
   background: color-mix(in srgb, #0f172a 88%, transparent);
   backdrop-filter: blur(5px);
   cursor: pointer;
-}
-
-.cari-dokuman-onizleme-panel {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  width: min(92vw, 54rem);
-  max-height: min(78vh, 36rem);
-  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
-  border-radius: 0.85rem;
-  background: var(--ap-surface);
-  box-shadow: 0 18px 48px color-mix(in srgb, #000 45%, transparent);
-  overflow: hidden;
-}
-
-.cari-dokuman-onizleme-panel--pdf {
-  width: min(94vw, 60rem);
-  max-height: min(82vh, 40rem);
-}
-
-.cari-dokuman-onizleme-ust {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding: 0.78rem 0.95rem 0.78rem 1.05rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface)) 0%,
-    var(--ap-surface) 100%
-  );
-}
-
-.cari-dokuman-onizleme-baslik {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--ap-accent, #f97316);
-  letter-spacing: -0.01em;
 }
 
 .cari-dokuman-onizleme-kapat {
@@ -1681,47 +2217,13 @@
   box-shadow: 0 2px 10px color-mix(in srgb, var(--ap-accent) 35%, transparent);
 }
 
-.cari-dokuman-onizleme-kapat:hover {
+.cari-dokuman-onizleme-kapat:hover:not(:disabled) {
   filter: brightness(1.08);
 }
 
-.cari-dokuman-onizleme-govde {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  place-items: center;
-  padding: 0.85rem;
-  overflow: auto;
-  background: color-mix(in srgb, var(--ap-heading) 4%, var(--ap-surface));
-}
-
-.cari-dokuman-onizleme-resim {
-  display: block;
-  max-width: 100%;
-  max-height: min(58vh, 28rem);
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 0.35rem;
-}
-
-.cari-dokuman-onizleme-pdf {
-  display: block;
-  width: 100%;
-  height: min(58vh, 28rem);
-  min-height: 16rem;
-  border: 0;
-  border-radius: 0.35rem;
-  background: #fff;
-}
-
-.cari-dokuman-onizleme-panel--pdf .cari-dokuman-onizleme-govde {
-  display: block;
-  padding: 0.75rem;
-}
-
-.cari-dokuman-onizleme-panel--pdf .cari-dokuman-onizleme-pdf {
-  height: min(62vh, 30rem);
+.cari-dokuman-onizleme-kapat:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 .cari-dokuman-etiket-liste {

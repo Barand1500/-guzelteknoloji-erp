@@ -39,6 +39,8 @@ export interface CariIletisimKisi {
   gorevi: string;
   eposta: string;
   telefon: string;
+  gsm: string;
+  web: string;
   il: string;
   ilce: string;
   adres: string;
@@ -58,6 +60,8 @@ export interface CariDosya {
   tip: string;
   dataUrl: string;
   tarih: string;
+  /** Dosyaya özel notlar (birden fazla olabilir) */
+  dosyaNotlari: string[];
 }
 
 export interface CariDosyaDokuman {
