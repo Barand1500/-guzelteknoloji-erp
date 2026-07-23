@@ -261,11 +261,13 @@ export function iskontoIfadesiHesapla(girdi: string): number | null {
       for (const yuzde of parcalar) {
         carpim *= 1 - Math.min(100, Math.max(0, yuzde)) / 100;
       }
-      return sonucYuvarla((1 - carpim) * 100);
+      return sonucYuvarla(Math.min(100, Math.max(0, (1 - carpim) * 100)));
     }
   }
 
-  return sayiIfadesiHesapla(temiz);
+  const tek = sayiIfadesiHesapla(temiz);
+  if (tek === null) return null;
+  return sonucYuvarla(Math.min(100, Math.max(0, tek)));
 }
 
 export function ifadeHesapla(girdi: string, tip: 'sayi' | 'iskonto'): number | null {

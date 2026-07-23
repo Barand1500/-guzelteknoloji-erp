@@ -30,8 +30,14 @@ function formdanSatirOlustur(
 ): SiparisSatiri {
   const miktar = ifadeHesapla(degerler.miktar, 'sayi') ?? satir.miktar;
   const fiyat = ifadeHesapla(degerler.fiyat, 'sayi') ?? satir.fiyat;
-  const satirIskontoYuzde = ifadeHesapla(degerler.satirIskonto, 'iskonto') ?? satir.satirIskontoYuzde;
-  const altIskontoYuzde = ifadeHesapla(degerler.altIskonto, 'iskonto') ?? satir.altIskontoYuzde;
+  const satirIskontoYuzde = Math.min(
+    100,
+    Math.max(0, ifadeHesapla(degerler.satirIskonto, 'iskonto') ?? satir.satirIskontoYuzde)
+  );
+  const altIskontoYuzde = Math.min(
+    100,
+    Math.max(0, ifadeHesapla(degerler.altIskonto, 'iskonto') ?? satir.altIskontoYuzde)
+  );
   const toplamKdvYuzde = ifadeHesapla(degerler.toplamKdv, 'sayi') ?? satir.toplamKdvYuzde;
   return satirHesapla(
     {

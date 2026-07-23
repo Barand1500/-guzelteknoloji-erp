@@ -155,7 +155,8 @@ export function FormAcilirSecim({
   const [listeStil, setListeStil] = useState<CSSProperties>({});
   const [odakIndex, setOdakIndex] = useState(0);
 
-  const secili = secenekler.find((s) => s.value === value) ?? secenekler[0];
+  const secili = secenekler.find((s) => s.value === value);
+  const gosterilenEtiket = tusMetin ?? secili?.label ?? (value ? String(value) : 'Seçin');
   const inlineListe = listeInline;
 
   const seciliIndex = Math.max(
@@ -332,7 +333,7 @@ export function FormAcilirSecim({
         onClick={acKapat}
         onKeyDown={tusTuslari}
       >
-        <span className="ap-form-acilir-secim-tus-metin">{tusMetin ?? secili?.label ?? value}</span>
+        <span className="ap-form-acilir-secim-tus-metin">{gosterilenEtiket}</span>
         <span className="ap-form-acilir-secim-ok" aria-hidden>
           ▾
         </span>

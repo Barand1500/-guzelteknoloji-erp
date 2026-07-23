@@ -386,6 +386,7 @@ export function TanimKayitlarOzeti() {
         id: satir.id,
         onKapat: () => panelKapat(onKapat),
         panel: true,
+        onizleme: satir,
       };
       switch (aktifKayitTipi) {
         case 'firma':

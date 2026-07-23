@@ -36,7 +36,10 @@ function sayiDeger(girdi: string | undefined, varsayilan = 0): number {
 
 function iskontoDeger(girdi: string | undefined, varsayilan = 0): number {
   if (!girdi?.trim()) return varsayilan;
-  return ifadeHesapla(girdi.trim(), 'iskonto') ?? parseFloat(girdi.replace(',', '.')) ?? varsayilan;
+  const n =
+    ifadeHesapla(girdi.trim(), 'iskonto') ?? parseFloat(girdi.replace(',', '.')) ?? varsayilan;
+  if (!Number.isFinite(n)) return varsayilan;
+  return Math.min(100, Math.max(0, n));
 }
 
 function etiketleriAyikla(ham?: string) {
@@ -110,10 +113,12 @@ export function satirlariKdvModunaCevir(
 }
 
 export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri {
+  const satirIskontoYuzde = Math.min(100, Math.max(0, s.satirIskontoYuzde));
+  const altIskontoYuzde = Math.min(100, Math.max(0, s.altIskontoYuzde));
   const tutar = Math.round(s.miktar * s.fiyat * 100) / 100;
-  const satirIskontoTutar = Math.round(tutar * (s.satirIskontoYuzde / 100) * 100) / 100;
+  const satirIskontoTutar = Math.round(tutar * (satirIskontoYuzde / 100) * 100) / 100;
   const netTutar = Math.round((tutar - satirIskontoTutar) * 100) / 100;
-  const altIskontoTutar = Math.round(netTutar * (s.altIskontoYuzde / 100) * 100) / 100;
+  const altIskontoTutar = Math.round(netTutar * (altIskontoYuzde / 100) * 100) / 100;
   const indirimli = Math.round((netTutar - altIskontoTutar) * 100) / 100;
   const kdvOran = s.toplamKdvYuzde / 100;
 
@@ -124,6 +129,8 @@ export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri 
     const toplamKdvTutar = Math.round((toplamTutar - gercekToplam) * 100) / 100;
     return {
       ...s,
+      satirIskontoYuzde,
+      altIskontoYuzde,
       tutar,
       satirIskontoTutar,
       netTutar,
@@ -139,6 +146,8 @@ export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri 
   const toplamTutar = Math.round((gercekToplam + toplamKdvTutar) * 100) / 100;
   return {
     ...s,
+    satirIskontoYuzde,
+    altIskontoYuzde,
     tutar,
     satirIskontoTutar,
     netTutar,

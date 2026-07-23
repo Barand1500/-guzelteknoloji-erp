@@ -27,10 +27,38 @@ import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import './datagrid.css';
 
+/** Aksiyon çubuğu (.ap-footer) ilk render'da yoksa panel hiç açılmasın diye yeniden dene. */
+function useApFooterKok() {
+  const [footerKok, setFooterKok] = useState<Element | null>(() =>
+    typeof document !== 'undefined' ? document.querySelector('.ap-footer') : null
+  );
+
+  useEffect(() => {
+    if (footerKok) return;
+    const bul = () => document.querySelector('.ap-footer');
+    const mevcut = bul();
+    if (mevcut) {
+      setFooterKok(mevcut);
+      return;
+    }
+    const obs = new MutationObserver(() => {
+      const el = bul();
+      if (el) {
+        setFooterKok(el);
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, [footerKok]);
+
+  return footerKok;
+}
+
 function SatirPanelCubukKapak({ children, onKapat }: { children: ReactNode; onKapat: () => void }) {
   const panelRef = useRef<HTMLDivElement>(null);
   useAksiyonCubuguPanelSync(true, panelRef);
-  const footerKok = useMemo(() => document.querySelector('.ap-footer'), []);
+  const footerKok = useApFooterKok();
 
   useEffect(() => {
     const esc = (e: globalThis.KeyboardEvent) => {
@@ -61,7 +89,7 @@ function SatirPanelCubukKapak({ children, onKapat }: { children: ReactNode; onKa
 function TopluBarCubukKapak({ children }: { children: ReactNode }) {
   const panelRef = useRef<HTMLDivElement>(null);
   useAksiyonCubuguPanelSync(true, panelRef);
-  const footerKok = useMemo(() => document.querySelector('.ap-footer'), []);
+  const footerKok = useApFooterKok();
 
   if (!footerKok) return null;
 
@@ -1307,13 +1335,14 @@ export function DataGrid<TRow extends { id: string }>({
         setHizliGirisAcik(false);
         hizliGirisSifirla();
       },
+      odakAyarla,
       seciliIdler: () => [...dg.seciliIdler],
       secimAyarla: (idler) => dg.tumunuSec(idler, idler.length > 0),
     };
     return () => {
       gridApiRef.current = null;
     };
-  }, [gridApiRef, satirlar, dg.seciliIdler, dg.tumunuSec, satirDuzenlePaneli, hizliGirisIstegeBagli, hizliGirisSifirla]);
+  }, [gridApiRef, satirlar, dg.seciliIdler, dg.tumunuSec, satirDuzenlePaneli, hizliGirisIstegeBagli, hizliGirisSifirla, odakAyarla]);
 
   const topluDurum = (aktif: boolean) => {
     if (!onSatirlarDegistir) return;
@@ -1784,10 +1813,41 @@ export function DataGrid<TRow extends { id: string }>({
               const hedefSatir = liste[e.key === 'ArrowDown' ? 0 : liste.length - 1];
               if (!hedefSatir) return;
               const hedefKolonId =
-                odak?.kolonId && dg.gorunurKolonlar.some((k) => k.id === odak.kolonId)
+                odak?.kolonId && dg.gorunurKolonlar.some((k) => k.id === odak.kolonId && gezinilebilirKolonMu(k))
                   ? odak.kolonId
                   : (dg.gorunurKolonlar.find((k) => gezinilebilirKolonMu(k))?.id ?? 'urunKoduAdi');
               odakAyarla(hedefSatir.id, hedefKolonId);
+              return;
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              const el = e.currentTarget as HTMLInputElement;
+              const deger = el.value;
+              const caretBas = el.selectionStart === 0 && el.selectionEnd === 0;
+              const caretSon =
+                el.selectionStart === deger.length && el.selectionEnd === deger.length;
+              const solaGit = e.key === 'ArrowLeft' && (!deger || caretBas);
+              const sagaGit = e.key === 'ArrowRight' && (!deger || caretSon);
+              if (!solaGit && !sagaGit) return;
+
+              e.preventDefault();
+              e.stopPropagation();
+              el.blur();
+              const liste = sayfalama.satirlar;
+              if (!liste.length) return;
+              const hedefSatir = liste[0];
+              if (!hedefSatir) return;
+              const gezinilebilir = dg.gorunurKolonlar.filter((k) => gezinilebilirKolonMu(k));
+              const baslangicId =
+                odak?.kolonId && gezinilebilir.some((k) => k.id === odak.kolonId)
+                  ? odak.kolonId
+                  : (gezinilebilir[0]?.id ?? 'urunKoduAdi');
+              const idx = gezinilebilir.findIndex((k) => k.id === baslangicId);
+              const yon = e.key === 'ArrowRight' ? 1 : -1;
+              const sonraki =
+                gezinilebilir[
+                  Math.max(0, Math.min(gezinilebilir.length - 1, (idx < 0 ? 0 : idx) + yon))
+                ];
+              odakAyarla(hedefSatir.id, sonraki?.id ?? baslangicId);
               return;
             }
             ozelTus?.(e);
@@ -2049,12 +2109,9 @@ export function DataGrid<TRow extends { id: string }>({
               hizliGirisEscIptalRef.current = false;
               return;
             }
-            if (!satir.contains(document.activeElement)) {
-              if (hizliGirisDoluMu()) {
-                void hizliGirisGonder();
-              } else if (hizliGirisIstegeBagli) {
-                setHizliGirisAcik(false);
-              }
+            /* Dışarı tıklayınca ekleme — yalnızca Enter / + ile eklenir */
+            if (!satir.contains(document.activeElement) && hizliGirisIstegeBagli && !hizliGirisDoluMu()) {
+              setHizliGirisAcik(false);
             }
           });
         }}

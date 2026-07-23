@@ -144,6 +144,13 @@ function TanimDuzenlePanel({
         const hedef = e.target as HTMLElement | null;
         const tag = hedef?.tagName;
         if (tag === 'TEXTAREA') return;
+        /* İl/ilçe vb. combobox Enter ile seçim yapsın — kaydetme çalmasın */
+        if (
+          hedef?.getAttribute('role') === 'combobox' ||
+          hedef?.closest('.ap-form-arama-secim, .ap-form-acilir-secim')
+        ) {
+          return;
+        }
         e.preventDefault();
         kaydet();
       }

@@ -315,6 +315,7 @@ export function FormAramaSecim({
           }
           if (e.key === 'Enter' && filtrelenmis.length > 0 && (acik || filtrelenmis.length === 1)) {
             e.preventDefault();
+            e.stopPropagation();
             const secilecek = filtrelenmis[odakIndex] ?? filtrelenmis[0];
             if (secilecek) sec(secilecek);
           }
