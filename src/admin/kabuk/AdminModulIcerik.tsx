@@ -10,6 +10,7 @@ import { DatagridDemoSayfasi } from '@/admin/baslat-menusu/datagrid/demo/sayfa';
 import { TanimlarSayfasi } from '@/admin/baslat-menusu/tanimlar/sayfa';
 import { CariSayfasi } from '@/admin/baslat-menusu/erp/cari/sayfa';
 import { StoklarSayfasi } from '@/admin/baslat-menusu/erp/stoklar/StoklarSayfasi';
+import { BankaAnlasmalariSayfasi } from '@/admin/baslat-menusu/erp/banka-anlasmalari/sayfa';
 import { ModulKabuk } from '@/baglamlar/ModulKabukContext';
 
 interface AdminModulIcerikProps {
@@ -51,6 +52,8 @@ function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
       return <CariSayfasi />;
     case 'stoklar':
       return <StoklarSayfasi />;
+    case 'banka-anlasmalari':
+      return <BankaAnlasmalariSayfasi />;
     default:
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center">

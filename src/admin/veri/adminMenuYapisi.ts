@@ -64,6 +64,13 @@ export const adminModulleri: AdminModul[] = [
     kategori: 'ERP',
     yol: '/gt-admin/stoklar',
   },
+  {
+    id: 'banka-anlasmalari',
+    baslik: 'Banka Anlaşmaları',
+    ikon: '🏦',
+    kategori: 'ERP',
+    yol: '/gt-admin/banka-anlasmalari',
+  },
 ];
 
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
@@ -125,6 +132,7 @@ const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'datagrid-demo',
   'cari',
   'stoklar',
+  'banka-anlasmalari',
   'yapilacaklar',
 ]);
 const TAM_YETKI_GEREKTIREN_MODULLER = new Set(['kullanicilar', 'roller']);
