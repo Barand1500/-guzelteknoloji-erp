@@ -6,8 +6,15 @@ import {
 import { TanimBagliSilOnayModal } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimBagliSilOnayModal';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import type {
+  AdminDepo,
+  AdminDonem,
+  AdminFirma,
+  AdminKasa,
+  AdminSube,
   TanimSekmeId,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
+import '@/admin/ortak/datagrid/datagrid.css';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { tanimHedefMetni } from '@/admin/baslat-menusu/tanimlar/araclar/tanimBaglilari';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
@@ -15,11 +22,50 @@ import { useYetkiler } from '@/kancalar/useYetkiler';
 import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { DonemlerPaneli } from './DonemlerPaneli';
 import { KayitlarUstBar } from './KayitlarUstBar';
+import { kayitlarGridKolonlari } from './kayitlarGridKolonlari';
+import { satirlariKur } from './satirlariKur';
 import { SubelerPaneli } from './SubelerPaneli';
-import { TIP_ETIKET, type KayitTipi, type SilmeHedef } from './tipler';
+import { TIP_ETIKET, type KayitTipi, type SilmeHedef, type TanimSatir } from './tipler';
 import { useKayitlarVeri } from './useKayitlarVeri';
 
 type FirmaIcSekme = 'subeler' | 'donemler';
+
+function GozIkon({ kapali }: { kapali?: boolean }) {
+  if (kapali) {
+    return (
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden>
+        <path
+          d="M2 8s2.2-3.5 6-3.5S14 8 14 8s-2.2 3.5-6 3.5S2 8 2 8Z"
+          stroke="currentColor"
+          strokeWidth="1.3"
+        />
+        <circle cx="8" cy="8" r="1.7" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M3 13.5 13 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden>
+      <path
+        d="M2 8s2.2-3.5 6-3.5S14 8 14 8s-2.2 3.5-6 3.5S2 8 2 8Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <circle cx="8" cy="8" r="1.7" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+function KartIkon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden>
+      <rect x="1.5" y="2.5" width="5.5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="9" y="2.5" width="5.5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="1.5" y="9.5" width="5.5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="9" y="9.5" width="5.5" height="4" rx="1" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
 
 export function KayitlarSayfasi() {
   const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('tanimlar');
@@ -37,6 +83,8 @@ export function KayitlarSayfasi() {
     setAktifSubeId,
     firmaSec,
     firmaPasifMi,
+    subePasifMi,
+    subeMap,
     yukle,
     silinecek,
     setSilinecek,
@@ -49,6 +97,8 @@ export function KayitlarSayfasi() {
   } = useKayitlarVeri();
 
   const [icSekme, setIcSekme] = useState<FirmaIcSekme>('subeler');
+  const [gozAcik, setGozAcik] = useState(false);
+  const [yatayKart, setYatayKart] = useState(false);
   const [modalHedef, setModalHedef] = useState<TanimModalHedef | null>(null);
   const [sonEkleTipi, setSonEkleTipi] = useState<KayitTipi>('firma');
 
@@ -56,6 +106,11 @@ export function KayitlarSayfasi() {
     setRehberModulId('tanimlar');
     return () => setRehberModulId(null);
   }, [setRehberModulId]);
+
+  useEffect(() => {
+    setGozAcik(false);
+    setYatayKart(false);
+  }, [seciliFirmaId]);
 
   const firmaDonemleri = useMemo(
     () => donemler.filter((d) => d.firmaId === seciliFirmaId),
@@ -71,6 +126,20 @@ export function KayitlarSayfasi() {
     const idler = new Set(firmaSubeleri.map((s) => s.id));
     return kasalar.filter((k) => idler.has(k.subeId));
   }, [kasalar, firmaSubeleri]);
+
+  const gridSatirlari = useMemo(() => {
+    const tum = satirlariKur({
+      firma: seciliFirma,
+      firmaSubeleri,
+      donemler,
+      depolar,
+      kasalar,
+      subeMap,
+    }).filter((s) => s.tip !== 'firma');
+
+    if (icSekme === 'donemler') return tum.filter((s) => s.tip === 'donem');
+    return tum.filter((s) => s.tip === 'sube');
+  }, [seciliFirma, firmaSubeleri, donemler, depolar, kasalar, subeMap, icSekme]);
 
   const ekleAc = useCallback(
     (tip: KayitTipi, subeId?: string) => {
@@ -156,6 +225,58 @@ export function KayitlarSayfasi() {
     [silmeVar, hataBildir, silBaslatVeri]
   );
 
+  const duzenleAc = useCallback(
+    (satir: TanimSatir) => {
+      if (!duzenlemeVar) {
+        hataBildir('Kayıt düzenleme yetkiniz yok');
+        return;
+      }
+      if (satir.tip === 'firma')
+        setModalHedef({ tip: 'firma', mod: 'duzenle', kayit: satir.kayit as AdminFirma });
+      else if (satir.tip === 'sube')
+        setModalHedef({ tip: 'sube', mod: 'duzenle', kayit: satir.kayit as AdminSube });
+      else if (satir.tip === 'depo')
+        setModalHedef({ tip: 'depo', mod: 'duzenle', kayit: satir.kayit as AdminDepo });
+      else if (satir.tip === 'kasa')
+        setModalHedef({ tip: 'kasa', mod: 'duzenle', kayit: satir.kayit as AdminKasa });
+      else if (satir.tip === 'donem')
+        setModalHedef({ tip: 'donem', mod: 'duzenle', kayit: satir.kayit as AdminDonem });
+    },
+    [duzenlemeVar, hataBildir]
+  );
+
+  const gridSil = useCallback(
+    (satir: TanimSatir) => {
+      const hedef: SilmeHedef =
+        satir.tip === 'firma'
+          ? { tip: 'firma', kayit: satir.kayit as AdminFirma }
+          : satir.tip === 'sube'
+            ? { tip: 'sube', kayit: satir.kayit as AdminSube }
+            : satir.tip === 'depo'
+              ? { tip: 'depo', kayit: satir.kayit as AdminDepo }
+              : satir.tip === 'kasa'
+                ? { tip: 'kasa', kayit: satir.kayit as AdminKasa }
+                : { tip: 'donem', kayit: satir.kayit as AdminDonem };
+      silHedef(hedef);
+    },
+    [silHedef]
+  );
+
+  const kolonlar = useMemo(() => kayitlarGridKolonlari(), []);
+
+  const satirSinifAdi = useCallback(
+    (s: TanimSatir) => {
+      const pasif =
+        !s.aktif ||
+        firmaPasifMi(s.firmaId) ||
+        ((s.tip === 'depo' || s.tip === 'kasa') &&
+          s.subeId != null &&
+          subePasifMi(s.subeId));
+      return pasif ? 'ap-tanimlar-satir--pasif' : undefined;
+    },
+    [firmaPasifMi, subePasifMi]
+  );
+
   if (yukleniyor && firmalar.length === 0) return <TanimYukleniyor />;
 
   const firmaPasif = !!seciliFirmaId && firmaPasifMi(seciliFirmaId);
@@ -176,7 +297,9 @@ export function KayitlarSayfasi() {
         }}
       />
 
-      <div className="ap-tanimlar-kayit-ana ap-tanimlar-kayit-ana--hiyerarsi">
+      <div
+        className={`ap-tanimlar-kayit-ana ap-tanimlar-kayit-ana--hiyerarsi${gozAcik ? ' ap-tanimlar-kayit-ana--grid' : ''}`}
+      >
         {!seciliFirma && firmalar.length === 0 ? (
           <p className="ap-tanimlar-firma-bos">Henüz firma yok — + Firma ile ekleyin</p>
         ) : !seciliFirma ? (
@@ -204,13 +327,60 @@ export function KayitlarSayfasi() {
                 Dönemler
                 <span className="ap-tanimlar-ic-sekme-sayi">{firmaDonemleri.length}</span>
               </button>
+
+              <div className="ap-tanimlar-gorunum-grup" role="group" aria-label="Görünüm">
+                {!gozAcik ? (
+                  <button
+                    type="button"
+                    className={`ap-tanimlar-goz-tus${yatayKart ? ' ap-tanimlar-goz-tus--aktif' : ''}`}
+                    onClick={() => setYatayKart((v) => !v)}
+                    title={yatayKart ? 'Liste görünümü' : 'Yatay kart görünümü'}
+                    aria-pressed={yatayKart}
+                    aria-label={yatayKart ? 'Liste görünümü' : 'Yatay kart görünümü'}
+                  >
+                    <KartIkon />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className={`ap-tanimlar-goz-tus${gozAcik ? ' ap-tanimlar-goz-tus--aktif' : ''}`}
+                  onClick={() => setGozAcik((v) => !v)}
+                  title={gozAcik ? 'Tabloyu kapat' : 'Tablo görünümü'}
+                  aria-pressed={gozAcik}
+                  aria-label={gozAcik ? 'Tabloyu kapat' : 'Tablo görünümü'}
+                >
+                  <GozIkon kapali={gozAcik} />
+                </button>
+              </div>
             </div>
 
-            {icSekme === 'subeler' ? (
+            {gozAcik ? (
+              <div className="ap-tanimlar-goz-grid">
+                <DataGrid
+                  tabloBaslik=""
+                  kolonlar={kolonlar}
+                  satirlar={gridSatirlari}
+                  depolamaAnahtari="tanimlar-kayitlar-goz-v3"
+                  kompakt
+                  formulMenuGoster={false}
+                  sutunSabitleGoster={false}
+                  bosMesaj={
+                    icSekme === 'donemler'
+                      ? 'Bu firmada dönem kaydı yok'
+                      : 'Bu firmada şube kaydı yok'
+                  }
+                  onSatirTikla={duzenlemeVar ? duzenleAc : undefined}
+                  onSatirDuzenle={duzenlemeVar ? duzenleAc : undefined}
+                  onSatirSil={silmeVar ? gridSil : undefined}
+                  satirSinifAdi={satirSinifAdi}
+                />
+              </div>
+            ) : icSekme === 'subeler' ? (
               <SubelerPaneli
                 subeler={firmaSubeleri}
                 depolar={firmaDepolari}
                 kasalar={firmaKasalari}
+                yatayKart={yatayKart}
                 eklemeVar={eklemeVar}
                 duzenlemeVar={duzenlemeVar}
                 silmeVar={silmeVar}
@@ -234,6 +404,7 @@ export function KayitlarSayfasi() {
             ) : (
               <DonemlerPaneli
                 donemler={firmaDonemleri}
+                yatayKart={yatayKart}
                 eklemeVar={eklemeVar}
                 duzenlemeVar={duzenlemeVar}
                 silmeVar={silmeVar}

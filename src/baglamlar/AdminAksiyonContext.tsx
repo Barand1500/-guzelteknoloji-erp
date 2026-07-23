@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type Context,
   type ReactNode,
 } from 'react';
 import { adminIslemBildirimi } from '@/araclar/adminBildirimOlaylari';
@@ -97,7 +98,15 @@ interface AdminAksiyonContextType {
   logMesajiAl: () => string | null;
 }
 
-const AdminAksiyonContext = createContext<AdminAksiyonContextType | null>(null);
+/** HMR'da createContext yeniden üretilirse Provider/hook kopar; aynı örneği koru. */
+const AdminAksiyonContext =
+  (import.meta.hot?.data?.AdminAksiyonContext as Context<AdminAksiyonContextType | null> | undefined) ??
+  createContext<AdminAksiyonContextType | null>(null);
+
+if (import.meta.hot) {
+  import.meta.hot.data.AdminAksiyonContext = AdminAksiyonContext;
+  import.meta.hot.accept();
+}
 
 export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
   const kayitlarRef = useRef<Map<string, ModulAksiyonKaydi>>(new Map());
@@ -216,6 +225,14 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
       });
       setAksiyonEtiketleriState((onceki) => {
         if (modulId !== focusModulId) return onceki;
+        const oncekiAnahtarlar = Object.keys(onceki) as AksiyonId[];
+        const yeniAnahtarlar = Object.keys(birlesik) as AksiyonId[];
+        if (
+          oncekiAnahtarlar.length === yeniAnahtarlar.length &&
+          yeniAnahtarlar.every((k) => onceki[k] === birlesik[k])
+        ) {
+          return onceki;
+        }
         return birlesik;
       });
     },

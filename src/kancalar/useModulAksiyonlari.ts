@@ -141,7 +141,7 @@ export function useModulAksiyonlari(
     setAksiyonEtiketleri,
     clearAksiyonEtiketleri,
     etiketKeys,
-    etiketler,
+    // Nesne referansı değil alan değerleri — her render yeni {} olursa sonsuz setState döngüsü oluşur.
     etiketler?.ekle,
     etiketler?.kaydet,
     etiketler?.guncelle,

@@ -4,6 +4,7 @@ import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 
 interface DonemlerPaneliProps {
   donemler: AdminDonem[];
+  yatayKart?: boolean;
   eklemeVar: boolean;
   duzenlemeVar: boolean;
   silmeVar: boolean;
@@ -15,6 +16,7 @@ interface DonemlerPaneliProps {
 
 export function DonemlerPaneli({
   donemler,
+  yatayKart = false,
   eklemeVar,
   duzenlemeVar,
   silmeVar,
@@ -64,11 +66,11 @@ export function DonemlerPaneli({
           {donemler.length === 0 ? 'Bu firmada dönem yok — + Dönem ile ekleyin' : 'Dönem bulunamadı'}
         </p>
       ) : (
-        <ul className="ap-tanimlar-donem-liste">
+        <ul className={`ap-tanimlar-donem-liste${yatayKart ? ' ap-tanimlar-donem-liste--yatay' : ''}`}>
           {filtreli.map((d) => (
             <li
               key={d.id}
-              className={`ap-tanimlar-donem-satir${!d.aktif ? ' ap-tanimlar-donem-satir--pasif' : ''}`}
+              className={`ap-tanimlar-donem-satir${yatayKart ? ' ap-tanimlar-donem-satir--yatay' : ''}${!d.aktif ? ' ap-tanimlar-donem-satir--pasif' : ''}`}
             >
               <div className="ap-tanimlar-donem-bilgi">
                 <span className="ap-tanimlar-donem-ad">{d.donemAdi}</span>

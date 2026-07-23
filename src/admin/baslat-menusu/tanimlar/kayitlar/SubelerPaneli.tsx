@@ -6,6 +6,7 @@ interface SubelerPaneliProps {
   subeler: AdminSube[];
   depolar: AdminDepo[];
   kasalar: AdminKasa[];
+  yatayKart?: boolean;
   eklemeVar: boolean;
   duzenlemeVar: boolean;
   silmeVar: boolean;
@@ -25,6 +26,7 @@ export function SubelerPaneli({
   subeler,
   depolar,
   kasalar,
+  yatayKart = false,
   eklemeVar,
   duzenlemeVar,
   silmeVar,
@@ -116,27 +118,29 @@ export function SubelerPaneli({
           {subeler.length === 0 ? 'Bu firmada şube yok — + Şube ile ekleyin' : 'Şube bulunamadı'}
         </p>
       ) : (
-        <ul className="ap-tanimlar-sube-liste">
+        <ul className={`ap-tanimlar-sube-liste${yatayKart ? ' ap-tanimlar-sube-liste--yatay' : ''}`}>
           {filtreli.map((s) => {
-            const acik = acikMi(s.id);
+            const acik = yatayKart || acikMi(s.id);
             const subeDepolari = depoBySube.get(s.id) ?? [];
             const subeKasalari = kasaBySube.get(s.id) ?? [];
             const altSayi = subeDepolari.length + subeKasalari.length;
             return (
               <li
                 key={s.id}
-                className={`ap-tanimlar-sube-kart${!s.aktif ? ' ap-tanimlar-sube-kart--pasif' : ''}`}
+                className={`ap-tanimlar-sube-kart${yatayKart ? ' ap-tanimlar-sube-kart--yatay' : ''}${!s.aktif ? ' ap-tanimlar-sube-kart--pasif' : ''}`}
               >
                 <div className="ap-tanimlar-sube-satir">
-                  <button
-                    type="button"
-                    className="ap-tanimlar-sube-ac"
-                    onClick={() => toggle(s.id)}
-                    aria-expanded={acik}
-                    title={acik ? 'Daralt' : 'Depo / kasa göster'}
-                  >
-                    <span aria-hidden>{acik ? '▾' : '▸'}</span>
-                  </button>
+                  {!yatayKart ? (
+                    <button
+                      type="button"
+                      className="ap-tanimlar-sube-ac"
+                      onClick={() => toggle(s.id)}
+                      aria-expanded={acik}
+                      title={acik ? 'Daralt' : 'Depo / kasa göster'}
+                    >
+                      <span aria-hidden>{acik ? '▾' : '▸'}</span>
+                    </button>
+                  ) : null}
                   <div className="ap-tanimlar-sube-bilgi">
                     <span className="ap-tanimlar-sube-ad">{s.subeAdi}</span>
                     <span className="ap-tanimlar-sube-meta">
