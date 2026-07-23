@@ -58,6 +58,13 @@ export function kdvYuzdeFiltrele(ham: string): string {
   return s;
 }
 
+/** Oran dolu ve sayısal mı (boş / yarım giriş kabul edilmez). */
+export function kdvYuzdeDoluMu(yuzde: string): boolean {
+  const temiz = kdvYuzdeFiltrele(yuzde.trim());
+  if (!temiz || temiz.endsWith('.')) return false;
+  return Number.isFinite(Number(temiz));
+}
+
 export function stokKdvDepartmanlariGetir(): StokKdvDepartmaniSecenek[] {
   return oku();
 }
@@ -74,7 +81,7 @@ export function stokKdvDepartmaniEkle(
 ): StokKdvDepartmaniSecenek | null {
   const ad = label.trim();
   const temizYuzde = kdvYuzdeFiltrele(yuzde.trim());
-  if (!ad) return null;
+  if (!ad || !kdvYuzdeDoluMu(temizYuzde)) return null;
   const value = ad
     .toLocaleUpperCase('tr')
     .replace(/\s+/g, '_')
@@ -105,7 +112,7 @@ export function stokKdvDepartmaniGuncelle(
 ): boolean {
   const ad = yeniLabel.trim();
   const temizYuzde = kdvYuzdeFiltrele(yuzde.trim());
-  if (!ad) return false;
+  if (!ad || !kdvYuzdeDoluMu(temizYuzde)) return false;
   const mevcut = oku();
   const hedef = mevcut.find((d) => d.value === value);
   if (!hedef) return false;

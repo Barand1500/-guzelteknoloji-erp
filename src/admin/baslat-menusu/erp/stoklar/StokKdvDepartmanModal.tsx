@@ -6,6 +6,7 @@ import { ModalListeIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from '@/araclar/sekmePortal';
 import {
+  kdvYuzdeDoluMu,
   kdvYuzdeFiltrele,
   type StokKdvDepartmaniSecenek,
 } from './stokKdvDepartmanlari';
@@ -60,6 +61,14 @@ export function StokKdvDepartmanModal({
   }, [acik]);
 
   const ekle = useCallback(() => {
+    if (!yeniAd.trim()) {
+      setHata('Geçerli ve benzersiz bir ad girin.');
+      return;
+    }
+    if (!kdvYuzdeDoluMu(yeniYuzde)) {
+      setHata('Oran boş geçilemez.');
+      return;
+    }
     if (!onEkle(yeniAd, yeniYuzde)) {
       setHata('Geçerli ve benzersiz bir ad girin.');
       return;
@@ -71,6 +80,14 @@ export function StokKdvDepartmanModal({
 
   const satirKaydet = useCallback(() => {
     if (!satirDuzenle) return;
+    if (!satirAd.trim()) {
+      setHata('Geçerli ve benzersiz bir ad girin.');
+      return;
+    }
+    if (!kdvYuzdeDoluMu(satirYuzde)) {
+      setHata('Oran boş geçilemez.');
+      return;
+    }
     if (!onGuncelle(satirDuzenle, satirAd, satirYuzde)) {
       setHata('Geçerli ve benzersiz bir ad girin.');
       return;
