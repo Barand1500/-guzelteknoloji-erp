@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { modulAra, adminKategoriler, adminModulleri, modulleriMenuyeGoreFiltrele } from '@/admin/veri/adminMenuYapisi';
-import { useModulKatalog } from '@/baglamlar/ModulKatalogContext';
+import { useModulKatalogOptional } from '@/baglamlar/ModulKatalogContext';
 import { useAuth } from '@/baglamlar/AuthContext';
 import { kullaniciModuluErisimVar } from '@/kancalar/useYetkiler';
 import {
@@ -23,7 +23,7 @@ export function useBaslatMenuDurumu() {
   const [kapaliKategoriler, setKapaliKategoriler] = useState<Set<string>>(() =>
     baslatMenuKapaliKategorileriOku()
   );
-  const { aktifPrefixler } = useModulKatalog();
+  const { aktifPrefixler } = useModulKatalogOptional() ?? { aktifPrefixler: null };
   const { kullanici } = useAuth();
   const kullaniciModuluErisimiVar = kullaniciModuluErisimVar(
     kullanici?.rol ?? '',

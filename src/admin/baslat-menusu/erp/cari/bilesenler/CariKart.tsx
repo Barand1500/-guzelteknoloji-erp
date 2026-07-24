@@ -28,6 +28,7 @@ import {
   cariKartTipleriGetir,
   type CariKartTipiSecenek,
 } from '../cariKartTipleri';
+import { CARI_TIPLERI_GUNCELLENDI } from '@/admin/baslat-menusu/ozel-tanimlar/veri/cariTipleri';
 import { caridenForm } from '../cariYardimci';
 import {
   EFATURA_EVET_HAYIR,
@@ -142,8 +143,8 @@ export function CariKart({
   const [kayitlar, setKayitlar] = useState<AdminCari[]>([]);
   const [form, setForm] = useState<CariFormDegeri>(bosCariForm);
   const [baslangic, setBaslangic] = useState<CariFormDegeri>(bosCariForm);
-  const [baslangicKartTipi, setBaslangicKartTipi] = useState('ALICI');
-  const [kartTipiSecim, setKartTipiSecim] = useState('ALICI');
+  const [baslangicKartTipi, setBaslangicKartTipi] = useState(() => bosCariForm.cariTipi);
+  const [kartTipiSecim, setKartTipiSecim] = useState(() => bosCariForm.cariTipi);
   const [yukleniyor, setYukleniyor] = useState(mod !== 'yeni');
   const [kartTipleri, setKartTipleri] = useState<CariKartTipiSecenek[]>(() => cariKartTipleriGetir());
   const [isletmeTurleri, setIsletmeTurleri] = useState<CariIsletmeTuruSecenek[]>(() =>
@@ -173,11 +174,17 @@ export function CariKart({
   }, [yukle]);
 
   useEffect(() => {
+    const yenile = () => setKartTipleri(cariKartTipleriGetir());
+    window.addEventListener(CARI_TIPLERI_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(CARI_TIPLERI_GUNCELLENDI, yenile);
+  }, []);
+
+  useEffect(() => {
     if (mod === 'yeni') {
       setForm(bosCariForm);
       setBaslangic(bosCariForm);
-      setKartTipiSecim('ALICI');
-      setBaslangicKartTipi('ALICI');
+      setKartTipiSecim(bosCariForm.cariTipi);
+      setBaslangicKartTipi(bosCariForm.cariTipi);
       return;
     }
     if (seciliKayit) {
@@ -642,7 +649,7 @@ export function CariKart({
         baslik="Cari Tipi"
         placeholder="Yeni cari tipi adı…"
         liste={kartTipleri}
-        sabitDegerler={['ALICI', 'SATICI']}
+        sabitDegerler={['BAYI', 'DAGITICI', 'SON_KULLANICI']}
         kullanimNesneAdi="tipi"
         kullanimSayisiAl={(value) => kayitlar.filter((c) => c.cariTipi === value).length}
         onEkle={(ad) => {
@@ -660,7 +667,7 @@ export function CariKart({
           cariKartTipiSil(value);
           const kalan = cariKartTipleriGetir();
           setKartTipleri(kalan);
-          if (kartTipiSecim === value) setKartTipiSecim(kalan[0]?.value ?? 'ALICI');
+          if (kartTipiSecim === value) setKartTipiSecim(kalan[0]?.value ?? bosCariForm.cariTipi);
         }}
         onKapat={() => setTipModalAcik(false)}
       />

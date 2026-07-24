@@ -18,6 +18,13 @@ import {
   type YapilacakFiltre,
   type YapilacakGorev,
 } from './yapilacaklarDepo';
+import {
+  RESMI_TATILLER_GUNCELLENDI,
+  resmiTatilGunRolu,
+  resmiTatilGuneDuserMi,
+  resmiTatilleriAktifGetir,
+  type ResmiTatil,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/resmiTatiller';
 import './yapilacaklar.css';
 
 const AYLAR = [
@@ -96,23 +103,31 @@ export function YapilacaklarSayfasi() {
     const d = new Date();
     return { yil: d.getFullYear(), ay: d.getMonth() };
   });
+  const [tatiller, setTatiller] = useState<ResmiTatil[]>(() => resmiTatilleriAktifGetir());
 
   const yenile = useCallback(() => {
     setGorevler(gorevleriGetir());
+  }, []);
+
+  const tatilYenile = useCallback(() => {
+    setTatiller(resmiTatilleriAktifGetir());
   }, []);
 
   useEffect(() => {
     yenile();
     const onStorage = (e: StorageEvent) => {
       if (e.key === 'erp-yapilacaklar' || e.key === 'erp-takvim-notlari') yenile();
+      if (e.key === 'erp-ozel-resmi-tatiller-v1') tatilYenile();
     };
     window.addEventListener('storage', onStorage);
     window.addEventListener('focus', yenile);
+    window.addEventListener(RESMI_TATILLER_GUNCELLENDI, tatilYenile);
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('focus', yenile);
+      window.removeEventListener(RESMI_TATILLER_GUNCELLENDI, tatilYenile);
     };
-  }, [yenile]);
+  }, [yenile, tatilYenile]);
 
   useModulAksiyonlari({
     ekle: () => {
@@ -348,14 +363,32 @@ export function YapilacaklarSayfasi() {
               ))}
               {hucreler.map((h) => {
                 const gunGorevleri = tariheGore.get(h.tarih) ?? [];
+                const gunTatiller = tatiller.filter((t) => resmiTatilGuneDuserMi(t, h.tarih));
+                const chipSayisi = gunTatiller.length + gunGorevleri.length;
                 return (
                   <div
                     key={h.tarih}
-                    className={`yap-takvim-hucre${h.ayOffset !== 0 ? ' yap-takvim-hucre--dis' : ''}`}
+                    className={`yap-takvim-hucre${h.ayOffset !== 0 ? ' yap-takvim-hucre--dis' : ''}${
+                      gunTatiller.length ? ' yap-takvim-hucre--tatil' : ''
+                    }`}
                   >
                     <span className="yap-takvim-gun-no">{h.gun}</span>
                     <div className="yap-takvim-chip-liste">
-                      {gunGorevleri.slice(0, 3).map((g) => {
+                      {gunTatiller.slice(0, 2).map((t) => {
+                        const rol = resmiTatilGunRolu(t, h.tarih);
+                        const metinGoster = rol === 'tek' || rol === 'bas';
+                        return (
+                          <span
+                            key={t.id}
+                            className={`yap-takvim-chip yap-takvim-chip--tatil yap-takvim-chip--${rol ?? 'tek'}`}
+                            style={{ background: t.renk, color: '#fff' }}
+                            title={`Tatil: ${t.adi}`}
+                          >
+                            {metinGoster ? t.adi : '\u00A0'}
+                          </span>
+                        );
+                      })}
+                      {gunGorevleri.slice(0, Math.max(0, 3 - gunTatiller.slice(0, 2).length)).map((g) => {
                         const rol = gorevGunRolu(g, h.tarih);
                         const metinGoster = rol === 'tek' || rol === 'bas';
                         return (
@@ -373,8 +406,8 @@ export function YapilacaklarSayfasi() {
                           </button>
                         );
                       })}
-                      {gunGorevleri.length > 3 ? (
-                        <span className="yap-takvim-daha">+{gunGorevleri.length - 3}</span>
+                      {chipSayisi > 3 ? (
+                        <span className="yap-takvim-daha">+{chipSayisi - 3}</span>
                       ) : null}
                     </div>
                   </div>

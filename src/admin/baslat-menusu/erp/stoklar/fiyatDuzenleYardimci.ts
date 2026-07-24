@@ -1,9 +1,9 @@
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
+import { gecerliParaBirimi } from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import type {
   IsaretliFiyatAlani,
   StokFiyatDuzenleSatir,
   StokFiyatKdvTipi,
-  StokFiyatPb,
   StokFiyatPbAlani,
 } from './fiyatDuzenleTipler';
 
@@ -34,9 +34,8 @@ export function fiyatDuzenlePbYaz(
   alan: StokFiyatPbAlani,
   deger: unknown
 ): StokFiyatDuzenleSatir {
-  const pb = String(deger) as StokFiyatPb;
   return fiyatDuzenleSatirGuncelle(satir, {
-    [alan]: pb === 'USD' || pb === 'EUR' ? pb : 'TL',
+    [alan]: gecerliParaBirimi(String(deger)),
   });
 }
 

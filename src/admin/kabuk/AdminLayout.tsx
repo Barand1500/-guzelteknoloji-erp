@@ -6,7 +6,6 @@ import { useAksiyonCubugu } from '@/kancalar/useAksiyonCubugu';
 import { AdminAksiyonProvider, useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { AdminUyariBildirimProvider } from '@/baglamlar/AdminUyariBildirimContext';
 import { AdminTemaProvider, useAdminTema } from '@/baglamlar/AdminTemaContext';
-import { ModulKatalogProvider } from '@/baglamlar/ModulKatalogContext';
 import { AdminHeader } from './AdminHeader';
 import { AltAksiyonCubugu } from './aksiyon-cubugu/AltAksiyonCubugu';
 import { AksiyonCubuguPanelProvider } from './aksiyon-cubugu/AksiyonCubuguPanelContext';
@@ -18,10 +17,17 @@ import { adminBildirimleriYenile } from '@/araclar/adminBildirimOlaylari';
 import { GirisSayfasi } from '@/admin/giris/sayfa';
 import { ModulRehberSistemi } from '@/admin/ortak/ModulRehberSistemi';
 import { SistemKesifProvider } from '@/baglamlar/SistemKesifContext';
-import { SagTikPanelProvider } from '@/baglamlar/SagTikPanelContext';
 import { AdminSagTikMenu } from '@/admin/kabuk/sag-tik/AdminSagTikMenu';
 import { PanelDilKabuk } from '@/admin/kabuk/PanelDilKabuk';
-import { sekmeAyarlariOku, splitSekmeleriHesapla } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import {
+  sekmeAyarlariOku,
+  splitSekmeleriHesapla,
+  websiteTamEkranAc,
+  websiteTamEkranAyariniUygula,
+  websiteTamEkrandaMi,
+  websiteTamEkranOturumIptalIsaretle,
+  websiteTamEkranOturumIptalMi,
+} from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 import {
   kenarlikAyariOku,
   kenarlikRenkCssDegiskeni,
@@ -105,6 +111,63 @@ function AdminPanelGovde() {
     const handler = () => setSekmeAyarlari(sekmeAyarlariOku());
     window.addEventListener('ap-sekme-ayarlari-guncellendi', handler);
     return () => window.removeEventListener('ap-sekme-ayarlari-guncellendi', handler);
+  }, []);
+
+  /** WebSite tam ekran (F11 benzeri): ayar açıksa oturum başında dene; jest gerekirse ilk tıklamada aç. */
+  useEffect(() => {
+    let jestDinleyiciAktif = false;
+
+    const jestIleAc = () => {
+      if (!sekmeAyarlariOku().websiteTamEkran) return;
+      if (websiteTamEkranOturumIptalMi()) return;
+      if (websiteTamEkrandaMi()) return;
+      void websiteTamEkranAc().then((ok) => {
+        if (ok) jestDinlemeyiBirak();
+      });
+    };
+
+    const jestDinlemeyiBirak = () => {
+      if (!jestDinleyiciAktif) return;
+      jestDinleyiciAktif = false;
+      window.removeEventListener('pointerdown', jestIleAc, true);
+      window.removeEventListener('keydown', jestIleAc, true);
+    };
+
+    const jestDinlemeyiKur = () => {
+      if (jestDinleyiciAktif) return;
+      jestDinleyiciAktif = true;
+      window.addEventListener('pointerdown', jestIleAc, true);
+      window.addEventListener('keydown', jestIleAc, true);
+    };
+
+    const ayaraGoreUygula = () => {
+      const ayar = sekmeAyarlariOku();
+      if (!ayar.websiteTamEkran) {
+        jestDinlemeyiBirak();
+        void websiteTamEkranAyariniUygula(false);
+        return;
+      }
+      if (websiteTamEkranOturumIptalMi()) return;
+      void websiteTamEkranAc().then((ok) => {
+        if (!ok) jestDinlemeyiKur();
+      });
+    };
+
+    const fullscreenDegisti = () => {
+      if (!document.fullscreenElement && sekmeAyarlariOku().websiteTamEkran) {
+        websiteTamEkranOturumIptalIsaretle();
+        jestDinlemeyiBirak();
+      }
+    };
+
+    ayaraGoreUygula();
+    window.addEventListener('ap-sekme-ayarlari-guncellendi', ayaraGoreUygula);
+    document.addEventListener('fullscreenchange', fullscreenDegisti);
+    return () => {
+      jestDinlemeyiBirak();
+      window.removeEventListener('ap-sekme-ayarlari-guncellendi', ayaraGoreUygula);
+      document.removeEventListener('fullscreenchange', fullscreenDegisti);
+    };
   }, []);
 
   useEffect(() => {
@@ -735,24 +798,18 @@ function AdminLayoutIcerik() {
     return <GirisSayfasi />;
   }
 
-  return (
-    <SagTikPanelProvider>
-      <AdminPanelGovde />
-    </SagTikPanelProvider>
-  );
+  return <AdminPanelGovde />;
 }
 
 export function AdminLayout() {
   return (
     <AdminTemaProvider>
       <AdminAksiyonProvider>
-        <ModulKatalogProvider>
-          <AdminUyariBildirimProvider>
-            <PanelDilKabuk>
-              <AdminLayoutIcerik />
-            </PanelDilKabuk>
-          </AdminUyariBildirimProvider>
-        </ModulKatalogProvider>
+        <AdminUyariBildirimProvider>
+          <PanelDilKabuk>
+            <AdminLayoutIcerik />
+          </PanelDilKabuk>
+        </AdminUyariBildirimProvider>
       </AdminAksiyonProvider>
     </AdminTemaProvider>
   );

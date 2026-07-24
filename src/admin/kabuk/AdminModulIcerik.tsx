@@ -11,6 +11,7 @@ import { TanimlarSayfasi } from '@/admin/baslat-menusu/tanimlar/sayfa';
 import { CariSayfasi } from '@/admin/baslat-menusu/erp/cari/sayfa';
 import { StoklarSayfasi } from '@/admin/baslat-menusu/erp/stoklar/StoklarSayfasi';
 import { BankaAnlasmalariSayfasi } from '@/admin/baslat-menusu/erp/banka-anlasmalari/sayfa';
+import { OzelTanimlarSayfasi } from '@/admin/baslat-menusu/ozel-tanimlar/sayfa';
 import { ModulKabuk } from '@/baglamlar/ModulKabukContext';
 
 interface AdminModulIcerikProps {
@@ -54,6 +55,8 @@ function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
       return <StoklarSayfasi />;
     case 'banka-anlasmalari':
       return <BankaAnlasmalariSayfasi />;
+    case 'ozel-tanimlar':
+      return <OzelTanimlarSayfasi />;
     default:
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center">

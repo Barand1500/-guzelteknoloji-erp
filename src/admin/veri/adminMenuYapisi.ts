@@ -76,6 +76,14 @@ export const adminModulleri: AdminModul[] = [
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
 export const adminGizliModuller: AdminModul[] = [
   {
+    id: 'ozel-tanimlar',
+    baslik: 'Özel Tanımlar',
+    ikon: '⚙️',
+    kategori: 'Tanımlar',
+    yol: '/gt-admin/ozel-tanimlar',
+    menuGizle: true,
+  },
+  {
     id: 'loglar',
     baslik: 'Log Takibi',
     ikon: '📜',
@@ -134,6 +142,7 @@ const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'stoklar',
   'banka-anlasmalari',
   'yapilacaklar',
+  'ozel-tanimlar',
 ]);
 const TAM_YETKI_GEREKTIREN_MODULLER = new Set(['kullanicilar', 'roller']);
 

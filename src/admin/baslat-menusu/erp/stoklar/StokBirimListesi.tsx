@@ -6,6 +6,10 @@ import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
+import {
+  OLCU_BIRIMLERI_GUNCELLENDI,
+  olcuBirimSecenekleri,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/olcuBirimleri';
 import { birimGuncelle, stokBirimleriGetir } from './api';
 import {
   BIRIM_ACIKLAMA_GORUNUMLERI,
@@ -15,16 +19,6 @@ import {
 import { birimdenListeSatir, listeSatirdanBirimForm } from './birimMap';
 import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import type { AdminStok } from './tipler';
-
-const BIRIM_SECENEKLERI = [
-  { deger: 'ADET', etiket: 'ADET' },
-  { deger: 'PAKET', etiket: 'PAKET' },
-  { deger: 'KOLİ', etiket: 'KOLİ' },
-  { deger: 'KUTU', etiket: 'KUTU' },
-  { deger: 'SET', etiket: 'SET' },
-  { deger: 'KG', etiket: 'KG' },
-  { deger: 'LT', etiket: 'LT' },
-];
 
 const FIYAT_AD_SECENEKLERI = [
   { deger: 'FİYAT', etiket: 'FİYAT' },
@@ -88,6 +82,13 @@ export function StokBirimListesi({
   const [kirli, setKirli] = useState(false);
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aciklamaGorunumu, setAciklamaGorunumu] = useState<BirimAciklamaGorunumu>('hicbiri');
+  const [birimSecenekleri, setBirimSecenekleri] = useState(() => olcuBirimSecenekleri(true));
+
+  useEffect(() => {
+    const yenile = () => setBirimSecenekleri(olcuBirimSecenekleri(true));
+    window.addEventListener(OLCU_BIRIMLERI_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(OLCU_BIRIMLERI_GUNCELLENDI, yenile);
+  }, []);
 
   const yukle = useCallback(async () => {
     setYukleniyor(true);
@@ -193,7 +194,7 @@ export function StokBirimListesi({
         genislik: 88,
         siralama: true,
         duzenlenebilir,
-        secenekler: BIRIM_SECENEKLERI,
+        secenekler: birimSecenekleri,
         degerAl: (s) => s.birim,
         degerYaz: (s, d) => ({ ...s, birim: String(d ?? '') }),
       },
@@ -233,7 +234,7 @@ export function StokBirimListesi({
         goster: (s) => <KdvHucre satir={s} />,
       },
     ];
-  }, [duzenlemeVar]);
+  }, [birimSecenekleri, duzenlemeVar]);
 
   return (
     <div className="stok-karti-kabuk stok-birim-liste-sayfa">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { modulAra } from '@/admin/veri/adminMenuYapisi';
-import { useModulKatalog } from '@/baglamlar/ModulKatalogContext';
+import { useModulKatalogOptional } from '@/baglamlar/ModulKatalogContext';
 import { usePanelDil } from '@/baglamlar/PanelDilContext';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
@@ -19,7 +19,7 @@ export function CubukModulArama({ onModulSec }: CubukModulAramaProps) {
   const kapsayiciRef = useRef<HTMLDivElement>(null);
   const panelAnimRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { aktifPrefixler } = useModulKatalog();
+  const { aktifPrefixler } = useModulKatalogOptional() ?? { aktifPrefixler: null };
   const { kullanici } = useAuth();
   const kullaniciModuluErisimiVar = kullaniciModuluErisimVar(
     kullanici?.rol ?? '',

@@ -9,13 +9,14 @@ interface BaslatMenuModernProps {
   menuDurumu: BaslatMenuDurumu;
   onModulSec: (modul: AdminModul) => void;
   onKapat: () => void;
+  onOzelTanimlarAc?: () => void;
   kenarlikAnim?: boolean;
   dockStil?: CSSProperties;
   dockYerlesim?: 'kare' | 'dikdortgen';
 }
 
 export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps>(function BaslatMenuModern(
-  { menuDurumu, onModulSec, onKapat, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
+  { menuDurumu, onModulSec, onKapat, onOzelTanimlarAc, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
   ref
 ) {
   const { t } = usePanelDil();
@@ -84,14 +85,27 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
           <div className="ap-baslat-modern-baslik-alan">
             <p className="ap-baslat-modern-baslik">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
           </div>
-          <button
-            type="button"
-            className="ap-baslat-modern-kapat"
-            onClick={onKapat}
-            aria-label="Menüyü kapat"
-          >
-            ✕
-          </button>
+          <div className="ap-baslat-modern-ust-aksiyonlar">
+            {onOzelTanimlarAc ? (
+              <button
+                type="button"
+                className="ap-baslat-modern-ozel-tanimlar"
+                onClick={onOzelTanimlarAc}
+                aria-label="Özel Tanımlar"
+                title="Özel Tanımlar"
+              >
+                ⚙
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="ap-baslat-modern-kapat"
+              onClick={onKapat}
+              aria-label="Menüyü kapat"
+            >
+              ✕
+            </button>
+          </div>
         </div>
         <BaslatMenuArama deger={arama} onDegistir={setArama} variant="modern" />
       </div>

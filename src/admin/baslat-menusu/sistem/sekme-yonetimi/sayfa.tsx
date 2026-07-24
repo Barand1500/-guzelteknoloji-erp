@@ -7,6 +7,7 @@ import {
   sekmeAyarlariBellegeYaz,
   sekmeAyarlariLogOzeti,
   sekmeAyarlariOku,
+  websiteTamEkranAyariniUygula,
   type SekmePanelAyarlari,
 } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
 
@@ -94,6 +95,7 @@ export function SekmeYonetimiSayfasi() {
       setAyarlar(kayitli);
       setSonKayitli(kayitli);
       logMesajiAyarla(sekmeAyarlariLogOzeti(kayitli));
+      await websiteTamEkranAyariniUygula(Boolean(kayitli.websiteTamEkran));
     } catch (err) {
       setHata(err instanceof Error ? err.message : 'Kayıt başarısız');
     } finally {
@@ -169,30 +171,67 @@ export function SekmeYonetimiSayfasi() {
               <section className="space-y-3 rounded-xl border border-[var(--ap-border)] bg-[var(--ap-surface-2)]/35 p-4">
                 <p className="ap-heading text-sm font-semibold">Görünüm</p>
 
-                <div>
-                  <p className="ap-muted mb-2 text-xs">Sekme Görünümü</p>
-                  <div className="flex flex-wrap gap-2">
-                    {(
-                      [
-                        { id: 'ikon-isim', ad: 'İkon + isim' },
-                        { id: 'isim', ad: 'Sadece isim' },
-                        { id: 'ikon', ad: 'Sadece ikon' },
-                      ] as const
-                    ).map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setAyarlar((a) => ({ ...a, sekmeGorunumModu: m.id }))}
-                        className={`rounded-lg border px-3 py-1.5 text-sm ${
-                          ayarlar.sekmeGorunumModu === m.id
-                            ? ''
-                            : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
-                        }`}
-                        style={ayarlar.sekmeGorunumModu === m.id ? seciliButonStili : undefined}
-                      >
-                        {m.ad}
-                      </button>
-                    ))}
+                <div className="grid gap-3 sm:grid-cols-2 sm:items-start">
+                  <div>
+                    <p className="ap-muted mb-2 text-xs">Sekme Görünümü</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(
+                        [
+                          { id: 'ikon-isim', ad: 'İkon + isim' },
+                          { id: 'isim', ad: 'Sadece isim' },
+                          { id: 'ikon', ad: 'Sadece ikon' },
+                        ] as const
+                      ).map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setAyarlar((a) => ({ ...a, sekmeGorunumModu: m.id }))}
+                          className={`rounded-lg border px-3 py-1.5 text-sm ${
+                            ayarlar.sekmeGorunumModu === m.id
+                              ? ''
+                              : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
+                          }`}
+                          style={ayarlar.sekmeGorunumModu === m.id ? seciliButonStili : undefined}
+                        >
+                          {m.ad}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="ap-muted mb-2 text-xs">WebSite Görünümü Ayarı</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(
+                        [
+                          {
+                            id: true,
+                            ad: 'Tam ekran',
+                            alt: 'F11 gibi — her açılışta',
+                          },
+                          {
+                            id: false,
+                            ad: 'Normal',
+                            alt: 'Tarayıcı penceresi',
+                          },
+                        ] as const
+                      ).map((m) => (
+                        <button
+                          key={String(m.id)}
+                          type="button"
+                          onClick={() => setAyarlar((a) => ({ ...a, websiteTamEkran: m.id }))}
+                          className={`rounded-lg border px-3 py-1.5 text-left text-sm ${
+                            ayarlar.websiteTamEkran === m.id
+                              ? ''
+                              : 'border-[var(--ap-border)] hover:bg-[var(--ap-hover)]'
+                          }`}
+                          style={ayarlar.websiteTamEkran === m.id ? seciliButonStili : undefined}
+                        >
+                          <span className="block leading-tight">{m.ad}</span>
+                          <span className="ap-muted block text-[10px]">{m.alt}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

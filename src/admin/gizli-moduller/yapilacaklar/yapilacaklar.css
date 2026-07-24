@@ -414,6 +414,16 @@
   text-decoration: line-through;
 }
 
+.yap-takvim-chip--tatil {
+  text-shadow: 0 1px 1px rgb(0 0 0 / 20%);
+  cursor: default;
+}
+
+.yap-takvim-hucre--tatil .yap-takvim-gun-no {
+  color: color-mix(in srgb, #e11d48 70%, var(--ap-text));
+  font-weight: 750;
+}
+
 .yap-takvim-daha {
   font-size: 0.65rem;
   color: var(--ap-text-muted);
@@ -427,6 +437,17 @@
 .yap-gorev-modal .ap-accent-donen-cerceve--yap-gorev {
   --cerceve-yaricap: 1.1rem;
   width: min(26rem, calc(100vw - 2rem));
+}
+
+.yap-gorev-tatil-not {
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #e11d48 10%, var(--ap-surface));
+  color: #9f1239;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: left;
 }
 
 .yap-gorev-kart {

@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormAramaSecim } from '@/formlar/FormAramaSecim';
 import { vergiDaireleriAdlari, vergiDaireleriListeYukle } from '@/veri/vergiDaireleriApi';
 import { MIN_ADRES_ARAMA_UZUNLUGU } from '@/veri/turkiyeIlIlce';
+import {
+  VERGI_DAIRELERI_GUNCELLENDI,
+  vergiDairesiSecenekleriBirlesik,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/vergiDaireleriOt';
 
 interface VergiDairesiSeciciProps {
   deger: string;
@@ -9,13 +13,14 @@ interface VergiDairesiSeciciProps {
 }
 
 export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps) {
-  const [secenekler, setSecenekler] = useState<string[]>(() => vergiDaireleriAdlari());
+  const [apiAdlari, setApiAdlari] = useState<string[]>(() => vergiDaireleriAdlari());
+  const [otSurum, setOtSurum] = useState(0);
 
   useEffect(() => {
     let iptal = false;
     void vergiDaireleriListeYukle()
       .then((liste) => {
-        if (!iptal) setSecenekler(liste);
+        if (!iptal) setApiAdlari(liste);
       })
       .catch(() => {
         /* offline / ağ hatası — boş liste kalır */
@@ -24,6 +29,17 @@ export function VergiDairesiSecici({ deger, onChange }: VergiDairesiSeciciProps)
       iptal = true;
     };
   }, []);
+
+  useEffect(() => {
+    const yenile = () => setOtSurum((n) => n + 1);
+    window.addEventListener(VERGI_DAIRELERI_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(VERGI_DAIRELERI_GUNCELLENDI, yenile);
+  }, []);
+
+  const secenekler = useMemo(
+    () => vergiDairesiSecenekleriBirlesik(apiAdlari),
+    [apiAdlari, otSurum]
+  );
 
   return (
     <label className="ap-tanimlar-secim-alan block">

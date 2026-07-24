@@ -1,11 +1,16 @@
-export type CariTipi = 'SATICI' | 'ALICI';
+import {
+  cariTipiEtiketi as ozelCariTipiEtiketi,
+  cariTipiFormSecenekleri,
+  gecerliCariTipiKodu,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/cariTipleri';
+
+/** Özel Tanımlar cari tipi kodu (BAYI, DAGITICI, …) */
+export type CariTipi = string;
 export type IsletmeTuru = 'TUZEL' | 'GERCEK';
 export type CariKartModu = 'yeni' | 'duzenle' | 'incele';
 
-export const CARI_TIPLERI: { value: CariTipi; label: string }[] = [
-  { value: 'SATICI', label: 'Satıcı' },
-  { value: 'ALICI', label: 'Alıcı' },
-];
+/** Anlık snapshot — canlı liste için cariTipiFormSecenekleri() kullanın */
+export const CARI_TIPLERI: { value: string; label: string }[] = cariTipiFormSecenekleri();
 
 export const ISLETME_TURLERI: { value: IsletmeTuru; label: string }[] = [
   { value: 'TUZEL', label: 'Tüzel' },
@@ -173,7 +178,7 @@ export const bosDosyaDokuman: CariDosyaDokuman = {
 
 export const bosCariForm: CariFormDegeri = {
   ustId: '',
-  cariTipi: 'ALICI',
+  cariTipi: gecerliCariTipiKodu(undefined),
   isletmeTuru: 'TUZEL',
   cariKodu: '',
   cariAdi: '',
@@ -205,7 +210,7 @@ export const bosCariForm: CariFormDegeri = {
 };
 
 export function cariTipiEtiketi(tip: CariTipi): string {
-  return CARI_TIPLERI.find((t) => t.value === tip)?.label ?? tip;
+  return ozelCariTipiEtiketi(tip);
 }
 
 export function isletmeTuruEtiketi(tur: string): string {
@@ -213,8 +218,7 @@ export function isletmeTuruEtiketi(tur: string): string {
   return etiket || '—';
 }
 
+/** Seçilen kart tipi doğrudan kaydedilir (Özel Tanımlar kodu) */
 export function kartTipindenApiCariTipi(kartTipi: string): CariTipi {
-  const v = kartTipi.trim().toUpperCase();
-  if (v === 'SATICI') return 'SATICI';
-  return 'ALICI';
+  return gecerliCariTipiKodu(kartTipi);
 }

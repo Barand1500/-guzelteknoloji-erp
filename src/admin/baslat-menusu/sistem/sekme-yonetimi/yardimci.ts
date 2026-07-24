@@ -22,6 +22,8 @@ export interface SekmePanelAyarlari {
   baslatMenuKategoriGorunum: BaslatMenuKategoriGorunum;
   baslatMenuKutuBoyutu: BaslatMenuKutuBoyutu;
   sekmeGecisindeOtomatikKaydet: boolean;
+  /** F11 benzeri: açıkken her oturum açılışında tam ekran */
+  websiteTamEkran: boolean;
 }
 
 export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
@@ -38,6 +40,7 @@ export const VARSAYILAN_SEKME_AYARLARI: SekmePanelAyarlari = {
   baslatMenuKategoriGorunum: 'dikdortgen',
   baslatMenuKutuBoyutu: 'orta',
   sekmeGecisindeOtomatikKaydet: true,
+  websiteTamEkran: false,
 };
 
 const ESKI_STORAGE_KEY = 'ap-sekme-panel-ayarlari';
@@ -129,8 +132,74 @@ export function sekmeAyarlariLogOzeti(ayarlar: SekmePanelAyarlari): string {
     ayarlar.sekmeGecisindeOtomatikKaydet
       ? 'sekme geçişinde otomatik kaydet açık'
       : 'sekme geçişinde otomatik kaydet kapalı',
+    ayarlar.websiteTamEkran ? 'website tam ekran açık' : 'website tam ekran kapalı',
   ];
   return `Sekme Yönetimi sayfasında sekme paneli ayarlarını kaydetti (${parcalar.join(', ')})`;
+}
+
+const WEBSITE_TAM_EKRAN_OTURUM_IPTAL = 'erp-website-tam-ekran-oturum-iptal';
+
+export function websiteTamEkrandaMi(): boolean {
+  return typeof document !== 'undefined' && Boolean(document.fullscreenElement);
+}
+
+export async function websiteTamEkranAc(): Promise<boolean> {
+  if (typeof document === 'undefined') return false;
+  if (document.fullscreenElement) return true;
+  try {
+    await document.documentElement.requestFullscreen();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function websiteTamEkranKapat(): Promise<void> {
+  if (typeof document === 'undefined' || !document.fullscreenElement) return;
+  try {
+    await document.exitFullscreen();
+  } catch {
+    /* tarayıcı reddetti */
+  }
+}
+
+/** Ayar açıkken oturumda Esc ile çıkıldıysa aynı oturumda zorlamayı bırakır. */
+export function websiteTamEkranOturumIptalIsaretle() {
+  try {
+    sessionStorage.setItem(WEBSITE_TAM_EKRAN_OTURUM_IPTAL, '1');
+  } catch {
+    /* storage yok */
+  }
+}
+
+export function websiteTamEkranOturumIptalTemizle() {
+  try {
+    sessionStorage.removeItem(WEBSITE_TAM_EKRAN_OTURUM_IPTAL);
+  } catch {
+    /* storage yok */
+  }
+}
+
+export function websiteTamEkranOturumIptalMi(): boolean {
+  try {
+    return sessionStorage.getItem(WEBSITE_TAM_EKRAN_OTURUM_IPTAL) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * WebSite tam ekran ayarını uygular.
+ * Tarayıcılar jest olmadan çoğu zaman engeller; jest bekler / Kaydet tıklamasında açılır.
+ */
+export async function websiteTamEkranAyariniUygula(aktif: boolean): Promise<void> {
+  if (!aktif) {
+    websiteTamEkranOturumIptalTemizle();
+    await websiteTamEkranKapat();
+    return;
+  }
+  websiteTamEkranOturumIptalTemizle();
+  await websiteTamEkranAc();
 }
 
 export function sekmeYukseklikCss(ayar: SekmeYukseklik) {

@@ -32,7 +32,7 @@ import {
   type HesapTipiSecenek,
 } from '../hesapTipleri';
 import {
-  BANKA_DOVIZ_SECENEKLERI,
+  bankaDovizSecenekleri,
   KOMISYON_UYGULAMA_TIPLERI,
   KREDI_KART_TURLERI,
   PUAN_UYGULAMA_TIPLERI,
@@ -336,7 +336,7 @@ export function BankaAnlasmaKart({
                 <CariOutlinedAcilir
                   etiket="Döviz Cinsi"
                   deger={form.dovizCinsi}
-                  secenekler={[...BANKA_DOVIZ_SECENEKLERI]}
+                  secenekler={bankaDovizSecenekleri()}
                   disabled={saltOkunur}
                   onChange={(dovizCinsi) => setAlan('dovizCinsi', dovizCinsi)}
                 />
@@ -397,7 +397,7 @@ export function BankaAnlasmaKart({
                     <CariOutlinedAcilir
                       etiket="Döviz Cinsi"
                       deger={form.dovizCinsi}
-                      secenekler={[...BANKA_DOVIZ_SECENEKLERI]}
+                      secenekler={bankaDovizSecenekleri()}
                       disabled={saltOkunur}
                       onChange={(dovizCinsi) => setAlan('dovizCinsi', dovizCinsi)}
                     />

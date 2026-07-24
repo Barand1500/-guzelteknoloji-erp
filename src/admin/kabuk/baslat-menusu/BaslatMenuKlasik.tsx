@@ -8,13 +8,14 @@ interface BaslatMenuKlasikProps {
   menuDurumu: BaslatMenuDurumu;
   onModulSec: (modul: AdminModul) => void;
   onKapat: () => void;
+  onOzelTanimlarAc?: () => void;
   kenarlikAnim?: boolean;
   dockStil?: CSSProperties;
   dockYerlesim?: 'kare' | 'dikdortgen';
 }
 
 export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps>(function BaslatMenuKlasik(
-  { menuDurumu, onModulSec, onKapat, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
+  { menuDurumu, onModulSec, onKapat, onOzelTanimlarAc, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
   ref
 ) {
   const { t } = usePanelDil();
@@ -32,9 +33,22 @@ export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps
       style={dockStil}
       className={`ap-baslat-menu-dock ap-baslat-menu-klasik z-50 flex max-h-[calc(100vh-3rem)] w-[min(440px,92vw)] flex-col overflow-hidden border border-[var(--ap-border)] border-l-0 bg-[var(--ap-surface)] shadow-2xl${kenarlikAnim ? ` ap-baslat-menu-dock--kenarlik-anim ap-baslat-menu-dock--bagli ap-baslat-menu-dock--${dockYerlesim}` : ''}`}
     >
-      <div className="border-b border-[var(--ap-border)] bg-[var(--ap-header-bg)] px-3 py-2">
-        <p className="ap-heading text-xs font-bold">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
-        <p className="ap-muted text-[10px]">{t('header.modulAra', 'Modül veya Ayar Ara')}</p>
+      <div className="flex items-start justify-between gap-2 border-b border-[var(--ap-border)] bg-[var(--ap-header-bg)] px-3 py-2">
+        <div className="min-w-0">
+          <p className="ap-heading text-xs font-bold">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
+          <p className="ap-muted text-[10px]">{t('header.modulAra', 'Modül veya Ayar Ara')}</p>
+        </div>
+        {onOzelTanimlarAc ? (
+          <button
+            type="button"
+            className="ap-baslat-modern-ozel-tanimlar"
+            onClick={onOzelTanimlarAc}
+            aria-label="Özel Tanımlar"
+            title="Özel Tanımlar"
+          >
+            ⚙
+          </button>
+        ) : null}
       </div>
 
       <BaslatMenuArama deger={arama} onDegistir={setArama} variant="klasik" />

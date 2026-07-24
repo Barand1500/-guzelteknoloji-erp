@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import {
   tarihAnahtari,
@@ -13,6 +13,11 @@ import {
   takvimGoreviniKaldir,
   takvimNotundanGorevSenkron,
 } from '@/admin/gizli-moduller/yapilacaklar/yapilacaklarDepo';
+import {
+  RESMI_TATILLER_GUNCELLENDI,
+  resmiTatilEtiketi,
+  resmiTatillerGuneGore,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/resmiTatiller';
 import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 const GUNLER = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
@@ -39,6 +44,7 @@ export function SaatTakvimWidget() {
   });
   const [notlar, setNotlar] = useState<Record<string, TakvimNotu>>(() => takvimNotlariOku());
   const [notModu, setNotModu] = useState<NotModu | null>(null);
+  const [tatilSurum, setTatilSurum] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   useAksiyonCubuguPanelSync(acik, panelRef);
@@ -47,6 +53,12 @@ export function SaatTakvimWidget() {
   useEffect(() => {
     const id = setInterval(() => setSimdi(new Date()), 1000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const yenile = () => setTatilSurum((n) => n + 1);
+    window.addEventListener(RESMI_TATILLER_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(RESMI_TATILLER_GUNCELLENDI, yenile);
   }, []);
 
   useEffect(() => {
@@ -182,6 +194,10 @@ export function SaatTakvimWidget() {
               const notlu = Boolean(notlar[anahtar]);
               const bugun = gun === bugunGun;
               const secili = notModu?.anahtar === anahtar;
+              void tatilSurum;
+              const tatiller = resmiTatillerGuneGore(anahtar);
+              const tatil = tatiller[0];
+              const tatilBaslik = resmiTatilEtiketi(anahtar);
 
               return (
                 <button
@@ -191,15 +207,22 @@ export function SaatTakvimWidget() {
                     'ap-takvim-gun',
                     bugun ? 'ap-takvim-bugun' : '',
                     notlu ? 'ap-takvim-notlu' : '',
+                    tatil ? 'ap-takvim-tatil' : '',
                     secili ? 'ap-takvim-secili' : '',
                   ]
                     .filter(Boolean)
                     .join(' ')}
+                  style={tatil ? ({ ['--ap-tatil-renk' as string]: tatil.renk } as CSSProperties) : undefined}
                   onClick={() => gunTikla(gun)}
                   title={tooltipMetni(
-                    notlu
-                      ? 'Not var — okumak için tıkla, düzenlemek için çift tıkla'
-                      : 'Not eklemek için çift tıkla'
+                    [
+                      tatilBaslik ? `Tatil: ${tatilBaslik}` : '',
+                      notlu
+                        ? 'Not var — okumak için tıkla, düzenlemek için çift tıkla'
+                        : 'Not eklemek için çift tıkla',
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
                   )}
                 >
                   {gun}

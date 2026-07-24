@@ -69,10 +69,11 @@ function formdanCari(form: CariFormDegeri, id: string, firmaId = '1', olusturma?
 }
 
 export function offlineCarilerGetir(path: string): unknown {
-  const cariTipi = new URLSearchParams(path.split('?')[1] ?? '').get('cariTipi')?.trim().toUpperCase();
+  const cariTipi = new URLSearchParams(path.split('?')[1] ?? '').get('cariTipi')?.trim();
   let cariler = carilerOku();
-  if (cariTipi === 'SATICI' || cariTipi === 'ALICI') {
-    cariler = cariler.filter((c) => c.cariTipi === cariTipi);
+  if (cariTipi) {
+    const hedef = cariTipi.toLocaleUpperCase('tr');
+    cariler = cariler.filter((c) => c.cariTipi.toLocaleUpperCase('tr') === hedef);
   }
   return { cariler };
 }

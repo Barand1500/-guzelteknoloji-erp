@@ -24,6 +24,10 @@ interface SistemModalProps {
   ikon?: string;
   genislik?: SistemModalGenislik;
   kapatmaDevreDisi?: boolean;
+  /** false ise arka plana tıklayınca kapanmaz (varsayılan: true) */
+  disariTiklaKapat?: boolean;
+  /** false ise Escape ile kapanmaz (varsayılan: true) */
+  escapeIleKapat?: boolean;
   baslikId?: string;
   /** Varsayılan true — üstteki gradient çizgi */
   ustCizgi?: boolean;
@@ -39,6 +43,8 @@ export function SistemModal({
   ikon,
   genislik = 'md',
   kapatmaDevreDisi,
+  disariTiklaKapat = true,
+  escapeIleKapat = true,
   baslikId,
   ustCizgi = true,
   children,
@@ -57,7 +63,7 @@ export function SistemModal({
   useSekmeModalGovdeKilidi(acik, portalKok);
 
   useEffect(() => {
-    if (!acik || !portalKok) return;
+    if (!acik || !portalKok || !escapeIleKapat) return;
     function tusHandler(e: KeyboardEvent) {
       if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape' && !kapatmaDevreDisi) {
@@ -67,7 +73,7 @@ export function SistemModal({
     }
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [acik, portalKok, kapatmaDevreDisi, kapat]);
+  }, [acik, portalKok, kapatmaDevreDisi, kapat, escapeIleKapat]);
 
   if (!acik || !portalKok) return null;
 
@@ -80,7 +86,11 @@ export function SistemModal({
       aria-modal="true"
       aria-labelledby={baslikId}
     >
-      <button type="button" className="ap-sistem-modal-arka-tik" aria-label="Kapat" onClick={kapat} />
+      {disariTiklaKapat ? (
+        <button type="button" className="ap-sistem-modal-arka-tik" aria-label="Kapat" onClick={kapat} />
+      ) : (
+        <div className="ap-sistem-modal-arka-tik" aria-hidden />
+      )}
       <DonenAccentCerceve className="ap-accent-donen-cerceve--sistem">
         <div
           className={`ap-sistem-modal ap-sistem-modal-v2 ${genislikSinifi}`.trim()}

@@ -1,4 +1,10 @@
-export type StokFiyatPb = 'TL' | 'USD' | 'EUR';
+import {
+  paraBirimiEtiketi,
+  paraBirimiSecenekleri,
+  paraBirimiSembolu,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
+
+export type StokFiyatPb = string;
 
 export type StokFiyatKdvTipi = 'dahil' | 'haric';
 
@@ -112,18 +118,27 @@ export const STOK_FIYAT_PB_SECENEKLERI: {
   deger: StokFiyatPb;
   etiket: string;
   sembol: string;
-}[] = [
-  { deger: 'TL', etiket: '₺ TL', sembol: '₺' },
-  { deger: 'USD', etiket: '$ USD', sembol: '$' },
-  { deger: 'EUR', etiket: '€ EUR', sembol: '€' },
-];
+}[] = [];
+
+/** Dinamik PB seçenekleri — Özel Tanımlar kaynağı */
+export function stokFiyatPbSecenekleri(): {
+  deger: StokFiyatPb;
+  etiket: string;
+  sembol: string;
+}[] {
+  return paraBirimiSecenekleri().map((p) => ({
+    deger: p.deger,
+    etiket: p.etiket,
+    sembol: p.sembol,
+  }));
+}
 
 export function stokPbSembolu(kod: StokFiyatPb | string): string {
-  return STOK_FIYAT_PB_SECENEKLERI.find((p) => p.deger === kod)?.sembol ?? kod;
+  return paraBirimiSembolu(kod);
 }
 
 export function stokPbEtiketi(kod: StokFiyatPb | string): string {
-  return STOK_FIYAT_PB_SECENEKLERI.find((p) => p.deger === kod)?.etiket ?? kod;
+  return paraBirimiEtiketi(kod);
 }
 
 export const STOK_BARKOD_TIP_SECENEKLERI: { deger: StokBarkodTipi; etiket: string }[] = [

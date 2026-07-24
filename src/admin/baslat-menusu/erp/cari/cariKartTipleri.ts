@@ -1,76 +1,35 @@
-const ANAHTAR = 'erp-cari-kart-tipleri-v1';
+/**
+ * Cari kart tipi uyumluluk katmanı — Özel Tanımlar cari tipleri kaynağına delege eder.
+ */
+import {
+  cariTipiEkle,
+  cariTipiEtiketi,
+  cariTipiFormSecenekleri,
+  cariTipiGuncelle,
+  cariTipiSil,
+  type CariTipiSecenek,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/cariTipleri';
 
-export interface CariKartTipiSecenek {
-  value: string;
-  label: string;
-}
-
-const VARSAYILAN: CariKartTipiSecenek[] = [
-  { value: 'ALICI', label: 'Alıcı' },
-  { value: 'SATICI', label: 'Satıcı' },
-  { value: 'HER_IKISI', label: 'Her İkisi' },
-  { value: 'DIGER', label: 'Diğer' },
-];
-
-function oku(): CariKartTipiSecenek[] {
-  try {
-    const ham = localStorage.getItem(ANAHTAR);
-    if (ham) {
-      const liste = JSON.parse(ham) as CariKartTipiSecenek[];
-      if (Array.isArray(liste) && liste.length > 0) return liste;
-    }
-  } catch {
-    /* bozuk */
-  }
-  return [...VARSAYILAN];
-}
-
-function yaz(liste: CariKartTipiSecenek[]) {
-  localStorage.setItem(ANAHTAR, JSON.stringify(liste));
-}
+export type CariKartTipiSecenek = CariTipiSecenek;
 
 export function cariKartTipleriGetir(): CariKartTipiSecenek[] {
-  return oku();
+  return cariTipiFormSecenekleri(true);
 }
 
 export function cariKartTipiEkle(label: string): CariKartTipiSecenek | null {
-  const ad = label.trim();
-  if (!ad) return null;
-  const value = ad
-    .toLocaleUpperCase('tr')
-    .replace(/\s+/g, '_')
-    .replace(/[^A-Z0-9ÇĞİÖŞÜ_]/gi, '');
-  const mevcut = oku();
-  if (mevcut.some((t) => t.value === value || t.label.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'))) {
-    return null;
-  }
-  const yeni = { value: value || `TIP_${Date.now()}`, label: ad };
-  yaz([...mevcut, yeni]);
-  return yeni;
+  const sonuc = cariTipiEkle(label);
+  if (!sonuc) return null;
+  return { value: sonuc.kod, label: sonuc.adi };
 }
 
 export function cariKartTipiGuncelle(value: string, yeniLabel: string): boolean {
-  const ad = yeniLabel.trim();
-  if (!ad) return false;
-  const mevcut = oku();
-  const hedef = mevcut.find((t) => t.value === value);
-  if (!hedef) return false;
-  if (
-    mevcut.some(
-      (t) =>
-        t.value !== value && t.label.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr')
-    )
-  ) {
-    return false;
-  }
-  yaz(mevcut.map((t) => (t.value === value ? { ...t, label: ad } : t)));
-  return true;
+  return cariTipiGuncelle(value, yeniLabel);
 }
 
 export function cariKartTipiSil(value: string): void {
-  yaz(oku().filter((t) => t.value !== value));
+  cariTipiSil(value);
 }
 
 export function cariKartTipiEtiketi(value: string): string {
-  return oku().find((t) => t.value === value)?.label ?? value;
+  return cariTipiEtiketi(value);
 }

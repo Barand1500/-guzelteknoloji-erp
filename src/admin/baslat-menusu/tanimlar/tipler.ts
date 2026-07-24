@@ -207,8 +207,9 @@ export const bosKasaForm: KasaFormDegeri = {
   subeId: '',
   kasaKodu: '',
   kasaAdi: '',
-  paraBirimi: 'TL',
+  paraBirimi: 'TRY',
   aktif: true,
 };
 
-export const PARA_BIRIMLERI = ['TL', 'USD', 'EUR'] as const;
+/** @deprecated Özel Tanımlar kaynağını kullanın — paraBirimiKodlari() */
+export const PARA_BIRIMLERI = ['TRY', 'USD', 'EUR', 'GBP'] as const;

@@ -12,7 +12,8 @@ import '@/admin/baslat-menusu/erp/cari/cari.css';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { bosBirimFiyatSatiri } from './birimMap';
 import type { StokBarkodTipi, StokFiyatDuzenleSatir, StokFiyatKdvTipi } from './fiyatDuzenleTipler';
-import { STOK_FIYAT_PB_SECENEKLERI, stokPbSembolu } from './fiyatDuzenleTipler';
+import { stokFiyatPbSecenekleri, stokPbSembolu } from './fiyatDuzenleTipler';
+import { gecerliParaBirimi } from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import {
   stokBirimAdiEkle,
   stokBirimAdiGuncelle,
@@ -20,6 +21,7 @@ import {
   stokBirimAdlariGetir,
   type StokBirimAdiSecenek,
 } from './stokBirimAdlari';
+import { OLCU_BIRIMLERI_GUNCELLENDI } from '@/admin/baslat-menusu/ozel-tanimlar/veri/olcuBirimleri';
 import {
   stokFiyatAdiDegeri,
   stokFiyatAdiEkle,
@@ -42,18 +44,10 @@ import {
 import { StokCokluBarkodModal } from './StokCokluBarkodModal';
 import { StokCokluFiyatModal } from './StokCokluFiyatModal';
 import { StokOlcuHesapModal } from './StokOlcuHesapModal';
-
-const KDV_TABAN = ['0', '1', '10', '20'];
-
-function kdvSecenekleriOlustur(ekstra?: number | null): { value: string; label: string }[] {
-  const degerler = new Set(KDV_TABAN);
-  if (ekstra !== null && ekstra !== undefined && Number.isFinite(ekstra)) {
-    degerler.add(String(ekstra));
-  }
-  return [...degerler]
-    .sort((a, b) => Number(a) - Number(b))
-    .map((k) => ({ value: k, label: `% ${k}` }));
-}
+import {
+  kdvOranFormSecenekleri,
+  VERGILER_GUNCELLENDI,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/vergiler';
 
 function CariOutlinedKdv({
   etiket,
@@ -76,7 +70,19 @@ function CariOutlinedKdv({
   listeYonu?: 'asagi' | 'yukari';
   listeDikeyBosluk?: number;
 }) {
-  const secenekler = useMemo(() => kdvSecenekleriOlustur(ekstraYuzde ?? deger), [ekstraYuzde, deger]);
+  const [kdvSurum, setKdvSurum] = useState(0);
+  useEffect(() => {
+    const yenile = () => setKdvSurum((n) => n + 1);
+    window.addEventListener(VERGILER_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(VERGILER_GUNCELLENDI, yenile);
+  }, []);
+
+  const secenekler = useMemo(
+    () => kdvOranFormSecenekleri(ekstraYuzde ?? deger),
+    // kdvSurum: OT vergiler değişince seçenekleri yenile
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ekstraYuzde, deger, kdvSurum]
+  );
   return (
     <CariOutlinedSarmalayici
       etiket={etiket}
@@ -192,6 +198,12 @@ export function StokYeniBirimler({
     setBirimAdlari(stokBirimAdlariGetir());
   }, [birimModalAcik]);
 
+  useEffect(() => {
+    const yenile = () => setBirimAdlari(stokBirimAdlariGetir());
+    window.addEventListener(OLCU_BIRIMLERI_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(OLCU_BIRIMLERI_GUNCELLENDI, yenile);
+  }, []);
+
   // Üst KDV departmanı seçilince alış/satış KDV'ye yüzdeyi yaz
   useEffect(() => {
     if (kdvDepartmanYuzde === null || kdvDepartmanYuzde === undefined || !Number.isFinite(kdvDepartmanYuzde)) {
@@ -209,7 +221,7 @@ export function StokYeniBirimler({
   );
 
   const pbSecenekleri = useMemo(
-    () => STOK_FIYAT_PB_SECENEKLERI.map((p) => ({ value: p.deger, label: p.etiket })),
+    () => stokFiyatPbSecenekleri().map((p) => ({ value: p.deger, label: p.etiket })),
     []
   );
 
@@ -494,7 +506,7 @@ export function StokYeniBirimler({
                       listeMinGenislik={76}
                       onChange={(pb2) =>
                         satirPatch(satir.id, {
-                          pb2: pb2 === 'USD' || pb2 === 'EUR' ? pb2 : 'TL',
+                          pb2: gecerliParaBirimi(pb2),
                         })
                       }
                     />
@@ -572,7 +584,7 @@ export function StokYeniBirimler({
                       listeMinGenislik={76}
                       onChange={(pb1) =>
                         satirPatch(satir.id, {
-                          pb1: pb1 === 'USD' || pb1 === 'EUR' ? pb1 : 'TL',
+                          pb1: gecerliParaBirimi(pb1),
                         })
                       }
                     />

@@ -1,3 +1,5 @@
+import { gecerliStokTipiKodu, stokTipiFormSecenekleri } from '@/admin/baslat-menusu/ozel-tanimlar/veri/stokTipleriOt';
+
 export interface OrtakKayit {
   id: string;
   aktif: boolean;
@@ -19,8 +21,15 @@ export interface AdminUrun extends OrtakKayit {
 
 export type UrunForm = Omit<AdminUrun, keyof OrtakKayit>;
 export const bosUrunForm: UrunForm = {
-  ustId: '', urunTipi: 'EMTIA', urunNevi: 'RESMI', urunKodu: '', marka: '',
-  urunAdi: '', anaBirim: '', varsayilanBirim: '', mensei: '',
+  ustId: '',
+  urunTipi: gecerliStokTipiKodu(undefined),
+  urunNevi: 'RESMI',
+  urunKodu: '',
+  marka: '',
+  urunAdi: '',
+  anaBirim: '',
+  varsayilanBirim: '',
+  mensei: '',
 };
 
 export interface AdminBirim extends OrtakKayit {
@@ -86,10 +95,7 @@ export const bosMaliyetForm: MaliyetForm = {
   agirlikliOrtalama: 0, basitOrtalama: 0, lifo: 0, fifo: 0, aktif: true,
 };
 
-export const URUN_TIPLERI = [
-  { value: 'EMTIA', label: 'Emtia' },
-  { value: 'HIZMET', label: 'Hizmet' },
-] as const;
+export const URUN_TIPLERI = stokTipiFormSecenekleri(true);
 
 export const URUN_NEVILERI = [
   { value: 'RESMI', label: 'Resmî' },

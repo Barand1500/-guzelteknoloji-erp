@@ -25,7 +25,7 @@ import {
 import {
   ISARETLI_FIYAT_ALANLARI,
   STOK_FIYAT_KDV_TIPI_SECENEKLERI,
-  STOK_FIYAT_PB_SECENEKLERI,
+  stokFiyatPbSecenekleri,
   stokPbSembolu,
   type IsaretliFiyatAlani,
   type StokFiyatDuzenleSatir,
@@ -70,7 +70,7 @@ export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<Stok
     tip: 'badge',
     genislik: 48,
     duzenlenebilir,
-    secenekler: STOK_FIYAT_PB_SECENEKLERI.map((x) => ({ deger: x.deger, etiket: x.etiket })),
+    secenekler: stokFiyatPbSecenekleri().map((x) => ({ deger: x.deger, etiket: x.etiket })),
     siralama: true,
     degerAl: (s) => s[id],
     siralamaDegeri: (s) => s[id],

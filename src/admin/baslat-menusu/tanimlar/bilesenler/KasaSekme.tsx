@@ -22,13 +22,16 @@ import { adGecerliMi, kodGecerliMi } from '@/admin/baslat-menusu/tanimlar/alanKu
 import { useTanimFirmaDurumu } from '@/admin/baslat-menusu/tanimlar/kancalar/useTanimFirmaDurumu';
 import {
   bosKasaForm,
-  PARA_BIRIMLERI,
   type AdminKasa,
   type AdminSube,
   type GomuluDuzenleSecenek,
   type KasaFormDegeri,
   type TanimGorunumModu,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
+import {
+  gecerliParaBirimi,
+  paraBirimiFormSecenekleri,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { useModulAksiyonlari, useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
@@ -61,7 +64,7 @@ function kasadanForm(k: AdminKasa): KasaFormDegeri {
     subeId: k.subeId ?? '',
     kasaKodu: k.kasaKodu ?? '',
     kasaAdi: k.kasaAdi ?? '',
-    paraBirimi: para || 'TL',
+    paraBirimi: gecerliParaBirimi(para || 'TRY'),
     aktif: k.aktif !== false,
   };
 }
@@ -334,9 +337,9 @@ export function KasaSekme({
       <label className="ap-tanimlar-secim-alan block">
         <span className="ap-tanim-girdi-etiket">Para Birimi *</span>
         <FormAcilirSecim
-          value={form.paraBirimi}
+          value={gecerliParaBirimi(form.paraBirimi)}
           onChange={(paraBirimi) => setForm((f) => ({ ...f, paraBirimi }))}
-          secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
+          secenekler={paraBirimiFormSecenekleri()}
         />
       </label>
     </>

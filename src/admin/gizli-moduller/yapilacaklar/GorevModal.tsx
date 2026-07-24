@@ -10,6 +10,10 @@ import {
   useSekmeModalGovdeKilidi,
 } from '@/araclar/sekmePortal';
 import type { GorevKayitGirdi, YapilacakGorev } from './yapilacaklarDepo';
+import {
+  RESMI_TATILLER_GUNCELLENDI,
+  resmiTatilEtiketi,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/resmiTatiller';
 
 interface GorevModalProps {
   acik: boolean;
@@ -25,6 +29,7 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
   const [bitis, setBitis] = useState('');
   const [onemli, setOnemli] = useState(false);
   const [hata, setHata] = useState('');
+  const [tatilSurum, setTatilSurum] = useState(0);
   const sekme = useAdminSekmeKabuk();
   const portalKok = useMemo(
     () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
@@ -41,6 +46,26 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
     setOnemli(gorev?.onemli ?? false);
     setHata('');
   }, [acik, gorev]);
+
+  useEffect(() => {
+    const yenile = () => setTatilSurum((n) => n + 1);
+    window.addEventListener(RESMI_TATILLER_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(RESMI_TATILLER_GUNCELLENDI, yenile);
+  }, []);
+
+  const tatilNotu = useMemo(() => {
+    void tatilSurum;
+    const notlar: string[] = [];
+    if (baslangic) {
+      const e = resmiTatilEtiketi(baslangic);
+      if (e) notlar.push(`Başlangıç: ${e}`);
+    }
+    if (bitis && bitis !== baslangic) {
+      const e = resmiTatilEtiketi(bitis);
+      if (e) notlar.push(`Bitiş: ${e}`);
+    }
+    return notlar.join(' · ');
+  }, [baslangic, bitis, tatilSurum]);
 
   const kaydet = useCallback(() => {
     const temiz = metin.trim();
@@ -137,6 +162,12 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
                 />
               </label>
             </div>
+
+            {tatilNotu ? (
+              <p className="yap-gorev-tatil-not" role="note">
+                Resmi tatil — {tatilNotu}
+              </p>
+            ) : null}
 
             <label className={`yap-gorev-onemli${onemli ? ' yap-gorev-onemli--acik' : ''}`}>
               <input type="checkbox" checked={onemli} onChange={(e) => setOnemli(e.target.checked)} />

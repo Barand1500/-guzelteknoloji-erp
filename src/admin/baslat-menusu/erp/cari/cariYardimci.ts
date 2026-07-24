@@ -3,6 +3,7 @@ import { bosCariForm, FATURA_TIPLERI } from '@/admin/baslat-menusu/erp/cari/tipl
 import { cariDosyaDokumanGetir } from '@/admin/baslat-menusu/erp/cari/cariDosyaDokumanDeposu';
 import { cariEirsaliyeAliasGetir } from '@/admin/baslat-menusu/erp/cari/cariEirsaliyeAliasDeposu';
 import { cariIletisimGetir } from '@/admin/baslat-menusu/erp/cari/cariIletisimDeposu';
+import { gecerliCariTipiKodu } from '@/admin/baslat-menusu/ozel-tanimlar/veri/cariTipleri';
 
 const FATURA_TIPI_KODLARI = new Set<string>(FATURA_TIPLERI.map((t) => t.value));
 
@@ -96,8 +97,7 @@ export function caridenForm(c: AdminCari): CariFormDegeri {
 }
 
 export function gecerliCariTipi(deger: string, varsayilan: CariTipi): CariTipi {
-  const v = deger.trim().toUpperCase();
-  return v === 'SATICI' || v === 'ALICI' ? v : varsayilan;
+  return gecerliCariTipiKodu(deger, varsayilan);
 }
 
 export function gecerliIsletmeTuru(deger: string, varsayilan: IsletmeTuru | ''): IsletmeTuru | '' {
@@ -113,7 +113,7 @@ export function hizliGirisdenForm(degerler: Record<string, string>): CariFormDeg
     ...bosCariForm,
     cariKodu: kod,
     cariAdi: ad,
-    cariTipi: gecerliCariTipi(degerler.cariTipi ?? '', 'ALICI'),
+    cariTipi: gecerliCariTipi(degerler.cariTipi ?? '', bosCariForm.cariTipi),
     isletmeTuru: gecerliIsletmeTuru(degerler.isletmeTuru ?? '', ''),
     unvan: degerler.unvan?.trim() ?? '',
     alisFiyatTanimi: degerler.alisFiyatTanimi?.trim() ?? '',

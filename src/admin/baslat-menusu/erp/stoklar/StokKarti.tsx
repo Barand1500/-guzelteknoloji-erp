@@ -42,6 +42,7 @@ import {
   stokTipleriGetir,
   type StokTipiSecenek,
 } from './stokTipleri';
+import { STOK_TIPLERI_OT_GUNCELLENDI } from '@/admin/baslat-menusu/ozel-tanimlar/veri/stokTipleriOt';
 import {
   stokNeviEkle,
   stokNeviGuncelle,
@@ -138,6 +139,12 @@ export function StokKarti({
   useEffect(() => {
     setStokTipleri(stokTipleriGetir());
   }, [tipModalAcik]);
+
+  useEffect(() => {
+    const yenile = () => setStokTipleri(stokTipleriGetir());
+    window.addEventListener(STOK_TIPLERI_OT_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(STOK_TIPLERI_OT_GUNCELLENDI, yenile);
+  }, []);
 
   useEffect(() => {
     setStokNevileri(stokNevileriGetir());
@@ -520,7 +527,7 @@ export function StokKarti({
         baslik="Stok Tipi"
         placeholder="Yeni stok tipi adı…"
         liste={stokTipleri.map((t) => ({ value: t.value, label: t.label }))}
-        sabitDegerler={['EMTIA', 'HIZMET']}
+        sabitDegerler={['BASIT_URUN', 'GRUP_URUN', 'VARYASYONLU_URUN']}
         kullanimNesneAdi="stok tipini"
         kullanimSayisiAl={(value) => kayitlar.filter((s) => s.urunTipi === value).length}
         onEkle={(ad) => {

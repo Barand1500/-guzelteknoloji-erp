@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { sekmeAyarlariOku } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import { modulBul } from '@/admin/veri/adminMenuYapisi';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
 import { BaslatMenuKlasik } from './BaslatMenuKlasik';
 import { BaslatMenuModern } from './BaslatMenuModern';
@@ -51,11 +52,19 @@ export function BaslatMenu({ acik, onKapat, onModulSec, baslatButonRef, kareMod 
 
   const dockYerlesim: 'kare' | 'dikdortgen' = kareMod ? 'kare' : 'dikdortgen';
 
+  const ozelTanimlarAc = () => {
+    const modul = modulBul('ozel-tanimlar');
+    if (!modul) return;
+    onModulSec(modul);
+    onKapat();
+  };
+
   const menuProps = {
     ref: menuRef,
     menuDurumu,
     onModulSec,
     onKapat,
+    onOzelTanimlarAc: ozelTanimlarAc,
     kenarlikAnim: dockAktif && acik,
     dockStil: dockAktif && acik ? dockStil : undefined,
     dockYerlesim,

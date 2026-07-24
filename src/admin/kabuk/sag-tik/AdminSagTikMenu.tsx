@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminModulleri, modulBul } from '@/admin/veri/adminMenuYapisi';
-import { useSagTikPanel } from '@/baglamlar/SagTikPanelContext';
+import { useSagTikPanelOptional } from '@/baglamlar/SagTikPanelContext';
 import { sagTikOgeTanimBul } from '@/admin/baslat-menusu/sistem/ayarlar/veri-sag-tik';
 import type { SagTikOgeId } from '@/admin/ortak/tipler/sagTikPaneli';
+import { VARSAYILAN_SAG_TIK_PANEL } from '@/admin/ortak/tipler/sagTikPaneli';
 import {
   metinAlaniMi,
   panoKopyala,
   panoKes,
   panoYapistir,
+  sagTikPanelNormalize,
   secimVarMi,
   tumunuSec,
 } from '@/admin/baslat-menusu/sistem/ayarlar/yardimci-sag-tik';
@@ -25,7 +27,8 @@ interface MenuDurum {
 }
 
 export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyonlar }) {
-  const { ayarlar } = useSagTikPanel();
+  const panel = useSagTikPanelOptional();
+  const ayarlar = panel?.ayarlar ?? sagTikPanelNormalize(VARSAYILAN_SAG_TIK_PANEL);
   const [menu, setMenu] = useState<MenuDurum | null>(null);
   const [flyout, setFlyout] = useState<'moduller' | null>(null);
   const kokRef = useRef<HTMLDivElement>(null);

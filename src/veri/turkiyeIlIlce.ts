@@ -327,6 +327,12 @@ export async function turkiyeIlceOnbellekYukle(il: string): Promise<void> {
   await ilceAdlariniYukle(il);
 }
 
+/** Seçili ile ait tüm ilçe adları */
+export async function turkiyeIlceAdlari(il: string): Promise<string[]> {
+  if (!il.trim()) return [];
+  return ilceAdlariniYukle(il);
+}
+
 /** Seçilen mahallenin posta kodunu TurkiyeAPI'den döndürür */
 export async function turkiyeMahallePostaKoduBul(
   il: string,

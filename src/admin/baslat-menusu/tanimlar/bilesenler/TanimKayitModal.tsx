@@ -30,7 +30,6 @@ import {
   bosFirmaForm,
   bosKasaForm,
   bosSubeForm,
-  PARA_BIRIMLERI,
   type AdminDepo,
   type AdminDonem,
   type AdminFirma,
@@ -43,6 +42,10 @@ import {
   type SubeFormDegeri,
   type TanimSekmeId,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
+import {
+  gecerliParaBirimi,
+  paraBirimiFormSecenekleri,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
@@ -591,9 +594,9 @@ export function TanimKayitModal({
                     Para Birimi <span className="ap-tanim-girdi-zorunlu">*</span>
                   </span>
                   <FormAcilirSecim
-                    value={kasaForm.paraBirimi}
+                    value={gecerliParaBirimi(kasaForm.paraBirimi)}
                     onChange={(paraBirimi) => setKasaForm((f) => ({ ...f, paraBirimi }))}
-                    secenekler={PARA_BIRIMLERI.map((p) => ({ value: p, label: p }))}
+                    secenekler={paraBirimiFormSecenekleri()}
                     aria-label="Para birimi"
                   />
                 </label>

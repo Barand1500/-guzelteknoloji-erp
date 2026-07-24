@@ -7,7 +7,8 @@ import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from '@/araclar/sekmePortal';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import type { StokFiyatDuzenleSatir, StokFiyatPb } from './fiyatDuzenleTipler';
-import { STOK_FIYAT_PB_SECENEKLERI, stokPbSembolu } from './fiyatDuzenleTipler';
+import { stokFiyatPbSecenekleri, stokPbSembolu } from './fiyatDuzenleTipler';
+import { gecerliParaBirimi } from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import { sayiGosterFormatli, sayiOku } from './stokYeniBirimlerYardimci';
 import {
   iskontoGecerliMi,
@@ -61,18 +62,13 @@ function iskontoFiltrele(ham: string): string {
 }
 
 function pbNormalize(pb: string): StokFiyatPb {
-  return pb === 'USD' || pb === 'EUR' ? pb : 'TL';
+  return gecerliParaBirimi(pb);
 }
 
 function formatliVeyaBos(deger: number | null): string {
   if (deger === null || !Number.isFinite(deger)) return '';
   return sayiGosterFormatli(deger);
 }
-
-const PB_SECENEKLERI = STOK_FIYAT_PB_SECENEKLERI.map((p) => ({
-  value: p.deger,
-  label: p.etiket,
-}));
 
 function StokCokluFiyatPbSecim({
   deger,
@@ -83,12 +79,16 @@ function StokCokluFiyatPbSecim({
   onChange: (pb: StokFiyatPb) => void;
   ariaLabel: string;
 }) {
+  const secenekler = stokFiyatPbSecenekleri().map((p) => ({
+    value: p.deger,
+    label: p.etiket,
+  }));
   return (
     <div className="stok-coklu-fiyat-pb">
       <FormAcilirSecim
         value={deger}
         onChange={(v) => onChange(pbNormalize(v))}
-        secenekler={PB_SECENEKLERI}
+        secenekler={secenekler}
         aria-label={ariaLabel}
         className="stok-coklu-fiyat-pb-secim"
         listeSinifi="stok-coklu-fiyat-pb-liste"
@@ -112,7 +112,7 @@ const BOS_FORM: FiyatFormAlan = {
   fiyat: '',
   iskonto: '',
   net: '',
-  pb: 'TL',
+  pb: 'TRY',
 };
 
 export function StokCokluFiyatModal({ acik, tur, satir, onKaydet, onKapat }: StokCokluFiyatModalProps) {

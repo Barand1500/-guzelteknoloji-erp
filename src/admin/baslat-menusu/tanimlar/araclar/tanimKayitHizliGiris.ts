@@ -18,9 +18,9 @@ import {
   bosFirmaForm,
   bosKasaForm,
   bosSubeForm,
-  PARA_BIRIMLERI,
   type TanimSekmeId,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
+import { paraBirimiKodlari } from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import type { HizliGirisKolonu } from '@/admin/ortak/datagrid/types';
 
 const DURUM_GIRIS: HizliGirisKolonu = {
@@ -118,8 +118,8 @@ export function tanimHizliGirisKolonlari(tip: TanimSekmeId): HizliGirisKolonu[] 
         {
           kolonId: 'paraBirimi',
           tip: 'secim',
-          varsayilan: 'TL',
-          secenekler: PARA_BIRIMLERI.map((p) => ({ deger: p, etiket: p })),
+          varsayilan: 'TRY',
+          secenekler: paraBirimiKodlari().map((p) => ({ deger: p, etiket: p })),
         },
         DURUM_GIRIS,
       ];

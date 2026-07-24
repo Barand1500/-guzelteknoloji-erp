@@ -55,4 +55,8 @@ export function useSagTikPanel() {
   return ctx;
 }
 
+export function useSagTikPanelOptional() {
+  return useContext(SagTikPanelContext);
+}
+
 export { sagTikAyarlariYayinla };

@@ -304,9 +304,10 @@ export const bosStokGelismisFiltre = (): StokGelismisFiltre => ({
 export type StokKartModu = 'yeni' | 'duzenle' | 'incele';
 
 export const STOK_PB_SECENEKLERI = [
-  { value: 'TL', label: 'TL' },
+  { value: 'TRY', label: 'TRY' },
   { value: 'USD', label: 'USD' },
   { value: 'EUR', label: 'EUR' },
+  { value: 'GBP', label: 'GBP' },
 ];
 
 export const STOK_KDV_DEPARTMAN_SECENEKLERI = [

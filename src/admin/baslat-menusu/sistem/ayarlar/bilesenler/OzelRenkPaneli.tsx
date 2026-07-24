@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { sekmePortalHedefi } from '@/araclar/sekmePortal';
 import {
   hexRenkNormalize,
   hexToHsv,
@@ -11,6 +21,8 @@ import {
 const TEKER_CAPI = 152;
 const TEKER_IC = 52;
 const TEKER_DIS = 74;
+const PANEL_GENISLIK = 184;
+const PANEL_YUKSEKLIK = 250;
 
 interface OzelRenkPaneliProps {
   acik: boolean;
@@ -24,12 +36,26 @@ function sinirla(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
 }
 
+function panelKonumu(cap: DOMRect | undefined): CSSProperties {
+  if (!cap) return { top: 16, left: 16 };
+  let left = cap.left + cap.width / 2 - PANEL_GENISLIK / 2;
+  left = sinirla(left, 8, window.innerWidth - PANEL_GENISLIK - 8);
+
+  const ustYeter = cap.top >= PANEL_YUKSEKLIK + 16;
+  let top = ustYeter ? cap.top - PANEL_YUKSEKLIK - 10 : cap.bottom + 10;
+  top = sinirla(top, 8, window.innerHeight - PANEL_YUKSEKLIK - 8);
+
+  return { top, left };
+}
+
 export function OzelRenkPaneli({ acik, onKapat, renk, onRenkChange, capRef }: OzelRenkPaneliProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const tekerRef = useRef<HTMLDivElement>(null);
   const slRef = useRef<HTMLDivElement>(null);
   const [hsv, setHsv] = useState(() => hexToHsv(renk));
   const [hexMetin, setHexMetin] = useState(renk.toUpperCase());
+  const [stil, setStil] = useState<CSSProperties>({ top: 0, left: 0 });
+  const [portalHedef, setPortalHedef] = useState<HTMLElement | null>(null);
   const suruklemeRef = useRef<'teker' | 'sl' | null>(null);
 
   useEffect(() => {
@@ -38,6 +64,35 @@ export function OzelRenkPaneli({ acik, onKapat, renk, onRenkChange, capRef }: Oz
     setHsv(yeni);
     setHexMetin(renk.toUpperCase());
   }, [acik, renk]);
+
+  const konumGuncelle = useCallback(() => {
+    setStil(panelKonumu(capRef.current?.getBoundingClientRect()));
+  }, [capRef]);
+
+  useLayoutEffect(() => {
+    if (!acik) {
+      setPortalHedef(null);
+      return;
+    }
+    // Modal içindeyse aynı arka plana bas — form alanlarının üstünde kalsın
+    const cap = capRef.current;
+    const modalArka = cap?.closest('.ap-sistem-modal-arka');
+    setPortalHedef(
+      modalArka instanceof HTMLElement ? modalArka : sekmePortalHedefi(cap)
+    );
+    konumGuncelle();
+  }, [acik, capRef, konumGuncelle]);
+
+  useEffect(() => {
+    if (!acik) return;
+    const yenile = () => konumGuncelle();
+    window.addEventListener('resize', yenile);
+    window.addEventListener('scroll', yenile, true);
+    return () => {
+      window.removeEventListener('resize', yenile);
+      window.removeEventListener('scroll', yenile, true);
+    };
+  }, [acik, konumGuncelle]);
 
   const renkYayinla = useCallback(
     (yeni: { h: number; s: number; v: number }) => {
@@ -56,9 +111,27 @@ export function OzelRenkPaneli({ acik, onKapat, renk, onRenkChange, capRef }: Oz
       if (panelRef.current?.contains(hedef) || capRef.current?.contains(hedef)) return;
       onKapat();
     };
-    document.addEventListener('mousedown', disari);
-    return () => document.removeEventListener('mousedown', disari);
+    // Tıklama ile açılışın aynı mousedown'ında kapanmasın
+    const id = window.setTimeout(() => {
+      document.addEventListener('mousedown', disari);
+    }, 0);
+    return () => {
+      window.clearTimeout(id);
+      document.removeEventListener('mousedown', disari);
+    };
   }, [acik, capRef, onKapat]);
+
+  useEffect(() => {
+    if (!acik) return;
+    function esc(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      onKapat();
+    }
+    document.addEventListener('keydown', esc, true);
+    return () => document.removeEventListener('keydown', esc, true);
+  }, [acik, onKapat]);
 
   useEffect(() => {
     const birak = () => {
@@ -123,10 +196,16 @@ export function OzelRenkPaneli({ acik, onKapat, renk, onRenkChange, capRef }: Oz
   const tekerX = tekerMerkez + Math.cos(tekerAci) * tekerYaricap;
   const tekerY = tekerMerkez + Math.sin(tekerAci) * tekerYaricap;
 
-  if (!acik) return null;
+  if (!acik || !portalHedef) return null;
 
-  return (
-    <div ref={panelRef} className="ap-ozel-renk-panel" role="dialog" aria-label="Özel renk seçici">
+  return createPortal(
+    <div
+      ref={panelRef}
+      className="ap-ozel-renk-panel ap-ozel-renk-panel--portal"
+      role="dialog"
+      aria-label="Özel renk seçici"
+      style={stil}
+    >
       <div
         ref={tekerRef}
         className="ap-ozel-renk-teker"
@@ -180,6 +259,7 @@ export function OzelRenkPaneli({ acik, onKapat, renk, onRenkChange, capRef }: Oz
           spellCheck={false}
         />
       </div>
-    </div>
+    </div>,
+    portalHedef
   );
 }

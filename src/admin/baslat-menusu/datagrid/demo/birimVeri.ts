@@ -1,26 +1,25 @@
-export const BIRIM_SECENEKLERI = [
-  { deger: 'ADET', etiket: 'Adet' },
-  { deger: 'KG', etiket: 'Kg' },
-  { deger: 'LT', etiket: 'Lt' },
-  { deger: 'PAKET', etiket: 'Paket' },
-  { deger: 'KUTU', etiket: 'Kutu' },
-  { deger: 'METRE', etiket: 'Metre' },
-] as const;
+/**
+ * Sipariş / datagrid birim yardımcıları — Özel Tanımlar kaynağına delege eder.
+ */
+import {
+  gecerliOlcuBirim,
+  olcuBirimEtiketi,
+  olcuBirimSecenekleri,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/olcuBirimleri';
 
-export type BirimKodu = (typeof BIRIM_SECENEKLERI)[number]['deger'];
-
-const GECERLI_BIRIMLER = new Set<string>(BIRIM_SECENEKLERI.map((b) => b.deger));
+export type BirimKodu = string;
 
 export function birimEtiketi(kod: string): string {
-  return BIRIM_SECENEKLERI.find((b) => b.deger === kod)?.etiket ?? kod;
+  return olcuBirimEtiketi(kod);
 }
 
 export function gecerliBirim(kod: string | undefined, varsayilan: BirimKodu = 'ADET'): BirimKodu {
-  const ust = kod?.trim().toUpperCase();
-  if (ust && GECERLI_BIRIMLER.has(ust)) return ust as BirimKodu;
-  return varsayilan;
+  return gecerliOlcuBirim(kod, varsayilan);
 }
 
 export function birimSecenekleri() {
-  return BIRIM_SECENEKLERI.map((b) => ({ deger: b.deger, etiket: b.etiket }));
+  return olcuBirimSecenekleri(true);
 }
+
+/** Geriye dönük: sabit dizi bekleyen yerler için anlık snapshot */
+export const BIRIM_SECENEKLERI = olcuBirimSecenekleri(true);

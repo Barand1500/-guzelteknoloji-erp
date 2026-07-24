@@ -10,10 +10,10 @@ const idUret = (liste: { id: string }[]) => String(Math.max(0, ...liste.map((k) 
 function varsayilan(): Depo {
   const tarih = simdi();
   const urunler: AdminUrun[] = [
-    { id: '1', ustId: '', urunTipi: 'HIZMET', urunNevi: 'RESMI', urunKodu: '10.0001',
+    { id: '1', ustId: '', urunTipi: 'BASIT_URUN', urunNevi: 'RESMI', urunKodu: '10.0001',
       marka: '', urunAdi: 'FIYAT FARKI', anaBirim: 'ADET', varsayilanBirim: 'ADET',
       mensei: '', aktif: true, olusturma: tarih, guncelleme: tarih },
-    { id: '2', ustId: '', urunTipi: 'EMTIA', urunNevi: 'RESMI', urunKodu: '20.0002',
+    { id: '2', ustId: '', urunTipi: 'BASIT_URUN', urunNevi: 'RESMI', urunKodu: '20.0002',
       marka: 'INPOS', urunAdi: 'M530 YENI NESIL YAZARKASA POS', anaBirim: 'ADET',
       varsayilanBirim: 'ADET', mensei: 'TURKIYE', aktif: true, olusturma: tarih, guncelleme: tarih },
   ];

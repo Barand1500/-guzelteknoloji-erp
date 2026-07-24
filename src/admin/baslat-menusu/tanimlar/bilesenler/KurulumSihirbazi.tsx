@@ -33,7 +33,6 @@ import {
   bosFirmaForm,
   bosKasaForm,
   bosSubeForm,
-  PARA_BIRIMLERI,
   type AdminFirma,
   type DepoFormDegeri,
   type DonemFormDegeri,
@@ -41,6 +40,10 @@ import {
   type KasaFormDegeri,
   type SubeFormDegeri,
 } from '@/admin/baslat-menusu/tanimlar/tipler';
+import {
+  gecerliParaBirimi,
+  paraBirimiFormSecenekleri,
+} from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import { TanimFirmaSecici } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimFirmaSecici';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAdminLogMesaji } from '@/kancalar/useModulAksiyonlari';
@@ -335,9 +338,9 @@ export function KurulumSihirbazi({ onTamamlandi, onIptal }: KurulumSihirbaziProp
             <label className="ap-tanimlar-secim-alan block">
               <span className="ap-tanim-girdi-etiket">Para Birimi *</span>
               <FormAcilirSecim
-                value={kasaForm.paraBirimi}
+                value={gecerliParaBirimi(kasaForm.paraBirimi)}
                 onChange={(paraBirimi) => setKasaForm((k) => ({ ...k, paraBirimi }))}
-                secenekler={PARA_BIRIMLERI.map((pb) => ({ value: pb, label: pb }))}
+                secenekler={paraBirimiFormSecenekleri()}
               />
             </label>
           </>

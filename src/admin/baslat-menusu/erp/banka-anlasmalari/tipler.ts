@@ -1,4 +1,5 @@
 import type { CariIletisimKisi } from '@/admin/baslat-menusu/erp/cari/tipler';
+import { paraBirimiFormSecenekleri } from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 
 export type BankaHesapTipi = string;
 export type BankaIbanModu = 'TR' | 'YABANCI';
@@ -37,6 +38,11 @@ export const BANKA_DOVIZ_SECENEKLERI = [
   { value: 'EUR', label: '€ - Euro' },
   { value: 'GBP', label: '£ - İngiliz Sterlini' },
 ] as const;
+
+/** Dinamik döviz seçenekleri — Özel Tanımlar */
+export function bankaDovizSecenekleri(): { value: string; label: string }[] {
+  return paraBirimiFormSecenekleri();
+}
 
 export interface PosKomisyonSatir {
   id: string;
