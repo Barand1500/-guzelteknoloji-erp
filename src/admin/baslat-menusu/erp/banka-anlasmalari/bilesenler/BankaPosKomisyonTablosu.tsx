@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import type { KrediKartTuru, PosKomisyonFiltre, PosKomisyonSatir } from '../tipler';
 import {
   bosPosKomisyonSatir,
@@ -72,6 +73,7 @@ export function BankaPosKomisyonTablosu({
   onChange: (satirlar: PosKomisyonSatir[]) => void;
 }) {
   const [filtre, setFiltre] = useState<PosKomisyonFiltre>('TUMU');
+  const [silinecekId, setSilinecekId] = useState<string | null>(null);
   const tabloRef = useRef<HTMLTableElement>(null);
   const odakBekleyenRef = useRef<{ satirId: string; hucre: HucreAdi } | null>(null);
 
@@ -80,18 +82,44 @@ export function BankaPosKomisyonTablosu({
     return satirlar.filter((s) => s.kartSegment === filtre);
   }, [filtre, satirlar]);
 
-  /** Yazıldıkça sonda boş satır açılsın; + butonu yok */
+  const silinecek = useMemo(
+    () => (silinecekId ? satirlar.find((s) => s.id === silinecekId) ?? null : null),
+    [silinecekId, satirlar]
+  );
+
+  /** Segmentte satır yoksa bir boş satır; dolu satırdan sonra tek şablon satır */
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+
+  const satirlarinSonaBosunuSagla = (liste: PosKomisyonSatir[], segment: KrediKartTuru): PosKomisyonSatir[] => {
+    const kapsanan = filtre === 'TUMU' ? liste : liste.filter((s) => s.kartSegment === segment);
+    if (kapsanan.length === 0) return [...liste, bosPosKomisyonSatir(segment)];
+    if (!posKomisyonSatirBosMu(kapsanan[kapsanan.length - 1]!)) {
+      return [...liste, bosPosKomisyonSatir(segment)];
+    }
+    return liste;
+  };
 
   useEffect(() => {
     if (disabled) return;
     const segment = hedefSegment(filtre);
     const kapsanan =
       filtre === 'TUMU' ? satirlar : satirlar.filter((s) => s.kartSegment === segment);
-    const sondaBos = kapsanan.length > 0 && posKomisyonSatirBosMu(kapsanan[kapsanan.length - 1]!);
-    if (sondaBos) return;
-    onChangeRef.current([...satirlar, bosPosKomisyonSatir(segment)]);
+    // Fazla sonda boş satırları tek satıra indir
+    const sondakiBoslar: string[] = [];
+    for (let i = kapsanan.length - 1; i >= 0; i -= 1) {
+      const s = kapsanan[i]!;
+      if (!posKomisyonSatirBosMu(s)) break;
+      sondakiBoslar.push(s.id);
+    }
+    if (sondakiBoslar.length > 1) {
+      const atilacak = new Set(sondakiBoslar.slice(0, -1));
+      onChangeRef.current(satirlar.filter((s) => !atilacak.has(s.id)));
+      return;
+    }
+    if (kapsanan.length === 0) {
+      onChangeRef.current([...satirlar, bosPosKomisyonSatir(segment)]);
+    }
   }, [disabled, filtre, satirlar]);
 
   const hucreOdakla = (satirId: string, hucre: HucreAdi) => {
@@ -113,7 +141,9 @@ export function BankaPosKomisyonTablosu({
   }, [gorunen]);
 
   const guncelle = (id: string, parca: Partial<PosKomisyonSatir>) => {
-    onChange(satirlar.map((s) => (s.id === id ? { ...s, ...parca } : s)));
+    const segment = hedefSegment(filtre);
+    const sonraki = satirlar.map((s) => (s.id === id ? { ...s, ...parca } : s));
+    onChange(satirlarinSonaBosunuSagla(sonraki, segment));
   };
 
   const satisSekliOnayla = (id: string, ham: string) => {
@@ -135,15 +165,24 @@ export function BankaPosKomisyonTablosu({
   };
 
   const sil = (id: string) => {
+    const hedef = satirlar.find((s) => s.id === id);
     const kalan = satirlar.filter((s) => s.id !== id);
     const segment = hedefSegment(filtre);
     const kapsanan =
       filtre === 'TUMU' ? kalan : kalan.filter((s) => s.kartSegment === segment);
-    if (kapsanan.length === 0 || !posKomisyonSatirBosMu(kapsanan[kapsanan.length - 1]!)) {
-      onChange([...kalan, bosPosKomisyonSatir(segment)]);
+
+    // Boş satır silindi: geri ekleme — kullanıcı bilinçli sildi
+    if (hedef && posKomisyonSatirBosMu(hedef)) {
+      if (kapsanan.length === 0) {
+        onChange([...kalan, bosPosKomisyonSatir(segment)]);
+        return;
+      }
+      onChange(kalan);
       return;
     }
-    onChange(kalan);
+
+    // Dolu satır silindi: giriş için sonda boş satır kalsın
+    onChange(satirlarinSonaBosunuSagla(kalan, segment));
   };
 
   /** Enter = yana geç; son hücrede Enter = alt satır (yoksa yeni satır aç) */
@@ -173,6 +212,10 @@ export function BankaPosKomisyonTablosu({
       }
       return;
     }
+
+    // Son satır zaten boşsa yeni satır açma
+    const buSatir = gorunen[idx];
+    if (buSatir && posKomisyonSatirBosMu(buSatir)) return;
 
     const yeni = bosPosKomisyonSatir(hedefSegment(filtre));
     odakBekleyenRef.current = { satirId: yeni.id, hucre: 'satisSekli' };
@@ -214,12 +257,82 @@ export function BankaPosKomisyonTablosu({
     }
   };
 
+  /** Ok tuşları ile hücreler arası gezinme */
+  const okIleGit = (
+    e: KeyboardEvent<HTMLInputElement>,
+    satirId: string,
+    hucreIndex: number
+  ) => {
+    if (disabled) return;
+    const key = e.key;
+    if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'ArrowUp' && key !== 'ArrowDown') {
+      return;
+    }
+
+    const el = e.currentTarget;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const len = el.value.length;
+    const secimYok = start === end;
+
+    if (key === 'ArrowLeft') {
+      if (!secimYok || start > 0) return;
+      e.preventDefault();
+      if (hucreIndex > 0) {
+        const onceki = HUCELER[hucreIndex - 1]!;
+        if (!hucreOdakla(satirId, onceki)) {
+          odakBekleyenRef.current = { satirId, hucre: onceki };
+        }
+        return;
+      }
+      const idx = gorunen.findIndex((s) => s.id === satirId);
+      const oncekiSatir = idx > 0 ? gorunen[idx - 1] : undefined;
+      if (!oncekiSatir) return;
+      const sonHucre = HUCELER[HUCELER.length - 1]!;
+      if (!hucreOdakla(oncekiSatir.id, sonHucre)) {
+        odakBekleyenRef.current = { satirId: oncekiSatir.id, hucre: sonHucre };
+      }
+      return;
+    }
+
+    if (key === 'ArrowRight') {
+      if (!secimYok || start < len) return;
+      e.preventDefault();
+      if (hucreIndex < HUCELER.length - 1) {
+        const sonraki = HUCELER[hucreIndex + 1]!;
+        if (!hucreOdakla(satirId, sonraki)) {
+          odakBekleyenRef.current = { satirId, hucre: sonraki };
+        }
+        return;
+      }
+      const idx = gorunen.findIndex((s) => s.id === satirId);
+      const sonrakiSatir = idx >= 0 ? gorunen[idx + 1] : undefined;
+      if (!sonrakiSatir) return;
+      if (!hucreOdakla(sonrakiSatir.id, 'satisSekli')) {
+        odakBekleyenRef.current = { satirId: sonrakiSatir.id, hucre: 'satisSekli' };
+      }
+      return;
+    }
+
+    e.preventDefault();
+    const idx = gorunen.findIndex((s) => s.id === satirId);
+    if (idx < 0) return;
+    const hedefIdx = key === 'ArrowUp' ? idx - 1 : idx + 1;
+    const hedefSatir = gorunen[hedefIdx];
+    if (!hedefSatir) return;
+    const hucre = HUCELER[hucreIndex]!;
+    if (!hucreOdakla(hedefSatir.id, hucre)) {
+      odakBekleyenRef.current = { satirId: hedefSatir.id, hucre };
+    }
+  };
+
   const hucreTus = (
     e: KeyboardEvent<HTMLInputElement>,
     satirId: string,
     hucreIndex: number,
     enterEkstra?: () => void
   ) => {
+    okIleGit(e, satirId, hucreIndex);
     enterIleIlerle(e, satirId, hucreIndex, enterEkstra);
     silIleGeri(e, satirId, hucreIndex);
   };
@@ -382,8 +495,8 @@ export function BankaPosKomisyonTablosu({
                       className="ba-pos-satir-sil"
                       title="Satırı sil"
                       aria-label="Satırı sil"
-                      disabled={posKomisyonSatirBosMu(s) && gorunen.length <= 1}
-                      onClick={() => sil(s.id)}
+                      disabled={gorunen.length <= 1 && posKomisyonSatirBosMu(s)}
+                      onClick={() => setSilinecekId(s.id)}
                     >
                       <DgIkon ad="sil" />
                     </button>
@@ -394,6 +507,23 @@ export function BankaPosKomisyonTablosu({
           </tbody>
         </table>
       </div>
+
+      <SilmeOnayModal
+        acik={!!silinecek}
+        onKapat={() => setSilinecekId(null)}
+        onOnayla={() => {
+          if (!silinecekId) return;
+          sil(silinecekId);
+          setSilinecekId(null);
+        }}
+        baslik="Bu komisyon satırını silmek istediğinize emin misiniz?"
+        hedefMetin={
+          silinecek
+            ? `«${silinecek.satisSekli.trim() || 'Boş satır'}»`
+            : ''
+        }
+        ariaLabel="Komisyon satırı silme onayı"
+      />
     </section>
   );
 }

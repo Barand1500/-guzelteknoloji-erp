@@ -654,7 +654,6 @@ export function CariKart({
         baslik="Cari Tipi"
         placeholder="Yeni cari tipi adı…"
         liste={kartTipleri}
-        sabitDegerler={['BAYI', 'DAGITICI', 'SON_KULLANICI']}
         kullanimNesneAdi="tipi"
         kullanimSayisiAl={(value) => kayitlar.filter((c) => c.cariTipi === value).length}
         onEkle={(ad) => {

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DataGridApi } from '@/admin/ortak/datagrid/types';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { DG_CIZGI_MODLARI, DG_SAYFA_BOYUTLARI } from '@/admin/ortak/datagrid/datagridSabitleri';
-import { dgSagTikMenuRectAl } from '@/admin/ortak/datagrid/dgGeciciMenuAnchor';
 
 export type StokSagTikIslem =
   | 'duzenle'
@@ -11,13 +11,10 @@ export type StokSagTikIslem =
   | 'gorunumKaydet'
   | 'aktifYap'
   | 'pasifYap'
-  | 'disaAktar'
   | 'secimiTemizle'
   | 'sayfaBoyutu'
   | 'cizgi'
-  | 'formul'
-  | 'sutunGorunurluk'
-  | 'csvDisa';
+  | 'sutunGorunurluk';
 
 interface StoklarSagTikMenuProps {
   konteynerRef: React.RefObject<HTMLElement | null>;
@@ -59,15 +56,12 @@ const MENU_OGELERI: {
   { id: 'incele', etiket: 'İncele', ikon: '👁️', satirGerekli: true },
   { id: 'aktifYap', etiket: 'Aktif Yap', ikon: '✅', ayiriciOnce: true, secimGerekli: true, secimIslemi: true, duzenlemeGerekli: true },
   { id: 'pasifYap', etiket: 'Pasif Yap', ikon: '⏸️', secimGerekli: true, secimIslemi: true, duzenlemeGerekli: true },
-  { id: 'disaAktar', etiket: 'Dışa Aktar', ikon: '📤', secimGerekli: true, secimIslemi: true },
   { id: 'secimiTemizle', etiket: 'Seçimi Temizle', ikon: '✖️', secimGerekli: true, secimIslemi: true },
   { id: 'gorunumDuzenle', etiket: 'Görünümü Düzenle', ikon: '🎛️', ayiriciOnce: true },
   { id: 'gorunumKaydet', etiket: 'Görünümü Kaydet', ikon: '💾' },
   { id: 'sayfaBoyutu', etiket: 'Kayıt', ikon: '📄', ayiriciOnce: true, flyout: true, tabloAraci: true },
   { id: 'cizgi', etiket: 'Çizgi', ikon: '▦', flyout: true, tabloAraci: true },
-  { id: 'formul', etiket: 'Sayı formülleri', ikon: 'ƒx', tabloAraci: true },
   { id: 'sutunGorunurluk', etiket: 'Sütun görünürlüğü', ikon: '▥', tabloAraci: true },
-  { id: 'csvDisa', etiket: 'CSV indir', ikon: '⬇️', tabloAraci: true },
 ];
 
 export function StoklarSagTikMenu({
@@ -157,32 +151,16 @@ export function StoklarSagTikMenu({
       case 'gorunumKaydet':
         onGorunumKaydet();
         break;
-      case 'formul': {
-        const snapshot = dgSagTikMenuRectAl(kokRef.current);
-        kapat();
-        requestAnimationFrame(() => api?.formulMenuToggle(snapshot));
-        return;
-      }
       case 'sutunGorunurluk': {
-        const snapshot = dgSagTikMenuRectAl(kokRef.current);
         kapat();
-        requestAnimationFrame(() => api?.sutunMenuToggle(snapshot));
+        requestAnimationFrame(() => api?.sutunMenuToggle(null));
         return;
       }
-      case 'csvDisa':
-        api?.csvIndir(false);
-        break;
       case 'aktifYap':
         if (seciliSatirSayisi > 0) onAktifYap?.();
         break;
       case 'pasifYap':
         if (seciliSatirSayisi > 0) onPasifYap?.();
-        break;
-      case 'disaAktar':
-        if (seciliSatirSayisi > 0) {
-          if (onDisaAktar) onDisaAktar();
-          else api?.csvIndir(true);
-        }
         break;
       case 'secimiTemizle':
         if (seciliSatirSayisi > 0) {
@@ -281,7 +259,9 @@ export function StoklarSagTikMenu({
                             kapat();
                           }}
                         >
-                          <span aria-hidden>{aktif ? '✓' : '·'}</span>
+                          <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                            <DgIkon ad={alt.ikon} />
+                          </span>
                           <span>{alt.etiket}</span>
                         </button>
                       );

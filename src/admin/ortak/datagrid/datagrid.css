@@ -2198,6 +2198,58 @@ td.dg-hucre--sabit,
   to { transform: translateY(0); opacity: 1; }
 }
 
+.dg-sutun-menu-cubuk {
+  width: min(360px, 100%);
+  max-height: min(62vh, 480px);
+}
+
+.dg-sutun-menu--cubuk {
+  position: relative;
+  top: auto;
+  right: auto;
+  z-index: auto;
+  width: 100%;
+  max-height: min(62vh, 480px);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--ap-surface);
+}
+
+.dg-sutun-menu--cubuk .dg-sutun-menu-baslik {
+  padding: 0.75rem 0.85rem 0.65rem;
+  margin: 0;
+  border-bottom: 1px solid var(--ap-border);
+  flex-shrink: 0;
+}
+
+.dg-sutun-menu-baslik-aksiyon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.dg-sutun-menu-kapat {
+  border: none;
+  background: none;
+  color: var(--ap-text-muted);
+  font-size: 1.15rem;
+  line-height: 1;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+}
+
+.dg-sutun-menu-kapat:hover {
+  color: var(--ap-heading);
+  background: color-mix(in srgb, var(--ap-heading) 8%, transparent);
+}
+
 /* Satır düzenle — aksiyon çubuğu üstü (takvim/hesap makinesi gibi) */
 .dg-satir-panel-cubuk-wrap {
   position: absolute;

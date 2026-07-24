@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import { korunmusRolMu } from '@/admin/ortak/panelRolYardimci';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { tooltipMetni } from '@/araclar/tooltipMetni';
 import {
   YETKI_ETIKETLERI,
@@ -30,12 +31,71 @@ const SISTEM_ROL_KODLARI = new Set([
 ]);
 
 const YETKI_IKONLARI: Record<YetkiKodu, string> = {
-  goruntuleme: '👁',
-  ekleme: '➕',
-  duzenleme: '✏️',
-  silme: '🗑',
-  kullanici_yonetimi: '👥',
+  goruntuleme: 'eye',
+  ekleme: 'plus',
+  duzenleme: 'pencil',
+  silme: 'sil',
+  kullanici_yonetimi: 'users',
 };
+
+function YetkiFlatIkon({ tip }: { tip: string }) {
+  if (tip === 'sil') {
+    return <DgIkon ad="sil" className="ap-roller-matris-yetki-svg" />;
+  }
+  const ortak = {
+    className: 'ap-roller-matris-yetki-svg',
+    width: 16,
+    height: 16,
+    viewBox: '0 0 16 16',
+    fill: 'none',
+    xmlns: 'http://www.w3.org/2000/svg',
+    'aria-hidden': true as const,
+  };
+  switch (tip) {
+    case 'eye':
+      return (
+        <svg {...ortak}>
+          <path
+            d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8s-2.5 4.5-6.5 4.5S1.5 8 1.5 8Z"
+            stroke="currentColor"
+            strokeWidth="1.35"
+            strokeLinejoin="round"
+          />
+          <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.35" />
+        </svg>
+      );
+    case 'plus':
+      return (
+        <svg {...ortak}>
+          <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      );
+    case 'pencil':
+      return (
+        <svg {...ortak}>
+          <path
+            d="M11.2 2.8a1.4 1.4 0 0 1 2 2L5.5 12.5 2.5 13.5l1-3L11.2 2.8Z"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...ortak}>
+          <circle cx="6" cy="6" r="2.2" stroke="currentColor" strokeWidth="1.3" />
+          <circle cx="10.5" cy="6" r="2.2" stroke="currentColor" strokeWidth="1.3" />
+          <path
+            d="M2.5 13c.6-2 2.2-3 3.5-3s2.9 1 3.5 3M9 10.2c1 .2 2.2 1 2.8 2.8"
+            stroke="currentColor"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+  }
+}
 
 /** Açık temada net kontrast — CSS cascade/HMR sorunlarına karşı inline */
 const YETKI_ETIKET_STIL: Record<
@@ -118,7 +178,7 @@ export function RolMatrisi({
               <th key={y.kod}>
                 <span className="ap-roller-matris-yetki-baslik">
                   <span className="ap-roller-matris-yetki-ikon" aria-hidden>
-                    {YETKI_IKONLARI[y.kod]}
+                    <YetkiFlatIkon tip={YETKI_IKONLARI[y.kod]} />
                   </span>
                   {y.etiket}
                 </span>

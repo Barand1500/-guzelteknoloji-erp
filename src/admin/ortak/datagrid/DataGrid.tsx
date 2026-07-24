@@ -105,6 +105,48 @@ function TopluBarCubukKapak({ children }: { children: ReactNode }) {
   );
 }
 
+function SutunMenuCubukKapak({
+  children,
+  menuRef,
+  onKapat,
+}: {
+  children: ReactNode;
+  menuRef: React.RefObject<HTMLDivElement | null>;
+  onKapat: () => void;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  useAksiyonCubuguPanelSync(true, panelRef);
+  const footerKok = useApFooterKok();
+
+  useEffect(() => {
+    const esc = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') onKapat();
+    };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onKapat]);
+
+  if (!footerKok) return null;
+
+  return createPortal(
+    <div className="dg-satir-panel-cubuk-wrap">
+      <div
+        ref={(el) => {
+          panelRef.current = el;
+          (menuRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+        }}
+        className="dg-satir-panel-cubuk dg-satir-panel-cubuk--kenarlik-anim dg-sutun-menu-cubuk"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Sütunlar"
+      >
+        {children}
+      </div>
+    </div>,
+    footerKok
+  );
+}
+
 const HIZLI_GIRIS_SISTEM_KOLONLARI = new Set(['secim', 'islemler', 'olusturma', 'guncelleme', 'bagli']);
 
 function kolonFormulaTipi<TRow>(kolon: KolonTanimi<TRow>): 'sayi' | 'iskonto' | null {
@@ -2220,84 +2262,97 @@ export function DataGrid<TRow extends { id: string }>({
     );
   };
 
-  const sutunMenuPanel =
-    dg.sutunMenuAcik &&
-    createPortal(
-      <div
-        ref={menuRef}
-        className="dg-sutun-menu dg-sutun-menu-portal"
-        style={sutunMenuPortalStil}
-        role="dialog"
-        aria-label="Sütunlar"
-      >
-        <div className="dg-sutun-menu-baslik">
-          <div>
-            <h3>Sütunlar</h3>
-            <p>{tabloAltBaslik ?? 'Görünür sütunlar ve sırası'}</p>
-          </div>
+  const sutunMenuKapat = useCallback(() => {
+    dg.setSutunMenuAcik(false);
+    sutunMenuAnchorRef.current = null;
+  }, [dg]);
+
+  const sutunMenuIcerik = (
+    <>
+      <div className="dg-sutun-menu-baslik">
+        <div>
+          <h3>Sütunlar</h3>
+          <p>{tabloAltBaslik ?? 'Görünür sütunlar ve sırası'}</p>
+        </div>
+        <div className="dg-sutun-menu-baslik-aksiyon">
           <button type="button" className="dg-sutun-menu-sifirla" onClick={dg.varsayilanaDon}>
             Varsayılana Dön
           </button>
+          <button
+            type="button"
+            className="dg-sutun-menu-kapat"
+            onClick={sutunMenuKapat}
+            aria-label="Kapat"
+            title={dgTooltipMetni('Kapat')}
+          >
+            ×
+          </button>
         </div>
-        <div className="dg-sutun-menu-liste ap-scroll">
-          {dg.ayar.kolonSirasi
-            .filter((id) => id !== 'secim' && id !== 'islemler')
-            .map((id, idx, arr) => {
-              const kolon = kolonlar.find((k) => k.id === id);
-              if (!kolon) return null;
-              const gizli = dg.ayar.gizliKolonlar.includes(id);
-              const sabitli = dg.ayar.sabitlenmisKolonlar.includes(id);
-              return (
-                <div key={id} className="dg-sutun-satir">
-                  <input
-                    type="checkbox"
-                    checked={!gizli}
-                    disabled={kolon.zorunlu}
-                    onChange={(e) => dg.kolonGizle(id, !e.target.checked)}
-                  />
-                  <label>
-                    <span>{kolon.baslik}</span>
-                  </label>
-                  {sutunSabitleGoster ? (
-                    <button
-                      type="button"
-                      className={`dg-sutun-ok${sabitli ? ' dg-sutun-ok--aktif' : ''}`}
-                      title={dgTooltipMetni(sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle')}
-                      aria-label={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
-                      onClick={() => dg.sabitlenmisToggle(id)}
-                    >
-                      •
-                    </button>
-                  ) : null}
-                  <div className="dg-sutun-oklar">
-                    <button
-                      type="button"
-                      className="dg-sutun-ok"
-                      disabled={idx === 0 || kolon.sabitSag}
-                      title={dgTooltipMetni('Sütunu yukarı taşı')}
-                      aria-label="Sütunu yukarı taşı"
-                      onClick={() => dg.kolonTasi(id, 'yukari')}
-                    >
-                      ▲
-                    </button>
-                    <button
-                      type="button"
-                      className="dg-sutun-ok"
-                      disabled={idx === arr.length - 1 || kolon.sabitSag}
-                      title={dgTooltipMetni('Sütunu aşağı taşı')}
-                      aria-label="Sütunu aşağı taşı"
-                      onClick={() => dg.kolonTasi(id, 'asagi')}
-                    >
-                      ▼
-                    </button>
-                  </div>
+      </div>
+      <div className="dg-sutun-menu-liste ap-scroll">
+        {dg.ayar.kolonSirasi
+          .filter((id) => id !== 'secim' && id !== 'islemler')
+          .map((id, idx, arr) => {
+            const kolon = kolonlar.find((k) => k.id === id);
+            if (!kolon) return null;
+            const gizli = dg.ayar.gizliKolonlar.includes(id);
+            const sabitli = dg.ayar.sabitlenmisKolonlar.includes(id);
+            return (
+              <div key={id} className="dg-sutun-satir">
+                <input
+                  type="checkbox"
+                  checked={!gizli}
+                  disabled={kolon.zorunlu}
+                  onChange={(e) => dg.kolonGizle(id, !e.target.checked)}
+                />
+                <label>
+                  <span>{kolon.baslik}</span>
+                </label>
+                {sutunSabitleGoster ? (
+                  <button
+                    type="button"
+                    className={`dg-sutun-ok${sabitli ? ' dg-sutun-ok--aktif' : ''}`}
+                    title={dgTooltipMetni(sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle')}
+                    aria-label={sabitli ? 'Sabitlemeyi kaldır' : 'Sütunu sabitle'}
+                    onClick={() => dg.sabitlenmisToggle(id)}
+                  >
+                    •
+                  </button>
+                ) : null}
+                <div className="dg-sutun-oklar">
+                  <button
+                    type="button"
+                    className="dg-sutun-ok"
+                    disabled={idx === 0 || kolon.sabitSag}
+                    title={dgTooltipMetni('Sütunu yukarı taşı')}
+                    aria-label="Sütunu yukarı taşı"
+                    onClick={() => dg.kolonTasi(id, 'yukari')}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className="dg-sutun-ok"
+                    disabled={idx === arr.length - 1 || kolon.sabitSag}
+                    title={dgTooltipMetni('Sütunu aşağı taşı')}
+                    aria-label="Sütunu aşağı taşı"
+                    onClick={() => dg.kolonTasi(id, 'asagi')}
+                  >
+                    ▼
+                  </button>
                 </div>
-              );
-            })}
-        </div>
-      </div>,
-      portalKok
-    );
+              </div>
+            );
+          })}
+      </div>
+    </>
+  );
+
+  const sutunMenuPanel = dg.sutunMenuAcik ? (
+    <SutunMenuCubukKapak menuRef={menuRef} onKapat={sutunMenuKapat}>
+      <div className="dg-sutun-menu dg-sutun-menu--cubuk">{sutunMenuIcerik}</div>
+    </SutunMenuCubukKapak>
+  ) : null;
 
   const formulMenuPanel =
     formulMenuGoster &&
@@ -2449,7 +2504,6 @@ export function DataGrid<TRow extends { id: string }>({
                 title={dgTooltipMetni('Sütun görünürlüğü')}
                 onClick={() => {
                   sutunMenuAnchorRef.current = null;
-                  if (!dg.sutunMenuAcik) sutunMenuKonumGuncelle();
                   setFormulMenuAcik(false);
                   dg.setSutunMenuAcik((a) => !a);
                 }}

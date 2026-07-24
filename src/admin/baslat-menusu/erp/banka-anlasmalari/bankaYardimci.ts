@@ -176,17 +176,25 @@ export function kartLimitiFiltrele(deger: string): string {
   return binlik;
 }
 
-/** "1" / "1 taksit" → "1 Taksit"; boş veya metin olduğu gibi */
+/** "1" / "1 taksit" / "1.Taksit" → "1 Taksit"; boş veya metin olduğu gibi */
 export function satisSekliBicimle(deger: string): string {
   const t = deger.trim();
   if (!t) return '';
-  const m = t.match(/^(\d+)\s*(?:taksit)?$/i);
+  // 5 / 5 taksit / 5.Taksit / 5-taksit / 5_taksit
+  const m = t.match(/^(\d+)\s*[.\-_/]?\s*(?:taksit)?$/i);
   if (m) return `${Number(m[1])} Taksit`;
   return t.replace(/\s+/g, ' ');
 }
 
 export function satisSekliAnahtar(deger: string): string {
-  return satisSekliBicimle(deger).toLocaleLowerCase('tr-TR');
+  const bicimli = satisSekliBicimle(deger);
+  if (bicimli) return bicimli.toLocaleLowerCase('tr-TR');
+  // Bicimlenemeyen metinlerde noktalama/boşluk farkını yok say
+  return deger
+    .trim()
+    .toLocaleLowerCase('tr-TR')
+    .replace(/[.\-_/]+/g, ' ')
+    .replace(/\s+/g, ' ');
 }
 
 /** Aynı satış şekli başka satırda var mı? */

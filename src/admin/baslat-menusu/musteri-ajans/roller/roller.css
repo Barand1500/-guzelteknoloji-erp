@@ -229,8 +229,16 @@
 }
 
 .ap-roller-matris-yetki-ikon {
-  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ap-text-muted);
   line-height: 1;
+}
+
+.ap-roller-matris-yetki-svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .ap-roller-matris tbody tr {

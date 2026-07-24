@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
+import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { DG_CIZGI_MODLARI, DG_SAYFA_BOYUTLARI } from '@/admin/ortak/datagrid/datagridSabitleri';
-import { dgSagTikMenuRectAl } from '@/admin/ortak/datagrid/dgGeciciMenuAnchor';
 import { hucrePanoyaMetni, secimMetnindenKopya } from '@/admin/ortak/datagrid/sagTikYardimci';
 import { useSekmeDegisinceKapat } from '@/araclar/sekmePortal';
 
@@ -84,16 +84,11 @@ interface MenuOgesi {
   goster?: boolean;
 }
 
-type FlyoutTip = 'satirEkle' | 'degeriYay' | 'sayfaBoyutu' | 'cizgi';
+type FlyoutTip = 'satirEkle' | 'sayfaBoyutu' | 'cizgi';
 
 const SATIR_EKLE_ALT_OGELER: { konum: SatirEkleKonumu; etiket: string; ikon: string }[] = [
   { konum: 'ust', etiket: 'Üstüne Ekle', ikon: '↑' },
   { konum: 'alt', etiket: 'Altına Ekle', ikon: '↓' },
-];
-
-const DEGERI_YAY_ALT_OGELER: { yon: DegeriYayYon; etiket: string; ikon: string }[] = [
-  { yon: 'ust', etiket: 'Üste Doğru', ikon: '↑' },
-  { yon: 'alt', etiket: 'Alta Doğru', ikon: '↓' },
 ];
 
 const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', string> = {
@@ -208,24 +203,6 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
     };
   }, [kapat, menu]);
 
-  function degeriYayCalistir(yon: DegeriYayYon) {
-    if (!menu?.satirId || !menu.kolonId || !onDegeriYay) return;
-    const satir = satirlar.find((s) => s.id === menu.satirId);
-    const kolon = kolonlar.find((k) => k.id === menu.kolonId);
-    if (!satir || !kolon) return;
-
-    const deger = kolon.degerAl(satir);
-    const satirIndeks = satirlar.findIndex((s) => s.id === menu.satirId);
-    if (satirIndeks < 0) return;
-
-    const hedefSatirlar =
-      yon === 'ust' ? satirlar.slice(0, satirIndeks) : satirlar.slice(satirIndeks + 1);
-    if (hedefSatirlar.length === 0) return;
-
-    onDegeriYay(menu.kolonId, deger, hedefSatirlar);
-    onBilgi?.(yon === 'ust' ? 'Değer üst satırlara yayıldı' : 'Değer alt satırlara yayıldı');
-  }
-
   async function islemCalistir(id: DatagridSagTikIslem) {
     if (!menu) return;
     const api = gridApiRef.current;
@@ -249,20 +226,11 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
           }
         }
         break;
-      case 'csvDisa':
-        api?.csvIndir(false);
-        break;
       case 'aktifYap':
         if (seciliSatirSayisi > 0) onAktifYap?.();
         break;
       case 'pasifYap':
         if (seciliSatirSayisi > 0) onPasifYap?.();
-        break;
-      case 'disaAktar':
-        if (seciliSatirSayisi > 0) {
-          if (onDisaAktar) onDisaAktar();
-          else api?.csvIndir(true);
-        }
         break;
       case 'secimiTemizle':
         if (seciliSatirSayisi > 0) {
@@ -270,16 +238,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
           else api?.secimAyarla([]);
         }
         break;
-      case 'formul': {
-        const snapshot = dgSagTikMenuRectAl(kokRef.current);
-        kapat();
-        requestAnimationFrame(() => api?.formulMenuToggle(snapshot));
-        return;
-      }
       case 'sutunGorunurluk': {
-        const snapshot = dgSagTikMenuRectAl(kokRef.current);
         kapat();
-        requestAnimationFrame(() => api?.sutunMenuToggle(snapshot));
+        requestAnimationFrame(() => api?.sutunMenuToggle(null));
         return;
       }
       case 'satirSil':
@@ -329,20 +290,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
       {menu &&
         createPortal(
           (() => {
-            const satirIndeks = menu.satirId
-              ? satirlar.findIndex((s) => s.id === menu.satirId)
-              : -1;
-            const ustteSatirVar = satirIndeks > 0;
-            const alttaSatirVar = satirIndeks >= 0 && satirIndeks < satirlar.length - 1;
-
             const kolon = menu.kolonId ? kolonlar.find((k) => k.id === menu.kolonId) : null;
-            const degeriYayUygun =
-              !!onDegeriYay &&
-              !!menu.kolonId &&
-              !!menu.satirId &&
-              !!kolon?.degerYaz &&
-              kolon.id !== 'secim' &&
-              kolon.id !== 'islemler';
 
             const ogeler: MenuOgesi[] = [
               {
@@ -355,7 +303,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
               },
               {
                 id: 'satirDuzenle' as const,
-                etiket: menuBasligi('Satırı düzenle'),
+                etiket: menuBasligi('Düzenle'),
                 ikon: MENU_IKONLARI.satirDuzenle,
                 devreDisi: !menu.satirId,
                 goster: true,
@@ -366,19 +314,6 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 ikon: MENU_IKONLARI.satirCogalt,
                 devreDisi: !menu.satirId,
                 goster: satirCogaltGoster && !!onSatirCogalt,
-              },
-              {
-                id: 'degeriYay' as const,
-                etiket: (() => {
-                  if (!degeriYayUygun || !kolon) return menuBasligi('Değeri yay');
-                  const etkt = kolon.baslik || menu.kolonId!;
-                  return menuBasligi(`"${etkt}" değerini yay`);
-                })(),
-                ikon: MENU_IKONLARI.degeriYay,
-                flyout: true,
-                devreDisi: !degeriYayUygun || (!ustteSatirVar && !alttaSatirVar),
-                ayiriciOnce: true,
-                goster: !!onDegeriYay,
               },
               {
                 id: 'panoyaKopyala' as const,
@@ -410,14 +345,6 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 goster: secimIslemleriGoster && !!onPasifYap,
               },
               {
-                id: 'disaAktar' as const,
-                etiket: menuBasligi('Dışa aktar'),
-                ikon: MENU_IKONLARI.disaAktar,
-                devreDisi: seciliSatirSayisi <= 0,
-                ayiriciOnce: !onAktifYap && !onPasifYap,
-                goster: secimIslemleriGoster,
-              },
-              {
                 id: 'secimiTemizle' as const,
                 etiket: menuBasligi('Seçimi temizle'),
                 ikon: MENU_IKONLARI.secimiTemizle,
@@ -442,21 +369,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 goster: tabloAraclariGoster,
               },
               {
-                id: 'formul' as const,
-                etiket: menuBasligi('Sayı formülleri'),
-                ikon: MENU_IKONLARI.formul,
-                goster: tabloAraclariGoster,
-              },
-              {
                 id: 'sutunGorunurluk' as const,
                 etiket: menuBasligi('Sütun görünürlüğü'),
                 ikon: MENU_IKONLARI.sutunGorunurluk,
-                goster: tabloAraclariGoster,
-              },
-              {
-                id: 'csvDisa' as const,
-                etiket: menuBasligi('CSV indir'),
-                ikon: MENU_IKONLARI.csvDisa,
                 goster: tabloAraclariGoster,
               },
               {
@@ -487,13 +402,11 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                   const flyoutTip: FlyoutTip | null =
                     oge.id === 'satirEkle'
                       ? 'satirEkle'
-                      : oge.id === 'degeriYay'
-                        ? 'degeriYay'
-                        : oge.id === 'sayfaBoyutu'
-                          ? 'sayfaBoyutu'
-                          : oge.id === 'cizgi'
-                            ? 'cizgi'
-                            : null;
+                      : oge.id === 'sayfaBoyutu'
+                        ? 'sayfaBoyutu'
+                        : oge.id === 'cizgi'
+                          ? 'cizgi'
+                          : null;
 
                   return (
                     <div key={oge.id}>
@@ -536,34 +449,6 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                                   <span>{menuBasligi(alt.etiket)}</span>
                                 </button>
                               ))}
-                            </div>
-                          )}
-                          {flyout === 'degeriYay' && flyoutTip === 'degeriYay' && !oge.devreDisi && (
-                            <div
-                              className="ap-sag-tik-flyout dg-sag-tik-flyout"
-                              role="menu"
-                              aria-label="Değeri yay seçenekleri"
-                            >
-                              {DEGERI_YAY_ALT_OGELER.map((alt) => {
-                                const yonDevreDisi =
-                                  alt.yon === 'ust' ? !ustteSatirVar : !alttaSatirVar;
-                                return (
-                                  <button
-                                    key={alt.yon}
-                                    type="button"
-                                    className="ap-sag-tik-oge"
-                                    disabled={yonDevreDisi}
-                                    onClick={() => {
-                                      if (yonDevreDisi) return;
-                                      degeriYayCalistir(alt.yon);
-                                      kapat();
-                                    }}
-                                  >
-                                    <span>{alt.ikon}</span>
-                                    <span>{menuBasligi(alt.etiket)}</span>
-                                  </button>
-                                );
-                              })}
                             </div>
                           )}
                           {flyout === 'sayfaBoyutu' && flyoutTip === 'sayfaBoyutu' && (
@@ -609,7 +494,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                                       kapat();
                                     }}
                                   >
-                                    <span aria-hidden>{aktif ? '✓' : '·'}</span>
+                                    <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                                      <DgIkon ad={alt.ikon} />
+                                    </span>
                                     <span>{menuBasligi(alt.etiket)}</span>
                                   </button>
                                 );
