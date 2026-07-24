@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { AdminAramaKutusu } from '@/admin/ortak/AdminFormBilesenleri';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
-import { OtAcilirSecim } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtAcilirSecim';
 import {
   VERGI_DAIRELERI_GUNCELLENDI,
   vergiDaireleriOtGetir,
@@ -19,6 +18,11 @@ import {
   OtSayfalama,
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
+import {
+  OtOutlinedAcilir,
+  OtOutlinedAlan,
+  OtOutlinedGirdi,
+} from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 import { turkiyeIlAdlari, turkiyeIlceAdlari } from '@/veri/turkiyeIlIlce';
 import { vergiDaireleriListeYukle } from '@/veri/vergiDaireleriApi';
 
@@ -351,106 +355,74 @@ export function VergiDaireleriListeSayfasi() {
           </label>
 
           {!form.detayli ? (
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Adı <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                className="ot-pb-girdi"
-                value={form.adi}
-                onChange={(e) => setForm((f) => ({ ...f, adi: e.target.value }))}
-                required
-              />
-            </label>
+            <OtOutlinedGirdi
+              etiket="Adı"
+              deger={form.adi}
+              onChange={(adi) => setForm((f) => ({ ...f, adi }))}
+              zorunlu
+            />
           ) : (
             <>
               <div className="ot-pb-grid-2">
-                <label className="ot-alan">
-                  <span className="ot-alan-etiket">İl</span>
-                  <OtAcilirSecim
-                    value={form.il}
-                    onChange={(il) => setForm((f) => ({ ...f, il, ilce: '', vergiDairesiAdi: '' }))}
-                    secenekler={ilSecenekleri}
-                    aria-label="İl"
-                    className="ot-pb-acilir w-full"
-                  />
-                </label>
-                <label className="ot-alan">
-                  <span className="ot-alan-etiket">İlçe</span>
-                  <OtAcilirSecim
-                    value={form.ilce}
-                    onChange={(ilce) => setForm((f) => ({ ...f, ilce }))}
-                    secenekler={ilceler}
-                    aria-label="İlçe"
-                    className="ot-pb-acilir w-full"
-                    disabled={!form.il}
-                  />
-                </label>
+                <OtOutlinedAcilir
+                  etiket="İl"
+                  deger={form.il}
+                  onChange={(il) => setForm((f) => ({ ...f, il, ilce: '', vergiDairesiAdi: '' }))}
+                  secenekler={ilSecenekleri}
+                />
+                <OtOutlinedAcilir
+                  etiket="İlçe"
+                  deger={form.ilce}
+                  onChange={(ilce) => setForm((f) => ({ ...f, ilce }))}
+                  secenekler={ilceler}
+                  disabled={!form.il}
+                />
               </div>
 
               <div className="ot-pb-grid-2">
-                <label className="ot-alan">
-                  <span className="ot-alan-etiket">GİB Kodu</span>
-                  <input
-                    className="ot-pb-girdi"
-                    value={form.gibKodu}
-                    onChange={(e) => setForm((f) => ({ ...f, gibKodu: e.target.value }))}
-                  />
-                </label>
-                <label className="ot-alan">
-                  <span className="ot-alan-etiket">MUH.BİR Kodu</span>
-                  <input
-                    className="ot-pb-girdi"
-                    value={form.muhBirKodu}
-                    onChange={(e) => setForm((f) => ({ ...f, muhBirKodu: e.target.value }))}
-                  />
-                </label>
+                <OtOutlinedGirdi
+                  etiket="GİB Kodu"
+                  deger={form.gibKodu}
+                  onChange={(gibKodu) => setForm((f) => ({ ...f, gibKodu }))}
+                />
+                <OtOutlinedGirdi
+                  etiket="MUH.BİR Kodu"
+                  deger={form.muhBirKodu}
+                  onChange={(muhBirKodu) => setForm((f) => ({ ...f, muhBirKodu }))}
+                />
               </div>
 
-              <label className="ot-alan">
-                <span className="ot-alan-etiket">
-                  Vergi Dairesi Adı <span className="ot-zorunlu">*</span>
-                </span>
-                <OtAcilirSecim
-                  value={form.vergiDairesiAdi}
-                  onChange={(vergiDairesiAdi) =>
-                    setForm((f) => ({
-                      ...f,
-                      vergiDairesiAdi,
-                      adi: vergiDairesiAdi || f.adi,
-                    }))
-                  }
-                  secenekler={filtrelenenVd}
-                  aria-label="Vergi Dairesi Adı"
-                  className="ot-pb-acilir w-full"
-                />
-              </label>
+              <OtOutlinedAcilir
+                etiket="Vergi Dairesi Adı"
+                deger={form.vergiDairesiAdi}
+                onChange={(vergiDairesiAdi) =>
+                  setForm((f) => ({
+                    ...f,
+                    vergiDairesiAdi,
+                    adi: vergiDairesiAdi || f.adi,
+                  }))
+                }
+                secenekler={filtrelenenVd}
+                zorunlu
+              />
 
-              <label className="ot-alan">
-                <span className="ot-alan-etiket">Liste Adı</span>
-                <input
-                  className="ot-pb-girdi"
-                  value={form.adi}
-                  onChange={(e) => setForm((f) => ({ ...f, adi: e.target.value }))}
-                  placeholder="Tabloda görünecek ad"
-                />
-              </label>
+              <OtOutlinedGirdi
+                etiket="Liste Adı"
+                deger={form.adi}
+                onChange={(adi) => setForm((f) => ({ ...f, adi }))}
+                odakPlaceholder="Tabloda görünecek ad"
+              />
 
-              <label className="ot-alan">
-                <span className="ot-alan-etiket">Sürekli / Süreksiz</span>
-                <OtAcilirSecim
-                  value={form.sureTipi}
-                  onChange={(sureTipi) =>
-                    setForm((f) => ({ ...f, sureTipi: sureTipi as VergiSureTipi }))
-                  }
-                  secenekler={SURE_SECENEKLERI}
-                  aria-label="Süre tipi"
-                  className="ot-pb-acilir w-full"
-                />
-              </label>
+              <OtOutlinedAcilir
+                etiket="Sürekli / Süreksiz"
+                deger={form.sureTipi}
+                onChange={(sureTipi) =>
+                  setForm((f) => ({ ...f, sureTipi: sureTipi as VergiSureTipi }))
+                }
+                secenekler={SURE_SECENEKLERI}
+              />
 
-              <div className="ot-vd-vergi-secimleri">
-                <span className="ot-alan-etiket">Vergi türleri</span>
+              <OtOutlinedAlan etiket="Vergi türleri">
                 <div className="ot-vd-check-grup">
                   {(
                     [
@@ -469,7 +441,7 @@ export function VergiDaireleriListeSayfasi() {
                     </label>
                   ))}
                 </div>
-              </div>
+              </OtOutlinedAlan>
             </>
           )}
         </form>

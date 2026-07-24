@@ -1,6 +1,11 @@
-import { useEffect, useId, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState, type FormEvent } from 'react';
 import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
-import { OtAcilirSecim } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtAcilirSecim';
+import {
+  OtOutlinedAcilir,
+  OtOutlinedAlan,
+  OtOutlinedGirdi,
+  OtOutlinedSayi,
+} from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 import {
   KUR_TIPLERI,
   type KurTipi,
@@ -121,48 +126,43 @@ export function ParaBirimiModal({ acik, kayit, onKapat, onKaydet }: ParaBirimiMo
         {hata ? <p className="ot-form-hata">{hata}</p> : null}
 
         <div className="ot-pb-grid-3">
-          <Alan etiket="Adı" zorunlu>
-            <input
-              className="ot-pb-girdi"
-              value={form.adi}
-              onChange={(e) => alan('adi', e.target.value)}
-              required
-            />
-          </Alan>
-          <Alan etiket="Kısa Adı" zorunlu>
-            <input
-              className="ot-pb-girdi"
-              value={form.kisaAdi}
-              onChange={(e) => alan('kisaAdi', e.target.value.toUpperCase())}
-              maxLength={8}
-              required
-            />
-          </Alan>
-          <Alan etiket="Sembol" zorunlu>
-            <input
-              className="ot-pb-girdi"
-              value={form.sembol}
-              onChange={(e) => alan('sembol', e.target.value)}
-              maxLength={4}
-              required
-            />
-          </Alan>
+          <OtOutlinedGirdi
+            etiket="Adı"
+            deger={form.adi}
+            onChange={(adi) => alan('adi', adi)}
+            zorunlu
+          />
+          <OtOutlinedGirdi
+            etiket="Kısa Adı"
+            deger={form.kisaAdi}
+            onChange={(kisaAdi) => alan('kisaAdi', kisaAdi)}
+            buyukHarf
+            maxLength={8}
+            zorunlu
+          />
+          <OtOutlinedGirdi
+            etiket="Sembol"
+            deger={form.sembol}
+            onChange={(sembol) => alan('sembol', sembol)}
+            maxLength={4}
+            zorunlu
+          />
         </div>
 
         <div className="ot-pb-grid-3">
-          <Alan etiket="Kur Tipi" zorunlu>
-            <OtAcilirSecim
-              value={form.kurTipi}
-              onChange={(v) => alan('kurTipi', v as KurTipi)}
-              secenekler={kurTipiSecenekleri}
-              aria-label="Kur Tipi"
-              className="ot-pb-acilir w-full"
-            />
-          </Alan>
-          <Alan
+          <OtOutlinedAcilir
+            etiket="Kur Tipi"
+            deger={form.kurTipi}
+            onChange={(v) => alan('kurTipi', v as KurTipi)}
+            secenekler={kurTipiSecenekleri}
+            zorunlu
+          />
+          <OtOutlinedAlan
             etiket="Oto Güncelleme"
-            etiketEk={apiAktif ? <PasifGoz title="API Url girildiği için otomatik güncelleme aktif" /> : null}
-            ortala
+            className="ot-outlined-check"
+            etiketEk={
+              apiAktif ? <PasifGoz title="API Url girildiği için otomatik güncelleme aktif" /> : null
+            }
           >
             <div className={`ot-pb-check-wrap${apiAktif ? ' ot-pb-check-wrap-pasif' : ''}`}>
               <input
@@ -174,62 +174,25 @@ export function ParaBirimiModal({ acik, kayit, onKapat, onKaydet }: ParaBirimiMo
                 aria-label="Oto Güncelleme"
               />
             </div>
-          </Alan>
-          <Alan
+          </OtOutlinedAlan>
+          <OtOutlinedSayi
             etiket="Kur"
+            deger={Number.isFinite(form.kur) ? form.kur : 0}
+            onChange={(kur) => alan('kur', kur)}
             zorunlu={!apiAktif}
+            disabled={apiAktif}
+            min={0}
             etiketEk={apiAktif ? <PasifGoz title="API Url girildiği için kur pasif" /> : null}
-          >
-            <input
-              className={`ot-pb-girdi${apiAktif ? ' ot-pb-girdi-pasif' : ''}`}
-              type="number"
-              step="any"
-              min={0}
-              value={Number.isFinite(form.kur) ? form.kur : 0}
-              onChange={(e) => alan('kur', Number(e.target.value))}
-              disabled={apiAktif}
-              required={!apiAktif}
-              readOnly={apiAktif}
-            />
-          </Alan>
+          />
         </div>
 
-        <Alan etiket="Api Url">
-          <input
-            className="ot-pb-girdi"
-            value={form.apiUrl}
-            onChange={(e) => alan('apiUrl', e.target.value)}
-            placeholder="https://"
-          />
-        </Alan>
+        <OtOutlinedGirdi
+          etiket="Api Url"
+          deger={form.apiUrl}
+          onChange={(apiUrl) => alan('apiUrl', apiUrl)}
+          odakPlaceholder="https://"
+        />
       </form>
     </SistemModal>
-  );
-}
-
-function Alan({
-  etiket,
-  zorunlu,
-  etiketEk,
-  ortala,
-  children,
-}: {
-  etiket: string;
-  zorunlu?: boolean;
-  etiketEk?: ReactNode;
-  ortala?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div className={`ot-alan${ortala ? ' ot-alan-orta' : ''}`}>
-      <div className="ot-alan-etiket-satir">
-        <span className="ot-alan-etiket">
-          {etiket}
-          {zorunlu ? <span className="ot-zorunlu"> *</span> : null}
-        </span>
-        {etiketEk}
-      </div>
-      {children}
-    </div>
   );
 }

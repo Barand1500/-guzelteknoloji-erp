@@ -22,6 +22,7 @@ import {
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
 import { OtGorselAlani } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtGorselAlani';
+import { OtOutlinedAlan, OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 import { BankaHesaplariListeSayfasi } from './BankaHesaplariListe';
 
 const BOS: OzelBankaGirdi = { adi: '', kisaAdi: '', gorselUrl: '', aktif: true };
@@ -237,36 +238,26 @@ export function BankalarListeSayfasi({
       >
         <form id="ot-banka-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              Adı <span className="ot-zorunlu">*</span>
-            </span>
-            <input
-              className="ot-pb-girdi"
-              value={form.adi}
-              onChange={(e) => setForm((f) => ({ ...f, adi: e.target.value }))}
-              required
-            />
-          </label>
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              Kısa Adı <span className="ot-zorunlu">*</span>
-            </span>
-            <input
-              className="ot-pb-girdi"
-              value={form.kisaAdi}
-              onChange={(e) => setForm((f) => ({ ...f, kisaAdi: e.target.value.toUpperCase() }))}
-              maxLength={24}
-              required
-            />
-          </label>
-          <div className="ot-alan">
-            <span className="ot-alan-etiket">Görsel</span>
+          <OtOutlinedGirdi
+            etiket="Adı"
+            deger={form.adi}
+            onChange={(adi) => setForm((f) => ({ ...f, adi }))}
+            zorunlu
+          />
+          <OtOutlinedGirdi
+            etiket="Kısa Adı"
+            deger={form.kisaAdi}
+            onChange={(kisaAdi) => setForm((f) => ({ ...f, kisaAdi }))}
+            buyukHarf
+            maxLength={24}
+            zorunlu
+          />
+          <OtOutlinedAlan etiket="Görsel">
             <OtGorselAlani
               deger={form.gorselUrl ?? ''}
               onChange={(gorselUrl) => setForm((f) => ({ ...f, gorselUrl }))}
             />
-          </div>
+          </OtOutlinedAlan>
         </form>
       </SistemModal>
 

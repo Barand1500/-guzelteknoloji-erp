@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { AdminAramaKutusu } from '@/admin/ortak/AdminFormBilesenleri';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
-import { OtAcilirSecim } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtAcilirSecim';
 import {
   VERGILER_GUNCELLENDI,
   vergiEkle,
@@ -23,6 +22,7 @@ import {
   OtSayfalama,
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
+import { OtOutlinedAcilir, OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 
 export function VergilerListeSayfasi() {
   const [liste, setListe] = useState<VergiKayit[]>(() => vergileriGetir());
@@ -203,43 +203,31 @@ export function VergilerListeSayfasi() {
         <form id="ot-vergi-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
           <div className="ot-pb-grid-2">
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Vergi Türü <span className="ot-zorunlu">*</span>
-              </span>
-              <OtAcilirSecim
-                value={vergiTuruId}
-                onChange={setVergiTuruId}
-                secenekler={turSecenekleri}
-                aria-label="Vergi Türü"
-                className="ot-pb-acilir w-full"
-              />
-            </label>
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Oran % <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                className="ot-pb-girdi"
-                value={oran}
-                onChange={(e) => {
-                  const ham = e.target.value.replace(/[^\d.,]/g, '');
-                  if (!ham) {
-                    setOran('');
-                    return;
-                  }
-                  const n = Number(ham.replace(',', '.'));
-                  if (Number.isFinite(n) && n > 100) {
-                    setOran('100');
-                    return;
-                  }
-                  setOran(ham);
-                }}
-                inputMode="decimal"
-                max={100}
-                required
-              />
-            </label>
+            <OtOutlinedAcilir
+              etiket="Vergi Türü"
+              deger={vergiTuruId}
+              onChange={setVergiTuruId}
+              secenekler={turSecenekleri}
+              zorunlu
+            />
+            <OtOutlinedGirdi
+              etiket="Oran %"
+              deger={oran}
+              onChange={(ham) => {
+                const temiz = ham.replace(/[^\d.,]/g, '');
+                if (!temiz) {
+                  setOran('');
+                  return;
+                }
+                const n = Number(temiz.replace(',', '.'));
+                if (Number.isFinite(n) && n > 100) {
+                  setOran('100');
+                  return;
+                }
+                setOran(temiz);
+              }}
+              zorunlu
+            />
           </div>
         </form>
       </SistemModal>

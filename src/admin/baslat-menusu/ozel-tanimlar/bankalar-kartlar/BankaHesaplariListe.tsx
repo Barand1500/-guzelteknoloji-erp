@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { AdminAramaKutusu } from '@/admin/ortak/AdminFormBilesenleri';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
-import { OtAcilirSecim } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtAcilirSecim';
 import type { OzelBanka } from '@/admin/baslat-menusu/ozel-tanimlar/veri/bankalar';
 import {
   BANKA_HESAPLARI_GUNCELLENDI,
@@ -23,6 +22,7 @@ import {
   OtSayfalama,
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
+import { OtOutlinedAcilir, OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 
 function ibanGoster(iban: string): string {
   const t = iban.trim();
@@ -310,80 +310,54 @@ export function BankaHesaplariListeSayfasi({ banka }: { banka: OzelBanka }) {
             Banka : <strong>{banka.adi}</strong>
           </p>
 
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              Para Birimi <span className="ot-zorunlu">*</span>
-            </span>
-            <OtAcilirSecim
-              value={form.paraBirimi}
-              onChange={(paraBirimi) => setForm((f) => ({ ...f, paraBirimi }))}
-              secenekler={pbSecenekleri}
-              aria-label="Para Birimi"
-              className="ot-pb-acilir w-full"
-            />
-          </label>
+          <OtOutlinedAcilir
+            etiket="Para Birimi"
+            deger={form.paraBirimi}
+            onChange={(paraBirimi) => setForm((f) => ({ ...f, paraBirimi }))}
+            secenekler={pbSecenekleri}
+            zorunlu
+          />
 
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              Hesap Adı <span className="ot-zorunlu">*</span>
-            </span>
-            <input
-              className="ot-pb-girdi"
-              value={form.hesapAdi}
-              onChange={(e) => setForm((f) => ({ ...f, hesapAdi: e.target.value }))}
-              required
-            />
-          </label>
+          <OtOutlinedGirdi
+            etiket="Hesap Adı"
+            deger={form.hesapAdi}
+            onChange={(hesapAdi) => setForm((f) => ({ ...f, hesapAdi }))}
+            zorunlu
+          />
 
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              IBAN <span className="ot-zorunlu">*</span>
-            </span>
-            <input
-              className="ot-pb-girdi"
-              value={form.iban}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  iban: e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 34),
-                }))
-              }
-              required
-            />
-          </label>
+          <OtOutlinedGirdi
+            etiket="IBAN"
+            deger={form.iban}
+            onChange={(v) =>
+              setForm((f) => ({
+                ...f,
+                iban: v.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 34),
+              }))
+            }
+            zorunlu
+          />
 
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">Şube Adı</span>
-            <input
-              className="ot-pb-girdi"
-              value={form.subeAdi}
-              onChange={(e) => setForm((f) => ({ ...f, subeAdi: e.target.value }))}
-            />
-          </label>
+          <OtOutlinedGirdi
+            etiket="Şube Adı"
+            deger={form.subeAdi}
+            onChange={(subeAdi) => setForm((f) => ({ ...f, subeAdi }))}
+          />
 
           <div className="ot-pb-grid-2">
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">Şube Kodu</span>
-              <input
-                className="ot-pb-girdi"
-                value={form.subeKodu}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, subeKodu: e.target.value.replace(/\D/g, '').slice(0, 12) }))
-                }
-                inputMode="numeric"
-              />
-            </label>
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">Hesap No</span>
-              <input
-                className="ot-pb-girdi"
-                value={form.hesapNo}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hesapNo: e.target.value.replace(/\D/g, '').slice(0, 24) }))
-                }
-                inputMode="numeric"
-              />
-            </label>
+            <OtOutlinedGirdi
+              etiket="Şube Kodu"
+              deger={form.subeKodu}
+              onChange={(v) =>
+                setForm((f) => ({ ...f, subeKodu: v.replace(/\D/g, '').slice(0, 12) }))
+              }
+            />
+            <OtOutlinedGirdi
+              etiket="Hesap No"
+              deger={form.hesapNo}
+              onChange={(v) =>
+                setForm((f) => ({ ...f, hesapNo: v.replace(/\D/g, '').slice(0, 24) }))
+              }
+            />
           </div>
 
           <div className="ot-bh-toggle-liste">

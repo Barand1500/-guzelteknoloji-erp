@@ -16,6 +16,7 @@ import {
   OtSayfalama,
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
+import { OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 
 export function VergiTurleriListeSayfasi() {
   const [liste, setListe] = useState<VergiTuru[]>(() => vergiTurleriGetir());
@@ -179,24 +180,15 @@ export function VergiTurleriListeSayfasi() {
         <form id="ot-vt-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
           <div className="ot-pb-grid-2">
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Adı <span className="ot-zorunlu">*</span>
-              </span>
-              <input className="ot-pb-girdi" value={adi} onChange={(e) => setAdi(e.target.value)} required />
-            </label>
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Kısa Adı <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                className="ot-pb-girdi"
-                value={kisaAdi}
-                onChange={(e) => setKisaAdi(e.target.value.toUpperCase())}
-                maxLength={12}
-                required
-              />
-            </label>
+            <OtOutlinedGirdi etiket="Adı" deger={adi} onChange={setAdi} zorunlu />
+            <OtOutlinedGirdi
+              etiket="Kısa Adı"
+              deger={kisaAdi}
+              onChange={setKisaAdi}
+              buyukHarf
+              maxLength={12}
+              zorunlu
+            />
           </div>
         </form>
       </SistemModal>

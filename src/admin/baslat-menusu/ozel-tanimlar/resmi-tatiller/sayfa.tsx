@@ -6,6 +6,11 @@ import { OzelRenkPaneli } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/
 import { tooltipMetni } from '@/araclar/tooltipMetni';
 import { otKlavyeYoksayMi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/otKlavye';
 import {
+  OtOutlinedAlan,
+  OtOutlinedGirdi,
+} from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
+import { OtTarihAralikSecici } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtTarihAralikSecici';
+import {
   RESMI_TATIL_RENKLER,
   RESMI_TATILLER_GUNCELLENDI,
   resmiTatilEkle,
@@ -373,52 +378,24 @@ export function ResmiTatillerSayfasi() {
       >
         <form id="ot-rt-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              Adı <span className="ot-zorunlu">*</span>
-            </span>
-            <input
-              className="ot-pb-girdi"
-              value={adi}
-              onChange={(e) => setAdi(e.target.value)}
-              placeholder="Örn. Ramazan Bayramı"
-              required
+          <OtOutlinedGirdi
+            etiket="Adı"
+            deger={adi}
+            onChange={setAdi}
+            odakPlaceholder="Örn. Ramazan Bayramı"
+            zorunlu
+          />
+          <OtOutlinedAlan etiket="Tarih" zorunlu className="ot-outlined-tarih-aralik">
+            <OtTarihAralikSecici
+              baslangic={baslangic}
+              bitis={bitis}
+              onChange={(bas, bit) => {
+                setBaslangic(bas);
+                setBitis(bit);
+              }}
             />
-          </label>
-          <div className="ot-pb-grid-2">
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Başlangıç <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                type="date"
-                className="ot-pb-girdi"
-                value={baslangic}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setBaslangic(v);
-                  if (v && bitis && bitis < v) setBitis(v);
-                  if (!bitis) setBitis(v);
-                }}
-                required
-              />
-            </label>
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Bitiş <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                type="date"
-                className="ot-pb-girdi"
-                value={bitis}
-                min={baslangic || undefined}
-                onChange={(e) => setBitis(e.target.value)}
-                required
-              />
-            </label>
-          </div>
-          <div className="ot-alan">
-            <span className="ot-alan-etiket">Renk</span>
+          </OtOutlinedAlan>
+          <OtOutlinedAlan etiket="Renk" className="ot-outlined-renk">
             <div className="ot-rt-renk-liste" role="radiogroup" aria-label="Tatil rengi">
               {RESMI_TATIL_RENKLER.map((r) => {
                 const secili = renk === r && !ozelPanelAcik;
@@ -470,7 +447,7 @@ export function ResmiTatillerSayfasi() {
                 />
               </div>
             </div>
-          </div>
+          </OtOutlinedAlan>
         </form>
       </SistemModal>
 

@@ -1,6 +1,6 @@
-import { useRef, useState, type DragEvent } from 'react';
+import { useRef, useState, type DragEvent, type KeyboardEvent } from 'react';
 
-/** Dosya seç / sürükle-bırak / link ile görsel */
+/** Dosya seç / sürükle-bırak / link ile görsel — tek bütünleşik alan */
 export function OtGorselAlani({
   deger,
   onChange,
@@ -49,38 +49,68 @@ export function OtGorselAlani({
     setLink('');
   }
 
+  function linkEnter(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      linkUygula();
+    }
+  }
+
   return (
     <div className="ot-gorsel">
-      {deger ? (
-        <div className="ot-gorsel-onizleme">
-          <img src={deger} alt="" className="ot-gorsel-img" />
-          <button type="button" className="ot-gorsel-kaldir" onClick={() => onChange('')}>
-            Kaldır
+      <div className="ot-gorsel-kutu">
+        {deger ? (
+          <div className="ot-gorsel-onizleme">
+            <img src={deger} alt="" className="ot-gorsel-img" />
+            <button type="button" className="ot-gorsel-kaldir" onClick={() => onChange('')}>
+              Kaldır
+            </button>
+          </div>
+        ) : (
+          <div
+            className={`ot-gorsel-drop${surukle ? ' ot-gorsel-drop-aktif' : ''}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setSurukle(true);
+            }}
+            onDragLeave={() => setSurukle(false)}
+            onDrop={birak}
+            onClick={() => dosyaRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                dosyaRef.current?.click();
+              }
+            }}
+          >
+            <p className="ot-gorsel-drop-baslik">Görsel seçin veya sürükleyip bırakın</p>
+            <p className="ot-gorsel-drop-alt">PNG, JPG, SVG · en fazla 800 KB</p>
+          </div>
+        )}
+
+        <div className="ot-gorsel-link-satir">
+          <input
+            type="url"
+            className="ot-gorsel-link-input"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            onKeyDown={linkEnter}
+            onClick={(e) => e.stopPropagation()}
+            placeholder="veya görsel linki yapıştırın…"
+            aria-label="Görsel linki"
+          />
+          <button
+            type="button"
+            className="ot-gorsel-link-btn"
+            onClick={linkUygula}
+            disabled={!link.trim()}
+          >
+            Ekle
           </button>
         </div>
-      ) : (
-        <div
-          className={`ot-gorsel-drop${surukle ? ' ot-gorsel-drop-aktif' : ''}`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setSurukle(true);
-          }}
-          onDragLeave={() => setSurukle(false)}
-          onDrop={birak}
-          onClick={() => dosyaRef.current?.click()}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              dosyaRef.current?.click();
-            }
-          }}
-        >
-          <p className="ot-gorsel-drop-baslik">Görsel seçin veya sürükleyip bırakın</p>
-          <p className="ot-gorsel-drop-alt">PNG, JPG, SVG · en fazla 800 KB</p>
-        </div>
-      )}
+      </div>
 
       <input
         ref={dosyaRef}
@@ -92,19 +122,6 @@ export function OtGorselAlani({
           e.target.value = '';
         }}
       />
-
-      <div className="ot-gorsel-link-satir">
-        <input
-          className="ot-pb-girdi"
-          value={link}
-          onChange={(e) => setLink(e.target.value)}
-          placeholder="veya görsel linki yapıştırın (https://…)"
-          aria-label="Görsel linki"
-        />
-        <button type="button" className="ot-gorsel-link-btn" onClick={linkUygula} disabled={!link.trim()}>
-          Ekle
-        </button>
-      </div>
 
       {hata ? <p className="ot-form-hata">{hata}</p> : null}
     </div>

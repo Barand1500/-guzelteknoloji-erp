@@ -726,6 +726,28 @@
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
+  --cari-outlined-etiket-bg: var(--ap-surface);
+  --cari-alan-zemin: var(--ap-surface);
+}
+
+.ot-pb-form .cari-outlined-field {
+  width: 100%;
+}
+
+.ot-pb-form .cari-outlined-field.ot-outlined-check .cari-outlined-icerik {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.2rem;
+}
+
+.ot-pb-form .cari-outlined-field.ot-outlined-renk .cari-outlined-icerik {
+  padding: 0.25rem 0;
+}
+
+.ot-pb-form .cari-outlined-icerik .cari-outlined-input[type='date'],
+.ot-pb-form .cari-outlined-icerik .cari-outlined-input[type='number'] {
+  min-height: 2.2rem;
 }
 
 .ot-pb-grid-3 {
@@ -1002,7 +1024,18 @@
 .ot-gorsel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.ot-gorsel-kutu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  border-radius: 0.65rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ap-accent) 3%, transparent);
 }
 
 .ot-gorsel-drop {
@@ -1011,20 +1044,19 @@
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  min-height: 7.5rem;
+  min-height: 6.5rem;
   padding: 1rem;
-  border: 1.5px dashed color-mix(in srgb, var(--ap-border) 90%, transparent);
-  border-radius: 0.65rem;
-  background: color-mix(in srgb, var(--ap-accent) 4%, transparent);
+  border: none;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
   text-align: center;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: background-color 0.15s;
 }
 
 .ot-gorsel-drop:hover,
 .ot-gorsel-drop-aktif {
-  border-color: color-mix(in srgb, var(--ap-accent) 50%, transparent);
-  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+  background: color-mix(in srgb, var(--ap-accent) 8%, transparent);
 }
 
 .ot-gorsel-drop-baslik {
@@ -1044,9 +1076,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem;
-  border: 1px solid var(--ap-border);
-  border-radius: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: 0;
 }
 
 .ot-gorsel-img {
@@ -1069,28 +1101,188 @@
 }
 
 .ot-gorsel-link-satir {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.5rem;
-  align-items: end;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.55rem;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 70%, transparent);
+}
+
+.ot-gorsel-link-input {
+  flex: 1;
+  min-width: 0;
+  height: 2rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0 0.35rem;
+  font-size: 0.8125rem;
+  color: var(--ap-text);
+}
+
+.ot-gorsel-link-input::placeholder {
+  color: var(--ap-text-muted);
 }
 
 .ot-gorsel-link-btn {
   appearance: none;
-  height: 2.35rem;
-  padding: 0 0.9rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 35%, transparent);
-  background: color-mix(in srgb, var(--ap-accent) 12%, transparent);
-  color: color-mix(in srgb, var(--ap-accent) 85%, var(--ap-text));
-  font-size: 0.8125rem;
+  flex-shrink: 0;
+  height: 1.85rem;
+  padding: 0 0.7rem;
+  border-radius: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+  color: color-mix(in srgb, var(--ap-accent) 80%, var(--ap-text));
+  font-size: 0.75rem;
   font-weight: 650;
   cursor: pointer;
 }
 
 .ot-gorsel-link-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
+}
+
+/* OtOutlinedAlan i?inde: d?? ?er?eve yeterli, i? kutu ?ift border olmas?n */
+.ot-pb-form .cari-outlined-icerik .ot-gorsel-kutu {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.ot-pb-form .cari-outlined-icerik .ot-gorsel-drop {
+  border: 1.5px dashed color-mix(in srgb, var(--ap-border) 85%, transparent);
+  border-radius: 0.5rem;
+  min-height: 5.75rem;
+  background: color-mix(in srgb, var(--ap-accent) 4%, transparent);
+}
+
+.ot-pb-form .cari-outlined-icerik .ot-gorsel-drop:hover,
+.ot-pb-form .cari-outlined-icerik .ot-gorsel-drop-aktif {
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--ap-accent) 9%, transparent);
+}
+
+.ot-pb-form .cari-outlined-icerik .ot-gorsel-link-satir {
+  margin-top: 0.4rem;
+  padding: 0;
+  border-top: none;
+  background: transparent;
+}
+
+.ot-pb-form .cari-outlined-icerik .ot-gorsel-link-input {
+  height: 1.85rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  border-radius: 0.4rem;
+  padding: 0 0.55rem;
+  background: var(--ap-input-bg, var(--ap-surface));
+}
+
+.ot-pb-form .cari-outlined-icerik .ot-gorsel-onizleme {
+  padding: 0.35rem 0.15rem;
+}
+
+/* Resmi tatil ? sürükle-seç tarih aral??? */
+.ot-outlined-tarih-aralik .cari-outlined-icerik {
+  padding: 0.35rem 0.15rem 0.5rem;
+}
+
+.ot-rt-aralik {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  user-select: none;
+  touch-action: none;
+}
+
+.ot-rt-aralik-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ot-rt-aralik-baslik {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.ot-rt-aralik-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.15rem;
+}
+
+.ot-rt-aralik-gun-baslik {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--ap-text-muted);
+  padding: 0.2rem 0;
+}
+
+.ot-rt-aralik-hucre {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.15rem;
+  border: none;
+  border-radius: 0.4rem;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ot-rt-aralik-hucre--dis {
+  color: var(--ap-text-muted);
+  opacity: 0.55;
+}
+
+.ot-rt-aralik-hucre:hover {
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+}
+
+.ot-rt-aralik-hucre--secili {
+  background: color-mix(in srgb, var(--ap-accent) 18%, transparent);
+  color: color-mix(in srgb, var(--ap-accent) 70%, var(--ap-text));
+  border-radius: 0;
+}
+
+.ot-rt-aralik-hucre--bas {
+  border-radius: 0.45rem 0 0 0.45rem;
+  background: var(--ap-accent);
+  color: #fff;
+}
+
+.ot-rt-aralik-hucre--bit {
+  border-radius: 0 0.45rem 0.45rem 0;
+  background: var(--ap-accent);
+  color: #fff;
+}
+
+.ot-rt-aralik-hucre--tek,
+.ot-rt-aralik-hucre--bas.ot-rt-aralik-hucre--bit {
+  border-radius: 0.45rem;
+  background: var(--ap-accent);
+  color: #fff;
+}
+
+.ot-rt-aralik-ozet {
+  margin: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--ap-text-muted);
 }
 
 .ot-bh-banka-etiket {

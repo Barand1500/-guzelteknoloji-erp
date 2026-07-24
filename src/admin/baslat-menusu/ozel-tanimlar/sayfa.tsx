@@ -18,6 +18,7 @@ import { VergilerHubSayfasi } from '@/admin/baslat-menusu/ozel-tanimlar/vergiler
 import { CariStokHubSayfasi } from '@/admin/baslat-menusu/ozel-tanimlar/cari-stok/sayfa';
 import { ResmiTatillerSayfasi } from '@/admin/baslat-menusu/ozel-tanimlar/resmi-tatiller/sayfa';
 import '@/admin/baslat-menusu/ozel-tanimlar/ozel-tanimlar.css';
+import '@/admin/baslat-menusu/erp/cari/cari.css';
 
 export function OzelTanimlarSayfasi() {
   // Sekme açık kaldıkça state korunur; sekme kapanıp yeniden açılınca sıfırdan login

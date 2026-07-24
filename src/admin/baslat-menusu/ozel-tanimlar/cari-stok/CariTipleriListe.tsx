@@ -16,6 +16,7 @@ import {
   OtSayfalama,
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
+import { OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 
 export function CariTipleriListeSayfasi() {
   const [liste, setListe] = useState<CariTipi[]>(() => cariTipleriGetir());
@@ -174,17 +175,7 @@ export function CariTipleriListeSayfasi() {
       >
         <form id="ot-ct-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              Adı <span className="ot-zorunlu">*</span>
-            </span>
-            <input
-              className="ot-pb-girdi"
-              value={adi}
-              onChange={(e) => setAdi(e.target.value)}
-              required
-            />
-          </label>
+          <OtOutlinedGirdi etiket="Adı" deger={adi} onChange={setAdi} zorunlu />
         </form>
       </SistemModal>
 

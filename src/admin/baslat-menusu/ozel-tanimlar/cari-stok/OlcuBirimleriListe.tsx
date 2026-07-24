@@ -16,6 +16,7 @@ import {
   OtSayfalama,
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
+import { OtOutlinedGirdi, OtOutlinedSayi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 
 export function OlcuBirimleriListeSayfasi() {
   const [liste, setListe] = useState<OlcuBirim[]>(() => olcuBirimleriGetir());
@@ -187,41 +188,16 @@ export function OlcuBirimleriListeSayfasi() {
         <form id="ot-ob-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
           <div className="ot-pb-grid-2">
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Adı <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                className="ot-pb-girdi"
-                value={adi}
-                onChange={(e) => setAdi(e.target.value)}
-                required
-              />
-            </label>
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Kısa Adı <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                className="ot-pb-girdi"
-                value={kisaAdi}
-                onChange={(e) => setKisaAdi(e.target.value)}
-                required
-              />
-            </label>
+            <OtOutlinedGirdi etiket="Adı" deger={adi} onChange={setAdi} zorunlu />
+            <OtOutlinedGirdi etiket="Kısa Adı" deger={kisaAdi} onChange={setKisaAdi} zorunlu />
           </div>
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">Çarpan</span>
-            <input
-              className="ot-pb-girdi"
-              type="number"
-              min={0.0001}
-              step="any"
-              value={carpan}
-              onChange={(e) => setCarpan(e.target.value)}
-              required
-            />
-          </label>
+          <OtOutlinedSayi
+            etiket="Çarpan"
+            deger={carpan}
+            onChange={(v) => setCarpan(String(v))}
+            zorunlu
+            min={0.0001}
+          />
         </form>
       </SistemModal>
 

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { AdminAramaKutusu } from '@/admin/ortak/AdminFormBilesenleri';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
-import { OtAcilirSecim } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtAcilirSecim';
 import {
   bankaEtiketi,
   bankaFormSecenekleri,
@@ -28,6 +27,7 @@ import {
   OtSayfalama,
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
+import { OtOutlinedAcilir, OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 
 const BOS: BinKayitGirdi = {
   bankaKodu: '',
@@ -253,71 +253,45 @@ export function BinKayitlariListeSayfasi() {
         <form id="ot-bin-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
 
-          <label className="ot-alan">
-            <span className="ot-alan-etiket">
-              Banka <span className="ot-zorunlu">*</span>
-            </span>
-            <OtAcilirSecim
-              value={form.bankaKodu}
-              onChange={(bankaKodu) => setForm((f) => ({ ...f, bankaKodu }))}
-              secenekler={bankaSecenekleri}
-              aria-label="Banka"
-              className="ot-pb-acilir w-full"
-            />
-          </label>
+          <OtOutlinedAcilir
+            etiket="Banka"
+            deger={form.bankaKodu}
+            onChange={(bankaKodu) => setForm((f) => ({ ...f, bankaKodu }))}
+            secenekler={bankaSecenekleri}
+            zorunlu
+          />
 
           <div className="ot-pb-grid-2">
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                BIN <span className="ot-zorunlu">*</span>
-              </span>
-              <input
-                className="ot-pb-girdi"
-                value={form.bin}
-                onChange={(e) => setForm((f) => ({ ...f, bin: e.target.value.replace(/\D/g, '').slice(0, 8) }))}
-                inputMode="numeric"
-                required
-              />
-            </label>
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Kart Tipi <span className="ot-zorunlu">*</span>
-              </span>
-              <OtAcilirSecim
-                value={form.kartTipiId}
-                onChange={(kartTipiId) => setForm((f) => ({ ...f, kartTipiId }))}
-                secenekler={tipSecenekleri}
-                aria-label="Kart Tipi"
-                className="ot-pb-acilir w-full"
-              />
-            </label>
+            <OtOutlinedGirdi
+              etiket="BIN"
+              deger={form.bin}
+              onChange={(v) => setForm((f) => ({ ...f, bin: v.replace(/\D/g, '').slice(0, 8) }))}
+              zorunlu
+            />
+            <OtOutlinedAcilir
+              etiket="Kart Tipi"
+              deger={form.kartTipiId}
+              onChange={(kartTipiId) => setForm((f) => ({ ...f, kartTipiId }))}
+              secenekler={tipSecenekleri}
+              zorunlu
+            />
           </div>
 
           <div className="ot-pb-grid-2">
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Kart Markası <span className="ot-zorunlu">*</span>
-              </span>
-              <OtAcilirSecim
-                value={form.kartMarkaId}
-                onChange={(kartMarkaId) => setForm((f) => ({ ...f, kartMarkaId }))}
-                secenekler={markaSecenekleri}
-                aria-label="Kart Markası"
-                className="ot-pb-acilir w-full"
-              />
-            </label>
-            <label className="ot-alan">
-              <span className="ot-alan-etiket">
-                Kart Türü <span className="ot-zorunlu">*</span>
-              </span>
-              <OtAcilirSecim
-                value={form.kartTuru}
-                onChange={(kartTuru) => setForm((f) => ({ ...f, kartTuru: kartTuru as KartTuru }))}
-                secenekler={turSecenekleri}
-                aria-label="Kart Türü"
-                className="ot-pb-acilir w-full"
-              />
-            </label>
+            <OtOutlinedAcilir
+              etiket="Kart Markası"
+              deger={form.kartMarkaId}
+              onChange={(kartMarkaId) => setForm((f) => ({ ...f, kartMarkaId }))}
+              secenekler={markaSecenekleri}
+              zorunlu
+            />
+            <OtOutlinedAcilir
+              etiket="Kart Türü"
+              deger={form.kartTuru}
+              onChange={(kartTuru) => setForm((f) => ({ ...f, kartTuru: kartTuru as KartTuru }))}
+              secenekler={turSecenekleri}
+              zorunlu
+            />
           </div>
         </form>
       </SistemModal>
