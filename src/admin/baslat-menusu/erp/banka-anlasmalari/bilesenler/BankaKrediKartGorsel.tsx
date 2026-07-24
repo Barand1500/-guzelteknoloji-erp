@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { kartNoFiltrele, sonKullanmaFiltrele } from '../bankaYardimci';
+import { amexKartMi, kartNoFiltrele, sonKullanmaFiltrele } from '../bankaYardimci';
 
 export function BankaKrediKartGorsel({
   kartNo,
@@ -20,8 +20,11 @@ export function BankaKrediKartGorsel({
 }) {
   const noId = useId();
   const sktId = useId();
-  const hane = kartNo.replace(/\D/g, '').length;
-  const maxHane = 16;
+  const rakamlar = kartNo.replace(/\D/g, '');
+  const hane = rakamlar.length;
+  const amex = amexKartMi(rakamlar);
+  const maxHane = amex ? 15 : 16;
+  const maxLength = amex ? 17 : 19;
   const noBos = hane === 0;
 
   return (
@@ -38,10 +41,10 @@ export function BankaKrediKartGorsel({
           className="ba-kk-gorsel-no-input"
           value={kartNo}
           disabled={disabled}
-          maxLength={19}
+          maxLength={maxLength}
           inputMode="numeric"
           autoComplete="cc-number"
-          placeholder="•••• •••• •••• ••••"
+          placeholder={amex ? '•••• •••••• •••••' : '•••• •••• •••• ••••'}
           spellCheck={false}
           onChange={(e) => onKartNoChange(kartNoFiltrele(e.target.value))}
           aria-label="Kart numarası"

@@ -81,7 +81,7 @@ model Kullanici {
   adSoyad          String   @map("ad_soyad") @db.VarChar(150)
   sifreHash        String   @map("sifre_hash") @db.VarChar(255)
   pin              String?  @db.VarChar(20)
-  rol              String   @db.VarChar(50)
+  rol              String   @db.VarChar(255)
   kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
   guncellemeTarihi DateTime @updatedAt @map("guncelleme_tarihi")
   durum            Boolean  @default(true)

@@ -4,7 +4,14 @@
   grid-column: 1 / -1;
 }
 
-/* Hesap Kodu + Hesap Adı — kod = Banka+Kredi+POS chip grubu genişliği */
+/* POS: Hesap Tipi sol kolon genişliğinde (Hesap Adı bitişiyle aynı) */
+.ba-pos-sol > .ba-hesap-tipi {
+  grid-column: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Hesap Kodu + Hesap Adı — sol kolon; bitiş = Hesap Numarası / Kart Türü / Dönem */
 .ba-hesap-kod-isim {
   display: grid;
   grid-template-columns: 10.5rem minmax(0, 1fr);
@@ -19,6 +26,58 @@
   width: 100%;
 }
 
+/* Sağ kolon: Banka + Şube / Anlaşma — altındaki alanla aynı genişlik, yarı yarıya */
+.ba-banka-sube-cift,
+.ba-pos-banka-anlasma {
+  min-width: 0;
+}
+
+/* Kart limiti içinde sağda PB seçimi */
+.ba-limit-iceride .cari-outlined-cerceve {
+  gap: 0.4rem;
+}
+
+.ba-limit-iceride .cari-outlined-sonek {
+  margin-left: 0.15rem;
+  padding-left: 0.45rem;
+  border-left: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  align-self: stretch;
+}
+
+.ba-limit-pb-anchor {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  height: 100%;
+  min-height: 100%;
+}
+
+.ba-limit-pb-secim {
+  width: auto;
+  min-width: 3.6rem;
+  min-height: 1.85rem !important;
+  padding: 0.15rem 0.35rem 0.15rem 0.45rem !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--ap-heading);
+}
+
+.ba-limit-pb-secim:hover,
+.ba-limit-pb-secim:focus,
+.ba-limit-pb-secim:focus-visible {
+  border: none !important;
+  background: color-mix(in srgb, var(--ap-accent) 8%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.ba-limit-pb-secim .ap-form-acilir-secim-tus-metin {
+  flex: 0 1 auto;
+}
+
 /* Adres/İletişim: küçült oku, kart çöp kutusu (right: 0.85rem) ile hizalı */
 .cari-iletisim-bolumu .cari-bolum-kucult {
   margin-right: 0.85rem;
@@ -28,7 +87,7 @@
   min-width: 0;
 }
 
-/* Kredi: 2×2 grid — kart yüksekliği = Kart Türü…Döviz (sol kolon) */
+/* Kredi: 2×2 — sol = kod/ad + form; sağ = banka + kart (aynı kolon hizası) */
 .ba-kredi-govde {
   grid-column: 1 / -1;
   display: grid;
@@ -563,6 +622,60 @@
   color: var(--ap-heading);
 }
 
+/* POS: sol form, sağ komisyon tablosu (kredi kart görseli gibi) */
+.ba-pos-govde {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem var(--cari-grid-gap-x, 1.1rem);
+  align-items: stretch;
+  min-width: 0;
+}
+
+.ba-pos-sol {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.ba-pos-sag {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ba-pos-sag > .ba-pos-tablo-bolum {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.ba-pos-filtre {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.15rem;
+}
+
+.ba-pos-filtre .cari-secili-chip {
+  padding: 0.28rem 0.7rem;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 720px) {
+  .ba-pos-govde {
+    grid-template-columns: 1fr;
+  }
+
+  .ba-pos-tablo-baslik {
+    flex-wrap: wrap;
+  }
+}
+
 .ba-pos-tablo-satir {
   grid-column: 1 / -1;
   min-width: 0;
@@ -581,7 +694,9 @@
 .ba-pos-tablo-baslik {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .ba-pos-tablo-baslik-metin {
@@ -607,8 +722,17 @@
 
 .ba-pos-tablo {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
-  min-width: 42rem;
+  min-width: 36rem;
+}
+
+.ba-pos-tablo col.ba-pos-col-veri {
+  width: auto;
+}
+
+.ba-pos-tablo col.ba-pos-col-islem {
+  width: 2.4rem;
 }
 
 .ba-pos-tablo th,
@@ -617,6 +741,7 @@
   border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
   text-align: left;
   vertical-align: middle;
+  overflow: hidden;
 }
 
 .ba-pos-tablo th {
@@ -627,6 +752,8 @@
   color: var(--ap-text-muted);
   background: color-mix(in srgb, var(--ap-heading) 3%, var(--ap-surface));
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ba-pos-tablo tr:last-child td {
@@ -635,6 +762,7 @@
 
 .ba-pos-hucre-input {
   width: 100%;
+  min-width: 0;
   margin: 0;
   padding: 0.35rem 0.4rem;
   border: 1px solid transparent;
@@ -654,19 +782,38 @@
 }
 
 .ba-pos-hucre-input--sayi {
-  text-align: right;
+  text-align: left;
   font-variant-numeric: tabular-nums;
 }
 
 .ba-pos-gun-hucre {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.ba-pos-gun-hucre .ba-pos-hucre-input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+
+.ba-pos-gun-hucre .ba-gun-sonek {
+  flex: 0 0 1.85rem;
+  width: 1.85rem;
+  text-align: left;
+}
+
+.ba-pos-gun-hucre .ba-gun-sonek--bos {
+  visibility: hidden;
 }
 
 .ba-pos-tablo-islem {
-  width: 2.2rem;
+  width: 2.4rem;
   text-align: center;
+  overflow: visible;
 }
 
 .ba-pos-satir-sil {

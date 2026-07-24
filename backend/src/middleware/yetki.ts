@@ -14,7 +14,11 @@ export function yetkiZorunlu(...gerekliYetkiler: string[]) {
 
 /** Kullanici / rol yonetimi: SUPER_ADMIN veya kullanici_yonetimi yetkisi gerekli. */
 export function kullaniciYonetimiErisimi(req: AuthRequest, res: Response, next: NextFunction) {
-  const superAdmin = req.kullanici?.rol.trim().toUpperCase() === 'SUPER_ADMIN';
+  const roller = String(req.kullanici?.rol ?? '')
+    .split(/[,;|]/)
+    .map((r) => r.trim().toUpperCase())
+    .filter(Boolean);
+  const superAdmin = roller.includes('SUPER_ADMIN');
   const kullaniciYonetimiVar = req.yetkiler?.includes('kullanici_yonetimi');
   if (superAdmin || kullaniciYonetimiVar) return next();
   return res.status(403).json({ mesaj: 'Kullanici ve rol yonetimi yetkisi gerekli' });

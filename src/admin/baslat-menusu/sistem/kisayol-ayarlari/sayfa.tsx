@@ -177,7 +177,7 @@ export function KisayolAyarlariSayfasi() {
             setBasari('');
             setHata('');
           }}
-          className="mt-4 text-xs text-blue-400 hover:underline"
+          className="ap-link-btn mt-4 text-xs"
         >
           Varsayılana sıfırla
         </button>

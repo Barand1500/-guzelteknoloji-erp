@@ -1,4 +1,5 @@
 import type { MutableRefObject, ReactNode } from 'react';
+import type { DgMenuAnchor } from './dgGeciciMenuAnchor';
 
 export type SiralamaYonu = 'asc' | 'desc' | null;
 
@@ -100,7 +101,13 @@ export interface DataGridApi {
   satirDuzenleAc: (satirId: string) => void;
   csvIndir: (sadeceSecili?: boolean) => void;
   /** Sütun menüsünü aç/kapat; harici düğmeden çağrılıyorsa konum için anchor verilir */
-  sutunMenuToggle: (anchor?: HTMLElement | null) => void;
+  sutunMenuToggle: (anchor?: DgMenuAnchor | null) => void;
+  /** Sayı formülleri menüsünü aç/kapat */
+  formulMenuToggle: (anchor?: DgMenuAnchor | null) => void;
+  sayfaBoyutu: () => number;
+  sayfaBoyutuAyarla: (n: number) => void;
+  cizgiModu: () => DataGridCizgiModu;
+  cizgiModuAyarla: (mod: DataGridCizgiModu) => void;
   hizliGirisOdakla: () => void;
   hizliGirisKapat: () => void;
   /** Hızlı giriş satırı açıksa kaydı gönderir (Enter / + ile aynı) */

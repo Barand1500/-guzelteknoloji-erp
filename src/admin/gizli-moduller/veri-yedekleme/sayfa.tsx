@@ -222,7 +222,10 @@ export function VeriYedeklemeSayfasi() {
               </div>
             )}
             {ayarMesaji && (
-              <p className={`text-xs ${ayarMesaji.includes('kaydedilemedi') ? 'text-red-400' : 'text-emerald-400'}`}>
+              <p
+                className={`text-xs ${ayarMesaji.includes('kaydedilemedi') ? 'text-red-400' : ''}`}
+                style={ayarMesaji.includes('kaydedilemedi') ? undefined : { color: 'var(--ap-accent)' }}
+              >
                 {ayarMesaji}
               </p>
             )}
@@ -246,10 +249,8 @@ export function VeriYedeklemeSayfasi() {
                   type="button"
                   disabled={ayarKaydediliyor || ayarlarYukleniyor}
                   onClick={() => formatDegistir(sec.deger)}
-                  className={`rounded-lg border px-3 py-2 text-left transition ${
-                    format === sec.deger
-                      ? 'border-blue-500 bg-blue-950/40 ring-1 ring-blue-500'
-                      : 'border-[var(--ap-border)] hover:border-blue-500/50'
+                  className={`ap-yedek-format-secenek rounded-lg border px-3 py-2 text-left transition ${
+                    format === sec.deger ? 'ap-yedek-format-secenek-aktif' : ''
                   }`}
                 >
                   <span className="ap-heading block text-sm font-semibold">{sec.ad}</span>
@@ -266,7 +267,7 @@ export function VeriYedeklemeSayfasi() {
               value={indirDosyaAdi}
               onChange={(e) => setIndirDosyaAdi(e.target.value)}
               placeholder={`site-adi-admin-2026-06-13.${format}`}
-              className="ap-input w-full rounded border px-3 py-2 text-sm outline-none focus:border-blue-500"
+              className="ap-input w-full rounded border px-3 py-2 text-sm outline-none focus:border-[var(--ap-accent)]"
             />
             <p className="ap-muted mt-1 text-xs">Otomatik format: site-adi-admin-tarih.{format}</p>
           </div>
@@ -276,7 +277,7 @@ export function VeriYedeklemeSayfasi() {
               type="button"
               disabled={hizliSqlIndiriliyor || yukleniyor || ayarlarYukleniyor}
               onClick={() => void hizliSqlIndirHandler()}
-              className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+              className="ap-yedek-btn-birincil disabled:opacity-50"
             >
               {hizliSqlIndiriliyor ? 'Yedekleniyor...' : 'Hızlı SQL yedek al'}
             </button>
@@ -284,7 +285,7 @@ export function VeriYedeklemeSayfasi() {
               type="button"
               disabled={indiriliyor || yukleniyor || ayarlarYukleniyor}
               onClick={() => void indirHandler()}
-              className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+              className="ap-yedek-btn-ikincil disabled:opacity-50"
             >
               {indiriliyor ? 'İndiriliyor...' : `${formatAdi} İndir`}
             </button>
@@ -305,7 +306,7 @@ export function VeriYedeklemeSayfasi() {
               type="text"
               value={geriDosyaAdi}
               onChange={(e) => setGeriDosyaAdi(e.target.value)}
-              className="ap-input w-full rounded border px-3 py-2 text-sm outline-none focus:border-blue-500"
+              className="ap-input w-full rounded border px-3 py-2 text-sm outline-none focus:border-[var(--ap-accent)]"
             />
           </div>
 
@@ -315,7 +316,7 @@ export function VeriYedeklemeSayfasi() {
               type="file"
               accept=".json,.sql,.zip,application/json,application/zip,text/plain"
               onChange={(e) => setSeciliDosya(e.target.files?.[0] ?? null)}
-              className="ap-input w-full rounded border px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-blue-600 file:px-3 file:py-1 file:text-xs file:text-white"
+              className="ap-input w-full rounded border px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ap-accent)] file:px-3 file:py-1 file:text-xs file:text-white"
             />
             {seciliDosya && (
               <p className="ap-muted mt-1 text-xs">Seçili: {seciliDosya.name}</p>
@@ -326,7 +327,7 @@ export function VeriYedeklemeSayfasi() {
             type="button"
             disabled={yukleniyorGeri || !seciliDosya}
             onClick={() => void geriYukleHandler()}
-            className="rounded bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-50"
+            className="ap-yedek-btn-birincil disabled:opacity-50"
           >
             {yukleniyorGeri ? 'Yükleniyor...' : 'Geri Yükle'}
           </button>
@@ -371,9 +372,7 @@ export function VeriYedeklemeSayfasi() {
                   <td className="px-4 py-3">
                     <span
                       className={`rounded px-2 py-0.5 text-xs ${
-                        k.tip === 'geri_yukle'
-                          ? 'bg-amber-900/40 text-amber-300'
-                          : 'bg-emerald-900/40 text-emerald-300'
+                        k.tip === 'geri_yukle' ? 'ap-yedek-tip-geri' : 'ap-yedek-tip-yedek'
                       }`}
                     >
                       {tipEtiket(k.tip)}

@@ -1,5 +1,6 @@
 import { bankaEtiketi } from './bankalar';
 import type { AdminBankaAnlasma, BankaAnlasmaFormDegeri } from './tipler';
+import { posKomisyonSatirBosMu } from './tipler';
 
 const ANAHTAR = 'erp-banka-anlasmalari-kayitlar-v1';
 
@@ -55,7 +56,9 @@ function formdanKayit(
     komisyonUygulamaTipi: pos ? form.komisyonUygulamaTipi : '',
     puanUygulamaTipi: pos ? form.puanUygulamaTipi : '',
     valor: pos ? form.valor : false,
-    posKomisyonSatirlari: pos ? form.posKomisyonSatirlari : [],
+    posKomisyonSatirlari: pos
+      ? form.posKomisyonSatirlari.filter((s) => !posKomisyonSatirBosMu(s))
+      : [],
     iletisimKisiler: form.iletisimKisiler,
     acikKisismlar: form.acikKisismlar,
     aktif: form.aktif,

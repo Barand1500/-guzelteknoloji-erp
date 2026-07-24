@@ -62,18 +62,7 @@ export function RolMatrisi({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800">
-      <div className="border-b border-slate-700 px-4 py-3">
-        <div className="text-sm font-semibold text-white">
-          {aktifModul.ikon ? `${aktifModul.ikon} ` : ''}
-          {aktifModul.ad}
-        </div>
-        <div className="mt-0.5 text-xs text-slate-500">
-          {tumSayfalar
-            ? 'İşaretlenen yetki uygun tüm sayfalara uygulanır. Sayfalar arası fark varsa “−” görünür.'
-            : aktifModul.kategori ?? null}
-        </div>
-      </div>
-      <table className="w-full min-w-[560px] text-left text-sm">
+      <table className="w-full min-w-[560px] text-left text-sm" aria-label={`${aktifModul.ad} yetki matrisi`}>
         <thead>
           <tr className="border-b border-slate-700 bg-slate-900/50">
             <th className="px-4 py-3 font-semibold text-white">Rol</th>

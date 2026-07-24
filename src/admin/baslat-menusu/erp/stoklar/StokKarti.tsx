@@ -89,7 +89,7 @@ export function StokKarti({
   stokId: string | null;
   onGeri: () => void;
   onKaydedildi: () => void;
-  kaydetRef: MutableRefObject<(() => Promise<void>) | null>;
+  kaydetRef: MutableRefObject<(() => Promise<boolean | void | string>) | null>;
   onKirliDegistir: (kirli: boolean) => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -266,7 +266,8 @@ export function StokKarti({
 
     setKaydediliyor(true);
     try {
-      if (mod === 'duzenle' && stokId) {
+      const yeniKayit = !(mod === 'duzenle' && stokId);
+      if (!yeniKayit && stokId) {
         await stokGuncelle(stokId, { ...urunForm, aktif });
         await birimSatirlariniKaydet(stokId);
         basariBildir('Stok kartı güncellendi.');
@@ -280,6 +281,7 @@ export function StokKarti({
         markaCacheSifirla();
       }
       onKaydedildi();
+      return yeniKayit ? 'Eklendi' : 'Güncellendi';
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Kayıt başarısız');
       throw e;

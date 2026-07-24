@@ -10,6 +10,7 @@ import {
   CariOutlinedIlce,
 } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedIlArama';
 import { CariOutlinedTelefon } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedTelefon';
+import { CariOutlinedTelefonDahili } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedTelefonDahili';
 
 function kisiSilMetni(kisi: CariIletisimKisi): string {
   return kisi.adresBasligi.trim() || 'Adsız adres başlığı';
@@ -155,10 +156,14 @@ export function BankaAdresIletisimBolumu({
                   />
                 </div>
                 <div className="cari-telefon-gsm-cift">
-                  <CariOutlinedTelefon
+                  <CariOutlinedTelefonDahili
                     deger={kisi.telefon}
+                    dahili={kisi.telefonDahili}
                     disabled={disabled}
                     onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
+                    onDahiliChange={(telefonDahili) =>
+                      kisiGuncelle(kisi.id, { telefonDahili })
+                    }
                   />
                   <CariOutlinedTelefon
                     etiket="GSM"

@@ -9,6 +9,7 @@ import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/Tanim
 import { CariOutlinedAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAcilir';
 import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
 import { CariSecenekModal } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariSecenekModal';
+import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import {
@@ -33,6 +34,8 @@ import {
 } from '../hesapTipleri';
 import {
   bankaDovizSecenekleri,
+  bankaDovizKisaSecenekleri,
+  BANKA_DOVIZ_SEMBOL,
   KOMISYON_UYGULAMA_TIPLERI,
   KREDI_KART_TURLERI,
   PUAN_UYGULAMA_TIPLERI,
@@ -147,7 +150,7 @@ export function BankaAnlasmaKart({
   mod: BankaKartModu;
   kayitId: string | null;
   onKaydedildi: () => void;
-  kaydetRef: MutableRefObject<(() => Promise<void>) | null>;
+  kaydetRef: MutableRefObject<(() => Promise<boolean | void | string>) | null>;
   onKirliDegistir: (kirli: boolean) => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -236,11 +239,15 @@ export function BankaAnlasmaKart({
       if (mod === 'yeni') {
         await bankaAnlasmaOlustur(form);
         basariBildir('Banka kaydı eklendi.');
-      } else if (kayitId) {
+        onKaydedildi();
+        return 'Eklendi';
+      }
+      if (kayitId) {
         await bankaAnlasmaGuncelle(kayitId, form);
         basariBildir('Banka kaydı güncellendi.');
+        onKaydedildi();
+        return 'Güncellendi';
       }
-      onKaydedildi();
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Kayıt başarısız');
       throw e;
@@ -272,13 +279,15 @@ export function BankaAnlasmaKart({
       <div className={`cari-kart-sayfa${saltOkunur ? ' cari-kart-sayfa--salt' : ''}`}>
         <div className={`cari-kart-kabuk${saltOkunur ? ' cari-kart-kabuk--salt' : ''}`}>
           <div className="cari-kart-grid">
-            <HesapTipiChipleri
-              deger={form.hesapTipi}
-              secenekler={hesapTipleri}
-              saltOkunur={saltOkunur}
-              onYonet={() => setTipModalAcik(true)}
-              onDegistir={(hesapTipi) => setForm((f) => tipDegisinceFormTemizle(f, hesapTipi))}
-            />
+            {form.hesapTipi !== 'POS' ? (
+              <HesapTipiChipleri
+                deger={form.hesapTipi}
+                secenekler={hesapTipleri}
+                saltOkunur={saltOkunur}
+                onYonet={() => setTipModalAcik(true)}
+                onDegistir={(hesapTipi) => setForm((f) => tipDegisinceFormTemizle(f, hesapTipi))}
+              />
+            ) : null}
 
             {form.hesapTipi === 'BANKA' ? (
               <>
@@ -302,24 +311,16 @@ export function BankaAnlasmaKart({
                     onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
                   />
                 </div>
-                <CariOutlinedGirdi
-                  etiket="Hesap Numarası"
-                  deger={form.hesapNumarasi}
-                  maxLength={40}
-                  odakPlaceholder="Hesap numarası"
-                  disabled={saltOkunur}
-                  onChange={(hesapNumarasi) => setAlan('hesapNumarasi', hesapNumarasi)}
-                />
-                <CariOutlinedAcilir
-                  etiket="Banka"
-                  zorunlu
-                  deger={form.bankaKodu}
-                  secenekler={bankaSecenekleri}
-                  disabled={saltOkunur}
-                  onYonet={() => setBankaModalAcik(true)}
-                  onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
-                />
-                <div className="cari-il-ilce-cift ba-sube-cift">
+                <div className="cari-il-ilce-cift ba-banka-sube-cift">
+                  <CariOutlinedAcilir
+                    etiket="Banka"
+                    zorunlu
+                    deger={form.bankaKodu}
+                    secenekler={bankaSecenekleri}
+                    disabled={saltOkunur}
+                    onYonet={() => setBankaModalAcik(true)}
+                    onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
+                  />
                   <CariOutlinedGirdi
                     etiket="Banka Şubesi"
                     deger={form.bankaSubesi}
@@ -328,15 +329,23 @@ export function BankaAnlasmaKart({
                     disabled={saltOkunur}
                     onChange={(bankaSubesi) => setAlan('bankaSubesi', bankaSubesi)}
                   />
-                  <CariOutlinedGirdi
-                    etiket="Banka Şube Kodu"
-                    deger={form.bankaSubeKodu}
-                    maxLength={20}
-                    odakPlaceholder="Şube kodu"
-                    disabled={saltOkunur}
-                    onChange={(bankaSubeKodu) => setAlan('bankaSubeKodu', bankaSubeKodu)}
-                  />
                 </div>
+                <CariOutlinedGirdi
+                  etiket="Hesap Numarası"
+                  deger={form.hesapNumarasi}
+                  maxLength={40}
+                  odakPlaceholder="Hesap numarası"
+                  disabled={saltOkunur}
+                  onChange={(hesapNumarasi) => setAlan('hesapNumarasi', hesapNumarasi)}
+                />
+                <CariOutlinedGirdi
+                  etiket="Banka Şube Kodu"
+                  deger={form.bankaSubeKodu}
+                  maxLength={20}
+                  odakPlaceholder="Şube kodu"
+                  disabled={saltOkunur}
+                  onChange={(bankaSubeKodu) => setAlan('bankaSubeKodu', bankaSubeKodu)}
+                />
                 <BankaIbanGirdi
                   deger={form.iban}
                   mod={form.ibanModu}
@@ -417,24 +426,32 @@ export function BankaAnlasmaKart({
                       sonek={<span className="ba-gun-sonek">. günü</span>}
                     />
                   </div>
-                  <div className="cari-il-ilce-cift">
-                    <CariOutlinedGirdi
-                      etiket="Kart Limiti"
-                      deger={form.kartLimiti}
-                      maxLength={18}
-                      odakPlaceholder="0"
-                      inputMode="decimal"
-                      disabled={saltOkunur}
-                      onChange={(v) => setAlan('kartLimiti', kartLimitiFiltrele(v))}
-                    />
-                    <CariOutlinedAcilir
-                      etiket="Döviz Cinsi"
-                      deger={form.dovizCinsi}
-                      secenekler={bankaDovizSecenekleri()}
-                      disabled={saltOkunur}
-                      onChange={(dovizCinsi) => setAlan('dovizCinsi', dovizCinsi)}
-                    />
-                  </div>
+                  <CariOutlinedGirdi
+                    etiket="Kart Limiti"
+                    className="ba-limit-iceride"
+                    deger={form.kartLimiti}
+                    maxLength={18}
+                    odakPlaceholder="0"
+                    inputMode="decimal"
+                    disabled={saltOkunur}
+                    onChange={(v) => setAlan('kartLimiti', kartLimitiFiltrele(v))}
+                    sonek={
+                      <div className="ap-form-acilir-secim-liste-anchor ba-limit-pb-anchor">
+                        <FormAcilirSecim
+                          value={form.dovizCinsi}
+                          onChange={(dovizCinsi) => setAlan('dovizCinsi', dovizCinsi)}
+                          secenekler={bankaDovizKisaSecenekleri()}
+                          disabled={saltOkunur}
+                          aria-label="Para birimi"
+                          className="ba-limit-pb-secim"
+                          listeAnchor="self"
+                          listeMinGenislik={96}
+                          listeDikeyBosluk={4}
+                          tusMetin={BANKA_DOVIZ_SEMBOL[form.dovizCinsi] ?? (form.dovizCinsi || '₺')}
+                        />
+                      </div>
+                    }
+                  />
                 </div>
                 <BankaKrediKartGorsel
                   kartNo={form.kartNo}
@@ -449,82 +466,98 @@ export function BankaAnlasmaKart({
                 />
               </div>
             ) : form.hesapTipi === 'POS' ? (
-              <>
-                <div className="ba-hesap-kod-isim">
-                  <CariOutlinedGirdi
-                    etiket="Hesap Kodu"
-                    deger={form.hesapKodu}
-                    maxLength={20}
-                    buyukHarf
-                    odakPlaceholder="Kod"
-                    disabled={saltOkunur}
-                    onChange={(hesapKodu) => setAlan('hesapKodu', hesapKodu)}
+              <div className="ba-pos-govde">
+                <div className="ba-pos-sol">
+                  <HesapTipiChipleri
+                    deger={form.hesapTipi}
+                    secenekler={hesapTipleri}
+                    saltOkunur={saltOkunur}
+                    onYonet={() => setTipModalAcik(true)}
+                    onDegistir={(hesapTipi) => setForm((f) => tipDegisinceFormTemizle(f, hesapTipi))}
                   />
-                  <CariOutlinedGirdi
-                    etiket="Hesap Adı"
-                    deger={form.hesapIsmi}
-                    zorunlu
-                    maxLength={120}
-                    odakPlaceholder="Hesap adını yazınız"
-                    disabled={saltOkunur}
-                    onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
-                  />
+                  <div className="ba-hesap-kod-isim">
+                    <CariOutlinedGirdi
+                      etiket="Hesap Kodu"
+                      deger={form.hesapKodu}
+                      maxLength={20}
+                      buyukHarf
+                      odakPlaceholder="Kod"
+                      disabled={saltOkunur}
+                      onChange={(hesapKodu) => setAlan('hesapKodu', hesapKodu)}
+                    />
+                    <CariOutlinedGirdi
+                      etiket="Hesap Adı"
+                      deger={form.hesapIsmi}
+                      zorunlu
+                      maxLength={120}
+                      odakPlaceholder="Hesap adını yazınız"
+                      disabled={saltOkunur}
+                      onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
+                    />
+                  </div>
+                  <div className="ba-pos-donem-valor">
+                    <BankaOutlinedDonem
+                      baslangic={form.baslangicTarihi}
+                      bitis={form.bitisTarihi}
+                      disabled={saltOkunur}
+                      onBaslangicChange={(baslangicTarihi) =>
+                        setAlan('baslangicTarihi', baslangicTarihi)
+                      }
+                      onBitisChange={(bitisTarihi) => setAlan('bitisTarihi', bitisTarihi)}
+                    />
+                    <BankaValorKutu
+                      deger={form.valor}
+                      disabled={saltOkunur}
+                      onChange={(valor) => setAlan('valor', valor)}
+                    />
+                  </div>
+                  <div className="cari-il-ilce-cift ba-pos-banka-anlasma">
+                    <CariOutlinedAcilir
+                      etiket="Banka"
+                      zorunlu
+                      deger={form.bankaKodu}
+                      secenekler={bankaSecenekleri}
+                      disabled={saltOkunur}
+                      onYonet={() => setBankaModalAcik(true)}
+                      onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
+                    />
+                    <CariOutlinedGirdi
+                      etiket="Anlaşma No"
+                      deger={form.anlasmaNo}
+                      maxLength={40}
+                      odakPlaceholder="Anlaşma numarası"
+                      disabled={saltOkunur}
+                      onChange={(anlasmaNo) => setAlan('anlasmaNo', anlasmaNo)}
+                    />
+                  </div>
+                  <div className="cari-il-ilce-cift">
+                    <CariOutlinedAcilir
+                      etiket="Komisyon Uygulama Tipi"
+                      deger={form.komisyonUygulamaTipi}
+                      secenekler={KOMISYON_UYGULAMA_TIPLERI}
+                      disabled={saltOkunur}
+                      onChange={(komisyonUygulamaTipi) =>
+                        setAlan(
+                          'komisyonUygulamaTipi',
+                          komisyonUygulamaTipi as typeof form.komisyonUygulamaTipi
+                        )
+                      }
+                    />
+                    <CariOutlinedAcilir
+                      etiket="Puan Uygulama Tipi"
+                      deger={form.puanUygulamaTipi}
+                      secenekler={PUAN_UYGULAMA_TIPLERI}
+                      disabled={saltOkunur}
+                      onChange={(puanUygulamaTipi) =>
+                        setAlan(
+                          'puanUygulamaTipi',
+                          puanUygulamaTipi as typeof form.puanUygulamaTipi
+                        )
+                      }
+                    />
+                  </div>
                 </div>
-                <CariOutlinedAcilir
-                  etiket="Banka"
-                  zorunlu
-                  deger={form.bankaKodu}
-                  secenekler={bankaSecenekleri}
-                  disabled={saltOkunur}
-                  onYonet={() => setBankaModalAcik(true)}
-                  onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
-                />
-                <CariOutlinedGirdi
-                  etiket="Anlaşma No"
-                  deger={form.anlasmaNo}
-                  maxLength={40}
-                  odakPlaceholder="Anlaşma numarası"
-                  disabled={saltOkunur}
-                  onChange={(anlasmaNo) => setAlan('anlasmaNo', anlasmaNo)}
-                />
-                <div className="ba-pos-donem-valor">
-                  <BankaOutlinedDonem
-                    baslangic={form.baslangicTarihi}
-                    bitis={form.bitisTarihi}
-                    disabled={saltOkunur}
-                    onBaslangicChange={(baslangicTarihi) =>
-                      setAlan('baslangicTarihi', baslangicTarihi)
-                    }
-                    onBitisChange={(bitisTarihi) => setAlan('bitisTarihi', bitisTarihi)}
-                  />
-                  <BankaValorKutu
-                    deger={form.valor}
-                    disabled={saltOkunur}
-                    onChange={(valor) => setAlan('valor', valor)}
-                  />
-                </div>
-                <CariOutlinedAcilir
-                  etiket="Komisyon Uygulama Tipi"
-                  deger={form.komisyonUygulamaTipi}
-                  secenekler={KOMISYON_UYGULAMA_TIPLERI}
-                  disabled={saltOkunur}
-                  onChange={(komisyonUygulamaTipi) =>
-                    setAlan(
-                      'komisyonUygulamaTipi',
-                      komisyonUygulamaTipi as typeof form.komisyonUygulamaTipi
-                    )
-                  }
-                />
-                <CariOutlinedAcilir
-                  etiket="Puan Uygulama Tipi"
-                  deger={form.puanUygulamaTipi}
-                  secenekler={PUAN_UYGULAMA_TIPLERI}
-                  disabled={saltOkunur}
-                  onChange={(puanUygulamaTipi) =>
-                    setAlan('puanUygulamaTipi', puanUygulamaTipi as typeof form.puanUygulamaTipi)
-                  }
-                />
-                <div className="ba-pos-tablo-satir">
+                <div className="ba-pos-sag">
                   <BankaPosKomisyonTablosu
                     satirlar={form.posKomisyonSatirlari}
                     disabled={saltOkunur}
@@ -533,7 +566,7 @@ export function BankaAnlasmaKart({
                     }
                   />
                 </div>
-              </>
+              </div>
             ) : (
               <p className="ba-tip-bekleyen cari-alan-tam">
                 Bu hesap tipi için ek alanlar yakında eklenecek.

@@ -50,6 +50,7 @@ import { CariOutlinedEposta } from './CariOutlinedEposta';
 import { CariOutlinedGirdi } from './CariOutlinedGirdi';
 import { CariOutlinedIl, CariOutlinedIlce } from './CariOutlinedIlArama';
 import { CariOutlinedTelefon } from './CariOutlinedTelefon';
+import { CariOutlinedTelefonDahili } from './CariOutlinedTelefonDahili';
 import { CariOutlinedVergiDairesi } from './CariOutlinedVergiDairesi';
 import { CariOutlinedVergiNo } from './CariOutlinedVergiNo';
 import { CariSecenekModal } from './CariSecenekModal';
@@ -134,7 +135,7 @@ export function CariKart({
   mod: CariKartModu;
   cariId: string | null;
   onKaydedildi: () => void;
-  kaydetRef: MutableRefObject<(() => Promise<void>) | null>;
+  kaydetRef: MutableRefObject<(() => Promise<boolean | void | string>) | null>;
   onKirliDegistir: (kirli: boolean) => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -237,7 +238,8 @@ export function CariKart({
     }
     try {
       let kaydedilenId = cariId;
-      if (mod === 'duzenle' && cariId) {
+      const yeniKayit = !(mod === 'duzenle' && cariId);
+      if (!yeniKayit && cariId) {
         await cariGuncelle(cariId, apiForm);
         basariBildir('Cari kart güncellendi.');
       } else {
@@ -251,6 +253,7 @@ export function CariKart({
         cariEirsaliyeAliasKaydet(kaydedilenId, form.eirsaliyeAlias);
       }
       onKaydedildi();
+      return yeniKayit ? 'Eklendi' : 'Güncellendi';
     } catch (e) {
       hataBildir(e instanceof Error ? e.message : 'Kayıt başarısız');
       throw e;
@@ -472,10 +475,12 @@ export function CariKart({
               />
             </div>
             <div className="cari-telefon-gsm-cift">
-              <CariOutlinedTelefon
+              <CariOutlinedTelefonDahili
                 deger={form.telefon}
+                dahili={form.telefonDahili}
                 disabled={saltOkunur}
                 onChange={(telefon) => setAlan('telefon', telefon)}
+                onDahiliChange={(telefonDahili) => setAlan('telefonDahili', telefonDahili)}
               />
               <CariOutlinedTelefon
                 etiket="GSM"

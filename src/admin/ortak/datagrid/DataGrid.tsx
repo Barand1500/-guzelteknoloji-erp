@@ -25,6 +25,8 @@ import { DgHucreSecim } from './DgHucreSecim';
 import { EtiketHucre } from './EtiketHucre';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
+import { DG_SAYFA_BOYUTLARI as SAYFA_BOYUTLARI } from './datagridSabitleri';
+import { dgMenuAnchorRect, type DgMenuAnchor } from './dgGeciciMenuAnchor';
 import './datagrid.css';
 
 /** Aksiyon çubuğu (.ap-footer) ilk render'da yoksa panel hiç açılmasın diye yeniden dene. */
@@ -112,9 +114,7 @@ function kolonFormulaTipi<TRow>(kolon: KolonTanimi<TRow>): 'sayi' | 'iskonto' | 
   return null;
 }
 
-const SAYFA_BOYUTLARI = [5, 10, 25, 50];
-
-type MenuHizalama = 'sag' | 'sol';
+type MenuHizalama = 'sag' | 'sol' | 'yaninda';
 
 function portalMenuKonumHesapla(
   rect: DOMRect | undefined,
@@ -123,6 +123,19 @@ function portalMenuKonumHesapla(
   hizalama: MenuHizalama = 'sag'
 ) {
   if (!rect) return { top: 0, left: 0 };
+
+  if (hizalama === 'yaninda') {
+    let left = rect.right + 8;
+    if (left + genislik > window.innerWidth - 8) {
+      left = Math.max(8, rect.left - genislik - 8);
+    }
+    let top = rect.top;
+    if (top + maxH > window.innerHeight - 8) {
+      top = Math.max(8, window.innerHeight - maxH - 8);
+    }
+    return { top, left };
+  }
+
   let left = hizalama === 'sol' ? rect.left : rect.right - genislik;
   if (hizalama === 'sol' && left + genislik > window.innerWidth - 8) {
     left = rect.right - genislik;
@@ -399,7 +412,8 @@ export function DataGrid<TRow extends { id: string }>({
   const menuRef = useRef<HTMLDivElement>(null);
   const formulMenuRef = useRef<HTMLDivElement>(null);
   const sutunTusRef = useRef<HTMLButtonElement>(null);
-  const sutunMenuAnchorRef = useRef<HTMLElement | null>(null);
+  const sutunMenuAnchorRef = useRef<DgMenuAnchor | null>(null);
+  const formulMenuAnchorRef = useRef<DgMenuAnchor | null>(null);
   const formulTusRef = useRef<HTMLButtonElement>(null);
   const hizliGirisIlkRef = useRef<HTMLInputElement>(null);
   const girdiRef = useRef<HTMLElement>(null);
@@ -525,13 +539,18 @@ export function DataGrid<TRow extends { id: string }>({
         menuRef.current?.contains(hedef) ||
         formulMenuRef.current?.contains(hedef) ||
         sutunTusRef.current?.contains(hedef) ||
-        sutunMenuAnchorRef.current?.contains(hedef) ||
+        (sutunMenuAnchorRef.current instanceof HTMLElement &&
+          sutunMenuAnchorRef.current.contains(hedef)) ||
+        (formulMenuAnchorRef.current instanceof HTMLElement &&
+          formulMenuAnchorRef.current.contains(hedef)) ||
         formulTusRef.current?.contains(hedef)
       ) {
         return;
       }
       dg.setSutunMenuAcik(false);
       setFormulMenuAcik(false);
+      sutunMenuAnchorRef.current = null;
+      formulMenuAnchorRef.current = null;
     };
     document.addEventListener('mousedown', disTikla);
     return () => document.removeEventListener('mousedown', disTikla);
@@ -679,14 +698,23 @@ export function DataGrid<TRow extends { id: string }>({
   }, [dg.ayar.sabitlenmisKolonlar, dg.gorunurKolonlar, dg.ayar.kolonGenislikleri]);
 
   const sutunMenuKonumGuncelle = useCallback(() => {
-    const el = sutunMenuAnchorRef.current ?? sutunTusRef.current;
-    setSutunMenuKonum(portalMenuKonumHesapla(el?.getBoundingClientRect(), 300, 420));
+    const anchor = sutunMenuAnchorRef.current;
+    const rect = dgMenuAnchorRect(anchor) ?? sutunTusRef.current?.getBoundingClientRect();
+    const yaninda = Boolean(anchor && !(anchor instanceof HTMLElement) && anchor.yaninda);
+    setSutunMenuKonum(
+      portalMenuKonumHesapla(rect, 300, 420, yaninda ? 'yaninda' : 'sag')
+    );
   }, []);
 
   const formulMenuKonumGuncelle = useCallback(() => {
-    const rect = formulTusRef.current?.getBoundingClientRect();
+    const anchor = formulMenuAnchorRef.current;
+    const rect =
+      dgMenuAnchorRect(anchor) ?? formulTusRef.current?.getBoundingClientRect();
     const genislik = formulMenuRef.current?.offsetWidth ?? Math.min(400, window.innerWidth - 16);
-    setFormulMenuKonum(portalMenuKonumHesapla(rect, genislik, 560, 'sol'));
+    const yaninda = Boolean(anchor && !(anchor instanceof HTMLElement) && anchor.yaninda);
+    setFormulMenuKonum(
+      portalMenuKonumHesapla(rect, genislik, 560, yaninda ? 'yaninda' : 'sol')
+    );
   }, []);
 
   useLayoutEffect(() => {
@@ -1349,12 +1377,28 @@ export function DataGrid<TRow extends { id: string }>({
         if (anchor) sutunMenuAnchorRef.current = anchor;
         else if (anchor === null) sutunMenuAnchorRef.current = null;
         setFormulMenuAcik(false);
+        formulMenuAnchorRef.current = null;
         dg.setSutunMenuAcik((acik) => {
           const sonraki = !acik;
           if (!sonraki) sutunMenuAnchorRef.current = null;
           return sonraki;
         });
       },
+      formulMenuToggle: (anchor) => {
+        if (anchor) formulMenuAnchorRef.current = anchor;
+        else if (anchor === null) formulMenuAnchorRef.current = null;
+        dg.setSutunMenuAcik(false);
+        sutunMenuAnchorRef.current = null;
+        setFormulMenuAcik((acik) => {
+          const sonraki = !acik;
+          if (!sonraki) formulMenuAnchorRef.current = null;
+          return sonraki;
+        });
+      },
+      sayfaBoyutu: () => dg.ayar.sayfaBoyutu,
+      sayfaBoyutuAyarla: (n) => dg.sayfaBoyutuAyarla(n),
+      cizgiModu: () => dg.ayar.cizgiModu,
+      cizgiModuAyarla: (mod) => dg.cizgiModuAyarla(mod),
       hizliGirisOdakla: () => {
         if (hizliGirisIstegeBagli) setHizliGirisAcik(true);
         requestAnimationFrame(() => {
@@ -1380,6 +1424,10 @@ export function DataGrid<TRow extends { id: string }>({
     satirlar,
     dg.seciliIdler,
     dg.tumunuSec,
+    dg.ayar.sayfaBoyutu,
+    dg.ayar.cizgiModu,
+    dg.sayfaBoyutuAyarla,
+    dg.cizgiModuAyarla,
     satirDuzenlePaneli,
     hizliGirisIstegeBagli,
     hizliGirisSifirla,
@@ -2378,8 +2426,10 @@ export function DataGrid<TRow extends { id: string }>({
                 onClick={() => {
                   if (formulMenuAcik) {
                     setFormulMenuAcik(false);
+                    formulMenuAnchorRef.current = null;
                     return;
                   }
+                  formulMenuAnchorRef.current = null;
                   dg.setSutunMenuAcik(false);
                   setFormulMenuAcik(true);
                 }}

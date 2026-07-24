@@ -52,16 +52,25 @@ export function kullaniciModuluErisimVar(
   yetkiler: YetkiKodu[],
   yetkilerModul?: Record<string, YetkiKodu[]>
 ): boolean {
-  if (rol.trim().toUpperCase() === 'SUPER_ADMIN') return true;
+  const roller = rol
+    .split(/[,;|]/)
+    .map((r) => r.trim())
+    .filter(Boolean);
+  if (roller.some((r) => r.toUpperCase() === 'SUPER_ADMIN')) return true;
 
-  const kullanicilar = modulYetkileriniCoz(rol, 'kullanicilar', yetkiler, yetkilerModul);
-  const roller = modulYetkileriniCoz(rol, 'roller', yetkiler, yetkilerModul);
+  for (const tek of roller.length ? roller : [rol]) {
+    const kullanicilar = modulYetkileriniCoz(tek, 'kullanicilar', yetkiler, yetkilerModul);
+    const rollerYetki = modulYetkileriniCoz(tek, 'roller', yetkiler, yetkilerModul);
+    if (
+      kullanicilar.includes('kullanici_yonetimi') ||
+      rollerYetki.includes('kullanici_yonetimi') ||
+      yetkiler.includes('kullanici_yonetimi')
+    ) {
+      return true;
+    }
+  }
 
-  return (
-    kullanicilar.includes('kullanici_yonetimi') ||
-    roller.includes('kullanici_yonetimi') ||
-    yetkiler.includes('kullanici_yonetimi')
-  );
+  return yetkiler.includes('kullanici_yonetimi');
 }
 
 export function modulGoruntulemeVar(
@@ -70,13 +79,21 @@ export function modulGoruntulemeVar(
   yetkiler?: YetkiKodu[],
   yetkilerModul?: Record<string, YetkiKodu[]>
 ): boolean {
-  if (rol.trim().toUpperCase() === 'SUPER_ADMIN') return true;
+  const roller = rol
+    .split(/[,;|]/)
+    .map((r) => r.trim())
+    .filter(Boolean);
+  if (roller.some((r) => r.toUpperCase() === 'SUPER_ADMIN')) return true;
   const prefix = modulIdDenPrefix(modulId);
-  const modulYetkileri = modulYetkileriniCoz(rol, prefix, yetkiler, yetkilerModul);
-  if (yetkilerModul && Object.keys(yetkilerModul).length > 0) {
-    return modulYetkileri.includes('goruntuleme');
+  for (const tek of roller.length ? roller : [rol]) {
+    const modulYetkileri = modulYetkileriniCoz(tek, prefix, yetkiler, yetkilerModul);
+    if (yetkilerModul && Object.keys(yetkilerModul).length > 0) {
+      if (modulYetkileri.includes('goruntuleme')) return true;
+    } else if (cozumleKullaniciYetkileri(tek, yetkiler).includes('goruntuleme')) {
+      return true;
+    }
   }
-  return cozumleKullaniciYetkileri(rol, yetkiler).includes('goruntuleme');
+  return false;
 }
 
 export function useYetkiler(modulId?: string) {
@@ -97,7 +114,7 @@ export function useYetkiler(modulId?: string) {
   const yetkiVar = (kod: YetkiKodu) => yetkiler.includes(kod);
   const kullaniciModuluErisimiVar = kullaniciModuluErisimVar(
     kullanici?.rol ?? '',
-    cozumleKullaniciYetkileri(kullanici?.rol ?? '', kullanici?.yetkiler),
+    kullanici?.yetkiler ?? [],
     kullanici?.yetkilerModul
   );
 

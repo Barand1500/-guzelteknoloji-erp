@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
+import { DG_CIZGI_MODLARI, DG_SAYFA_BOYUTLARI } from '@/admin/ortak/datagrid/datagridSabitleri';
+import { dgSagTikMenuRectAl } from '@/admin/ortak/datagrid/dgGeciciMenuAnchor';
 import { hucrePanoyaMetni, secimMetnindenKopya } from '@/admin/ortak/datagrid/sagTikYardimci';
 import { useSekmeDegisinceKapat } from '@/araclar/sekmePortal';
 
@@ -19,7 +21,15 @@ export type DatagridSagTikIslem =
   | 'satirCogalt'
   | 'csvDisa'
   | 'panoyaKopyala'
-  | 'degeriYay';
+  | 'degeriYay'
+  | 'sayfaBoyutu'
+  | 'cizgi'
+  | 'formul'
+  | 'sutunGorunurluk'
+  | 'aktifYap'
+  | 'pasifYap'
+  | 'disaAktar'
+  | 'secimiTemizle';
 
 export type SatirEkleKonumu = 'ust' | 'alt';
 export type DegeriYayYon = 'ust' | 'alt';
@@ -43,11 +53,19 @@ interface DatagridSagTikMenuProps<TRow extends { id: string }> {
   satirCogaltGoster?: boolean;
   seciliSilGoster?: boolean;
   dahiliSilmeOnay?: boolean;
+  /** false ise kayıt/çizgi/formül/sütun/csv tablo araçları gizlenir */
+  tabloAraclariGoster?: boolean;
+  /** Seçim işlemleri: Aktif/Pasif/Dışa Aktar/Seçimi Temizle (varsayılan true) */
+  secimIslemleriGoster?: boolean;
   onSatirEkleBaslat?: (konum: SatirEkleKonumu, satirId: string) => void;
   onSatirCogalt?: (satir: TRow) => void;
   onSatirSil?: (satir: TRow) => void;
   onSatirDuzenle?: (satir: TRow) => void;
   onSeciliSil?: (satirIdler: string[]) => void;
+  onAktifYap?: () => void;
+  onPasifYap?: () => void;
+  onDisaAktar?: () => void;
+  onSecimiTemizle?: () => void;
   onBilgi?: (mesaj: string) => void;
   hucrePanoyaMetniAl?: (satir: TRow, kolonId: string | null, kolonlar: KolonTanimi<TRow>[]) => string;
   satirSilMetniAl?: (satir: TRow) => string;
@@ -66,7 +84,7 @@ interface MenuOgesi {
   goster?: boolean;
 }
 
-type FlyoutTip = 'satirEkle' | 'degeriYay';
+type FlyoutTip = 'satirEkle' | 'degeriYay' | 'sayfaBoyutu' | 'cizgi';
 
 const SATIR_EKLE_ALT_OGELER: { konum: SatirEkleKonumu; etiket: string; ikon: string }[] = [
   { konum: 'ust', etiket: 'Üstüne Ekle', ikon: '↑' },
@@ -87,6 +105,14 @@ const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', string> = {
   degeriYay: '↕',
   satirSil: '🗑️',
   seciliSil: '🗑️',
+  sayfaBoyutu: '📄',
+  cizgi: '▦',
+  formul: 'ƒx',
+  sutunGorunurluk: '▥',
+  aktifYap: '✅',
+  pasifYap: '⏸️',
+  disaAktar: '📤',
+  secimiTemizle: '✖️',
 };
 
 type SilmeOnayDurumu =
@@ -104,11 +130,17 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
   satirCogaltGoster = true,
   seciliSilGoster = true,
   dahiliSilmeOnay = true,
+  tabloAraclariGoster = true,
+  secimIslemleriGoster = true,
   onSatirEkleBaslat,
   onSatirCogalt,
   onSatirSil,
   onSatirDuzenle,
   onSeciliSil,
+  onAktifYap,
+  onPasifYap,
+  onDisaAktar,
+  onSecimiTemizle,
   onBilgi,
   hucrePanoyaMetniAl = hucrePanoyaMetni,
   satirSilMetniAl,
@@ -220,6 +252,36 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
       case 'csvDisa':
         api?.csvIndir(false);
         break;
+      case 'aktifYap':
+        if (seciliSatirSayisi > 0) onAktifYap?.();
+        break;
+      case 'pasifYap':
+        if (seciliSatirSayisi > 0) onPasifYap?.();
+        break;
+      case 'disaAktar':
+        if (seciliSatirSayisi > 0) {
+          if (onDisaAktar) onDisaAktar();
+          else api?.csvIndir(true);
+        }
+        break;
+      case 'secimiTemizle':
+        if (seciliSatirSayisi > 0) {
+          if (onSecimiTemizle) onSecimiTemizle();
+          else api?.secimAyarla([]);
+        }
+        break;
+      case 'formul': {
+        const snapshot = dgSagTikMenuRectAl(kokRef.current);
+        kapat();
+        requestAnimationFrame(() => api?.formulMenuToggle(snapshot));
+        return;
+      }
+      case 'sutunGorunurluk': {
+        const snapshot = dgSagTikMenuRectAl(kokRef.current);
+        kapat();
+        requestAnimationFrame(() => api?.sutunMenuToggle(snapshot));
+        return;
+      }
       case 'satirSil':
         if (satir) {
           if (dahiliSilmeOnay) {
@@ -333,11 +395,69 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 goster: true,
               },
               {
-                id: 'csvDisa' as const,
-                etiket: menuBasligi('Dışa aktar (CSV)'),
-                ikon: MENU_IKONLARI.csvDisa,
+                id: 'aktifYap' as const,
+                etiket: menuBasligi('Aktif yap'),
+                ikon: MENU_IKONLARI.aktifYap,
+                devreDisi: seciliSatirSayisi <= 0,
                 ayiriciOnce: true,
-                goster: true,
+                goster: secimIslemleriGoster && !!onAktifYap,
+              },
+              {
+                id: 'pasifYap' as const,
+                etiket: menuBasligi('Pasif yap'),
+                ikon: MENU_IKONLARI.pasifYap,
+                devreDisi: seciliSatirSayisi <= 0,
+                goster: secimIslemleriGoster && !!onPasifYap,
+              },
+              {
+                id: 'disaAktar' as const,
+                etiket: menuBasligi('Dışa aktar'),
+                ikon: MENU_IKONLARI.disaAktar,
+                devreDisi: seciliSatirSayisi <= 0,
+                ayiriciOnce: !onAktifYap && !onPasifYap,
+                goster: secimIslemleriGoster,
+              },
+              {
+                id: 'secimiTemizle' as const,
+                etiket: menuBasligi('Seçimi temizle'),
+                ikon: MENU_IKONLARI.secimiTemizle,
+                devreDisi: seciliSatirSayisi <= 0,
+                goster: secimIslemleriGoster,
+              },
+              {
+                id: 'sayfaBoyutu' as const,
+                etiket: menuBasligi(
+                  `Kayıt (${gridApiRef.current?.sayfaBoyutu() ?? 10})`
+                ),
+                ikon: MENU_IKONLARI.sayfaBoyutu,
+                flyout: true,
+                ayiriciOnce: true,
+                goster: tabloAraclariGoster,
+              },
+              {
+                id: 'cizgi' as const,
+                etiket: menuBasligi('Çizgi'),
+                ikon: MENU_IKONLARI.cizgi,
+                flyout: true,
+                goster: tabloAraclariGoster,
+              },
+              {
+                id: 'formul' as const,
+                etiket: menuBasligi('Sayı formülleri'),
+                ikon: MENU_IKONLARI.formul,
+                goster: tabloAraclariGoster,
+              },
+              {
+                id: 'sutunGorunurluk' as const,
+                etiket: menuBasligi('Sütun görünürlüğü'),
+                ikon: MENU_IKONLARI.sutunGorunurluk,
+                goster: tabloAraclariGoster,
+              },
+              {
+                id: 'csvDisa' as const,
+                etiket: menuBasligi('CSV indir'),
+                ikon: MENU_IKONLARI.csvDisa,
+                goster: tabloAraclariGoster,
               },
               {
                 id: 'satirSil' as const,
@@ -369,7 +489,11 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                       ? 'satirEkle'
                       : oge.id === 'degeriYay'
                         ? 'degeriYay'
-                        : null;
+                        : oge.id === 'sayfaBoyutu'
+                          ? 'sayfaBoyutu'
+                          : oge.id === 'cizgi'
+                            ? 'cizgi'
+                            : null;
 
                   return (
                     <div key={oge.id}>
@@ -436,6 +560,56 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                                     }}
                                   >
                                     <span>{alt.ikon}</span>
+                                    <span>{menuBasligi(alt.etiket)}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {flyout === 'sayfaBoyutu' && flyoutTip === 'sayfaBoyutu' && (
+                            <div
+                              className="ap-sag-tik-flyout dg-sag-tik-flyout"
+                              role="menu"
+                              aria-label="Sayfa başına kayıt"
+                            >
+                              {DG_SAYFA_BOYUTLARI.map((n) => {
+                                const aktif = gridApiRef.current?.sayfaBoyutu() === n;
+                                return (
+                                  <button
+                                    key={n}
+                                    type="button"
+                                    className={`ap-sag-tik-oge${aktif ? ' ap-sag-tik-oge-aktif' : ''}`}
+                                    onClick={() => {
+                                      gridApiRef.current?.sayfaBoyutuAyarla(n);
+                                      kapat();
+                                    }}
+                                  >
+                                    <span aria-hidden>{aktif ? '✓' : '·'}</span>
+                                    <span>{n} Kayıt</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {flyout === 'cizgi' && flyoutTip === 'cizgi' && (
+                            <div
+                              className="ap-sag-tik-flyout dg-sag-tik-flyout"
+                              role="menu"
+                              aria-label="Tablo çizgileri"
+                            >
+                              {DG_CIZGI_MODLARI.map((alt) => {
+                                const aktif = gridApiRef.current?.cizgiModu() === alt.mod;
+                                return (
+                                  <button
+                                    key={alt.mod}
+                                    type="button"
+                                    className={`ap-sag-tik-oge${aktif ? ' ap-sag-tik-oge-aktif' : ''}`}
+                                    onClick={() => {
+                                      gridApiRef.current?.cizgiModuAyarla(alt.mod);
+                                      kapat();
+                                    }}
+                                  >
+                                    <span aria-hidden>{aktif ? '✓' : '·'}</span>
                                     <span>{menuBasligi(alt.etiket)}</span>
                                   </button>
                                 );

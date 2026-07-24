@@ -2,6 +2,24 @@ import { adminHeaders, adminJsonFetch } from '@/admin/ortak/api/adminFetch';
 
 export type RolKodu = string;
 
+/** Tek veya virgüllü rol alanını diziye çevirir */
+export function rollerAyristir(rol: string | readonly string[] | null | undefined): string[] {
+  if (Array.isArray(rol)) {
+    return [...new Set(rol.map((r) => String(r ?? '').trim()).filter(Boolean))];
+  }
+  const ham = String(rol ?? '').trim();
+  if (!ham) return [];
+  return [...new Set(ham.split(/[,;|]/).map((r) => r.trim()).filter(Boolean))];
+}
+
+export function rollerBirlestir(roller: readonly string[]): string {
+  return rollerAyristir(roller).join(',');
+}
+
+export function anaRol(roller: readonly string[] | string | null | undefined): string {
+  return rollerAyristir(roller)[0] ?? '';
+}
+
 export interface KullaniciOturumYetkisi {
   firmaId: string;
   donemId: string;
@@ -11,7 +29,10 @@ export interface AdminKullanici {
   id: string;
   kullaniciKodu: string;
   ad: string;
+  /** Birincil / birleşik rol alanı (virgüllü çoklu destek) */
   rol: RolKodu;
+  /** Ayrıştırılmış roller */
+  roller: string[];
   aktif: boolean;
   firmaId: string;
   donemId: string;
@@ -31,7 +52,10 @@ export interface KullaniciFormDegeri {
   kullaniciKodu: string;
   ad: string;
   sifre: string;
+  /** Geriye uyum: birincil rol (= roller[0]) */
   rol: RolKodu;
+  /** Çoklu rol ataması */
+  roller: string[];
   aktif: boolean;
   firmaId: string;
   donemId: string;
@@ -50,6 +74,7 @@ export const bosKullaniciForm: KullaniciFormDegeri = {
   ad: '',
   sifre: '',
   rol: 'MUSTERI_ADMIN',
+  roller: ['MUSTERI_ADMIN'],
   aktif: true,
   firmaId: '',
   donemId: '',
@@ -125,12 +150,17 @@ function kullaniciMap(ham: Record<string, unknown>): AdminKullanici {
   const subeId = alanStr(ham, 'subeId') || paket.subeIds[0] || '';
   const depoId = alanStr(ham, 'depoId') || paket.depoIds[0] || '';
   const kasaId = alanStr(ham, 'kasaId') || paket.kasaIds[0] || '';
+  const roller = rollerAyristir(
+    Array.isArray(ham.roller) ? (ham.roller as string[]) : String(ham.rol ?? '')
+  );
+  const rol = rollerBirlestir(roller);
 
   return {
     id: String(ham.id),
     kullaniciKodu: String(ham.kullaniciKodu ?? ham.email ?? '').trim().toUpperCase(),
     ad: String(ham.ad ?? ham.adSoyad ?? ''),
-    rol: String(ham.rol),
+    rol,
+    roller,
     aktif: ham.aktif !== false && ham.durum !== false,
     firmaId: alanStr(ham, 'firmaId'),
     donemId: alanStr(ham, 'donemId'),
@@ -156,11 +186,13 @@ export function kullanicidanForm(k: AdminKullanici): KullaniciFormDegeri {
   const subeIds = Array.isArray(k.subeIds) ? k.subeIds : k.subeId ? [k.subeId] : [];
   const depoIds = Array.isArray(k.depoIds) ? k.depoIds : k.depoId ? [k.depoId] : [];
   const kasaIds = Array.isArray(k.kasaIds) ? k.kasaIds : k.kasaId ? [k.kasaId] : [];
+  const roller = rollerAyristir(k.roller?.length ? k.roller : k.rol);
   return {
     kullaniciKodu: k.kullaniciKodu,
     ad: k.ad,
     sifre: '',
-    rol: k.rol,
+    rol: anaRol(roller),
+    roller,
     aktif: k.aktif,
     firmaId: k.firmaId,
     donemId: k.donemId,
@@ -265,10 +297,12 @@ function payloadHazirla(form: KullaniciFormDegeri, sifreDahil: boolean) {
       ? [form.kasaId]
       : [];
   const oturumYetkileri = yetkiDizisi(form.oturumYetkileri);
+  const roller = rollerAyristir(form.roller?.length ? form.roller : form.rol);
   const payload: Record<string, unknown> = {
     kullaniciKodu: form.kullaniciKodu.trim().toUpperCase(),
     ad: form.ad.trim(),
-    rol: form.rol,
+    rol: rollerBirlestir(roller),
+    roller,
     aktif: form.aktif,
     firmaId: form.firmaId ? Number(form.firmaId) : undefined,
     donemId: form.donemId ? Number(form.donemId) : null,

@@ -37,7 +37,11 @@ export function KullaniciListesi({ kullanicilar, seciliId, rolBasliklari, onSec 
                 <span className="ap-heading font-medium">{k.ad}</span>
                 <span className="ap-muted mt-0.5 block text-xs">{k.kullaniciKodu}</span>
                 <span className="mt-1 flex flex-wrap gap-2 text-[10px]">
-                  <span className="ap-etiket ap-etiket-gri">{rolBasliklari[k.rol] ?? k.rol}</span>
+                  <span className="ap-etiket ap-etiket-gri">
+                    {(k.roller?.length ? k.roller : [k.rol])
+                      .map((kod) => rolBasliklari[kod] ?? kod)
+                      .join(', ')}
+                  </span>
                   {!k.aktif && <span className="text-red-400">Pasif</span>}
                 </span>
               </button>
@@ -113,9 +117,16 @@ export function KullaniciDuzenleFormu({
         <label className="ap-kullanici-editor-alan">
           <span className="ap-kullanici-editor-etiket">Rol</span>
           <FormAcilirSecim
-            aria-label="Kullanıcı rolü"
-            value={form.rol}
-            onChange={(rol) => onChange({ ...form, rol })}
+            aria-label="Kullanıcı rolleri"
+            coklu
+            values={form.roller?.length ? form.roller : form.rol ? [form.rol] : []}
+            onChangeCoklu={(roller) =>
+              onChange({
+                ...form,
+                roller,
+                rol: roller[0] ?? '',
+              })
+            }
             secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
           />
         </label>

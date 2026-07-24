@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { ModalListeIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import { sekmePortalHedefi, sekmePortaliGizliMi, useSekmeModalGovdeKilidi } from '@/araclar/sekmePortal';
 import {
@@ -45,6 +46,7 @@ export function StokKdvDepartmanModal({
   const [satirDuzenle, setSatirDuzenle] = useState<string | null>(null);
   const [satirAd, setSatirAd] = useState('');
   const [satirYuzde, setSatirYuzde] = useState('');
+  const [silOnay, setSilOnay] = useState<{ value: string; etiket: string } | null>(null);
   const adInputRef = useRef<HTMLInputElement>(null);
 
   useSekmeModalGovdeKilidi(acik, portalKok);
@@ -57,6 +59,7 @@ export function StokKdvDepartmanModal({
     setSatirDuzenle(null);
     setSatirAd('');
     setSatirYuzde('');
+    setSilOnay(null);
     requestAnimationFrame(() => adInputRef.current?.focus());
   }, [acik]);
 
@@ -104,6 +107,10 @@ export function StokKdvDepartmanModal({
       if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
+        if (silOnay) {
+          setSilOnay(null);
+          return;
+        }
         if (satirDuzenle !== null) {
           setSatirDuzenle(null);
           setSatirAd('');
@@ -116,7 +123,7 @@ export function StokKdvDepartmanModal({
     }
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [acik, onKapat, portalKok, satirDuzenle]);
+  }, [acik, onKapat, portalKok, satirDuzenle, silOnay]);
 
   if (!acik || !portalKok) return null;
 
@@ -278,7 +285,7 @@ export function StokKdvDepartmanModal({
                                 <button
                                   type="button"
                                   className="stok-coklu-barkod-tablo-sil"
-                                  onClick={() => onSil(oge.value)}
+                                  onClick={() => setSilOnay({ value: oge.value, etiket: oge.label })}
                                   aria-label={`${oge.label} sil`}
                                   title="Sil"
                                 >
@@ -297,6 +304,19 @@ export function StokKdvDepartmanModal({
           </div>
         </div>
       </DonenAccentCerceve>
+
+      <SilmeOnayModal
+        acik={!!silOnay}
+        onKapat={() => setSilOnay(null)}
+        onOnayla={() => {
+          if (!silOnay) return;
+          onSil(silOnay.value);
+          setSilOnay(null);
+        }}
+        baslik="Bu KDV departmanını silmek istiyor musunuz?"
+        hedefMetin={silOnay ? `«${silOnay.etiket}»` : ''}
+        ariaLabel="KDV departmanı silme onayı"
+      />
     </div>,
     portalKok
   );

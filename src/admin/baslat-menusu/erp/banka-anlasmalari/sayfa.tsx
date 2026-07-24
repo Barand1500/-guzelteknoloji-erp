@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
-import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
-import { DgSecimUstKutu } from '@/admin/ortak/datagrid/DgSecimUstKutu';
+import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import '@/admin/ortak/datagrid/datagrid.css';
 import type { DataGridApi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -16,6 +15,14 @@ import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { bankaAnlasmaGuncelle, bankaAnlasmaSil, bankaAnlasmalariGetir } from './api';
 import { BankaAnlasmaKart } from './bilesenler/BankaAnlasmaKart';
+import { BankaGelismisArama } from './BankaGelismisArama';
+import {
+  bankaAramaKriteriVarMi,
+  bankalariFiltrele,
+  bosBankaGelismisFiltre,
+  gelismisFiltreAktifMi,
+  type BankaGelismisFiltre,
+} from './bankaFiltre';
 import { BANKA_KOLON_GENISLIK_SURUMU, bankaAnlasmaKolonlari } from './bankaKolonlari';
 import { bankaAnlasmadanForm, bankaAnlasmaSatirEtiketi } from './bankaYardimci';
 import type { AdminBankaAnlasma, BankaKartModu } from './tipler';
@@ -30,12 +37,18 @@ export function BankaAnlasmalariSayfasi() {
   const [kayitlar, setKayitlar] = useState<AdminBankaAnlasma[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [filtreMetni, setFiltreMetni] = useState('');
+  const [uygulananFiltreMetni, setUygulananFiltreMetni] = useState('');
+  const [gelismisFiltre, setGelismisFiltre] = useState<BankaGelismisFiltre>(bosBankaGelismisFiltre());
+  const [gelismisTaslak, setGelismisTaslak] = useState<BankaGelismisFiltre>(bosBankaGelismisFiltre());
+  const [gelismisAcik, setGelismisAcik] = useState(false);
+  const [aramaGosterildi, setAramaGosterildi] = useState(false);
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aktifId, setAktifId] = useState<string | null>(null);
   const [silme, setSilme] = useState<AdminBankaAnlasma | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
   const gridApiRef = useRef<DataGridApi | null>(null);
-  const kaydetRef = useRef<(() => Promise<void>) | null>(null);
+  const sayfaRef = useRef<HTMLDivElement>(null);
+  const kaydetRef = useRef<(() => Promise<boolean | void | string>) | null>(null);
 
   const yukle = useCallback(async () => {
     setYukleniyor(true);
@@ -52,20 +65,10 @@ export function BankaAnlasmalariSayfasi() {
     void yukle();
   }, [yukle]);
 
-  const filtrelenmis = useMemo(() => {
-    const q = filtreMetni.trim().toLocaleLowerCase('tr');
-    if (!q) return kayitlar;
-    return kayitlar.filter((k) => {
-      const iban = k.ibanModu === 'TR' ? `tr${k.iban}` : k.iban;
-      return (
-        k.hesapIsmi.toLocaleLowerCase('tr').includes(q) ||
-        (k.hesapKodu ?? '').toLocaleLowerCase('tr').includes(q) ||
-        k.bankaAdi.toLocaleLowerCase('tr').includes(q) ||
-        iban.toLocaleLowerCase('tr').includes(q) ||
-        k.hesapNumarasi.toLocaleLowerCase('tr').includes(q)
-      );
-    });
-  }, [filtreMetni, kayitlar]);
+  const filtrelenmis = useMemo(
+    () => bankalariFiltrele(kayitlar, uygulananFiltreMetni, gelismisFiltre),
+    [kayitlar, uygulananFiltreMetni, gelismisFiltre]
+  );
 
   const kolonlar = useMemo(() => bankaAnlasmaKolonlari(), []);
   const baglamId = seciliIdler[0] ?? aktifId;
@@ -105,7 +108,7 @@ export function BankaAnlasmalariSayfasi() {
       hataBildir('Kayıt formu henüz hazır değil.');
       throw new Error('Kayıt formu henüz hazır değil.');
     }
-    await kaydetRef.current();
+    return await kaydetRef.current();
   }, [hataBildir]);
 
   const silAksiyon = useCallback(() => {
@@ -122,6 +125,34 @@ export function BankaAnlasmalariSayfasi() {
     }
     setSilme(kayit);
   }, [baglamId, hataBildir, kayitlar, silmeVar]);
+
+  const hizliAraUygula = useCallback(() => {
+    const taslakGelismis = gelismisAcik ? gelismisTaslak : gelismisFiltre;
+    if (!bankaAramaKriteriVarMi(filtreMetni, taslakGelismis)) {
+      hataBildir('Aramak için hesap adı, banka veya IBAN girin.');
+      return;
+    }
+    if (gelismisAcik) {
+      setGelismisFiltre(gelismisTaslak);
+      setGelismisAcik(false);
+    }
+    setUygulananFiltreMetni(filtreMetni);
+    setSeciliIdler([]);
+    setAramaGosterildi(true);
+  }, [filtreMetni, gelismisAcik, gelismisFiltre, gelismisTaslak, hataBildir]);
+
+  const gelismisAraAc = useCallback(() => {
+    setGelismisTaslak(gelismisFiltre);
+    setGelismisAcik(true);
+  }, [gelismisFiltre]);
+
+  const gelismisUygula = useCallback(() => {
+    setGelismisFiltre(gelismisTaslak);
+    setGelismisAcik(false);
+    setUygulananFiltreMetni(filtreMetni);
+    setSeciliIdler([]);
+    setAramaGosterildi(true);
+  }, [filtreMetni, gelismisTaslak]);
 
   const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
   const kayitSecili = Boolean(baglamId);
@@ -193,48 +224,6 @@ export function BankaAnlasmalariSayfasi() {
               />
             </svg>
           </button>
-        ) : !yukleniyor ? (
-          <div className="dg-modul-ust-araclar">
-            <DgSecimUstKutu
-              sayi={seciliIdler.length}
-              durumTuslari={duzenlemeVar}
-              onAktif={() => {
-                void (async () => {
-                  for (const id of seciliIdler) {
-                    const k = kayitlar.find((x) => x.id === id);
-                    if (!k || k.aktif) continue;
-                    await bankaAnlasmaGuncelle(id, { ...bankaAnlasmadanForm(k), aktif: true });
-                  }
-                  await yukle();
-                })();
-              }}
-              onPasif={() => {
-                void (async () => {
-                  for (const id of seciliIdler) {
-                    const k = kayitlar.find((x) => x.id === id);
-                    if (!k || !k.aktif) continue;
-                    await bankaAnlasmaGuncelle(id, { ...bankaAnlasmadanForm(k), aktif: false });
-                  }
-                  await yukle();
-                })();
-              }}
-              onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
-              onTemizle={() => {
-                gridApiRef.current?.secimAyarla([]);
-                setSeciliIdler([]);
-              }}
-            />
-            <div className="dg-ikon-grup dg-modul-ust-ikonlar">
-              <button
-                type="button"
-                className="dg-tus dg-tus-ikon"
-                title="CSV indir"
-                onClick={() => gridApiRef.current?.csvIndir()}
-              >
-                <DgIkon ad="indir" />
-              </button>
-            </div>
-          </div>
         ) : null
       }
     >
@@ -248,51 +237,144 @@ export function BankaAnlasmalariSayfasi() {
             onKirliDegistir={setKartKirli}
           />
         ) : (
-          <div className="dg-urun-slayt-kabuk">
+          <div className={`dg-urun-slayt-kabuk${gelismisAcik ? ' dg-urun-slayt-kabuk--arama' : ''}`}>
             <div className="dg-urun-slayt-tablo">
-              <form
-                className="stoklar-liste-ara-cubugu"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <div className="stoklar-liste-hizli-ara">
-                  <label className="stoklar-liste-hizli-ara-alan">
-                    <span>Ara</span>
-                    <input
-                      type="search"
-                      value={filtreMetni}
-                      onChange={(e) => setFiltreMetni(e.target.value)}
-                      placeholder="Hesap adı, banka veya IBAN…"
-                      aria-label="Banka anlaşması ara"
-                    />
-                  </label>
-                </div>
-              </form>
+              <div ref={sayfaRef} className="dg-demo-sayfa dg-demo-sag-tik-alan">
+                <DatagridSagTikMenu
+                  konteynerRef={sayfaRef}
+                  kolonlar={kolonlar}
+                  satirlar={filtrelenmis}
+                  seciliSatirSayisi={seciliIdler.length}
+                  gridApiRef={gridApiRef}
+                  menuEtiketi="Bankalar menüsü"
+                  satirEkleGoster={false}
+                  satirCogaltGoster={false}
+                  seciliSilGoster={false}
+                  onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
+                  onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
+                  satirSilMetniAl={bankaAnlasmaSatirEtiketi}
+                  onAktifYap={
+                    duzenlemeVar
+                      ? () => {
+                          void (async () => {
+                            for (const id of seciliIdler) {
+                              const k = kayitlar.find((x) => x.id === id);
+                              if (!k || k.aktif) continue;
+                              await bankaAnlasmaGuncelle(id, {
+                                ...bankaAnlasmadanForm(k),
+                                aktif: true,
+                              });
+                            }
+                            await yukle();
+                          })();
+                        }
+                      : undefined
+                  }
+                  onPasifYap={
+                    duzenlemeVar
+                      ? () => {
+                          void (async () => {
+                            for (const id of seciliIdler) {
+                              const k = kayitlar.find((x) => x.id === id);
+                              if (!k || !k.aktif) continue;
+                              await bankaAnlasmaGuncelle(id, {
+                                ...bankaAnlasmadanForm(k),
+                                aktif: false,
+                              });
+                            }
+                            await yukle();
+                          })();
+                        }
+                      : undefined
+                  }
+                  onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
+                  onSecimiTemizle={() => {
+                    gridApiRef.current?.secimAyarla([]);
+                    setSeciliIdler([]);
+                  }}
+                  onBilgi={basariBildir}
+                />
 
-              {yukleniyor ? (
-                <TanimYukleniyor />
-              ) : (
-                <div className="stoklar-tablo-alan">
-                  <DataGrid
-                    key={`banka_anlasmalari_v${BANKA_KOLON_GENISLIK_SURUMU}`}
-                    tabloBaslik=""
-                    tabloAltBaslik="Banka anlaşmaları"
-                    yukleniyor={false}
-                    gridApiRef={gridApiRef}
-                    kolonlar={kolonlar}
-                    satirlar={filtrelenmis}
-                    depolamaAnahtari={`banka_anlasmalari_v${BANKA_KOLON_GENISLIK_SURUMU}`}
-                    bosMesaj="Henüz banka kaydı yok. Yeni ile ekleyebilirsiniz."
-                    satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
-                    onSatirTikla={(s) => gridApiRef.current?.secimAyarla([s.id])}
-                    onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
-                    onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
-                    onSecimDegistir={setSeciliIdler}
-                  />
-                </div>
-              )}
+                <form
+                  className="stoklar-liste-ara-cubugu"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    hizliAraUygula();
+                  }}
+                >
+                  <div className="stoklar-liste-hizli-ara">
+                    <label className="stoklar-liste-hizli-ara-alan">
+                      <span>Ara</span>
+                      <input
+                        type="search"
+                        value={filtreMetni}
+                        onChange={(e) => setFiltreMetni(e.target.value)}
+                        placeholder="Hesap adı, banka veya IBAN…"
+                        aria-label="Banka ara"
+                      />
+                    </label>
+                  </div>
+                  <button type="submit" className="stoklar-hizli-ara-tus">
+                    Ara
+                  </button>
+                  <button
+                    type="button"
+                    className={`stoklar-gelismis-ara-tus${gelismisFiltreAktifMi(gelismisFiltre) ? ' stoklar-gelismis-ara-tus--aktif' : ''}`}
+                    onClick={gelismisAraAc}
+                  >
+                    Gelişmiş Ara
+                    {gelismisFiltreAktifMi(gelismisFiltre) ? (
+                      <span className="stoklar-gelismis-ara-tus-nokta" aria-hidden />
+                    ) : null}
+                  </button>
+                </form>
+
+                { !aramaGosterildi ? (
+                  <div className="stoklar-liste-bekleme">
+                    <p className="stoklar-liste-bekleme-baslik">Banka arayın</p>
+                    <p className="stoklar-liste-bekleme-metin">
+                      Listeyi görmek için hesap adı, banka veya IBAN yazıp Ara&apos;ya basın. Kayıt
+                      bulunamazsa boş liste açılır; aksiyon çubuğundan Yeni ile ekleyebilirsiniz.
+                    </p>
+                  </div>
+                ) : yukleniyor ? (
+                  <TanimYukleniyor />
+                ) : (
+                  <div className="stoklar-tablo-alan">
+                    <DataGrid
+                      key={`banka_anlasmalari_v${BANKA_KOLON_GENISLIK_SURUMU}`}
+                      tabloBaslik=""
+                      tabloAltBaslik="Arama sonuçları"
+                      yukleniyor={false}
+                      gridApiRef={gridApiRef}
+                      kolonlar={kolonlar}
+                      satirlar={filtrelenmis}
+                      depolamaAnahtari={`banka_anlasmalari_v${BANKA_KOLON_GENISLIK_SURUMU}`}
+                      bosMesaj="Aramanızla eşleşen banka bulunamadı. Yeni ile banka kaydı ekleyebilirsiniz."
+                      satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
+                      onSatirTikla={(s) => gridApiRef.current?.secimAyarla([s.id])}
+                      onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
+                      onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
+                      onSecimDegistir={setSeciliIdler}
+                      formulMenuGoster
+                      ustSolAraclarGoster={false}
+                      ustSagAraclarGoster={false}
+                      ustAracGoster={false}
+                      topluBarGoster={false}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
+
+            <BankaGelismisArama
+              acik={gelismisAcik}
+              filtre={gelismisTaslak}
+              onFiltreDegistir={setGelismisTaslak}
+              onUygula={gelismisUygula}
+              onKapat={() => setGelismisAcik(false)}
+              sonucSayisi={bankalariFiltrele(kayitlar, filtreMetni, gelismisTaslak).length}
+            />
           </div>
         )}
       </div>
@@ -303,7 +385,7 @@ export function BankaAnlasmalariSayfasi() {
         onOnayla={() => void silOnayla()}
         baslik="Bu banka kaydını silmek istiyor musunuz?"
         hedefMetin={silme ? `«${bankaAnlasmaSatirEtiketi(silme)}»` : ''}
-        ariaLabel="Banka anlaşması silme onayı"
+        ariaLabel="Banka kaydı silme onayı"
       />
     </AdminModulKabuk>
   );

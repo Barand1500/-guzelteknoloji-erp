@@ -110,23 +110,7 @@ export function RolMatrisi({
 
   return (
     <div className="ap-roller-matris-sarmal" ref={sarmalRef}>
-      <div
-        className={`ap-roller-modul-baslik-kapsul${tumSayfalar ? ' ap-roller-modul-baslik-kapsul--toplu' : ''}`}
-      >
-        {!tumSayfalar ? (
-          <span className="ap-roller-modul-baslik-ikon" aria-hidden>
-            {aktifModul.ikon ?? '📄'}
-          </span>
-        ) : null}
-        <div>
-          <div className="ap-roller-modul-baslik-ad">{aktifModul.ad}</div>
-          {!tumSayfalar && aktifModul.kategori ? (
-            <div className="ap-roller-modul-baslik-kategori">{aktifModul.kategori}</div>
-          ) : null}
-        </div>
-      </div>
-
-      <table className="ap-roller-matris">
+      <table className="ap-roller-matris" aria-label={`${aktifModul.ad} yetki matrisi`}>
         <thead>
           <tr>
             <th>Rol</th>

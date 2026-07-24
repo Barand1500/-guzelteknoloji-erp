@@ -44,6 +44,8 @@ export interface CariIletisimKisi {
   gorevi: string;
   eposta: string;
   telefon: string;
+  /** Santral dahili (en fazla 4 rakam) */
+  telefonDahili: string;
   gsm: string;
   web: string;
   il: string;
@@ -119,6 +121,7 @@ export interface AdminCari {
   ilce: string;
   adres: string;
   telefon: string;
+  telefonDahili?: string;
   gsm: string;
   eposta: string;
   web: string;
@@ -154,6 +157,7 @@ export interface CariFormDegeri extends CariAdresDegeri {
   vergiDairesi: string;
   vergiNo: string;
   telefon: string;
+  telefonDahili: string;
   gsm: string;
   eposta: string;
   web: string;
@@ -194,6 +198,7 @@ export const bosCariForm: CariFormDegeri = {
   ilce: '',
   adres: '',
   telefon: '',
+  telefonDahili: '',
   gsm: '',
   eposta: '',
   web: '',

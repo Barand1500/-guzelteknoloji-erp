@@ -4,6 +4,7 @@ import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import { ModalListeIkon, ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
+import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import {
   sekmePortalHedefi,
@@ -21,8 +22,9 @@ interface CariSecenekModalProps {
   baslik: string;
   placeholder?: string;
   liste: CariSecenekSatir[];
+  /** Bu değerler silinemez; çöp ikonu gösterilmez */
   sabitDegerler?: string[];
-  /** Silinmek istenen değeri kullanan cari adedi; >0 ise silme engellenir */
+  /** Silinmek istenen değeri kullanan kayıt adedi; >0 ise silme engellenir */
   kullanimSayisiAl?: (value: string) => number;
   /** Örn. "tipi" / "işletme türünü" */
   kullanimNesneAdi?: string;
@@ -37,7 +39,7 @@ export function CariSecenekModal({
   baslik,
   placeholder = 'Yeni seçenek adı…',
   liste,
-  sabitDegerler: _sabitDegerler = [],
+  sabitDegerler = [],
   kullanimSayisiAl,
   kullanimNesneAdi = 'tipi',
   onEkle,
@@ -50,11 +52,13 @@ export function CariSecenekModal({
   const [satirDuzenle, setSatirDuzenle] = useState<string | null>(null);
   const [satirAd, setSatirAd] = useState('');
   const [silUyari, setSilUyari] = useState<{ etiket: string; adet: number } | null>(null);
+  const [silOnay, setSilOnay] = useState<{ value: string; etiket: string } | null>(null);
   const sekme = useAdminSekmeKabuk();
   const portalKok = useMemo(
     () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
     [acik, sekme?.sekmeId]
   );
+  const sabitSet = useMemo(() => new Set(sabitDegerler), [sabitDegerler]);
 
   useSekmeModalGovdeKilidi(acik, portalKok);
 
@@ -65,19 +69,27 @@ export function CariSecenekModal({
     setSatirDuzenle(null);
     setSatirAd('');
     setSilUyari(null);
+    setSilOnay(null);
   }, [acik]);
 
   const silDene = useCallback(
     (value: string, etiket: string) => {
+      if (sabitSet.has(value)) return;
       const adet = kullanimSayisiAl?.(value) ?? 0;
       if (adet > 0) {
         setSilUyari({ etiket, adet });
         return;
       }
-      onSil(value);
+      setSilOnay({ value, etiket });
     },
-    [kullanimSayisiAl, onSil]
+    [kullanimSayisiAl, sabitSet]
   );
+
+  const silOnayla = useCallback(() => {
+    if (!silOnay) return;
+    onSil(silOnay.value);
+    setSilOnay(null);
+  }, [onSil, silOnay]);
 
   const ekle = useCallback(() => {
     if (!onEkle(yeniAd)) {
@@ -106,6 +118,10 @@ export function CariSecenekModal({
       if (sekmePortaliGizliMi(portalKok)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
+        if (silOnay) {
+          setSilOnay(null);
+          return;
+        }
         if (silUyari) {
           setSilUyari(null);
           return;
@@ -122,7 +138,7 @@ export function CariSecenekModal({
 
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [acik, onKapat, satirDuzenle, silUyari, portalKok]);
+  }, [acik, onKapat, satirDuzenle, silOnay, silUyari, portalKok]);
 
   if (!acik || !portalKok) return null;
 
@@ -160,12 +176,13 @@ export function CariSecenekModal({
             <ul className="cari-secenek-liste">
               {liste.map((t) => {
                 const duzenleniyor = satirDuzenle === t.value;
+                const sabit = sabitSet.has(t.value);
                 return (
                   <li
                     key={t.value}
                     className={duzenleniyor ? 'cari-secenek-liste--duzenleniyor' : undefined}
                     onDoubleClick={() => {
-                      if (!onGuncelle) return;
+                      if (!onGuncelle || sabit) return;
                       setSatirDuzenle(t.value);
                       setSatirAd(t.label);
                       setHata('');
@@ -197,20 +214,28 @@ export function CariSecenekModal({
                     ) : (
                       <span
                         className="cari-secenek-liste-ad"
-                        title={onGuncelle ? 'Düzenlemek için çift tıklayınız.' : undefined}
+                        title={
+                          onGuncelle && !sabit ? 'Düzenlemek için çift tıklayınız.' : undefined
+                        }
                       >
                         {t.label}
                       </span>
                     )}
-                    <button
-                      type="button"
-                      className="cari-secenek-liste-sil"
-                      onClick={() => silDene(t.value, t.label)}
-                      aria-label={`${t.label} sil`}
-                      title="Sil"
-                    >
-                      <DgIkon ad="sil" />
-                    </button>
+                    {!sabit ? (
+                      <button
+                        type="button"
+                        className="cari-secenek-liste-sil"
+                        onClick={() => silDene(t.value, t.label)}
+                        aria-label={`${t.label} sil`}
+                        title="Sil"
+                      >
+                        <DgIkon ad="sil" />
+                      </button>
+                    ) : (
+                      <span className="cari-secenek-liste-sabit" title="Sistem varsayılanı — silinemez">
+                        sabit
+                      </span>
+                    )}
                   </li>
                 );
               })}
@@ -229,10 +254,10 @@ export function CariSecenekModal({
             <h4 className="cari-secenek-sil-uyari-baslik">Silinemez</h4>
             <p className="cari-secenek-sil-uyari-metin">
               <strong>{silUyari.etiket}</strong> için dikkat:{' '}
-              <strong>{silUyari.adet} adet cari</strong> bu {kullanimNesneAdi} kullanıyor.
+              <strong>{silUyari.adet} adet kayıt</strong> bu {kullanimNesneAdi} kullanıyor.
             </p>
             <p className="cari-secenek-sil-uyari-alt">
-              Önce ilgili cari kartlarında bu seçimi değiştirin, sonra silmeyi deneyin.
+              Önce ilgili kayıtlarda bu seçimi değiştirin, sonra silmeyi deneyin.
             </p>
             <button
               type="button"
@@ -245,6 +270,15 @@ export function CariSecenekModal({
           </div>
         </div>
       ) : null}
+
+      <SilmeOnayModal
+        acik={!!silOnay}
+        onKapat={() => setSilOnay(null)}
+        onOnayla={silOnayla}
+        baslik="Bu seçeneği silmek istiyor musunuz?"
+        hedefMetin={silOnay ? `«${silOnay.etiket}»` : ''}
+        ariaLabel="Seçenek silme onayı"
+      />
     </div>,
     portalKok
   );

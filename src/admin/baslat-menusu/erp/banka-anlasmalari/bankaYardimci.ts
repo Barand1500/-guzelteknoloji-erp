@@ -1,3 +1,4 @@
+import type { CariIletisimKisi } from '@/admin/baslat-menusu/erp/cari/tipler';
 import type {
   AdminBankaAnlasma,
   BankaAnlasmaFormDegeri,
@@ -13,12 +14,31 @@ function posSatirlariNormalize(liste?: PosKomisyonSatir[]): PosKomisyonSatir[] {
   if (!Array.isArray(liste)) return [];
   return liste.map((s) => ({
     id: s.id || bosPosKomisyonSatir().id,
+    kartSegment: s.kartSegment === 'TICARI' ? 'TICARI' : 'BIREYSEL',
     kartAdi: s.kartAdi ?? '',
     satisSekli: s.satisSekli ?? '',
     komisyon: s.komisyon ?? '',
     puan: s.puan ?? '',
     blokeGun: s.blokeGun ?? '',
     tahsilatSekli: s.tahsilatSekli ?? '',
+  }));
+}
+
+function iletisimNormalize(liste?: CariIletisimKisi[]): CariIletisimKisi[] {
+  if (!Array.isArray(liste)) return [];
+  return liste.map((k) => ({
+    id: k.id || `ik-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    adresBasligi: k.adresBasligi ?? '',
+    adSoyad: k.adSoyad ?? '',
+    gorevi: k.gorevi ?? '',
+    eposta: k.eposta ?? '',
+    telefon: k.telefon ?? '',
+    telefonDahili: String(k.telefonDahili ?? '').replace(/\D/g, '').slice(0, 4),
+    gsm: k.gsm ?? '',
+    web: k.web ?? '',
+    il: k.il ?? '',
+    ilce: k.ilce ?? '',
+    adres: k.adres ?? '',
   }));
 }
 
@@ -47,7 +67,7 @@ export function bankaAnlasmadanForm(k: AdminBankaAnlasma): BankaAnlasmaFormDeger
     puanUygulamaTipi: k.puanUygulamaTipi ?? 'KOMISYON_ILE_AYNI',
     valor: Boolean(k.valor),
     posKomisyonSatirlari: posSatirlariNormalize(k.posKomisyonSatirlari),
-    iletisimKisiler: k.iletisimKisiler ?? [],
+    iletisimKisiler: iletisimNormalize(k.iletisimKisiler),
     acikKisismlar: k.acikKisismlar?.length
       ? k.acikKisismlar
       : (['adres-iletisim'] satisfies BankaKisimId[]),
@@ -124,9 +144,22 @@ export function sonKullanmaGecerliMi(deger: string): boolean {
   return true;
 }
 
-/** Kart no: boşluklu 4’lü grup */
+/** Amex: 34 / 37 ile başlar, 15 hane */
+export function amexKartMi(rakam: string): boolean {
+  return rakam.startsWith('34') || rakam.startsWith('37');
+}
+
+/** Kart no: Visa/MC 4-4-4-4 (16); Amex 4-6-5 (15) */
 export function kartNoFiltrele(deger: string): string {
-  const rakam = deger.replace(/\D/g, '').slice(0, 16);
+  const ham = deger.replace(/\D/g, '');
+  const amex = amexKartMi(ham);
+  const rakam = ham.slice(0, amex ? 15 : 16);
+  if (amex) {
+    const p1 = rakam.slice(0, 4);
+    const p2 = rakam.slice(4, 10);
+    const p3 = rakam.slice(10, 15);
+    return [p1, p2, p3].filter(Boolean).join(' ');
+  }
   return rakam.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
 }
 

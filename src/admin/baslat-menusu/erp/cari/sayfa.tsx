@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
-import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
-import { DgSecimUstKutu } from '@/admin/ortak/datagrid/DgSecimUstKutu';
 import '@/admin/ortak/datagrid/datagrid.css';
 import type { DataGridApi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -16,7 +14,14 @@ import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { cariSil, cariGuncelle, carileriGetir } from './api';
 import { CariKart } from './bilesenler/CariKart';
-import { cariAramaKriteriVarMi, carileriFiltrele } from './cariFiltre';
+import { CariGelismisArama } from './CariGelismisArama';
+import {
+  bosCariGelismisFiltre,
+  cariAramaKriteriVarMi,
+  carileriFiltrele,
+  gelismisFiltreAktifMi,
+  type CariGelismisFiltre,
+} from './cariFiltre';
 import { CARI_KOLON_GENISLIK_SURUMU, cariKolonlari } from './cariKolonlari';
 import { caridenForm, cariSatirEtiketi } from './cariYardimci';
 import type { AdminCari, CariKartModu } from './tipler';
@@ -93,6 +98,9 @@ export function CariSayfasi() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [filtreMetni, setFiltreMetni] = useState('');
   const [uygulananFiltreMetni, setUygulananFiltreMetni] = useState('');
+  const [gelismisFiltre, setGelismisFiltre] = useState<CariGelismisFiltre>(bosCariGelismisFiltre());
+  const [gelismisTaslak, setGelismisTaslak] = useState<CariGelismisFiltre>(bosCariGelismisFiltre());
+  const [gelismisAcik, setGelismisAcik] = useState(false);
   const [aramaGosterildi, setAramaGosterildi] = useState(false);
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aktifCariId, setAktifCariId] = useState<string | null>(null);
@@ -100,7 +108,7 @@ export function CariSayfasi() {
   const [kartKirli, setKartKirli] = useState(false);
   const gridApiRef = useRef<DataGridApi | null>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
-  const kaydetRef = useRef<(() => Promise<void>) | null>(null);
+  const kaydetRef = useRef<(() => Promise<boolean | void | string>) | null>(null);
 
   const yukle = useCallback(async () => {
     setYukleniyor(true);
@@ -118,8 +126,8 @@ export function CariSayfasi() {
   }, [yukle]);
 
   const filtrelenmis = useMemo(
-    () => carileriFiltrele(kayitlar, uygulananFiltreMetni),
-    [kayitlar, uygulananFiltreMetni]
+    () => carileriFiltrele(kayitlar, uygulananFiltreMetni, gelismisFiltre),
+    [kayitlar, uygulananFiltreMetni, gelismisFiltre]
   );
 
   /** Datagrid’deki sıraya göre kart gezinmesi (uçlarda döngü) */
@@ -158,8 +166,8 @@ export function CariSayfasi() {
   const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
   const baglamCariId = tekSeciliId ?? aktifCariId;
 
-  const listeyeDon = useCallback(() => {
-    if (kartKirli) {
+  const listeyeDon = useCallback((secenek?: { kayitSonrasi?: boolean }) => {
+    if (!secenek?.kayitSonrasi && kartKirli) {
       const onay = window.confirm(
         'Kaydedilmemiş değişiklikler var. Yine de listeye dönmek istiyor musunuz?'
       );
@@ -216,7 +224,7 @@ export function CariSayfasi() {
       hataBildir('Kayıt formu henüz hazır değil.');
       throw new Error('Kayıt formu henüz hazır değil.');
     }
-    await kaydetRef.current();
+    return await kaydetRef.current();
   }, [hataBildir]);
 
   const silAksiyon = useCallback(() => {
@@ -235,14 +243,32 @@ export function CariSayfasi() {
   }, [baglamCariId, hataBildir, kayitlar, silmeVar]);
 
   const hizliAraUygula = useCallback(() => {
-    if (!cariAramaKriteriVarMi(filtreMetni)) {
-      hataBildir('Aramak için cari kodu veya adı girin.');
+    const taslakGelismis = gelismisAcik ? gelismisTaslak : gelismisFiltre;
+    if (!cariAramaKriteriVarMi(filtreMetni, taslakGelismis)) {
+      hataBildir('Aramak için cari kodu/adı veya gelişmiş filtre girin.');
       return;
+    }
+    if (gelismisAcik) {
+      setGelismisFiltre(gelismisTaslak);
+      setGelismisAcik(false);
     }
     setUygulananFiltreMetni(filtreMetni);
     setSeciliIdler([]);
     setAramaGosterildi(true);
-  }, [filtreMetni, hataBildir]);
+  }, [filtreMetni, gelismisAcik, gelismisFiltre, gelismisTaslak, hataBildir]);
+
+  const gelismisAraAc = useCallback(() => {
+    setGelismisTaslak(gelismisFiltre);
+    setGelismisAcik(true);
+  }, [gelismisFiltre]);
+
+  const gelismisUygula = useCallback(() => {
+    setGelismisFiltre(gelismisTaslak);
+    setGelismisAcik(false);
+    setUygulananFiltreMetni(filtreMetni);
+    setSeciliIdler([]);
+    setAramaGosterildi(true);
+  }, [filtreMetni, gelismisTaslak]);
 
   const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
   const cariSecili = Boolean(baglamCariId);
@@ -358,7 +384,7 @@ export function CariSayfasi() {
       ustAksiyon={
         gorunum === 'kart' ? (
           <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
-            <CariListelemeTus onGit={listeyeDon} />
+            <CariListelemeTus onGit={() => listeyeDon()} />
             <CariGezinOk
               yon="geri"
               hedef={oncekiCari}
@@ -370,38 +396,6 @@ export function CariSayfasi() {
               onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
             />
           </div>
-        ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
-          <div className="dg-modul-ust-araclar">
-            <DgSecimUstKutu
-              sayi={seciliIdler.length}
-              durumTuslari={duzenlemeVar}
-              onAktif={() => void topluDurumAyarla(true)}
-              onPasif={() => void topluDurumAyarla(false)}
-              onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
-              onTemizle={() => {
-                gridApiRef.current?.secimAyarla([]);
-                setSeciliIdler([]);
-              }}
-            />
-            <div className="dg-ikon-grup dg-modul-ust-ikonlar">
-              <button
-                type="button"
-                className="dg-tus dg-tus-ikon"
-                title="Sütun görünürlüğü"
-                onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
-              >
-                <DgIkon ad="sutun" />
-              </button>
-              <button
-                type="button"
-                className="dg-tus dg-tus-ikon"
-                title="CSV indir"
-                onClick={() => gridApiRef.current?.csvIndir()}
-              >
-                <DgIkon ad="indir" />
-              </button>
-            </div>
-          </div>
         ) : null
       }
     >
@@ -410,12 +404,12 @@ export function CariSayfasi() {
           <CariKart
             mod={kartModu}
             cariId={aktifCariId}
-            onKaydedildi={listeyeDon}
+            onKaydedildi={() => listeyeDon({ kayitSonrasi: true })}
             kaydetRef={kaydetRef}
             onKirliDegistir={setKartKirli}
           />
         ) : (
-          <div className="dg-urun-slayt-kabuk">
+          <div className={`dg-urun-slayt-kabuk${gelismisAcik ? ' dg-urun-slayt-kabuk--arama' : ''}`}>
             <div className="dg-urun-slayt-tablo">
               <div ref={sayfaRef} className="dg-demo-sayfa dg-demo-sag-tik-alan">
                 <DatagridSagTikMenu
@@ -431,6 +425,13 @@ export function CariSayfasi() {
                   onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                   seciliSilGoster={false}
                   satirSilMetniAl={cariSatirEtiketi}
+                  onAktifYap={duzenlemeVar ? () => void topluDurumAyarla(true) : undefined}
+                  onPasifYap={duzenlemeVar ? () => void topluDurumAyarla(false) : undefined}
+                  onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
+                  onSecimiTemizle={() => {
+                    gridApiRef.current?.secimAyarla([]);
+                    setSeciliIdler([]);
+                  }}
                   onDegeriYay={(kolonId, deger, gorunenler) => {
                     const hedefIdler = new Set(gorunenler.map((s) => s.id));
                     const kolon = kolonlar.find((k) => k.id === kolonId);
@@ -466,6 +467,16 @@ export function CariSayfasi() {
                   <button type="submit" className="stoklar-hizli-ara-tus">
                     Ara
                   </button>
+                  <button
+                    type="button"
+                    className={`stoklar-gelismis-ara-tus${gelismisFiltreAktifMi(gelismisFiltre) ? ' stoklar-gelismis-ara-tus--aktif' : ''}`}
+                    onClick={gelismisAraAc}
+                  >
+                    Gelişmiş Ara
+                    {gelismisFiltreAktifMi(gelismisFiltre) ? (
+                      <span className="stoklar-gelismis-ara-tus-nokta" aria-hidden />
+                    ) : null}
+                  </button>
                 </form>
 
                 {!aramaGosterildi ? (
@@ -496,7 +507,7 @@ export function CariSayfasi() {
                       onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
                       onSecimDegistir={setSeciliIdler}
                       onSatirlarDegistir={satirlarDegistir}
-                      formulMenuGoster={false}
+                      formulMenuGoster
                       ustSolAraclarGoster={false}
                       ustSagAraclarGoster={false}
                       ustAracGoster={false}
@@ -506,6 +517,15 @@ export function CariSayfasi() {
                 )}
               </div>
             </div>
+
+            <CariGelismisArama
+              acik={gelismisAcik}
+              filtre={gelismisTaslak}
+              onFiltreDegistir={setGelismisTaslak}
+              onUygula={gelismisUygula}
+              onKapat={() => setGelismisAcik(false)}
+              sonucSayisi={carileriFiltrele(kayitlar, filtreMetni, gelismisTaslak).length}
+            />
           </div>
         )}
       </div>

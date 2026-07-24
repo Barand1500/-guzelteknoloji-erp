@@ -74,9 +74,17 @@ export function CariOutlinedGirdi({
         className="cari-outlined-cerceve"
         onMouseDown={(e) => {
           const hedef = e.target as HTMLElement;
+          /* Sonek/onek içindeki etkileşimli kontroller (PB seçimi vb.) bozulmasın */
+          if (
+            hedef.closest(
+              'button, a, input, select, textarea, [role="button"], [role="combobox"], [role="listbox"], .ap-form-acilir-secim'
+            )
+          ) {
+            return;
+          }
           if (hedef.closest('.cari-outlined-onek, .cari-outlined-sonek') || hedef === e.currentTarget) {
             e.preventDefault();
-            const girdi = e.currentTarget.querySelector('input');
+            const girdi = e.currentTarget.querySelector('input.cari-outlined-input');
             girdi?.focus();
           }
         }}

@@ -7,6 +7,7 @@ import { CariOutlinedEposta } from './CariOutlinedEposta';
 import { CariOutlinedGirdi } from './CariOutlinedGirdi';
 import { CariOutlinedIl, CariOutlinedIlce } from './CariOutlinedIlArama';
 import { CariOutlinedTelefon } from './CariOutlinedTelefon';
+import { CariOutlinedTelefonDahili } from './CariOutlinedTelefonDahili';
 
 function kisiSilMetni(kisi: CariIletisimKisi): string {
   const baslik = kisi.adresBasligi.trim();
@@ -230,10 +231,14 @@ export function CariIletisimBolumu({
                     />
                   </div>
                   <div className="cari-telefon-gsm-cift">
-                    <CariOutlinedTelefon
+                    <CariOutlinedTelefonDahili
                       deger={kisi.telefon}
+                      dahili={kisi.telefonDahili}
                       disabled={disabled}
                       onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
+                      onDahiliChange={(telefonDahili) =>
+                        kisiGuncelle(kisi.id, { telefonDahili })
+                      }
                     />
                     <CariOutlinedTelefon
                       etiket="GSM"

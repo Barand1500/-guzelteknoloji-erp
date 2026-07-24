@@ -57,6 +57,8 @@ export function CariOutlinedTelefon({
   dogrulaAktif = false,
   ulkeKoduGoster = true,
   gsmMi = false,
+  dahili,
+  onDahiliChange,
 }: {
   deger: string;
   onChange: (deger: string) => void;
@@ -68,7 +70,12 @@ export function CariOutlinedTelefon({
   ulkeKoduGoster?: boolean;
   /** GSM: TR'de 5 ile başlamalı */
   gsmMi?: boolean;
+  /** Santral dahili — input çerçevesinin içinde sağda (max 4 rakam) */
+  dahili?: string;
+  onDahiliChange?: (dahili: string) => void;
 }) {
+  const dahiliId = useId();
+  const dahiliGoster = typeof onDahiliChange === 'function';
   const inputId = useId();
   const listeId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -256,7 +263,11 @@ export function CariOutlinedTelefon({
         .join(' ')}
     >
       <CariOutlinedEtiket etiket={etiketMetin} htmlFor={inputId} />
-      <div className={`cari-outlined-cerceve${ulkeKoduGoster ? ' cari-telefon-cerceve' : ''}`}>
+      <div
+        className={`cari-outlined-cerceve${ulkeKoduGoster ? ' cari-telefon-cerceve' : ''}${
+          dahiliGoster ? ' cari-telefon-cerceve--dahili' : ''
+        }`}
+      >
         {ulkeKoduGoster && asama === 'alan' ? (
           <button
             ref={onEkRef}
@@ -330,6 +341,28 @@ export function CariOutlinedTelefon({
             >
               {dogrulandi && asama === 'alan' ? 'Doğrulandı' : 'Doğrula'}
             </button>
+          </div>
+        ) : null}
+        {dahiliGoster && asama === 'alan' ? (
+          <div className="cari-telefon-dahili-ic" onMouseDown={(e) => e.stopPropagation()}>
+            <span className="cari-telefon-dahili-ayrac" aria-hidden />
+            <label className="cari-telefon-dahili-etiket" htmlFor={dahiliId}>
+              Dahili
+            </label>
+            <input
+              id={dahiliId}
+              className="cari-telefon-dahili-input"
+              value={dahili ?? ''}
+              disabled={disabled}
+              inputMode="numeric"
+              maxLength={4}
+              autoComplete="off"
+              placeholder="0000"
+              aria-label="Dahili"
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onChange={(e) => onDahiliChange?.(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            />
           </div>
         ) : null}
       </div>

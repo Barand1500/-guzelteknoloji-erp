@@ -108,6 +108,7 @@ function formKirliMi(
       form.ad !== kayitli.ad ||
 
       form.rol !== kayitli.rol ||
+      JSON.stringify([...(form.roller ?? [])].sort()) !== JSON.stringify([...(kayitli.roller ?? [])].sort()) ||
 
       form.aktif !== kayitli.aktif ||
 
@@ -272,6 +273,7 @@ export function KullanicilarSayfasiEski() {
       ...bosKullaniciForm,
 
       rol: varsayilanRol,
+      roller: [varsayilanRol],
 
       ...varsayilanOturumAlanlari(oturumSecenekleri),
 

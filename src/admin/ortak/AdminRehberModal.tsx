@@ -57,7 +57,7 @@ export function AdminRehberModal({
         <div className="ap-rehber-modal">
           <header className="ap-rehber-header">
             <div className="ap-rehber-header-sol">
-              <span className="ap-rehber-ikon">?</span>
+              <span className="ap-rehber-ikon ap-modal-sol-baslik-ikon">?</span>
               <div>
                 <h2 id="rehber-baslik" className="ap-rehber-baslik">
                   {baslik}

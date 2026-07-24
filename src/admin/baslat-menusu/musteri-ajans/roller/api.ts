@@ -55,10 +55,7 @@ export function tumSayfalarMi(prefix: string): boolean {
   return prefix === TUM_SAYFALAR_PREFIX;
 }
 
-export function modulYetkiListesi(modulPrefix: string): YetkiTanimi[] {
-  if (tumSayfalarMi(modulPrefix) || KULLANICI_YONETIMI_MODUL_PREFIXLERI.has(modulPrefix)) {
-    return GECERLI_YETKI_LISTESI;
-  }
+export function modulYetkiListesi(_modulPrefix?: string): YetkiTanimi[] {
   return GECERLI_YETKI_LISTESI.filter((y) => y.kod !== 'kullanici_yonetimi');
 }
 

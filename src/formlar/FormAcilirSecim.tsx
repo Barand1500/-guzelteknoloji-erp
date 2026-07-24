@@ -125,7 +125,7 @@ function listeKonumuHesapla(
   yon: 'asagi' | 'yukari' = 'asagi'
 ) {
   const rect = anchorBul(trigger, listeAnchor).getBoundingClientRect();
-  const genislik = listeAnchor === 'self' ? rect.width : Math.max(rect.width, minGenislik);
+  const genislik = Math.max(rect.width, minGenislik);
   let left = rect.left;
 
   if (left + genislik > window.innerWidth - KENAR_BOSLUK) {

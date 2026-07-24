@@ -527,7 +527,7 @@ export function TanimKayitModal({
 
             {tip === 'depo' && (
               <div className="ap-tanimlar-alan-grid ap-tanimlar-alan-grid--2">
-                <label className="ap-tanimlar-secim-alan block">
+                <label className="ap-tanimlar-secim-alan block ap-tanimlar-modal-adres">
                   <span className="ap-tanim-girdi-etiket">
                     Şube <span className="ap-tanim-girdi-zorunlu">*</span>
                   </span>

@@ -28,7 +28,7 @@ export type AksiyonId =
   | 'stokFiyatDuzenle';
 
 export interface AksiyonHandlerlar {
-  kaydet?: () => Promise<boolean | void> | boolean | void;
+  kaydet?: () => Promise<boolean | void | string> | boolean | void | string;
   hizliKaydet?: () => Promise<void> | void;
   guncelle?: () => Promise<void> | void;
   ekle?: () => void;
@@ -58,7 +58,7 @@ const AKSİYON_BASARI: Partial<Record<AksiyonId, string>> = {
   kaydet: 'Kaydedildi',
   hizliKaydet: 'Siteye eklendi',
   guncelle: 'Güncellendi',
-  ekle: 'Eklendi',
+  /* ekle: sadece yeni form açar; başarı kaydet sonrası basariBildir ile gelir */
   sil: 'Silindi',
   yayinla: 'Yayınlandı',
   onizle: 'Önizleme açıldı',
@@ -272,7 +272,7 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
       const aksiyonId = id as AksiyonId;
 
       try {
-        let sonuc: boolean | void = undefined;
+        let sonuc: boolean | void | string = undefined;
         if (id === 'kaydet' && handlers.kaydet) sonuc = await handlers.kaydet();
         else if (id === 'hizliKaydet' && handlers.hizliKaydet) await handlers.hizliKaydet();
         else if (id === 'guncelle' && handlers.guncelle) await handlers.guncelle();
@@ -293,8 +293,12 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
         /* Handler false dönerse kendi bildirimini göstermiş demektir */
         if (sonuc === false) return false;
 
-        if (bildirimGoster && AKSİYON_BASARI[aksiyonId]) {
-          aksiyonGeriBildirimiGoster(aksiyonId);
+        if (bildirimGoster) {
+          if (typeof sonuc === 'string' && sonuc.trim()) {
+            aksiyonGeriBildirimiGoster(aksiyonId, sonuc.trim());
+          } else if (AKSİYON_BASARI[aksiyonId]) {
+            aksiyonGeriBildirimiGoster(aksiyonId);
+          }
         }
         return true;
       } catch {

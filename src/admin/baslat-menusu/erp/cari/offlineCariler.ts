@@ -53,6 +53,7 @@ function formdanCari(form: CariFormDegeri, id: string, firmaId = '1', olusturma?
     ilce: form.ilce.trim(),
     adres: form.adres.trim(),
     telefon: form.telefon.trim(),
+    telefonDahili: form.telefonDahili.trim().replace(/\D/g, '').slice(0, 4),
     gsm: form.gsm.trim(),
     eposta: form.eposta.trim(),
     web: form.web.trim(),

@@ -3,8 +3,6 @@ import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/Tani
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
-import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
-import { DgSecimUstKutu } from '@/admin/ortak/datagrid/DgSecimUstKutu';
 import '@/admin/ortak/datagrid/datagrid.css';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
@@ -212,7 +210,7 @@ export function StoklarSayfasi() {
   const [birimListesiStok, setBirimListesiStok] = useState<AdminStok | null>(null);
   const [fiyatDuzenleStok, setFiyatDuzenleStok] = useState<AdminStok | null>(null);
   const gridApiRef = useRef<DataGridApi | null>(null);
-  const kaydetRef = useRef<(() => Promise<void>) | null>(null);
+  const kaydetRef = useRef<(() => Promise<boolean | void | string>) | null>(null);
   const sayfaRef = useRef<HTMLDivElement | null>(null);
 
   const yukle = useCallback(async () => {
@@ -285,8 +283,8 @@ export function StoklarSayfasi() {
     gridApiRef.current?.secimAyarla([satirId]);
   }, []);
 
-  const listeyeDon = useCallback(() => {
-    if (kartKirli || altKirli) {
+  const listeyeDon = useCallback((secenek?: { kayitSonrasi?: boolean }) => {
+    if (!secenek?.kayitSonrasi && (kartKirli || altKirli)) {
       const onay = window.confirm(
         'Kaydedilmemiş değişiklikler var. Yine de listeye dönmek istiyor musunuz?'
       );
@@ -446,7 +444,7 @@ export function StoklarSayfasi() {
       hataBildir('Kayıt formu henüz hazır değil.');
       throw new Error('Kayıt formu henüz hazır değil.');
     }
-    await kaydetRef.current();
+    return await kaydetRef.current();
   }, [hataBildir]);
 
   const gelismisAraAc = useCallback(() => {
@@ -704,7 +702,7 @@ export function StoklarSayfasi() {
         gorunum === 'kart' ? (
           <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
             <StokKartTarihBilgi kayitMetni={kartKayitMetni} guncellemeMetni={kartGuncellemeMetni} />
-            <StokListelemeTus onGit={listeyeDon} />
+            <StokListelemeTus onGit={() => listeyeDon()} />
             <StokGezinOk
               yon="geri"
               hedef={oncekiStok}
@@ -716,38 +714,6 @@ export function StoklarSayfasi() {
               onGit={() => sonrakiStok && stokyeGit(sonrakiStok)}
             />
           </div>
-        ) : gorunum === 'liste' && aramaGosterildi && !yukleniyor ? (
-          <div className="dg-modul-ust-araclar">
-            <DgSecimUstKutu
-              sayi={seciliIdler.length}
-              durumTuslari={duzenlemeVar}
-              onAktif={() => void topluDurumAyarla(true)}
-              onPasif={() => void topluDurumAyarla(false)}
-              onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
-              onTemizle={() => {
-                gridApiRef.current?.secimAyarla([]);
-                setSeciliIdler([]);
-              }}
-            />
-            <div className="dg-ikon-grup dg-modul-ust-ikonlar">
-              <button
-                type="button"
-                className="dg-tus dg-tus-ikon"
-                title="Sütun görünürlüğü"
-                onClick={(e) => gridApiRef.current?.sutunMenuToggle(e.currentTarget)}
-              >
-                <DgIkon ad="sutun" />
-              </button>
-              <button
-                type="button"
-                className="dg-tus dg-tus-ikon"
-                title="CSV indir"
-                onClick={() => gridApiRef.current?.csvIndir()}
-              >
-                <DgIkon ad="indir" />
-              </button>
-            </div>
-          </div>
         ) : null
       }
     >
@@ -756,15 +722,15 @@ export function StoklarSayfasi() {
           <StokKarti
             mod={kartModu}
             stokId={aktifStokId}
-            onGeri={listeyeDon}
-            onKaydedildi={listeyeDon}
+            onGeri={() => listeyeDon()}
+            onKaydedildi={() => listeyeDon({ kayitSonrasi: true })}
             kaydetRef={kaydetRef}
             onKirliDegistir={setKartKirli}
           />
         ) : gorunum === 'fiyatAnaliz' && fiyatAnalizStok ? (
           <StokFiyatAnaliz
             stok={fiyatAnalizStok}
-            onGeri={listeyeDon}
+            onGeri={() => listeyeDon()}
             onDuzenle={() => duzenleAc(fiyatAnalizStok.id)}
             onIncele={() => inceleAc(fiyatAnalizStok.id)}
             kaydetRef={kaydetRef}
@@ -856,11 +822,20 @@ export function StoklarSayfasi() {
                     <StoklarSagTikMenu
                       konteynerRef={sayfaRef}
                       duzenlemeVar={duzenlemeVar}
+                      seciliSatirSayisi={seciliIdler.length}
+                      gridApiRef={gridApiRef}
                       onDuzenle={sagTikDuzenle}
                       onIncele={(id) => stokSatirSec(id)}
                       onSatirSec={stokSatirSec}
                       onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
                       onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
+                      onAktifYap={duzenlemeVar ? () => void topluDurumAyarla(true) : undefined}
+                      onPasifYap={duzenlemeVar ? () => void topluDurumAyarla(false) : undefined}
+                      onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
+                      onSecimiTemizle={() => {
+                        gridApiRef.current?.secimAyarla([]);
+                        setSeciliIdler([]);
+                      }}
                     />
                     <DataGrid
                       key="stoklar_kayitlar_v2"
@@ -877,7 +852,7 @@ export function StoklarSayfasi() {
                       onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
                       onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                       onSecimDegistir={setSeciliIdler}
-                      formulMenuGoster={false}
+                      formulMenuGoster
                       ustSolAraclarGoster={false}
                       ustSagAraclarGoster={false}
                       ustAracGoster={false}

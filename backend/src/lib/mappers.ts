@@ -32,25 +32,35 @@ const VARSAYILAN_ROL_YETKILERI: Record<string, string[]> = {
 
 const BOS_YETKI_VARSAYILAN_ROLLER = new Set(['YONETICI', 'SUPER_ADMIN', 'AJANS_ADMIN']);
 
+function rollerAyristir(rol: string): string[] {
+  return [...new Set(rol.split(/[,;|]/).map((r) => r.trim()).filter(Boolean))];
+}
+
 export async function kullaniciYetkileriAl(kullanici: Kullanici): Promise<{
   birlesik: string[];
   modul: Record<string, string[]>;
 }> {
+  const roller = rollerAyristir(kullanici.rol);
   const satirlar = await prisma.rol.findMany({
-    where: { rolAdi: kullanici.rol, durum: true },
+    where: {
+      rolAdi: roller.length === 1 ? roller[0] : { in: roller.length ? roller : ['__yok__'] },
+      durum: true,
+    },
   });
 
-  const varsayilan = VARSAYILAN_ROL_YETKILERI[kullanici.rol] ?? ['goruntuleme'];
+  const birlesik = new Set<string>();
+  const modul: Record<string, Set<string>> = {};
 
-  if (satirlar.length === 0) {
-    return { birlesik: varsayilan, modul: {} };
+  for (const kod of roller) {
+    const varsayilan = VARSAYILAN_ROL_YETKILERI[kod] ?? ['goruntuleme'];
+    if (BOS_YETKI_VARSAYILAN_ROLLER.has(kod)) {
+      for (const y of varsayilan) birlesik.add(y);
+    }
   }
 
-  const birlesik = new Set<string>();
-  const modul: Record<string, string[]> = {};
-
-  if (BOS_YETKI_VARSAYILAN_ROLLER.has(kullanici.rol)) {
-    for (const y of varsayilan) birlesik.add(y);
+  if (satirlar.length === 0) {
+    const varsayilan = roller.flatMap((kod) => VARSAYILAN_ROL_YETKILERI[kod] ?? ['goruntuleme']);
+    return { birlesik: [...new Set(varsayilan)], modul: {} };
   }
 
   for (const satir of satirlar) {
@@ -58,15 +68,25 @@ export async function kullaniciYetkileriAl(kullanici: Kullanici): Promise<{
     const liste = (Array.isArray(satir.yetki) ? (satir.yetki as string[]) : []).filter((y) =>
       GECERLI_YETKILER.includes(y)
     );
-    modul[prefix] = liste;
-    for (const y of liste) birlesik.add(y);
+    if (!modul[prefix]) modul[prefix] = new Set();
+    for (const y of liste) {
+      modul[prefix]!.add(y);
+      birlesik.add(y);
+    }
   }
 
   const sonuc = [...birlesik];
   if (sonuc.length === 0) {
-    return { birlesik: varsayilan, modul };
+    const varsayilan = roller.flatMap((kod) => VARSAYILAN_ROL_YETKILERI[kod] ?? ['goruntuleme']);
+    return {
+      birlesik: [...new Set(varsayilan)],
+      modul: Object.fromEntries(Object.entries(modul).map(([k, v]) => [k, [...v]])),
+    };
   }
-  return { birlesik: sonuc, modul };
+  return {
+    birlesik: sonuc,
+    modul: Object.fromEntries(Object.entries(modul).map(([k, v]) => [k, [...v]])),
+  };
 }
 
 const modulPrefixOnbellek = new Map<number, string>();
