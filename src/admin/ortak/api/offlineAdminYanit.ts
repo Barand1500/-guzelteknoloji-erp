@@ -59,7 +59,7 @@ const VARSAYILAN_OFFLINE_MODULLER: OfflineModul[] = [
   { id: 8, ad: 'Tanimlar', prefix: 'tanimlar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 9, ad: 'Cari Kartlar', prefix: 'cari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 13, ad: 'Stoklar', prefix: 'stoklar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
-  { id: 14, ad: 'Banka Anlasmalari', prefix: 'banka_anlasmalari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 14, ad: 'Bankalar', prefix: 'banka_anlasmalari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
 ];
 
 const OFFLINE_YETKILER = [

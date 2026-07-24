@@ -25,6 +25,7 @@ function posSatirlariNormalize(liste?: PosKomisyonSatir[]): PosKomisyonSatir[] {
 export function bankaAnlasmadanForm(k: AdminBankaAnlasma): BankaAnlasmaFormDegeri {
   return {
     hesapTipi: k.hesapTipi,
+    hesapKodu: k.hesapKodu ?? '',
     hesapIsmi: k.hesapIsmi,
     bankaKodu: k.bankaKodu,
     bankaSubesi: k.bankaSubesi ?? '',
@@ -55,7 +56,10 @@ export function bankaAnlasmadanForm(k: AdminBankaAnlasma): BankaAnlasmaFormDeger
 }
 
 export function bankaAnlasmaSatirEtiketi(k: AdminBankaAnlasma): string {
-  return k.hesapIsmi.trim() || 'Adsız hesap';
+  const kod = k.hesapKodu?.trim();
+  const ad = k.hesapIsmi.trim();
+  if (kod && ad) return `${kod} — ${ad}`;
+  return ad || kod || 'Adsız hesap';
 }
 
 /** Ödeme / kesim / bloke günü */
@@ -164,7 +168,7 @@ export function satisSekliTekrarVarMi(
 }
 
 export function bankaAnlasmaFormDogrula(form: BankaAnlasmaFormDegeri): string | null {
-  if (!form.hesapIsmi.trim()) return 'Hesap ismi zorunludur';
+  if (!form.hesapIsmi.trim()) return 'Hesap adı zorunludur';
   if (form.hesapTipi === 'BANKA') {
     if (!form.bankaKodu.trim()) return 'Banka seçimi zorunludur';
     if (form.ibanModu === 'TR') {

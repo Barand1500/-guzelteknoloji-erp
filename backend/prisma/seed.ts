@@ -18,7 +18,7 @@ const PANEL_MODULLERI = [
   { modulAdi: 'Birimler', prefix: 'birimler' },
   { modulAdi: 'Maliyetler', prefix: 'maliyetler' },
   { modulAdi: 'Stoklar', prefix: 'stoklar' },
-  { modulAdi: 'Banka Anlasmalari', prefix: 'banka_anlasmalari' },
+  { modulAdi: 'Bankalar', prefix: 'banka_anlasmalari' },
 ];
 
 const SISTEM_ROLLERI = [

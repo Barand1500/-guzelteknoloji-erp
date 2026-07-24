@@ -59,6 +59,7 @@ export function BankaAnlasmalariSayfasi() {
       const iban = k.ibanModu === 'TR' ? `tr${k.iban}` : k.iban;
       return (
         k.hesapIsmi.toLocaleLowerCase('tr').includes(q) ||
+        (k.hesapKodu ?? '').toLocaleLowerCase('tr').includes(q) ||
         k.bankaAdi.toLocaleLowerCase('tr').includes(q) ||
         iban.toLocaleLowerCase('tr').includes(q) ||
         k.hesapNumarasi.toLocaleLowerCase('tr').includes(q)
@@ -145,7 +146,7 @@ export function BankaAnlasmalariSayfasi() {
     if (!silme) return;
     try {
       await bankaAnlasmaSil(silme.id);
-      basariBildir('Banka anlaşması silindi.');
+      basariBildir('Banka kaydı silindi.');
       setSilme(null);
       setSeciliIdler((idler) => idler.filter((id) => id !== silme.id));
       await yukle();
@@ -156,17 +157,17 @@ export function BankaAnlasmalariSayfasi() {
 
   if (!goruntulemeVar) {
     return (
-      <YetkisizErisim aciklama="Banka anlaşmalarını görmek için Görüntüleme yetkisi gerekir." />
+      <YetkisizErisim aciklama="Bankaları görmek için Görüntüleme yetkisi gerekir." />
     );
   }
 
   return (
     <AdminModulKabuk
-      baslik={gorunum === 'kart' ? (kartModu === 'yeni' ? 'Yeni Banka Anlaşması' : 'Banka Anlaşması') : 'Banka Anlaşmaları'}
+      baslik={gorunum === 'kart' ? (kartModu === 'yeni' ? 'Yeni Banka' : 'Banka') : 'Bankalar'}
       aciklama={
         gorunum === 'kart'
           ? 'Hesap tipine göre banka, kredi veya POS bilgilerini yönetin.'
-          : 'Banka hesapları, kredi ve POS anlaşmaları.'
+          : 'Banka hesapları, kredi ve POS kayıtları.'
       }
       ustAksiyon={
         gorunum === 'kart' ? (
@@ -262,7 +263,7 @@ export function BankaAnlasmalariSayfasi() {
                       type="search"
                       value={filtreMetni}
                       onChange={(e) => setFiltreMetni(e.target.value)}
-                      placeholder="Hesap ismi, banka veya IBAN…"
+                      placeholder="Hesap adı, banka veya IBAN…"
                       aria-label="Banka anlaşması ara"
                     />
                   </label>
@@ -282,7 +283,7 @@ export function BankaAnlasmalariSayfasi() {
                     kolonlar={kolonlar}
                     satirlar={filtrelenmis}
                     depolamaAnahtari={`banka_anlasmalari_v${BANKA_KOLON_GENISLIK_SURUMU}`}
-                    bosMesaj="Henüz banka anlaşması yok. Yeni ile ekleyebilirsiniz."
+                    bosMesaj="Henüz banka kaydı yok. Yeni ile ekleyebilirsiniz."
                     satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                     onSatirTikla={(s) => gridApiRef.current?.secimAyarla([s.id])}
                     onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
@@ -300,7 +301,7 @@ export function BankaAnlasmalariSayfasi() {
         acik={!!silme}
         onKapat={() => setSilme(null)}
         onOnayla={() => void silOnayla()}
-        baslik="Bu banka anlaşmasını silmek istiyor musunuz?"
+        baslik="Bu banka kaydını silmek istiyor musunuz?"
         hedefMetin={silme ? `«${bankaAnlasmaSatirEtiketi(silme)}»` : ''}
         ariaLabel="Banka anlaşması silme onayı"
       />

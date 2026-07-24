@@ -4,7 +4,7 @@ import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/Tani
 import { hesapTipiEtiketi } from './hesapTipleri';
 import type { AdminBankaAnlasma } from './tipler';
 
-export const BANKA_KOLON_GENISLIK_SURUMU = 1;
+export const BANKA_KOLON_GENISLIK_SURUMU = 2;
 
 export function bankaAnlasmaKolonlari(): KolonTanimi<AdminBankaAnlasma>[] {
   return [
@@ -18,10 +18,18 @@ export function bankaAnlasmaKolonlari(): KolonTanimi<AdminBankaAnlasma>[] {
       degerAl: () => null,
     },
     {
-      id: 'hesapIsmi',
-      baslik: 'Hesap İsmi',
+      id: 'hesapKodu',
+      baslik: 'Hesap Kodu',
       tip: 'metin',
-      genislik: 220,
+      genislik: 100,
+      siralama: true,
+      degerAl: (s) => s.hesapKodu,
+    },
+    {
+      id: 'hesapIsmi',
+      baslik: 'Hesap Adı',
+      tip: 'metin',
+      genislik: 200,
       siralama: true,
       degerAl: (s) => s.hesapIsmi,
     },
