@@ -39,7 +39,6 @@ import {
   type AdminBankaAnlasma,
   type BankaAnlasmaFormDegeri,
   type BankaKartModu,
-  type BankaKisimId,
   type KrediKartTuru,
 } from '../tipler';
 import {
@@ -52,9 +51,8 @@ import {
 } from '../bankaYardimci';
 import { BankaAdresIletisimBolumu } from './BankaAdresIletisimBolumu';
 import { BankaIbanGirdi } from './BankaIbanGirdi';
-import { BankaKisimEkle } from './BankaKisimEkle';
 import { BankaKrediKartGorsel } from './BankaKrediKartGorsel';
-import { BankaOutlinedTarih, BankaValorKutu } from './BankaPosAlanlari';
+import { BankaOutlinedDonem, BankaValorKutu } from './BankaPosAlanlari';
 import { BankaPosKomisyonTablosu } from './BankaPosKomisyonTablosu';
 import { bankaEtiketi } from '../bankalar';
 
@@ -164,6 +162,14 @@ export function BankaAnlasmaKart({
   const [bankaModalAcik, setBankaModalAcik] = useState(false);
   const [tipModalAcik, setTipModalAcik] = useState(false);
 
+  const bankaSecenekleri = useMemo(
+    () =>
+      [...bankalar].sort((a, b) =>
+        a.label.localeCompare(b.label, 'tr', { sensitivity: 'base' })
+      ),
+    [bankalar]
+  );
+
   const seciliKayit = useMemo(
     () => (kayitId ? kayitlar.find((k) => k.id === kayitId) ?? null : null),
     [kayitId, kayitlar]
@@ -258,22 +264,6 @@ export function BankaAnlasmaKart({
     };
   }, [kaydet, kaydetRef]);
 
-  const kisimEkle = (kisim: BankaKisimId) => {
-    setForm((f) =>
-      f.acikKisismlar.includes(kisim)
-        ? f
-        : { ...f, acikKisismlar: [...f.acikKisismlar, kisim] }
-    );
-  };
-
-  const kisimKaldir = (kisim: BankaKisimId) => {
-    setForm((f) => ({
-      ...f,
-      acikKisismlar: f.acikKisismlar.filter((k) => k !== kisim),
-      iletisimKisiler: kisim === 'adres-iletisim' ? [] : f.iletisimKisiler,
-    }));
-  };
-
   if (yukleniyor && mod !== 'yeni') return <TanimYukleniyor />;
   if (mod !== 'yeni' && !seciliKayit) return <TanimYukleniyor />;
 
@@ -313,7 +303,7 @@ export function BankaAnlasmaKart({
                   etiket="Banka"
                   zorunlu
                   deger={form.bankaKodu}
-                  secenekler={bankalar}
+                  secenekler={bankaSecenekleri}
                   disabled={saltOkunur}
                   onYonet={() => setBankaModalAcik(true)}
                   onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
@@ -371,23 +361,27 @@ export function BankaAnlasmaKart({
                   <div className="cari-il-ilce-cift">
                     <CariOutlinedGirdi
                       etiket="Hesap Kesim Tarihi"
+                      className="ba-gun-cumle"
                       deger={form.hesapKesimGunu}
                       maxLength={2}
                       odakPlaceholder="1–31"
                       inputMode="numeric"
                       disabled={saltOkunur}
                       onChange={(v) => setAlan('hesapKesimGunu', gunSayisiFiltrele(v))}
-                      sonek={form.hesapKesimGunu ? <span className="ba-gun-sonek">gün</span> : null}
+                      onek={<span className="ba-gun-sonek">Her ayın</span>}
+                      sonek={<span className="ba-gun-sonek">. günü</span>}
                     />
                     <CariOutlinedGirdi
                       etiket="Ödeme Günü"
+                      className="ba-gun-cumle"
                       deger={form.odemeGunu}
                       maxLength={2}
                       odakPlaceholder="1–31"
                       inputMode="numeric"
                       disabled={saltOkunur}
                       onChange={(v) => setAlan('odemeGunu', gunSayisiFiltrele(v))}
-                      sonek={form.odemeGunu ? <span className="ba-gun-sonek">gün</span> : null}
+                      onek={<span className="ba-gun-sonek">Her ayın</span>}
+                      sonek={<span className="ba-gun-sonek">. günü</span>}
                     />
                   </div>
                   <div className="cari-il-ilce-cift">
@@ -414,7 +408,7 @@ export function BankaAnlasmaKart({
                     etiket="Banka"
                     zorunlu
                     deger={form.bankaKodu}
-                    secenekler={bankalar}
+                    secenekler={bankaSecenekleri}
                     disabled={saltOkunur}
                     onYonet={() => setBankaModalAcik(true)}
                     onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
@@ -447,7 +441,7 @@ export function BankaAnlasmaKart({
                   etiket="Banka"
                   zorunlu
                   deger={form.bankaKodu}
-                  secenekler={bankalar}
+                  secenekler={bankaSecenekleri}
                   disabled={saltOkunur}
                   onYonet={() => setBankaModalAcik(true)}
                   onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
@@ -460,23 +454,22 @@ export function BankaAnlasmaKart({
                   disabled={saltOkunur}
                   onChange={(anlasmaNo) => setAlan('anlasmaNo', anlasmaNo)}
                 />
-                <BankaValorKutu
-                  deger={form.valor}
-                  disabled={saltOkunur}
-                  onChange={(valor) => setAlan('valor', valor)}
-                />
-                <BankaOutlinedTarih
-                  etiket="Başlangıç Tarihi"
-                  deger={form.baslangicTarihi}
-                  disabled={saltOkunur}
-                  onChange={(baslangicTarihi) => setAlan('baslangicTarihi', baslangicTarihi)}
-                />
-                <BankaOutlinedTarih
-                  etiket="Bitiş Tarihi"
-                  deger={form.bitisTarihi}
-                  disabled={saltOkunur}
-                  onChange={(bitisTarihi) => setAlan('bitisTarihi', bitisTarihi)}
-                />
+                <div className="ba-pos-donem-valor">
+                  <BankaOutlinedDonem
+                    baslangic={form.baslangicTarihi}
+                    bitis={form.bitisTarihi}
+                    disabled={saltOkunur}
+                    onBaslangicChange={(baslangicTarihi) =>
+                      setAlan('baslangicTarihi', baslangicTarihi)
+                    }
+                    onBitisChange={(bitisTarihi) => setAlan('bitisTarihi', bitisTarihi)}
+                  />
+                  <BankaValorKutu
+                    deger={form.valor}
+                    disabled={saltOkunur}
+                    onChange={(valor) => setAlan('valor', valor)}
+                  />
+                </div>
                 <CariOutlinedAcilir
                   etiket="Komisyon Uygulama Tipi"
                   deger={form.komisyonUygulamaTipi}
@@ -516,19 +509,10 @@ export function BankaAnlasmaKart({
           </div>
         </div>
 
-        {form.acikKisismlar.includes('adres-iletisim') ? (
-          <BankaAdresIletisimBolumu
-            kisiler={form.iletisimKisiler}
-            disabled={saltOkunur}
-            onChange={(iletisimKisiler) => setAlan('iletisimKisiler', iletisimKisiler)}
-            onBolumKaldir={() => kisimKaldir('adres-iletisim')}
-          />
-        ) : null}
-
-        <BankaKisimEkle
-          acikKisismlar={form.acikKisismlar}
+        <BankaAdresIletisimBolumu
+          kisiler={form.iletisimKisiler}
           disabled={saltOkunur}
-          onEkle={kisimEkle}
+          onChange={(iletisimKisiler) => setAlan('iletisimKisiler', iletisimKisiler)}
         />
       </div>
 
@@ -536,7 +520,7 @@ export function BankaAnlasmaKart({
         acik={bankaModalAcik}
         baslik="Bankalar"
         placeholder="Banka adı…"
-        liste={bankalar}
+        liste={bankaSecenekleri}
         kullanimNesneAdi="bankayı"
         kullanimSayisiAl={(value) =>
           kayitlar.filter((k) => k.bankaKodu === value).length

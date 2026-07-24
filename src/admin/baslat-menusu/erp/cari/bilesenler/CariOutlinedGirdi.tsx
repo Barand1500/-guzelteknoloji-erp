@@ -17,6 +17,7 @@ interface CariOutlinedGirdiProps {
   className?: string;
   buyukHarf?: boolean;
   disabled?: boolean;
+  onek?: ReactNode;
   sonek?: ReactNode;
   onEnter?: () => void;
 }
@@ -55,6 +56,7 @@ export function CariOutlinedGirdi({
   className,
   buyukHarf,
   disabled = false,
+  onek,
   sonek,
   onEnter,
 }: CariOutlinedGirdiProps) {
@@ -68,7 +70,18 @@ export function CariOutlinedGirdi({
       className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}${disabled ? ' cari-outlined-field--pasif' : ''} ${className ?? ''}`.trim()}
     >
       <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
-      <div className="cari-outlined-cerceve">
+      <div
+        className="cari-outlined-cerceve"
+        onMouseDown={(e) => {
+          const hedef = e.target as HTMLElement;
+          if (hedef.closest('.cari-outlined-onek, .cari-outlined-sonek') || hedef === e.currentTarget) {
+            e.preventDefault();
+            const girdi = e.currentTarget.querySelector('input');
+            girdi?.focus();
+          }
+        }}
+      >
+        {onek ? <div className="cari-outlined-onek">{onek}</div> : null}
         <input
           id={inputId}
           className="cari-outlined-input"

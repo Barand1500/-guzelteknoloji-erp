@@ -19,18 +19,15 @@ export function BankaAdresIletisimBolumu({
   kisiler,
   disabled,
   onChange,
-  onBolumKaldir,
 }: {
   kisiler: CariIletisimKisi[];
   disabled?: boolean;
   onChange: (kisiler: CariIletisimKisi[]) => void;
-  onBolumKaldir?: () => void;
 }) {
   const [silinecekId, setSilinecekId] = useState<string | null>(null);
   const [acik, setAcik] = useState(true);
   const bosFormVar = kisiler.some((k) => iletisimKisiBosMu(k));
   const silinecek = silinecekId ? kisiler.find((k) => k.id === silinecekId) : undefined;
-  const panelAcik = acik && kisiler.length > 0;
 
   const kisiGuncelle = (id: string, parca: Partial<CariIletisimKisi>) => {
     onChange(kisiler.map((k) => (k.id === id ? { ...k, ...parca } : k)));
@@ -65,39 +62,27 @@ export function BankaAdresIletisimBolumu({
             </svg>
           </button>
         ) : null}
-        {kisiler.length > 0 ? (
-          <button
-            type="button"
-            className="cari-bolum-kucult"
-            onClick={() => setAcik((v) => !v)}
-            title={acik ? 'Küçült' : 'Aç'}
-            aria-expanded={acik}
-          >
-            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
-              <path
-                d={acik ? 'M4.2 9.8 8 6.2l3.8 3.6' : 'M4.2 6.2 8 9.8l3.8-3.6'}
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        ) : null}
-        {!disabled && onBolumKaldir ? (
-          <button
-            type="button"
-            className="ba-bolum-kaldir"
-            onClick={onBolumKaldir}
-            title="Kısmı kaldır"
-            aria-label="Adres / İletişim kısmını kaldır"
-          >
-            <DgIkon ad="sil" />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="cari-bolum-kucult"
+          onClick={() => setAcik((v) => !v)}
+          title={acik ? 'Küçült' : 'Aç'}
+          aria-expanded={acik}
+          aria-label={acik ? 'Adres / İletişim küçült' : 'Adres / İletişim aç'}
+        >
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden>
+            <path
+              d={acik ? 'M4.2 9.8 8 6.2l3.8 3.6' : 'M4.2 6.2 8 9.8l3.8-3.6'}
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </div>
 
-      {panelAcik ? (
+      {acik && kisiler.length > 0 ? (
         <div className="cari-iletisim-liste">
           {kisiler.map((kisi) => (
             <article key={kisi.id} className="cari-iletisim-kart">
@@ -187,7 +172,7 @@ export function BankaAdresIletisimBolumu({
             </article>
           ))}
         </div>
-      ) : kisiler.length === 0 ? (
+      ) : acik ? (
         <p className="ba-kisim-bos-ipucu">+ ile adres / iletişim kartı ekleyebilirsiniz.</p>
       ) : null}
 

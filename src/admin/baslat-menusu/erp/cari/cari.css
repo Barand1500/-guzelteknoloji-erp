@@ -636,6 +636,7 @@
   transition: border-color 0.16s ease;
 }
 
+.cari-outlined-onek,
 .cari-outlined-sonek {
   flex-shrink: 0;
   display: flex;

@@ -43,6 +43,25 @@
   white-space: nowrap;
 }
 
+/* Her ayın … . günü — sayı solda yazılır, “. günü” sonda sabit */
+.ba-gun-cumle .cari-outlined-cerceve {
+  cursor: text;
+}
+
+.ba-gun-cumle .cari-outlined-onek {
+  flex-shrink: 0;
+}
+
+.ba-gun-cumle .cari-outlined-sonek {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ba-gun-cumle .cari-outlined-onek,
+.ba-gun-cumle .cari-outlined-sonek {
+  pointer-events: none;
+}
+
 /* Kredi kartı görünümü — açık yüzey, tema ile uyumlu */
 .ba-kk-gorsel {
   position: relative;
@@ -356,6 +375,114 @@
 }
 
 /* POS */
+.ba-pos-donem-valor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: end;
+  min-width: 0;
+}
+
+.ba-pos-donem-valor .ba-pos-donem {
+  min-width: 0;
+}
+
+.ba-pos-donem-valor .ba-pos-donem .cari-outlined-cerceve {
+  min-height: 2.95rem;
+  box-sizing: border-box;
+}
+
+.ba-pos-donem-valor .ba-valor-kutu {
+  width: auto;
+  min-width: 5.75rem;
+  margin-top: 0;
+  align-self: end;
+  min-height: 2.95rem;
+  box-sizing: border-box;
+  justify-content: center;
+  padding: 0 0.7rem;
+}
+
+.ba-pos-donem-cerceve {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  flex-wrap: nowrap;
+  min-width: 0;
+  min-height: 2.95rem;
+  box-sizing: border-box;
+}
+
+.ba-pos-donem-parca {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 0 0 auto;
+  cursor: text;
+}
+
+.ba-pos-donem-mini-etiket {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--ap-text-muted);
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1.2;
+}
+
+.ba-pos-donem-input {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 10.75rem;
+  field-sizing: content;
+  padding-inline-end: 0.15rem;
+}
+
+.ba-pos-donem-input::-webkit-calendar-picker-indicator {
+  margin: 0 0 0 0.15rem;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.ba-pos-donem-input::-webkit-datetime-edit {
+  padding: 0;
+}
+
+.ba-pos-donem-input::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+.ba-pos-donem-ayrac {
+  flex-shrink: 0;
+  margin: 0 0.25rem;
+  color: color-mix(in srgb, var(--ap-text-muted) 80%, transparent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.ba-pos-donem-gun {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0.22rem 0.5rem;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--ap-accent) 12%, transparent);
+  color: var(--ap-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .ba-valor-kutu {
   display: inline-flex;
   align-items: center;

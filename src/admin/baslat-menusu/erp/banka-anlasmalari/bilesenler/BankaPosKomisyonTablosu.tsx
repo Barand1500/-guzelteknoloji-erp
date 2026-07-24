@@ -1,7 +1,41 @@
+import { useState, type InputHTMLAttributes } from 'react';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
 import type { PosKomisyonSatir } from '../tipler';
 import { bosPosKomisyonSatir } from '../tipler';
-import { gunSayisiFiltrele, kartLimitiFiltrele } from '../bankaYardimci';
+import {
+  gunSayisiFiltrele,
+  kartLimitiFiltrele,
+  satisSekliBicimle,
+  satisSekliTekrarVarMi,
+} from '../bankaYardimci';
+
+/** Placeholder yalnızca odaklanınca görünür (Cari outlined gibi). */
+function OdakHucreInput({
+  odakPlaceholder,
+  className,
+  onFocus,
+  onBlur,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, 'placeholder'> & {
+  odakPlaceholder?: string;
+}) {
+  const [odak, setOdak] = useState(false);
+  return (
+    <input
+      {...rest}
+      className={className}
+      placeholder={odak ? odakPlaceholder : undefined}
+      onFocus={(e) => {
+        setOdak(true);
+        onFocus?.(e);
+      }}
+      onBlur={(e) => {
+        setOdak(false);
+        onBlur?.(e);
+      }}
+    />
+  );
+}
 
 export function BankaPosKomisyonTablosu({
   satirlar,
@@ -14,6 +48,20 @@ export function BankaPosKomisyonTablosu({
 }) {
   const guncelle = (id: string, parca: Partial<PosKomisyonSatir>) => {
     onChange(satirlar.map((s) => (s.id === id ? { ...s, ...parca } : s)));
+  };
+
+  const satisSekliOnayla = (id: string, ham: string) => {
+    const bicimli = satisSekliBicimle(ham);
+    if (!bicimli) {
+      guncelle(id, { satisSekli: '' });
+      return;
+    }
+    if (satisSekliTekrarVarMi(satirlar, id, bicimli)) {
+      const onceki = satirlar.find((s) => s.id === id)?.satisSekli ?? '';
+      guncelle(id, { satisSekli: onceki === bicimli ? onceki : '' });
+      return;
+    }
+    guncelle(id, { satisSekli: bicimli });
   };
 
   const ekle = () => {
@@ -70,54 +118,68 @@ export function BankaPosKomisyonTablosu({
               {satirlar.map((s) => (
                 <tr key={s.id}>
                   <td>
-                    <input
+                    <OdakHucreInput
                       className="ba-pos-hucre-input"
                       value={s.kartAdi}
                       disabled={disabled}
-                      placeholder="Kredi Kartı"
+                      odakPlaceholder="Kredi Kartı"
                       onChange={(e) => guncelle(s.id, { kartAdi: e.target.value })}
                     />
                   </td>
                   <td>
-                    <input
+                    <OdakHucreInput
                       className="ba-pos-hucre-input"
                       value={s.satisSekli}
                       disabled={disabled}
-                      placeholder="Taksitler"
+                      odakPlaceholder="örn. 1 → Enter"
+                      inputMode="numeric"
+                      title="Sayı yazıp Enter: örn. 1 → 1 Taksit"
                       onChange={(e) => guncelle(s.id, { satisSekli: e.target.value })}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="ba-pos-hucre-input ba-pos-hucre-input--sayi"
-                      value={s.komisyon}
-                      disabled={disabled}
-                      placeholder="0,00"
-                      inputMode="decimal"
-                      onChange={(e) =>
-                        guncelle(s.id, { komisyon: kartLimitiFiltrele(e.target.value) })
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="ba-pos-hucre-input ba-pos-hucre-input--sayi"
-                      value={s.puan}
-                      disabled={disabled}
-                      placeholder="0"
-                      inputMode="decimal"
-                      onChange={(e) =>
-                        guncelle(s.id, { puan: kartLimitiFiltrele(e.target.value) })
-                      }
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        satisSekliOnayla(s.id, (e.target as HTMLInputElement).value);
+                      }}
+                      onBlur={(e) => satisSekliOnayla(s.id, e.target.value)}
                     />
                   </td>
                   <td>
                     <div className="ba-pos-gun-hucre">
-                      <input
+                      <OdakHucreInput
+                        className="ba-pos-hucre-input ba-pos-hucre-input--sayi"
+                        value={s.komisyon}
+                        disabled={disabled}
+                        odakPlaceholder="0,00"
+                        inputMode="decimal"
+                        onChange={(e) =>
+                          guncelle(s.id, { komisyon: kartLimitiFiltrele(e.target.value) })
+                        }
+                      />
+                      {s.komisyon ? <span className="ba-gun-sonek">%</span> : null}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="ba-pos-gun-hucre">
+                      <OdakHucreInput
+                        className="ba-pos-hucre-input ba-pos-hucre-input--sayi"
+                        value={s.puan}
+                        disabled={disabled}
+                        odakPlaceholder="0"
+                        inputMode="decimal"
+                        onChange={(e) =>
+                          guncelle(s.id, { puan: kartLimitiFiltrele(e.target.value) })
+                        }
+                      />
+                      {s.puan ? <span className="ba-gun-sonek">%</span> : null}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="ba-pos-gun-hucre">
+                      <OdakHucreInput
                         className="ba-pos-hucre-input ba-pos-hucre-input--sayi"
                         value={s.blokeGun}
                         disabled={disabled}
-                        placeholder="0"
+                        odakPlaceholder="0"
                         inputMode="numeric"
                         onChange={(e) =>
                           guncelle(s.id, { blokeGun: gunSayisiFiltrele(e.target.value, 365) })
@@ -128,11 +190,11 @@ export function BankaPosKomisyonTablosu({
                   </td>
                   <td>
                     <div className="ba-pos-gun-hucre">
-                      <input
+                      <OdakHucreInput
                         className="ba-pos-hucre-input ba-pos-hucre-input--sayi"
                         value={s.tahsilatSekli}
                         disabled={disabled}
-                        placeholder="0"
+                        odakPlaceholder="0"
                         inputMode="numeric"
                         onChange={(e) =>
                           guncelle(s.id, {

@@ -68,11 +68,56 @@ export function gunSayisiFiltrele(deger: string, max = 31): string {
   return String(n);
 }
 
-/** Kart son kullanma: AA/YY */
+/** Kart son kullanma: AA/YY — ay 01–12, yıl ≥ bugün (geçmiş tarih yok) */
 export function sonKullanmaFiltrele(deger: string): string {
-  const rakam = deger.replace(/\D/g, '').slice(0, 4);
-  if (rakam.length <= 2) return rakam;
-  return `${rakam.slice(0, 2)}/${rakam.slice(2)}`;
+  const simdi = new Date();
+  const buAy = simdi.getMonth() + 1;
+  const buYil = simdi.getFullYear() % 100;
+
+  let rakam = deger.replace(/\D/g, '').slice(0, 4);
+  if (!rakam) return '';
+
+  // İlk hane 2–9 ise ayı 0X yap (örn. 3 → 03)
+  if (rakam.length === 1 && Number(rakam) > 1) {
+    rakam = `0${rakam}`;
+  }
+
+  let ayStr = rakam.slice(0, Math.min(2, rakam.length));
+  let yyStr = rakam.slice(2);
+
+  if (ayStr.length === 2) {
+    let ay = Number(ayStr);
+    if (!Number.isFinite(ay) || ay < 1) ay = 1;
+    if (ay > 12) ay = 12;
+    ayStr = String(ay).padStart(2, '0');
+  }
+
+  if (yyStr.length === 2) {
+    let yy = Number(yyStr);
+    if (!Number.isFinite(yy) || yy < buYil) yy = buYil;
+    if (yy === buYil && ayStr.length === 2 && Number(ayStr) < buAy) {
+      ayStr = String(buAy).padStart(2, '0');
+    }
+    yyStr = String(yy).padStart(2, '0');
+  }
+
+  if (!yyStr) return ayStr;
+  return `${ayStr}/${yyStr}`;
+}
+
+/** Son kullanma geçmişte mi / geçersiz mi? */
+export function sonKullanmaGecerliMi(deger: string): boolean {
+  if (!/^\d{2}\/\d{2}$/.test(deger)) return false;
+  const [ayS = '', yyS = ''] = deger.split('/');
+  const ay = Number(ayS);
+  const yy = Number(yyS);
+  if (!Number.isFinite(ay) || ay < 1 || ay > 12) return false;
+  const simdi = new Date();
+  const buAy = simdi.getMonth() + 1;
+  const buYil = simdi.getFullYear() % 100;
+  if (yy < buYil) return false;
+  if (yy === buYil && ay < buAy) return false;
+  return true;
 }
 
 /** Kart no: boşluklu 4’lü grup */
@@ -94,6 +139,30 @@ export function kartLimitiFiltrele(deger: string): string {
   return binlik;
 }
 
+/** "1" / "1 taksit" → "1 Taksit"; boş veya metin olduğu gibi */
+export function satisSekliBicimle(deger: string): string {
+  const t = deger.trim();
+  if (!t) return '';
+  const m = t.match(/^(\d+)\s*(?:taksit)?$/i);
+  if (m) return `${Number(m[1])} Taksit`;
+  return t.replace(/\s+/g, ' ');
+}
+
+export function satisSekliAnahtar(deger: string): string {
+  return satisSekliBicimle(deger).toLocaleLowerCase('tr-TR');
+}
+
+/** Aynı satış şekli başka satırda var mı? */
+export function satisSekliTekrarVarMi(
+  satirlar: PosKomisyonSatir[],
+  satirId: string,
+  deger: string
+): boolean {
+  const anahtar = satisSekliAnahtar(deger);
+  if (!anahtar) return false;
+  return satirlar.some((s) => s.id !== satirId && satisSekliAnahtar(s.satisSekli) === anahtar);
+}
+
 export function bankaAnlasmaFormDogrula(form: BankaAnlasmaFormDegeri): string | null {
   if (!form.hesapIsmi.trim()) return 'Hesap ismi zorunludur';
   if (form.hesapTipi === 'BANKA') {
@@ -108,8 +177,13 @@ export function bankaAnlasmaFormDogrula(form: BankaAnlasmaFormDegeri): string | 
     if (!form.kartTuru) return 'Kart türü (Ticari / Bireysel) seçiniz';
     const kartRakam = form.kartNo.replace(/\D/g, '');
     if (kartRakam && kartRakam.length < 15) return 'Kart numarası en az 15 hane olmalıdır';
-    if (form.sonKullanmaTarihi && !/^\d{2}\/\d{2}$/.test(form.sonKullanmaTarihi)) {
-      return 'Son kullanma tarihi AA/YY formatında olmalıdır';
+    if (form.sonKullanmaTarihi) {
+      if (!/^\d{2}\/\d{2}$/.test(form.sonKullanmaTarihi)) {
+        return 'Son kullanma tarihi AA/YY formatında olmalıdır';
+      }
+      if (!sonKullanmaGecerliMi(form.sonKullanmaTarihi)) {
+        return 'Son kullanma tarihi bugünden önce olamaz (ay 01–12)';
+      }
     }
   }
   if (form.hesapTipi === 'POS') {
