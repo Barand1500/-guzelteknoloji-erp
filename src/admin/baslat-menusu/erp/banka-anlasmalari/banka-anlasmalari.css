@@ -1,34 +1,81 @@
-/* Banka Anlaşmaları — Cari kart stillerinin üzerine ekler */
+/* Banka — Cari kart stillerinin üzerine ekler */
 
 .ba-hesap-tipi {
   grid-column: 1 / -1;
+}
+
+/* Hesap Kodu + Hesap Adı — kod = Banka+Kredi+POS chip grubu genişliği */
+.ba-hesap-kod-isim {
+  display: grid;
+  grid-template-columns: 10.5rem minmax(0, 1fr);
+  gap: var(--cari-pair-gap-x, 0.75rem);
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ba-hesap-kod-isim > * {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Adres/İletişim: küçült oku, kart çöp kutusu (right: 0.85rem) ile hizalı */
+.cari-iletisim-bolumu .cari-bolum-kucult {
+  margin-right: 0.85rem;
 }
 
 .ba-sube-cift {
   min-width: 0;
 }
 
-/* Kredi: sol kolon (Hesap İsmi…) = sağ kolon (Banka + kart) — aynı genişlik/hizalar */
+/* Kredi: 2×2 grid — kart yüksekliği = Kart Türü…Döviz (sol kolon) */
 .ba-kredi-govde {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto;
   gap: 1rem var(--cari-grid-gap-x, 1.1rem);
-  align-items: start;
+  align-items: stretch;
   min-width: 0;
 }
 
-.ba-kredi-sol,
-.ba-kredi-sag {
+.ba-kredi-ust-sol {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.ba-kredi-ust-sag {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.ba-kredi-ust-sag > * {
+  width: 100%;
+}
+
+.ba-kredi-sol-alt {
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
 }
 
-.ba-kredi-sag .ba-kk-gorsel {
-  flex: 1 1 auto;
-  min-height: 12.5rem;
+/* Sol kolon yüksekliği belirler; üst = Kart Türü çerçeve (margin-top: 0.42rem) */
+.ba-kredi-govde > .ba-kk-gorsel {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: stretch;
+  justify-self: stretch;
+  width: 100%;
+  margin-top: 0.42rem; /* .cari-secili-alan / .cari-outlined-field ile aynı */
+  height: 0;
+  min-height: calc(100% - 0.42rem) !important;
+  max-height: calc(100% - 0.42rem);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .ba-kart-turu .cari-secili-chip-grup {

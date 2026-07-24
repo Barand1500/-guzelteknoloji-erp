@@ -66,7 +66,7 @@ export const adminModulleri: AdminModul[] = [
   },
   {
     id: 'banka-anlasmalari',
-    baslik: 'Banka Anlaşmaları',
+    baslik: 'Bankalar',
     ikon: '🏦',
     kategori: 'ERP',
     yol: '/gt-admin/banka-anlasmalari',

@@ -114,60 +114,75 @@ export function BankaAdresIletisimBolumu({
                   etiket="Ad Soyad"
                   deger={kisi.adSoyad}
                   maxLength={120}
+                  odakPlaceholder="Ad ve soyad"
                   disabled={disabled}
+                  buyukHarf
                   onChange={(adSoyad) => kisiGuncelle(kisi.id, { adSoyad })}
                 />
                 <CariOutlinedGirdi
                   etiket="Görevi"
                   deger={kisi.gorevi}
                   maxLength={80}
+                  odakPlaceholder="Görevi"
                   disabled={disabled}
+                  buyukHarf
                   onChange={(gorevi) => kisiGuncelle(kisi.id, { gorevi })}
                 />
-                <CariOutlinedEposta
-                  deger={kisi.eposta}
-                  disabled={disabled}
-                  onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
-                />
-                <CariOutlinedTelefon
-                  etiket="Telefon"
-                  deger={kisi.telefon}
-                  disabled={disabled}
-                  onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
-                />
-                <CariOutlinedTelefon
-                  etiket="GSM"
-                  deger={kisi.gsm}
-                  gsmMi
-                  disabled={disabled}
-                  onChange={(gsm) => kisiGuncelle(kisi.id, { gsm })}
-                />
                 <CariOutlinedGirdi
-                  etiket="Web"
-                  deger={kisi.web}
-                  maxLength={120}
-                  disabled={disabled}
-                  onChange={(web) => kisiGuncelle(kisi.id, { web })}
-                />
-                <CariOutlinedIl
-                  deger={kisi.il}
-                  disabled={disabled}
-                  onChange={(il) => kisiGuncelle(kisi.id, { il, ilce: '' })}
-                />
-                <CariOutlinedIlce
-                  il={kisi.il}
-                  deger={kisi.ilce}
-                  disabled={disabled}
-                  onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
-                />
-                <CariOutlinedGirdi
-                  className="cari-alan-tam"
                   etiket="Adres"
                   deger={kisi.adres}
                   maxLength={500}
+                  odakPlaceholder="Adres bilgisi"
                   disabled={disabled}
                   onChange={(adres) => kisiGuncelle(kisi.id, { adres })}
                 />
+                <div className="cari-il-ilce-cift">
+                  <CariOutlinedIl
+                    deger={kisi.il}
+                    disabled={disabled}
+                    onChange={(il) =>
+                      kisiGuncelle(kisi.id, {
+                        il,
+                        ilce: il !== kisi.il ? '' : kisi.ilce,
+                      })
+                    }
+                  />
+                  <CariOutlinedIlce
+                    deger={kisi.ilce}
+                    il={kisi.il}
+                    disabled={disabled}
+                    onChange={(ilce) => kisiGuncelle(kisi.id, { ilce })}
+                  />
+                </div>
+                <div className="cari-telefon-gsm-cift">
+                  <CariOutlinedTelefon
+                    deger={kisi.telefon}
+                    disabled={disabled}
+                    onChange={(telefon) => kisiGuncelle(kisi.id, { telefon })}
+                  />
+                  <CariOutlinedTelefon
+                    etiket="GSM"
+                    deger={kisi.gsm}
+                    disabled={disabled}
+                    gsmMi
+                    onChange={(gsm) => kisiGuncelle(kisi.id, { gsm })}
+                  />
+                </div>
+                <div className="cari-eposta-web-cift">
+                  <CariOutlinedEposta
+                    deger={kisi.eposta}
+                    disabled={disabled}
+                    onChange={(eposta) => kisiGuncelle(kisi.id, { eposta })}
+                  />
+                  <CariOutlinedGirdi
+                    etiket="Web"
+                    deger={kisi.web}
+                    maxLength={120}
+                    odakPlaceholder="www.ornek.com"
+                    disabled={disabled}
+                    onChange={(web) => kisiGuncelle(kisi.id, { web })}
+                  />
+                </div>
               </div>
             </article>
           ))}
@@ -184,7 +199,7 @@ export function BankaAdresIletisimBolumu({
           onChange(kisiler.filter((k) => k.id !== silinecekId));
           setSilinecekId(null);
         }}
-        baslik="Bu iletişim kaydını silmek istiyor musunuz?"
+        baslik="Bu adres başlığına sahip kişiyi silmek istediğinize emin misiniz?"
         hedefMetin={silinecek ? `«${kisiSilMetni(silinecek)}»` : ''}
         ariaLabel="İletişim silme onayı"
       />

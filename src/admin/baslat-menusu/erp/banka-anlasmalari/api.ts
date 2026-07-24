@@ -33,6 +33,7 @@ function formdanKayit(
   return {
     id: mevcut?.id ?? `ba-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     hesapTipi: form.hesapTipi,
+    hesapKodu: form.hesapKodu.trim(),
     hesapIsmi: form.hesapIsmi.trim(),
     bankaKodu: form.bankaKodu,
     bankaAdi: bankaEtiketi(form.bankaKodu),

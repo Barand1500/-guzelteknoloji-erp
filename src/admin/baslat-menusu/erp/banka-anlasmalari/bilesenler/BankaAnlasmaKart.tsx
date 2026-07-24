@@ -235,10 +235,10 @@ export function BankaAnlasmaKart({
     try {
       if (mod === 'yeni') {
         await bankaAnlasmaOlustur(form);
-        basariBildir('Banka anlaşması eklendi.');
+        basariBildir('Banka kaydı eklendi.');
       } else if (kayitId) {
         await bankaAnlasmaGuncelle(kayitId, form);
-        basariBildir('Banka anlaşması güncellendi.');
+        basariBildir('Banka kaydı güncellendi.');
       }
       onKaydedildi();
     } catch (e) {
@@ -282,15 +282,26 @@ export function BankaAnlasmaKart({
 
             {form.hesapTipi === 'BANKA' ? (
               <>
-                <CariOutlinedGirdi
-                  etiket="Hesap İsmi"
-                  deger={form.hesapIsmi}
-                  zorunlu
-                  maxLength={120}
-                  odakPlaceholder="Hesap ismini yazınız"
-                  disabled={saltOkunur}
-                  onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
-                />
+                <div className="ba-hesap-kod-isim">
+                  <CariOutlinedGirdi
+                    etiket="Hesap Kodu"
+                    deger={form.hesapKodu}
+                    maxLength={20}
+                    buyukHarf
+                    odakPlaceholder="Kod"
+                    disabled={saltOkunur}
+                    onChange={(hesapKodu) => setAlan('hesapKodu', hesapKodu)}
+                  />
+                  <CariOutlinedGirdi
+                    etiket="Hesap Adı"
+                    deger={form.hesapIsmi}
+                    zorunlu
+                    maxLength={120}
+                    odakPlaceholder="Hesap adını yazınız"
+                    disabled={saltOkunur}
+                    onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
+                  />
+                </div>
                 <CariOutlinedGirdi
                   etiket="Hesap Numarası"
                   deger={form.hesapNumarasi}
@@ -343,16 +354,38 @@ export function BankaAnlasmaKart({
               </>
             ) : form.hesapTipi === 'KREDI' ? (
               <div className="ba-kredi-govde">
-                <div className="ba-kredi-sol">
+                <div className="ba-hesap-kod-isim ba-kredi-ust-sol">
                   <CariOutlinedGirdi
-                    etiket="Hesap İsmi"
+                    etiket="Hesap Kodu"
+                    deger={form.hesapKodu}
+                    maxLength={20}
+                    buyukHarf
+                    odakPlaceholder="Kod"
+                    disabled={saltOkunur}
+                    onChange={(hesapKodu) => setAlan('hesapKodu', hesapKodu)}
+                  />
+                  <CariOutlinedGirdi
+                    etiket="Hesap Adı"
                     deger={form.hesapIsmi}
                     zorunlu
                     maxLength={120}
-                    odakPlaceholder="Hesap ismini yazınız"
+                    odakPlaceholder="Hesap adını yazınız"
                     disabled={saltOkunur}
                     onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
                   />
+                </div>
+                <div className="ba-kredi-ust-sag">
+                  <CariOutlinedAcilir
+                    etiket="Banka"
+                    zorunlu
+                    deger={form.bankaKodu}
+                    secenekler={bankaSecenekleri}
+                    disabled={saltOkunur}
+                    onYonet={() => setBankaModalAcik(true)}
+                    onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
+                  />
+                </div>
+                <div className="ba-kredi-sol-alt">
                   <KartTuruChipleri
                     deger={form.kartTuru}
                     saltOkunur={saltOkunur}
@@ -403,40 +436,40 @@ export function BankaAnlasmaKart({
                     />
                   </div>
                 </div>
-                <div className="ba-kredi-sag">
-                  <CariOutlinedAcilir
-                    etiket="Banka"
-                    zorunlu
-                    deger={form.bankaKodu}
-                    secenekler={bankaSecenekleri}
-                    disabled={saltOkunur}
-                    onYonet={() => setBankaModalAcik(true)}
-                    onChange={(bankaKodu) => setAlan('bankaKodu', bankaKodu)}
-                  />
-                  <BankaKrediKartGorsel
-                    kartNo={form.kartNo}
-                    sonKullanma={form.sonKullanmaTarihi}
-                    hesapIsmi={form.hesapIsmi}
-                    bankaAdi={bankaEtiketi(form.bankaKodu)}
-                    disabled={saltOkunur}
-                    onKartNoChange={(kartNo) => setAlan('kartNo', kartNo)}
-                    onSonKullanmaChange={(sonKullanmaTarihi) =>
-                      setAlan('sonKullanmaTarihi', sonKullanmaTarihi)
-                    }
-                  />
-                </div>
+                <BankaKrediKartGorsel
+                  kartNo={form.kartNo}
+                  sonKullanma={form.sonKullanmaTarihi}
+                  hesapIsmi={form.hesapIsmi}
+                  bankaAdi={bankaEtiketi(form.bankaKodu)}
+                  disabled={saltOkunur}
+                  onKartNoChange={(kartNo) => setAlan('kartNo', kartNo)}
+                  onSonKullanmaChange={(sonKullanmaTarihi) =>
+                    setAlan('sonKullanmaTarihi', sonKullanmaTarihi)
+                  }
+                />
               </div>
             ) : form.hesapTipi === 'POS' ? (
               <>
-                <CariOutlinedGirdi
-                  etiket="Hesap İsmi"
-                  deger={form.hesapIsmi}
-                  zorunlu
-                  maxLength={120}
-                  odakPlaceholder="Hesap ismini yazınız"
-                  disabled={saltOkunur}
-                  onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
-                />
+                <div className="ba-hesap-kod-isim">
+                  <CariOutlinedGirdi
+                    etiket="Hesap Kodu"
+                    deger={form.hesapKodu}
+                    maxLength={20}
+                    buyukHarf
+                    odakPlaceholder="Kod"
+                    disabled={saltOkunur}
+                    onChange={(hesapKodu) => setAlan('hesapKodu', hesapKodu)}
+                  />
+                  <CariOutlinedGirdi
+                    etiket="Hesap Adı"
+                    deger={form.hesapIsmi}
+                    zorunlu
+                    maxLength={120}
+                    odakPlaceholder="Hesap adını yazınız"
+                    disabled={saltOkunur}
+                    onChange={(hesapIsmi) => setAlan('hesapIsmi', hesapIsmi)}
+                  />
+                </div>
                 <CariOutlinedAcilir
                   etiket="Banka"
                   zorunlu

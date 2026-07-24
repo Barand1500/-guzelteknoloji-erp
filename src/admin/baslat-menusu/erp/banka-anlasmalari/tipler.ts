@@ -51,6 +51,7 @@ export interface PosKomisyonSatir {
 export interface AdminBankaAnlasma {
   id: string;
   hesapTipi: string;
+  hesapKodu: string;
   hesapIsmi: string;
   bankaKodu: string;
   bankaAdi: string;
@@ -84,6 +85,7 @@ export interface AdminBankaAnlasma {
 
 export interface BankaAnlasmaFormDegeri {
   hesapTipi: string;
+  hesapKodu: string;
   hesapIsmi: string;
   bankaKodu: string;
   bankaSubesi: string;
@@ -124,6 +126,7 @@ export function bosPosKomisyonSatir(): PosKomisyonSatir {
 
 export const bosBankaAnlasmaForm: BankaAnlasmaFormDegeri = {
   hesapTipi: 'BANKA',
+  hesapKodu: '',
   hesapIsmi: '',
   bankaKodu: '',
   bankaSubesi: '',

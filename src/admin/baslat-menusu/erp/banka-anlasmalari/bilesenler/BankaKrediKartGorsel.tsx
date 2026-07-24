@@ -60,7 +60,7 @@ export function BankaKrediKartGorsel({
         <div className="ba-kk-gorsel-sahip">
           <span className="ba-kk-gorsel-etiket">Kart Sahibi</span>
           <span className="ba-kk-gorsel-sahip-ad">
-            {hesapIsmi.trim() || 'HESAP İSMİ'}
+            {hesapIsmi.trim() || 'HESAP ADI'}
           </span>
         </div>
         <label className="ba-kk-gorsel-skt-alan" htmlFor={sktId}>
