@@ -82,7 +82,7 @@ export function SubelerPaneli({
   }, [kasalar]);
 
   function acikMi(id: string) {
-    return yatayKart || acikIdler.has(id);
+    return acikIdler.has(id);
   }
 
   function toggle(id: string) {
@@ -175,8 +175,18 @@ export function SubelerPaneli({
                     )}
                   </div>
                   <div className="ap-tanimlar-sube-aksiyon">
+                    {yatayKart ? (
+                      <button
+                        type="button"
+                        className="ap-tanimlar-sube-ac"
+                        onClick={() => toggle(s.id)}
+                        aria-expanded={acik}
+                        title={acik ? 'Daralt' : 'Depo / kasa göster'}
+                      >
+                        <span aria-hidden>{acik ? '▾' : '▸'}</span>
+                      </button>
+                    ) : null}
                     <div className="ap-tanimlar-ekle-grup">
-                      {/* Liste: üstte; yatay kart: depo/kasa satır çizgisinde */}
                       {!yatayKart && !ekleKapali && s.aktif ? (
                         <>
                           <button
