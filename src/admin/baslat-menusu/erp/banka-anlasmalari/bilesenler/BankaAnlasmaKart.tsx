@@ -55,6 +55,7 @@ import {
 import { BankaAdresIletisimBolumu } from './BankaAdresIletisimBolumu';
 import { BankaIbanGirdi } from './BankaIbanGirdi';
 import { BankaKrediKartGorsel } from './BankaKrediKartGorsel';
+import { BankaOdemeIpucu } from './BankaOdemeIpucu';
 import { BankaOutlinedDonem, BankaValorKutu } from './BankaPosAlanlari';
 import { BankaPosKomisyonTablosu } from './BankaPosKomisyonTablosu';
 import { bankaEtiketi } from '../bankalar';
@@ -423,7 +424,15 @@ export function BankaAnlasmaKart({
                       disabled={saltOkunur}
                       onChange={(v) => setAlan('odemeGunu', gunSayisiFiltrele(v, 45))}
                       onek={<span className="ba-gun-sonek">Kesimden</span>}
-                      sonek={<span className="ba-gun-sonek">gün sonra</span>}
+                      sonek={
+                        <span className="ba-gun-sonek ba-gun-sonek--ipuclu">
+                          gün sonra
+                          <BankaOdemeIpucu
+                            hesapKesimGunu={form.hesapKesimGunu}
+                            odemeGunu={form.odemeGunu}
+                          />
+                        </span>
+                      }
                     />
                   </div>
                   <CariOutlinedGirdi

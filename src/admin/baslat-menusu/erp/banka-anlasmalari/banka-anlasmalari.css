@@ -173,6 +173,104 @@
   pointer-events: none;
 }
 
+.ba-gun-sonek--ipuclu {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Sonek pointer-events kapalı; sadece ipucu düğmesi tıklanabilir kalır */
+.ba-gun-cumle .ba-ipucu-sarmal {
+  pointer-events: auto;
+}
+
+.ba-ipucu-sarmal {
+  position: relative;
+  display: inline-flex;
+}
+
+.ba-ipucu-dugme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  padding: 0;
+  border: 1px solid var(--ap-border, #d4d4d8);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ap-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.ba-ipucu-dugme:hover,
+.ba-ipucu-dugme:focus-visible {
+  color: var(--ap-accent, #2563eb);
+  border-color: var(--ap-accent, #2563eb);
+}
+
+.ba-ipucu-dugme--uyari {
+  color: #b45309;
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.ba-ipucu-dugme--uyari:hover,
+.ba-ipucu-dugme--uyari:focus-visible {
+  color: #92400e;
+  border-color: #d97706;
+}
+
+.ba-ipucu-balon {
+  position: absolute;
+  bottom: calc(100% + 0.45rem);
+  right: -0.25rem;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  min-width: 13.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--ap-border, #d4d4d8);
+  border-radius: 0.5rem;
+  background: var(--ap-surface, #fff);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+  color: var(--ap-text, #18181b);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.ba-ipucu-satir {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.ba-ipucu-etiket {
+  color: var(--ap-text-muted);
+}
+
+.ba-ipucu-deger {
+  font-weight: 650;
+}
+
+.ba-ipucu-uyari {
+  margin-top: 0.15rem;
+  color: #b45309;
+  font-weight: 650;
+}
+
+.ba-ipucu-alt {
+  color: var(--ap-text-muted);
+}
+
 /* Kredi kartı görünümü — açık yüzey, tema ile uyumlu */
 .ba-kk-gorsel {
   position: relative;
