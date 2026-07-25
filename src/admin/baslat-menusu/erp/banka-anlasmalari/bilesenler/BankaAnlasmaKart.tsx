@@ -414,16 +414,16 @@ export function BankaAnlasmaKart({
                       sonek={<span className="ba-gun-sonek">. günü</span>}
                     />
                     <CariOutlinedGirdi
-                      etiket="Ödeme Günü"
+                      etiket="Ödeme Süresi"
                       className="ba-gun-cumle"
                       deger={form.odemeGunu}
                       maxLength={2}
-                      odakPlaceholder="1–31"
+                      odakPlaceholder="10"
                       inputMode="numeric"
                       disabled={saltOkunur}
-                      onChange={(v) => setAlan('odemeGunu', gunSayisiFiltrele(v))}
-                      onek={<span className="ba-gun-sonek">Her ayın</span>}
-                      sonek={<span className="ba-gun-sonek">. günü</span>}
+                      onChange={(v) => setAlan('odemeGunu', gunSayisiFiltrele(v, 45))}
+                      onek={<span className="ba-gun-sonek">Kesimden</span>}
+                      sonek={<span className="ba-gun-sonek">gün sonra</span>}
                     />
                   </div>
                   <CariOutlinedGirdi

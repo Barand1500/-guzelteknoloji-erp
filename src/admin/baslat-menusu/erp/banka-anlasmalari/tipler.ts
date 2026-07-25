@@ -105,6 +105,7 @@ export interface AdminBankaAnlasma {
   kartNo: string;
   sonKullanmaTarihi: string;
   hesapKesimGunu: string;
+  /** Kesim tarihinden kaç gün sonra ödeme (offset); ayın günü değil */
   odemeGunu: string;
   kartLimiti: string;
   kartTuru: KrediKartTuru | '';
@@ -137,6 +138,7 @@ export interface BankaAnlasmaFormDegeri {
   kartNo: string;
   sonKullanmaTarihi: string;
   hesapKesimGunu: string;
+  /** Kesim tarihinden kaç gün sonra ödeme (offset); ayın günü değil */
   odemeGunu: string;
   kartLimiti: string;
   kartTuru: KrediKartTuru | '';

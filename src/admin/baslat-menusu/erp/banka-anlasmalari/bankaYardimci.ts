@@ -82,7 +82,7 @@ export function bankaAnlasmaSatirEtiketi(k: AdminBankaAnlasma): string {
   return ad || kod || 'Adsız hesap';
 }
 
-/** Ödeme / kesim / bloke günü */
+/** Kesim günü (1–31) / ödeme süresi (kesimden kaç gün) / bloke günü */
 export function gunSayisiFiltrele(deger: string, max = 31): string {
   const sadeceRakam = deger.replace(/\D/g, '').slice(0, String(max).length);
   if (!sadeceRakam) return '';
@@ -228,6 +228,16 @@ export function bankaAnlasmaFormDogrula(form: BankaAnlasmaFormDegeri): string | 
       }
       if (!sonKullanmaGecerliMi(form.sonKullanmaTarihi)) {
         return 'Son kullanma tarihi bugünden önce olamaz (ay 01–12)';
+      }
+    }
+    const kesim = Number(form.hesapKesimGunu);
+    if (form.hesapKesimGunu && (!Number.isFinite(kesim) || kesim < 1 || kesim > 31)) {
+      return 'Hesap kesim günü 1–31 arasında olmalıdır';
+    }
+    const odemeSure = Number(form.odemeGunu);
+    if (form.odemeGunu) {
+      if (!Number.isFinite(odemeSure) || odemeSure < 10 || odemeSure > 45) {
+        return 'Ödeme süresi kesimden en az 10, en fazla 45 gün sonra olmalıdır';
       }
     }
   }

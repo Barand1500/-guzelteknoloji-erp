@@ -154,7 +154,7 @@
   white-space: nowrap;
 }
 
-/* Her ayın … . günü — sayı solda yazılır, “. günü” sonda sabit */
+/* Gün cümlesi: “Her ayın … . günü” / “Kesimden … gün sonra” */
 .ba-gun-cumle .cari-outlined-cerceve {
   cursor: text;
 }
