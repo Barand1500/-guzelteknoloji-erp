@@ -109,6 +109,7 @@ export function ParaBirimiModal({ acik, kayit, onKapat, onKaydet }: ParaBirimiMo
       baslikId={baslikId}
       genislik="lg"
       disariTiklaKapat={false}
+      ustCizgi={false}
       footer={
         <SistemModalAksiyonlar>
           <div className="flex justify-end gap-2">

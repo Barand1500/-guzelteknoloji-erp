@@ -17,6 +17,11 @@ export type ResmiTatilGirdi = Omit<ResmiTatil, 'id'> & { id?: string };
 
 export type TatilGunRol = 'tek' | 'bas' | 'orta' | 'son';
 
+export interface ResmiTatilTopluEkleSonucu {
+  eklenen: number;
+  atlanan: number;
+}
+
 export const RESMI_TATIL_RENKLER = [
   '#e11d48',
   '#ea580c',
@@ -213,6 +218,68 @@ export function resmiTatilEkle(girdi: ResmiTatilGirdi): ResmiTatil | null {
   return yeni;
 }
 
+function karsilastirmaMetni(metin: string): string {
+  return metin
+    .trim()
+    .toLocaleLowerCase('tr')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function tarihAraliklariCakisiyor(a: ResmiTatil, b: ResmiTatil): boolean {
+  return a.baslangic <= b.bitis && b.baslangic <= a.bitis;
+}
+
+/** API gibi kaynaklardan gelen kayıtları tek yazım/tek event ile, tekrar oluşturmadan ekler. */
+export function resmiTatilleriTopluEkle(
+  girdiler: readonly ResmiTatilGirdi[]
+): ResmiTatilTopluEkleSonucu {
+  const mevcut = oku();
+  const sonuc = [...mevcut];
+  let eklenen = 0;
+  let atlanan = 0;
+
+  for (const [index, girdi] of girdiler.entries()) {
+    const adi = girdi.adi.trim();
+    const tarihler = tarihNormalize(girdi.baslangic, girdi.bitis);
+    if (!adi || !tarihler) {
+      atlanan++;
+      continue;
+    }
+
+    const aday = normalize({
+      ...girdi,
+      id: girdi.id ?? `rt-toplu-${Date.now()}-${index}`,
+      adi,
+      baslangic: tarihler.baslangic,
+      bitis: tarihler.bitis,
+    });
+    if (!aday) {
+      atlanan++;
+      continue;
+    }
+
+    const adayAdi = karsilastirmaMetni(aday.adi);
+    const tekrar = sonuc.some(
+      (t) =>
+        t.id === aday.id ||
+        (t.baslangic === aday.baslangic && t.bitis === aday.bitis) ||
+        (karsilastirmaMetni(t.adi) === adayAdi && tarihAraliklariCakisiyor(t, aday))
+    );
+    if (tekrar) {
+      atlanan++;
+      continue;
+    }
+
+    sonuc.push(aday);
+    eklenen++;
+  }
+
+  if (eklenen > 0) yaz(sonuc);
+  return { eklenen, atlanan };
+}
+
 export function resmiTatilGuncelle(id: string, girdi: ResmiTatilGirdi): boolean {
   const adi = girdi.adi.trim();
   if (!adi) return false;
@@ -243,6 +310,20 @@ export function resmiTatilGuncelle(id: string, girdi: ResmiTatilGirdi): boolean 
 
 export function resmiTatilSil(id: string): void {
   yaz(oku().filter((t) => t.id !== id));
+}
+
+/** API kaynaklı kayıtlar (`api-tr-…` id). */
+export function resmiTatilApiKaynakliMi(id: string): boolean {
+  return id.startsWith('api-tr-');
+}
+
+/** API’den eklenen tüm resmi tatilleri siler; silinen adedi döner. */
+export function resmiTatilleriApiTemizle(): number {
+  const mevcut = oku();
+  const kalan = mevcut.filter((t) => !resmiTatilApiKaynakliMi(t.id));
+  const silinen = mevcut.length - kalan.length;
+  if (silinen > 0) yaz(kalan);
+  return silinen;
 }
 
 export function resmiTatilKisaEtiket(t: ResmiTatil): string {

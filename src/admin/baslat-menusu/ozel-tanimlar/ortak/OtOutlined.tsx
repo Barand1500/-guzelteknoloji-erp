@@ -91,6 +91,64 @@ export function OtOutlinedSayi({
   );
 }
 
+/** Sabit görünümlü yıl — yan oklarla artır/azalt */
+export function OtOutlinedYil({
+  etiket,
+  deger,
+  onChange,
+  min,
+  max,
+  disabled,
+  className,
+}: {
+  etiket: string;
+  deger: number;
+  onChange: (v: number) => void;
+  min: number;
+  max: number;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const sinirla = (yil: number) => Math.min(max, Math.max(min, yil));
+  const yil = sinirla(deger);
+  const azalt = () => {
+    if (!disabled && yil > min) onChange(yil - 1);
+  };
+  const artir = () => {
+    if (!disabled && yil < max) onChange(yil + 1);
+  };
+
+  return (
+    <CariOutlinedSarmalayici
+      etiket={etiket}
+      disabled={disabled}
+      className={`ot-outlined-yil${className ? ` ${className}` : ''}`}
+    >
+      <button
+        type="button"
+        className="ot-outlined-yil-ok"
+        aria-label={`${etiket} azalt`}
+        disabled={disabled || yil <= min}
+        onClick={azalt}
+      >
+        ‹
+      </button>
+      <span className="ot-outlined-yil-deger" aria-live="polite">
+        {yil}
+      </span>
+      <button
+        type="button"
+        className="ot-outlined-yil-ok"
+        aria-label={`${etiket} artır`}
+        disabled={disabled || yil >= max}
+        onClick={artir}
+      >
+        ›
+      </button>
+    </CariOutlinedSarmalayici>
+  );
+}
+
 /** Border üstünde etiketli tarih alanı */
 export function OtOutlinedTarih({
   etiket,

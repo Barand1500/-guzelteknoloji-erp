@@ -168,6 +168,7 @@ export function OlcuBirimleriListeSayfasi() {
         baslik={duzenlenen ? 'Ölçü / Birim Düzenle' : 'Ölçü / Birim Ekle'}
         genislik="md"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

@@ -164,6 +164,7 @@ export function VergiTurleriListeSayfasi() {
         baslik={duzenlenen ? 'Vergi Türü Düzenle' : 'Vergi Türü Ekle'}
         genislik="md"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

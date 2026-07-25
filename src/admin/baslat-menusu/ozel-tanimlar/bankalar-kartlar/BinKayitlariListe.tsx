@@ -237,6 +237,7 @@ export function BinKayitlariListeSayfasi() {
         baslik={duzenlenen ? 'Bin Numarası Düzenle' : 'Bin Numarası Ekle'}
         genislik="lg"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

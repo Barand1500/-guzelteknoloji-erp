@@ -286,6 +286,7 @@ export function BankaHesaplariListeSayfasi({ banka }: { banka: OzelBanka }) {
         baslik={duzenlenen ? 'Banka Hesabı Düzenle' : 'Banka Hesabı Ekle'}
         genislik="lg"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

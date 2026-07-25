@@ -73,8 +73,9 @@ export function useOtIcSekmeKlavye<T extends string>(opts: {
       e.preventDefault();
       const sonraki =
         e.key === 'ArrowRight'
-          ? (idx + 1) % sekmeler.length
-          : (idx - 1 + sekmeler.length) % sekmeler.length;
+          ? Math.min(idx + 1, sekmeler.length - 1)
+          : Math.max(idx - 1, 0);
+      if (sonraki === idx) return;
       onSec(sekmeler[sonraki]!.id);
     }
 

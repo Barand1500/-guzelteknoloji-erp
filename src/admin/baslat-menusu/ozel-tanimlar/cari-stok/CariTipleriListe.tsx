@@ -156,6 +156,7 @@ export function CariTipleriListeSayfasi() {
         baslik={duzenlenen ? 'Cari Tipi Düzenle' : 'Cari Tipi Ekle'}
         genislik="sm"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

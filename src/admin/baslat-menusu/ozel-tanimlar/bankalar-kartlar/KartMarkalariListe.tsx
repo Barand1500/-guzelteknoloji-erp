@@ -170,6 +170,7 @@ export function KartMarkalariListeSayfasi() {
         baslik={duzenlenen ? 'Kart Markası Düzenle' : 'Kart Markası Ekle'}
         genislik="md"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

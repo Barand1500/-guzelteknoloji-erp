@@ -8,8 +8,10 @@ import { otKlavyeYoksayMi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/otKl
 import {
   OtOutlinedAlan,
   OtOutlinedGirdi,
+  OtOutlinedYil,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 import { OtTarihAralikSecici } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtTarihAralikSecici';
+import { turkiyeResmiTatilleriniGetir } from '@/admin/baslat-menusu/ozel-tanimlar/veri/resmiTatilApi';
 import {
   RESMI_TATIL_RENKLER,
   RESMI_TATILLER_GUNCELLENDI,
@@ -19,6 +21,8 @@ import {
   resmiTatilGuneDuserMi,
   resmiTatilKisaEtiket,
   resmiTatilSil,
+  resmiTatilleriApiTemizle,
+  resmiTatilleriTopluEkle,
   resmiTatilleriGetir,
   type ResmiTatil,
 } from '@/admin/baslat-menusu/ozel-tanimlar/veri/resmiTatiller';
@@ -38,6 +42,12 @@ const AYLAR = [
   'Aralık',
 ];
 const GUNLER = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
+const API_YIL_MIN = 2026;
+const API_YIL_MAX = 2029;
+
+function apiYilSinirla(yil: number) {
+  return Math.min(API_YIL_MAX, Math.max(API_YIL_MIN, yil));
+}
 
 function ayHucreleri(yil: number, ay: number) {
   const ilkGun = new Date(yil, ay, 1).getDay();
@@ -88,6 +98,13 @@ export function ResmiTatillerSayfasi() {
   const [hata, setHata] = useState('');
   const [varsayilanBaslangic, setVarsayilanBaslangic] = useState('');
   const [ozelPanelAcik, setOzelPanelAcik] = useState(false);
+  const [apiBaslangicYili, setApiBaslangicYili] = useState(API_YIL_MIN);
+  const [apiBitisYili, setApiBitisYili] = useState(API_YIL_MAX);
+  const [apiTemizleOnayAcik, setApiTemizleOnayAcik] = useState(false);
+  const [apiYukleniyor, setApiYukleniyor] = useState(false);
+  const [apiMesaj, setApiMesaj] = useState<{ tip: 'basari' | 'hata'; metin: string } | null>(
+    null
+  );
   const ozelBtnRef = useRef<HTMLButtonElement>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
 
@@ -179,21 +196,23 @@ export function ResmiTatillerSayfasi() {
         e.preventDefault();
         e.stopImmediatePropagation();
 
-        // İlk ←/→ ile takvime gir
+        // Takvime giriş/çıkış yalnızca yeni basışta; basılı tutunca giriş-çıkış dönmesin
         if (!takvimde) {
-          setOdakliTarih(varsayilanOdak());
+          if (!e.repeat) setOdakliTarih(varsayilanOdak());
           return;
         }
 
+        const haftaGunu = tarihHaftaGunu(odakliTarih);
+
         // Pazartesi sütununda bir kez daha ← → takvimden çık (Tanımlar ↑↓ serbest)
-        if (e.key === 'ArrowLeft' && tarihHaftaGunu(odakliTarih) === 1) {
-          setOdakliTarih(null);
+        if (e.key === 'ArrowLeft' && haftaGunu === 1) {
+          if (!e.repeat) setOdakliTarih(null);
           return;
         }
 
         // Pazar sütununda bir kez daha → → takvimden çık
-        if (e.key === 'ArrowRight' && tarihHaftaGunu(odakliTarih) === 0) {
-          setOdakliTarih(null);
+        if (e.key === 'ArrowRight' && haftaGunu === 0) {
+          if (!e.repeat) setOdakliTarih(null);
           return;
         }
 
@@ -227,6 +246,47 @@ export function ResmiTatillerSayfasi() {
     }
     yenile();
     setModalAcik(false);
+  }
+
+  async function apiTatilleriniEkle() {
+    if (apiYukleniyor) return;
+    setApiMesaj(null);
+    setApiYukleniyor(true);
+
+    try {
+      const apiSonucu = await turkiyeResmiTatilleriniGetir(
+        apiYilSinirla(apiBaslangicYili),
+        apiYilSinirla(apiBitisYili)
+      );
+      if (apiSonucu.tatiller.length === 0) {
+        throw new Error('Seçilen yıllar için tatil verisi alınamadı.');
+      }
+
+      const sonuc = resmiTatilleriTopluEkle(apiSonucu.tatiller);
+      yenile();
+
+      const basarisiz =
+        apiSonucu.basarisizYillar.length > 0
+          ? ` Alınamayan yıllar: ${apiSonucu.basarisizYillar.join(', ')}.`
+          : '';
+      setApiMesaj({
+        tip: 'basari',
+        metin:
+          sonuc.eklenen > 0
+            ? `${sonuc.eklenen} tatil eklendi, ${sonuc.atlanan} mevcut kayıt atlandı.${basarisiz}`
+            : `Yeni kayıt yok; ${sonuc.atlanan} tatil zaten takvimde.${basarisiz}`,
+      });
+    } catch (hataNesnesi) {
+      setApiMesaj({
+        tip: 'hata',
+        metin:
+          hataNesnesi instanceof Error
+            ? hataNesnesi.message
+            : 'Tatil API’sine ulaşılamadı.',
+      });
+    } finally {
+      setApiYukleniyor(false);
+    }
   }
 
   return (
@@ -337,12 +397,83 @@ export function ResmiTatillerSayfasi() {
         ekleyin.
       </p>
 
+      <section className="ot-rt-api" aria-labelledby="ot-rt-api-baslik">
+        <div className="ot-rt-api-baslik-satir">
+          <span className="ot-rt-api-ikon" aria-hidden>
+            ↻
+          </span>
+          <h3 id="ot-rt-api-baslik" className="ot-rt-api-baslik">
+            Türkiye Resmi Tatil API
+          </h3>
+        </div>
+
+        <div className="ot-rt-api-kontroller">
+          <div className="ot-rt-api-yillar">
+            <OtOutlinedYil
+              etiket="Başlangıç"
+              deger={apiBaslangicYili}
+              onChange={(yil) => {
+                const bas = apiYilSinirla(yil);
+                setApiBaslangicYili(bas);
+                setApiBitisYili((eski) => Math.max(eski, bas));
+              }}
+              min={API_YIL_MIN}
+              max={API_YIL_MAX}
+              disabled={apiYukleniyor}
+            />
+            <OtOutlinedYil
+              etiket="Bitiş"
+              deger={apiBitisYili}
+              onChange={(yil) => {
+                const bit = apiYilSinirla(yil);
+                setApiBitisYili(bit);
+                setApiBaslangicYili((eski) => Math.min(eski, bit));
+              }}
+              min={API_YIL_MIN}
+              max={API_YIL_MAX}
+              disabled={apiYukleniyor}
+            />
+          </div>
+          <div className="ot-rt-api-aksiyonlar">
+            <button
+              type="button"
+              className="ot-rt-api-btn"
+              onClick={() => void apiTatilleriniEkle()}
+              disabled={apiYukleniyor}
+            >
+              {apiYukleniyor ? 'Alınıyor…' : 'API’den Getir'}
+            </button>
+            <button
+              type="button"
+              className="ot-rt-api-btn ot-rt-api-btn--temizle"
+              onClick={() => {
+                setApiMesaj(null);
+                setApiTemizleOnayAcik(true);
+              }}
+              disabled={apiYukleniyor}
+            >
+              Temizle
+            </button>
+          </div>
+        </div>
+
+        {apiMesaj ? (
+          <p
+            className={`ot-rt-api-mesaj ot-rt-api-mesaj--${apiMesaj.tip}`}
+            role={apiMesaj.tip === 'hata' ? 'alert' : 'status'}
+          >
+            {apiMesaj.metin}
+          </p>
+        ) : null}
+      </section>
+
       <SistemModal
         acik={modalAcik}
         onKapat={() => setModalAcik(false)}
         baslik={duzenlenen ? 'Resmi Tatil Gününü Düzenle' : 'Resmi Tatil Günü Ekle'}
         genislik="md"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex w-full items-center justify-between gap-2">
@@ -462,6 +593,27 @@ export function ResmiTatillerSayfasi() {
           setSilinecek(null);
         }}
         hedefMetin={silinecek?.adi ?? ''}
+      />
+
+      <SilmeOnayModal
+        acik={apiTemizleOnayAcik}
+        onKapat={() => setApiTemizleOnayAcik(false)}
+        onOnayla={() => {
+          const silinen = resmiTatilleriApiTemizle();
+          yenile();
+          setApiTemizleOnayAcik(false);
+          setApiMesaj({
+            tip: silinen > 0 ? 'basari' : 'hata',
+            metin:
+              silinen > 0
+                ? `API’den eklenen ${silinen} resmi tatil günü silindi.`
+                : 'Silinecek API kaydı bulunamadı.',
+          });
+        }}
+        baslik="API tatillerini temizlemek istiyor musunuz?"
+        hedefMetin="API’den eklenen tüm resmi tatil günleri"
+        onayMetin="Evet, Temizle"
+        ariaLabel="API tatil temizleme onayı"
       />
     </div>
   );

@@ -156,6 +156,7 @@ export function StokTipleriListeSayfasi() {
         baslik={duzenlenen ? 'Stok Tipi Düzenle' : 'Stok Tipi Ekle'}
         genislik="sm"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

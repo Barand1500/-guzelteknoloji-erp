@@ -219,6 +219,7 @@ export function BankalarListeSayfasi({
         baslik={duzenlenen ? 'Banka Düzenle' : 'Banka Ekle'}
         genislik="md"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

@@ -1184,7 +1184,7 @@
   padding: 0.35rem 0.15rem;
 }
 
-/* Resmi tatil ? sürükle-seç tarih aral??? */
+/* Resmi tatil ? s?r?kle-se? tarih aral??? */
 .ot-outlined-tarih-aralik .cari-outlined-icerik {
   padding: 0.35rem 0.15rem 0.5rem;
 }
@@ -1592,6 +1592,198 @@
 
 .ot-rt-ipucu {
   margin: 0;
+}
+
+.ot-rt-api {
+  --cari-outlined-etiket-bg: var(--ap-surface);
+  --cari-alan-zemin: var(--ap-surface);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  border-radius: 0.7rem;
+  background: var(--ap-surface);
+}
+
+.ot-rt-api-baslik-satir {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 10rem;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ot-rt-api-ikon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 1.55rem;
+  height: 1.55rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--ap-accent) 12%, transparent);
+  color: var(--ap-accent);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.ot-rt-api-baslik {
+  margin: 0;
+  color: var(--ap-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ot-rt-api-kontroller {
+  display: flex;
+  min-width: 0;
+  flex: 2 1 22rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ot-rt-api-yillar {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
+  gap: 0.4rem;
+}
+
+.ot-rt-api .ot-outlined-yil.cari-outlined-field {
+  margin: 0;
+}
+
+.ot-rt-api .ot-outlined-yil .cari-outlined-cerceve {
+  min-height: 2.15rem;
+}
+
+.ot-rt-api .ot-outlined-yil .cari-outlined-icerik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.15rem;
+  min-height: 2.15rem;
+  padding: 0 0.15rem;
+}
+
+.ot-outlined-yil-deger {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  color: var(--ap-text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.ot-outlined-yil-ok {
+  appearance: none;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--ap-text-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ot-outlined-yil-ok:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-accent) 12%, transparent);
+  color: var(--ap-accent);
+}
+
+.ot-outlined-yil-ok:disabled {
+  cursor: default;
+  opacity: 0.28;
+}
+
+.ot-rt-api-aksiyonlar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ot-rt-api-btn {
+  appearance: none;
+  flex: 0 0 auto;
+  min-height: 2.15rem;
+  padding: 0 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 50%, transparent);
+  border-radius: 0.45rem;
+  background: var(--ap-accent);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.ot-rt-api-btn--temizle {
+  border-color: color-mix(in srgb, #dc2626 35%, var(--ap-border));
+  background: color-mix(in srgb, #dc2626 8%, var(--ap-surface));
+  color: color-mix(in srgb, #dc2626 88%, var(--ap-text));
+}
+
+.ot-rt-api-btn--temizle:hover:not(:disabled) {
+  background: color-mix(in srgb, #dc2626 14%, var(--ap-surface));
+  filter: none;
+}
+
+.ot-rt-api-btn:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.ot-rt-api-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.ot-rt-api-mesaj {
+  flex: 1 1 100%;
+  margin: 0;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.ot-rt-api-mesaj--basari {
+  background: color-mix(in srgb, #16a34a 10%, transparent);
+  color: color-mix(in srgb, #16a34a 82%, var(--ap-text));
+}
+
+.ot-rt-api-mesaj--hata {
+  background: color-mix(in srgb, #dc2626 10%, transparent);
+  color: color-mix(in srgb, #dc2626 82%, var(--ap-text));
+}
+
+@media (max-width: 720px) {
+  .ot-rt-api-kontroller {
+    flex: 1 1 100%;
+  }
+
+  .ot-rt-api-aksiyonlar {
+    flex: 1;
+  }
+
+  .ot-rt-api-btn {
+    flex: 1;
+  }
 }
 
 .ot-rt-renk-liste {

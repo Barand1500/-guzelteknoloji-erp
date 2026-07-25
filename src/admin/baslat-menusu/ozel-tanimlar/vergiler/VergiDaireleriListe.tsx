@@ -311,6 +311,7 @@ export function VergiDaireleriListeSayfasi() {
         baslik={duzenlenen ? 'Vergi Dairesi Düzenle' : 'Vergi Dairesi Ekle'}
         genislik={form.detayli ? 'lg' : 'md'}
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

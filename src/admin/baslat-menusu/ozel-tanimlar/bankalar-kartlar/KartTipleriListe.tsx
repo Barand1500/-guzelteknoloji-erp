@@ -156,6 +156,7 @@ export function KartTipleriListeSayfasi() {
         baslik={duzenlenen ? 'Kart Tipi Düzenle' : 'Kart Tipi Ekle'}
         genislik="sm"
         disariTiklaKapat={false}
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <div className="flex justify-end gap-2">

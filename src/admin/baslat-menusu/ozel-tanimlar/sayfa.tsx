@@ -72,8 +72,9 @@ export function OzelTanimlarSayfasi() {
       if (idx < 0) return;
 
       e.preventDefault();
-      const sonraki =
-        e.key === 'ArrowDown' ? (idx + 1) % adet : (idx - 1 + adet) % adet;
+      // Uçlarda durur; basılı tutunca liste başa sarmaz
+      const sonraki = e.key === 'ArrowDown' ? Math.min(idx + 1, adet - 1) : Math.max(idx - 1, 0);
+      if (sonraki === idx) return;
       modulSec(OZEL_TANIM_MODULLERI[sonraki]!.id);
     }
 
