@@ -3,7 +3,6 @@ export type KisayolIslemId =
   | 'baslatMenu'
   | 'kaydet'
   | 'ekle'
-  | 'guncelle'
   | 'sil'
   | 'oncekiKayit'
   | 'sonrakiKayit';
@@ -25,7 +24,6 @@ export const KISAYOL_ISLEMLERI: KisayolTanimi[] = [
   },
   { id: 'kaydet', etiket: 'Kaydet', aciklama: 'Aktif modülde kaydet', varsayilan: 'Ctrl+S' },
   { id: 'ekle', etiket: 'Yeni Ekle', aciklama: 'Aktif modülde yeni kayıt', varsayilan: 'Ctrl+N' },
-  { id: 'guncelle', etiket: 'Güncelle', aciklama: 'Aktif modülde güncelle / yazdır / önizle', varsayilan: 'Ctrl+P' },
   { id: 'sil', etiket: 'Sil', aciklama: 'Aktif modülde silme', varsayilan: 'Delete' },
   {
     id: 'oncekiKayit',
@@ -58,15 +56,13 @@ function haritaHamGecerliMi(kayitli: unknown): kayitli is Partial<KisayolHaritas
   return !!kayitli && typeof kayitli === 'object' && !Array.isArray(kayitli);
 }
 
-function haritaNormalize(kayitli?: Partial<KisayolHaritasi> & { onizle?: string } | null | unknown): KisayolHaritasi {
+function haritaNormalize(kayitli?: Partial<KisayolHaritasi> & { onizle?: string; guncelle?: string } | null | unknown): KisayolHaritasi {
   if (!haritaHamGecerliMi(kayitli)) {
     return varsayilanKisayollar();
   }
-  const ham = { ...kayitli };
-  if (ham.onizle && !ham.guncelle) {
-    ham.guncelle = ham.onizle;
-    delete ham.onizle;
-  }
+  const ham = { ...kayitli } as Partial<KisayolHaritasi> & { onizle?: string; guncelle?: string };
+  delete ham.onizle;
+  delete ham.guncelle;
   return { ...varsayilanKisayollar(), ...ham };
 }
 

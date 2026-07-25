@@ -65,7 +65,7 @@ export function Sistem404Sekme({
             acik={s404.anaSayfaButonu}
             onChange={(v) => guncelle({ anaSayfaButonu: v })}
             renk="mavi"
-            ikon="🏠"
+            ikon={<AyarlarSekmeIkon ad="anaSayfa" boyut={20} />}
           />
           <div className="ap-sistem-404-gorsel-alan">
             <GorselAlan

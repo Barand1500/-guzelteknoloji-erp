@@ -239,11 +239,6 @@ function AdminPanelGovde() {
         void aksiyonCalistir('ekle');
         return;
       }
-      if (klavyeOlayiEslesir(e, harita.guncelle)) {
-        e.preventDefault();
-        void aksiyonCalistir('guncelle');
-        return;
-      }
       if (klavyeOlayiEslesir(e, harita.sil)) {
         e.preventDefault();
         void aksiyonCalistir('sil');

@@ -303,6 +303,11 @@
   max-width: 14rem;
 }
 
+.ap-roller-sistem-rozet-svg {
+  display: block;
+  flex-shrink: 0;
+}
+
 .ap-roller-sistem-rozet {
   display: inline-flex;
   align-items: center;

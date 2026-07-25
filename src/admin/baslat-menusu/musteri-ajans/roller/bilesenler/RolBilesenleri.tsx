@@ -97,6 +97,23 @@ function YetkiFlatIkon({ tip }: { tip: string }) {
   }
 }
 
+export function RolKilitIkon({ boyut = 12 }: { boyut?: number }) {
+  return (
+    <svg
+      className="ap-roller-sistem-rozet-svg"
+      width={boyut}
+      height={boyut}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <rect x="3.5" y="7" width="9" height="6.5" rx="1.4" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M5.75 7V5.25a2.25 2.25 0 0 1 4.5 0V7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /** Açık temada net kontrast — CSS cascade/HMR sorunlarına karşı inline */
 const YETKI_ETIKET_STIL: Record<
   YetkiKodu,
@@ -245,7 +262,7 @@ export function RolMatrisi({
                       {rol.aciklama && <div className="ap-roller-rol-aciklama">{rol.aciklama}</div>}
                       {sistemRolu && (
                         <span className="ap-roller-sistem-rozet">
-                          <span aria-hidden>🔒</span> Sistem rolü
+                          <RolKilitIkon /> Sistem rolü
                         </span>
                       )}
                     </>
@@ -431,7 +448,7 @@ export function RolKartlari({
                 <div className="ap-roller-rol-kod">{rol.kod}</div>
                 {sistemRolu && (
                   <span className="ap-roller-sistem-rozet">
-                    <span aria-hidden>🔒</span> Sistem
+                    <RolKilitIkon /> Sistem
                   </span>
                 )}
               </div>

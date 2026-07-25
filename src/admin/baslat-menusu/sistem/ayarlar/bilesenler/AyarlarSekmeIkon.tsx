@@ -2,7 +2,7 @@ import type { SistemSekmeId } from '@/admin/baslat-menusu/sistem/ayarlar/tipler'
 
 /** Ayarlar sekme çubuğu — flat stroke SVG ikonlar */
 
-type AyarlarIkonAd = SistemSekmeId | 'robots';
+type AyarlarIkonAd = SistemSekmeId | 'robots' | 'anaSayfa';
 
 function strokeProps(sw = 1.7) {
   return {
@@ -87,6 +87,13 @@ function IkonYollari({ ad }: { ad: AyarlarIkonAd }) {
         <>
           <rect x="4.5" y="7" width="15" height="11.5" rx="2.5" {...s} />
           <path d="M12 3.5V7M9 3.5h6M8 13h.01M16 13h.01M9 16h6" {...s} />
+        </>
+      );
+    case 'anaSayfa':
+      return (
+        <>
+          <path d="M4.5 11.5 12 4.8l7.5 6.7" {...s} />
+          <path d="M7 10.5V19a1 1 0 0 0 1 1h3.2v-4.5h1.6V20H16a1 1 0 0 0 1-1v-8.5" {...s} />
         </>
       );
     default:

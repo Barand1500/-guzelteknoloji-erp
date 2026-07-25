@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { RolTanimi } from '@/admin/baslat-menusu/musteri-ajans/roller/api';
 import { FormAlani, formInputSinifi } from '@/formlar/FormAlani';
+import { RolKilitIkon } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolBilesenleri';
 
 export interface RolFormDegeri {
   baslik: string;
@@ -101,7 +102,7 @@ export function RolDuzenleModal({ acik, rol, onKapat, onKaydet }: RolDuzenleModa
           {sistemRolu && (
             <div className="ap-sistem-modal-bilgi-kutu">
               <span className="ap-sistem-modal-bilgi-ikon" aria-hidden>
-                🔒
+                <RolKilitIkon boyut={14} />
               </span>
               <span>Sistem rolü: kod değiştirilemez, silinemez.</span>
             </div>

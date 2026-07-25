@@ -78,7 +78,12 @@ export function AdminAramaKutusu({
   return (
     <div className="ap-arama">
       <div className="ap-arama-input-wrap">
-        <span className="ap-arama-ikon">🔍</span>
+        <span className="ap-arama-ikon" aria-hidden>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="7" cy="7" r="4.25" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M10.2 10.2 13.5 13.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+        </span>
         <input
           type="search"
           value={deger}

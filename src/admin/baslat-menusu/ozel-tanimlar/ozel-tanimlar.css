@@ -417,6 +417,14 @@
 .ot-pb-arama .ap-arama-ikon {
   left: 0.55rem;
   font-size: 0.75rem;
+  color: color-mix(in srgb, var(--ap-muted) 92%, #fff);
+  opacity: 0.85;
+}
+
+.ot-pb-arama .ap-arama-ikon svg {
+  display: block;
+  width: 0.82rem;
+  height: 0.82rem;
 }
 
 .ot-pb-arama .ap-arama-input {
