@@ -243,7 +243,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
 
     switch (id) {
       case 'satirDuzenle':
-        if (satir) onSatirDuzenle?.(satir);
+        if (satir && onSatirDuzenle) onSatirDuzenle(satir);
         else if (menu.satirId) api?.satirDuzenleAc(menu.satirId);
         break;
       case 'satirCogalt':
