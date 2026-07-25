@@ -2689,6 +2689,15 @@ html:has(.admin-panel[data-tema='acik']) body {
   transition: background-color 99999s ease-out;
 }
 
+.admin-panel .cari-outlined-input:-webkit-autofill,
+.admin-panel .cari-outlined-input:-webkit-autofill:hover,
+.admin-panel .cari-outlined-input:-webkit-autofill:focus,
+.admin-panel .cari-outlined-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px
+    var(--cari-outlined-etiket-bg, var(--ap-surface)) inset !important;
+  box-shadow: 0 0 0 1000px var(--cari-outlined-etiket-bg, var(--ap-surface)) inset !important;
+}
+
 .admin-panel[data-tema='koyu'] .input-admin {
   background-color: var(--ap-input-bg);
   border-color: var(--ap-border);
@@ -3441,6 +3450,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-panel-kart {
+  --cari-outlined-etiket-bg: var(--ap-surface);
   border-radius: 0.75rem;
   border: 1px solid var(--ap-border);
   background-color: var(--ap-surface);

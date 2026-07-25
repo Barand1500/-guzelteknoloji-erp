@@ -631,8 +631,12 @@
   }
 }
 
-/* Outlined input — etiket border üstünde, çizgi etiketten önce/sonra devam eder (notch) */
+/* Outlined input — etiket border üstünde, çizgi etiketten önce/sonra devam eder (notch).
+   Etiket ve çerçeve aynı zemini kullanmalı; aksi halde (özellikle gece modunda
+   --ap-surface ≠ --ap-input-bg) etiket arkasında dikdörtgen lekesi görünür. */
 
+.admin-panel,
+.ap-panel-kart,
 .cari-kart-kabuk,
 .cari-kart-sayfa {
   --cari-outlined-etiket-bg: var(--ap-surface);
@@ -691,7 +695,7 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0 0.75rem;
-  background: var(--ap-input-bg);
+  background: var(--cari-outlined-etiket-bg, var(--cari-alan-zemin, var(--ap-surface)));
   transition: border-color 0.16s ease;
 }
 
@@ -861,7 +865,7 @@
   align-items: center;
   border: 1.5px solid var(--ap-border);
   border-radius: 0.5rem;
-  background: var(--ap-input-bg);
+  background: var(--cari-outlined-etiket-bg, var(--cari-alan-zemin, var(--ap-surface)));
   transition: border-color 0.16s ease;
 }
 
@@ -965,7 +969,7 @@
   padding: 0.95rem 0.75rem 0.7rem;
   border: 1.5px solid var(--ap-border);
   border-radius: 0.5rem;
-  background: var(--ap-input-bg);
+  background: var(--cari-outlined-etiket-bg, var(--cari-alan-zemin, var(--ap-surface)));
 }
 
 .cari-durum-alan > .cari-secili-etiket {
