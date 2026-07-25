@@ -304,7 +304,7 @@ export function KullanicilarSayfasiYeni() {
 
     setSeciliId(null);
 
-    const varsayilanRol = atanabilirRoller[0]?.kod ?? 'MUSTERI_ADMIN';
+    const varsayilanRol = atanabilirRoller[0]?.kod ?? '';
 
     setForm({
 
@@ -312,7 +312,7 @@ export function KullanicilarSayfasiYeni() {
 
       rol: varsayilanRol,
 
-      roller: [varsayilanRol],
+      roller: varsayilanRol ? [varsayilanRol] : [],
 
       ...varsayilanOturumAlanlari(oturumSecenekleri),
 

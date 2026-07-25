@@ -158,7 +158,8 @@ function cokluEtiket(
   const etiketler = values
     .map((v) => secenekler.find((s) => s.value === v)?.label)
     .filter(Boolean) as string[];
-  if (!etiketler.length) return `${values.length} seçili`;
+  /* Listede karşılığı yoksa seçili sayma */
+  if (!etiketler.length) return bosEtiket;
   if (etiketler.length === 1) return etiketler[0];
   if (etiketler.length === 2) return `${etiketler[0]}, ${etiketler[1]}`;
   return `${etiketler[0]} +${etiketler.length - 1}`;
@@ -179,7 +180,7 @@ export function FormAcilirSecim({
   listeInline = false,
   listeYonu = 'asagi',
   tusMetin,
-  bosEtiket = 'seçiniz',
+  bosEtiket = 'Seçiniz',
   aranabilir = false,
   aramaPlaceholder,
   listeMaxYukseklik,

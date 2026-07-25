@@ -119,7 +119,12 @@ export function KullaniciDuzenleFormu({
           <FormAcilirSecim
             aria-label="Kullanıcı rolleri"
             coklu
-            values={form.roller?.length ? form.roller : form.rol ? [form.rol] : []}
+            bosEtiket="Seçiniz"
+            values={(() => {
+              const ham = form.roller?.length ? form.roller : form.rol ? [form.rol] : [];
+              const izinli = new Set(atanabilirRoller.map((r) => r.kod));
+              return ham.filter((kod) => izinli.has(kod));
+            })()}
             onChangeCoklu={(roller) =>
               onChange({
                 ...form,

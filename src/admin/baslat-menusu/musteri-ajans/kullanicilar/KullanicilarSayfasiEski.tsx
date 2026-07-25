@@ -266,14 +266,14 @@ export function KullanicilarSayfasiEski() {
 
     setSeciliId(null);
 
-    const varsayilanRol = atanabilirRoller[0]?.kod ?? 'MUSTERI_ADMIN';
+    const varsayilanRol = atanabilirRoller[0]?.kod ?? '';
 
     setForm({
 
       ...bosKullaniciForm,
 
       rol: varsayilanRol,
-      roller: [varsayilanRol],
+      roller: varsayilanRol ? [varsayilanRol] : [],
 
       ...varsayilanOturumAlanlari(oturumSecenekleri),
 

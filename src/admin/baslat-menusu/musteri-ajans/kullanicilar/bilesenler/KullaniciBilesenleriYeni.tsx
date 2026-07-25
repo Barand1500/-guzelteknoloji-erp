@@ -132,8 +132,13 @@ export function KullaniciDuzenleFormuYeni({
           <FormAcilirSecim
             aria-label="Kullanıcı rolleri"
             coklu
+            bosEtiket="Seçiniz"
             disabled={saltOkunur}
-            values={form.roller?.length ? form.roller : form.rol ? [form.rol] : []}
+            values={(() => {
+              const ham = form.roller?.length ? form.roller : form.rol ? [form.rol] : [];
+              const izinli = new Set(atanabilirRoller.map((r) => r.kod));
+              return ham.filter((kod) => izinli.has(kod));
+            })()}
             onChangeCoklu={(roller) =>
               onChange({
                 ...form,
