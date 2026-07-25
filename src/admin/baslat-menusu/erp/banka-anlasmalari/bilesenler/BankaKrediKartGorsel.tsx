@@ -59,7 +59,15 @@ export function BankaKrediKartGorsel({
         </span>
       </label>
 
-      <div className="ba-kk-gorsel-alt">
+      <div
+        className="ba-kk-gorsel-alt"
+        style={{
+          position: 'absolute',
+          left: '1.15rem',
+          right: '1.15rem',
+          bottom: '1rem',
+        }}
+      >
         <div className="ba-kk-gorsel-sahip">
           <span className="ba-kk-gorsel-etiket">Kart Sahibi</span>
           <span className="ba-kk-gorsel-sahip-ad">

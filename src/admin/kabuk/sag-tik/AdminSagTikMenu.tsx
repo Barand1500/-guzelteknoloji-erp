@@ -63,7 +63,8 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
       if (!panel) return;
       if ((e.target as HTMLElement).closest('.ap-sag-tik-menu')) return;
       if ((e.target as HTMLElement).closest('.ap-sekme-tab')) return;
-      if ((e.target as HTMLElement).closest('.dg-demo-sag-tik-alan')) return;
+      // Datagrid / stok özel menü .dg-kabuk içinde; arama alanı vb. dışarıda admin menüsü kalsın
+      if ((e.target as HTMLElement).closest('.dg-kabuk')) return;
 
       e.preventDefault();
       setMenu({ x: e.clientX, y: e.clientY, hedef: e.target });

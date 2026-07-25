@@ -30,7 +30,7 @@ function standartCubuk(
     kaydet: 'Kaydet',
     ekle: 'Yeni Ekle',
     sil: 'Sil',
-    guncelle: 'Güncelle',
+    guncelle: 'Düzenle',
   };
 
   return STANDART_AKSIYON_SIRASI.map((id) => {
