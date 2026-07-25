@@ -40,6 +40,9 @@ export function KullaniciListesiYeni({
     <ul className="ap-kullanici-yeni-liste" aria-label="Kullanıcılar">
       {kullanicilar.map((k) => {
         const secili = seciliId === k.id;
+        const rollerMetin = (k.roller?.length ? k.roller : [k.rol])
+          .map((kod) => rolBasliklari[kod] ?? kod)
+          .join(', ');
         return (
           <li key={k.id}>
             <button
@@ -53,10 +56,8 @@ export function KullaniciListesiYeni({
               <span className="ap-kullanici-yeni-ad">{k.ad}</span>
               <span className="ap-kullanici-yeni-email">{k.kullaniciKodu}</span>
               <span className="ap-kullanici-yeni-kart-alt">
-                <span className="ap-kullanici-yeni-rol">
-                  {(k.roller?.length ? k.roller : [k.rol])
-                    .map((kod) => rolBasliklari[kod] ?? kod)
-                    .join(', ')}
+                <span className="ap-kullanici-yeni-rol" title={rollerMetin}>
+                  {rollerMetin}
                 </span>
                 {!k.aktif && <span className="ap-kullanici-yeni-durum">Pasif</span>}
               </span>

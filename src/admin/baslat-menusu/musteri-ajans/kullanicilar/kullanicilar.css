@@ -72,7 +72,7 @@
 
 .ap-kullanici-yeni-liste > li {
   min-width: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .ap-kullanici-yeni-bos {
@@ -101,6 +101,7 @@
   justify-content: flex-start;
   gap: 0.4rem;
   width: 100%;
+  min-width: 0;
   aspect-ratio: 1;
   padding: 0.85rem 0.65rem;
   border-radius: 0.75rem;
@@ -108,6 +109,7 @@
   background: var(--ap-surface);
   text-align: center;
   cursor: pointer;
+  overflow: hidden;
   transition:
     border-color 0.18s ease,
     background 0.18s ease,
@@ -186,11 +188,15 @@
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin-top: auto;
 }
 
 .ap-kullanici-yeni-rol {
-  display: inline-flex;
+  display: block;
+  min-width: 0;
   max-width: 100%;
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
