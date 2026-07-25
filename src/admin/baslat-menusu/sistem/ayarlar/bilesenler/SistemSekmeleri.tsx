@@ -4,6 +4,7 @@ import { GorselAlan } from '@/formlar/GorselAlan';
 import { BakimEkrani } from './BakimEkrani';
 import { AdminPanelKarti } from '@/admin/ortak/AdminBilesenleri';
 import { DurumAnahtari } from './SistemSekmeCubugu';
+import { AyarlarSekmeIkon } from './AyarlarSekmeIkon';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { PANEL_DILLERI } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { panelJsonIceAktar, PANEL_VARSAYILAN_DILLER } from '@/dil/panelSozluk';
@@ -229,7 +230,7 @@ export function SistemGenelSekme({
           }
           onChange({ ...form, siteAktif: v });
         }}
-        ikon="🌐"
+        ikon={<AyarlarSekmeIkon ad="dil" boyut={20} />}
       />
       <FormAlani etiket="Özel Domain" aciklama="Canlı yayında kullanılacak alan adı">
         <input
@@ -298,7 +299,7 @@ export function SistemBakimSekme({
         acik={form.bakimModu}
         onChange={(v) => onChange({ ...form, bakimModu: v })}
         renk="turuncu"
-        ikon="🔧"
+        ikon={<AyarlarSekmeIkon ad="bakim" boyut={20} />}
       />
 
       <div className="ap-sistem-bakim-detay space-y-5">

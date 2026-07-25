@@ -1251,10 +1251,17 @@ button.ap-tanimlar-sihirbaz-faz {
   font-size: 0.9rem;
   line-height: 1;
   opacity: 0.85;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   transition:
     transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
     opacity 0.25s ease;
+}
+
+.ap-tanimlar-mod-ikon svg {
+  display: block;
 }
 
 .ap-tanimlar-mod-metin {

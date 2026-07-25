@@ -93,16 +93,16 @@ export interface SistemAyarlariForm {
 
 export type SistemSekmeId = 'genel' | 'gorunum' | 'bakim' | 'sayfa404' | 'dil' | 'guvenlik' | 'script' | 'sagTik' | 'eklentiler';
 
-export const SISTEM_SEKMELER: { id: SistemSekmeId; ad: string; ikon: string }[] = [
-  { id: 'genel', ad: 'Genel', ikon: '⚡' },
-  { id: 'gorunum', ad: 'Görünüm', ikon: '🎨' },
-  { id: 'bakim', ad: 'Bakım Modu', ikon: '🔧' },
-  { id: 'sayfa404', ad: '404 Sayfası', ikon: '🚫' },
-  { id: 'dil', ad: 'Panel Dili', ikon: '🌐' },
-  { id: 'guvenlik', ad: 'Güvenlik', ikon: '🛡️' },
-  { id: 'script', ad: 'Script Ayarları', ikon: '</>' },
-  { id: 'eklentiler', ad: 'Eklentiler', ikon: '🧩' },
-  { id: 'sagTik', ad: 'Sağ Tık Paneli', ikon: '🖱️' },
+export const SISTEM_SEKMELER: { id: SistemSekmeId; ad: string }[] = [
+  { id: 'genel', ad: 'Genel' },
+  { id: 'gorunum', ad: 'Görünüm' },
+  { id: 'bakim', ad: 'Bakım Modu' },
+  { id: 'sayfa404', ad: '404 Sayfası' },
+  { id: 'dil', ad: 'Panel Dili' },
+  { id: 'guvenlik', ad: 'Güvenlik' },
+  { id: 'script', ad: 'Script Ayarları' },
+  { id: 'eklentiler', ad: 'Eklentiler' },
+  { id: 'sagTik', ad: 'Sağ Tık Paneli' },
 ];
 
 export const SEKME_BASLIK: Record<SistemSekmeId, string> = {
