@@ -4,6 +4,7 @@ import { firmalariGetir } from '@/admin/baslat-menusu/tanimlar/api';
 import { KurulumSihirbazi } from '@/admin/baslat-menusu/tanimlar/bilesenler/KurulumSihirbazi';
 import { KayitlarSayfasi } from '@/admin/baslat-menusu/tanimlar/kayitlar/KayitlarSayfasi';
 import { TanimModCubugu } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModCubugu';
+import { TanimModIkon } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimModIkon';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
@@ -13,8 +14,8 @@ import './tanimlar.css';
 type TanimSayfaModu = 'kurulum' | 'kayitlar';
 
 const MOD_SEKMELER = [
-  { id: 'kurulum', ad: 'Kurulum Sihirbazı', ikon: '✨' },
-  { id: 'kayitlar', ad: 'Kayıtlar', ikon: '📋' },
+  { id: 'kurulum', ad: 'Kurulum Sihirbazı', ikon: <TanimModIkon ad="kurulum" /> },
+  { id: 'kayitlar', ad: 'Kayıtlar', ikon: <TanimModIkon ad="kayitlar" /> },
 ] as const;
 
 export function TanimlarSayfasi() {

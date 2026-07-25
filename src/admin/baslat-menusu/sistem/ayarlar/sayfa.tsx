@@ -33,6 +33,7 @@ import { sagTikAyarlariYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/yard
 import { varsayilanAyarlarYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/varsayilanAyarlar';
 import { panelGorunumYayinla } from '@/admin/baslat-menusu/sistem/ayarlar/panelGorunum';
 import { SistemGorunumSekme } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemGorunumSekme';
+import { AyarlarSekmeIkon } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/AyarlarSekmeIkon';
 import { siteVerisiGuncellendiYayinla } from '@/araclar/siteVerisiOlaylari';
 import './ayarlar.css';
 
@@ -211,7 +212,7 @@ export function SistemAyarlariSayfasi() {
             <div className="ap-ayarlar-panel-baslik">
               <div className="ap-ayarlar-ust-metin" key={`baslik-${sekme}`}>
                 <span className="ap-ayarlar-ust-ikon" aria-hidden>
-                  {aktifSekme?.ikon}
+                  <AyarlarSekmeIkon ad={sekme} boyut={18} />
                 </span>
                 <div>
                   <h2 className="ap-ayarlar-ust-baslik">{SEKME_BASLIK[sekme]}</h2>

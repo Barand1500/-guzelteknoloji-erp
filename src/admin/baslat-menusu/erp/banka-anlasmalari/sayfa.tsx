@@ -288,7 +288,6 @@ export function BankaAnlasmalariSayfasi() {
                         }
                       : undefined
                   }
-                  onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
                   onSecimiTemizle={() => {
                     gridApiRef.current?.secimAyarla([]);
                     setSeciliIdler([]);

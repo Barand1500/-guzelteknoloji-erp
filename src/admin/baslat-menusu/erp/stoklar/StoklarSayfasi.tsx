@@ -827,7 +827,6 @@ export function StoklarSayfasi() {
                       satirSilMetniAl={stokSatirEtiketi}
                       onAktifYap={duzenlemeVar ? () => void topluDurumAyarla(true) : undefined}
                       onPasifYap={duzenlemeVar ? () => void topluDurumAyarla(false) : undefined}
-                      onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
                       onSecimiTemizle={() => {
                         gridApiRef.current?.secimAyarla([]);
                         setSeciliIdler([]);

@@ -2,6 +2,7 @@ import { FormAlani, formInputSinifi, formSelectSinifi } from '@/formlar/FormAlan
 import { GorselAlan } from '@/formlar/GorselAlan';
 import { AdminPanelKarti } from '@/admin/ortak/AdminBilesenleri';
 import { DurumAnahtari } from './SistemSekmeCubugu';
+import { AyarlarSekmeIkon } from './AyarlarSekmeIkon';
 import type { AdminSayfa } from '@/admin/ortak/api/sayfaApi';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { SAYFA404_MENU_SECENEKLERI } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
@@ -130,7 +131,7 @@ export function SistemGuvenlikSekme({
         aciklama="X-Frame-Options, X-Content-Type-Options gibi HTTP güvenlik başlıkları"
         acik={form.guvenlikBasliklari}
         onChange={(v) => onChange({ ...form, guvenlikBasliklari: v })}
-        ikon="🛡️"
+        ikon={<AyarlarSekmeIkon ad="guvenlik" boyut={20} />}
       />
       <DurumAnahtari
         etiket="Arama Motorlarını Engelle"
@@ -138,7 +139,7 @@ export function SistemGuvenlikSekme({
         acik={form.robotsEngelle}
         onChange={(v) => onChange({ ...form, robotsEngelle: v })}
         renk="kirmizi"
-        ikon="🤖"
+        ikon={<AyarlarSekmeIkon ad="robots" boyut={20} />}
       />
     </div>
   );

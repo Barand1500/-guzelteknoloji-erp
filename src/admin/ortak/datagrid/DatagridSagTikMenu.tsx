@@ -423,7 +423,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 ikon: MENU_IKONLARI.disaAktar,
                 devreDisi: seciliSatirSayisi <= 0,
                 ayiriciOnce: !onAktifYap && !onPasifYap,
-                goster: secimIslemleriGoster,
+                goster: secimIslemleriGoster && !!onDisaAktar,
               },
               {
                 id: 'secimiTemizle' as const,

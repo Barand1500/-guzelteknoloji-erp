@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { SistemSekmeId } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { SISTEM_SEKMELER } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
+import { AyarlarSekmeIkon } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/AyarlarSekmeIkon';
 
 interface SistemSekmeCubuguProps {
   aktif: SistemSekmeId;
@@ -77,7 +78,7 @@ export function SistemSekmeCubugu({ aktif, onDegistir }: SistemSekmeCubuguProps)
               className={`ap-ayarlar-tur-sekme ${secili ? 'ap-ayarlar-tur-sekme--aktif' : ''}`}
             >
               <span className="ap-ayarlar-tur-ikon" aria-hidden>
-                {s.ikon}
+                <AyarlarSekmeIkon ad={s.id} boyut={14} />
               </span>
               <span className="ap-ayarlar-tur-metin">{s.ad}</span>
             </button>

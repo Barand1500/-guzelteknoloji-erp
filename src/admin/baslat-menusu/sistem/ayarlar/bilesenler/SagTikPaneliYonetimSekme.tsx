@@ -1,6 +1,7 @@
 import { adminModulleri } from '@/admin/veri/adminMenuYapisi';
 import { SAG_TIK_OGE_TANIMLARI } from '@/admin/baslat-menusu/sistem/ayarlar/veri-sag-tik';
 import { DurumAnahtari } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemSekmeCubugu';
+import { AyarlarSekmeIkon } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/AyarlarSekmeIkon';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import type { SagTikOgeId } from '@/admin/ortak/tipler/sagTikPaneli';
 import { SagTikIkon, type SagTikIkonAd } from '@/admin/ortak/SagTikIkon';
@@ -55,7 +56,7 @@ export function SagTikPaneliYonetimSekme({ form, onChange }: SagTikPaneliYonetim
         aciklama="Admin panelde herhangi bir yere sağ tıklayınca özel menü açılır."
         acik={panel.aktif}
         onChange={(aktif) => panelGuncelle({ aktif })}
-        ikon="🖱️"
+        ikon={<AyarlarSekmeIkon ad="sagTik" boyut={20} />}
         renk="mavi"
       />
 
