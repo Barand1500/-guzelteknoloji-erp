@@ -82,6 +82,7 @@ export function CariOutlinedTelefon({
   const onEkRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [focused, setFocused] = useState(false);
+  const [dahiliFocused, setDahiliFocused] = useState(false);
   const [asama, setAsama] = useState<DogrulaAsama>('alan');
   const [kod, setKod] = useState('');
   const [dogrulananAnahtar, setDogrulananAnahtar] = useState<string | null>(null);
@@ -357,10 +358,16 @@ export function CariOutlinedTelefon({
               inputMode="numeric"
               maxLength={4}
               autoComplete="off"
-              placeholder="0000"
+              placeholder={dahiliFocused ? 'XXXX' : undefined}
               aria-label="Dahili"
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
+              onFocus={() => {
+                setFocused(true);
+                setDahiliFocused(true);
+              }}
+              onBlur={() => {
+                setFocused(false);
+                setDahiliFocused(false);
+              }}
               onChange={(e) => onDahiliChange?.(e.target.value.replace(/\D/g, '').slice(0, 4))}
             />
           </div>

@@ -3,7 +3,7 @@ import { sekmeAyarlariOku } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/ya
 import { usePanelDil } from '@/baglamlar/PanelDilContext';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
 import { BaslatMenuArama } from './BaslatMenuArama';
-import { KATEGORI_IKON, type BaslatMenuDurumu } from './baslatMenuOrtak';
+import { BaslatMenuIkon, type BaslatMenuDurumu } from './baslatMenuOrtak';
 
 interface BaslatMenuModernProps {
   menuDurumu: BaslatMenuDurumu;
@@ -139,7 +139,7 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
                       aria-pressed={aktif}
                     >
                       <span className="ap-baslat-modern-kategori-kutu-ikon" aria-hidden>
-                        {KATEGORI_IKON[kategori] ?? '•'}
+                        <BaslatMenuIkon kategori={kategori} boyut={18} />
                       </span>
                       <span className="ap-baslat-modern-kategori-kutu-ad">
                         {t(`kategori.${kategori}`, kategori)}
@@ -195,7 +195,7 @@ function ModulKutuGrid({
           title={t(`modul.${modul.id}`, modul.baslik)}
         >
           <span className="ap-baslat-modern-modul-kutu-ikon" aria-hidden>
-            {modul.ikon}
+            <BaslatMenuIkon modulId={modul.id} boyut={28} />
           </span>
           <span className="ap-baslat-modern-modul-kutu-ad">{t(`modul.${modul.id}`, modul.baslik)}</span>
         </button>

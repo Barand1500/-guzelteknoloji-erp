@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback, type DragEvent, type MouseEvent } from 'react';
 import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 import { modulBul } from '@/admin/veri/adminMenuYapisi';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 import {
   sekmeAyarlariOku,
   sekmeTabCssDegiskenleri,
@@ -119,7 +120,6 @@ function SekmeButonu({
   const tasinan = surukleniyor === sekme.id;
   const hedef = dropHedef === sekme.id;
   const modul = modulBul(sekme.modulId);
-  const ikon = modul?.ikon ?? '📄';
   const isimGoster = gorunumModu === 'isim' || gorunumModu === 'ikon-isim';
   const ikonGoster = gorunumModu === 'ikon' || gorunumModu === 'ikon-isim';
   const tabRef = useRef<HTMLDivElement>(null);
@@ -216,7 +216,9 @@ function SekmeButonu({
           />
         )}
         {ikonGoster && (
-          <span className={`shrink-0 leading-none ${yerlesim === 'kare' ? 'ap-sekme-kare-tab-ikon' : 'text-sm'}`}>{ikon}</span>
+          <span className={`shrink-0 leading-none ${yerlesim === 'kare' ? 'ap-sekme-kare-tab-ikon' : 'ap-sekme-tab-flat-ikon'}`}>
+            <BaslatMenuIkon modulId={sekme.modulId} boyut={yerlesim === 'kare' ? 18 : 14} />
+          </span>
         )}
         {isimGoster && (
           <span className={yerlesim === 'kare' ? 'ap-sekme-kare-tab-isim line-clamp-2 w-full leading-tight' : 'truncate'}>

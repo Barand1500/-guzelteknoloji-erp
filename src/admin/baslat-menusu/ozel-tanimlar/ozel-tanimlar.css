@@ -287,8 +287,23 @@
 }
 
 .ot-hub-nav-ikon {
-  font-size: 1.05rem;
-  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.35rem;
+  color: var(--ap-text-muted);
+  line-height: 1;
+}
+
+.ot-hub-nav-oge-aktif .ot-hub-nav-ikon {
+  color: var(--ap-accent);
+}
+
+.ot-hub-flat-ikon {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .ot-hub-nav-metin {

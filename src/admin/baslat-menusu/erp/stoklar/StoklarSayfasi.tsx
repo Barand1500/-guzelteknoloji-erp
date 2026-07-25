@@ -821,6 +821,7 @@ export function StoklarSayfasi() {
                       satirEkleGoster={false}
                       satirCogaltGoster={false}
                       seciliSilGoster={false}
+                      dahiliSilmeOnay={false}
                       onSatirDuzenle={duzenlemeVar ? (s) => sagTikDuzenle(s.id) : undefined}
                       onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                       satirSilMetniAl={stokSatirEtiketi}
@@ -876,7 +877,11 @@ export function StoklarSayfasi() {
         onKapat={() => setSilme(null)}
         onOnayla={() => void silOnayla()}
         baslik="Bu stok kartını silmek istiyor musunuz?"
-        hedefMetin={silme ? `${silme.urunAdi} (${silme.urunKodu})` : ''}
+        hedefMetin={
+          silme
+            ? `${silme.urunAdi} (${silme.urunKodu}) — bağlı birim ve maliyet kayıtları da silinir`
+            : ''
+        }
         ariaLabel="Stok silme onayı"
       />
     </AdminModulKabuk>

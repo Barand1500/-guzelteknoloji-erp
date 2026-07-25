@@ -744,8 +744,7 @@ export function DatagridDemoSayfasi() {
         seciliSatirSayisi={seciliSatirSayisi}
         gridApiRef={gridApiRef}
         menuEtiketi="Sipariş tablosu menüsü"
-        formulGoster
-        csvDisaGoster
+        sutunGorunurlukGoster={false}
         hucrePanoyaMetniAl={hucrePanoyaMetni}
         satirSilMetniAl={(satir) => {
           const ad = satir.urun.ad?.trim() ?? '';

@@ -5,6 +5,7 @@ import {
   OZEL_TANIM_VARSAYILAN_MODUL,
   type OzelTanimModulId,
 } from '@/admin/baslat-menusu/ozel-tanimlar/katalog';
+import { OtHubIkon } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtHubIkon';
 import {
   otAramaOdakla,
   otAramaOdaktanCik,
@@ -113,7 +114,7 @@ export function OzelTanimlarSayfasi() {
                   title={`${modul.baslik} (${no})`}
                 >
                   <span className="ot-hub-nav-ikon" aria-hidden>
-                    {modul.ikon}
+                    <OtHubIkon modulId={modul.id} />
                   </span>
                   <span className="ot-hub-nav-metin">
                     <span className="ot-hub-nav-ad">{modul.baslik}</span>

@@ -54,7 +54,7 @@ function siralaAralik(a: string, b: string): { bas: string; bit: string } {
 }
 
 function aralikMetni(bas: string, bit: string): string {
-  if (!bas) return 'Takvimde sürükleyerek gün seçin';
+  if (!bas) return 'Başlangıç ve bitiş gününü tıklayın veya sürükleyerek seçin';
   const [y1, m1, g1] = bas.split('-').map(Number);
   const [y2, m2, g2] = bit.split('-').map(Number);
   if (bas === bit) return `${g1} ${AYLAR[m1! - 1]} ${y1}`;
@@ -92,6 +92,8 @@ export function OtTarihAralikSecici({
   const gridRef = useRef<HTMLDivElement>(null);
   const surukleBasRef = useRef<string | null>(null);
   const surukleniyorRef = useRef(false);
+  const suruklemeOlduRef = useRef(false);
+  const bekleyenBasRef = useRef<string | null>(null);
   const [taslakBit, setTaslakBit] = useState<string | null>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -139,9 +141,9 @@ export function OtTarihAralikSecici({
     if (e.button !== 0) return;
     e.preventDefault();
     surukleniyorRef.current = true;
+    suruklemeOlduRef.current = false;
     surukleBasRef.current = tarih;
     setTaslakBit(tarih);
-    onChangeRef.current(tarih, tarih);
     gridRef.current?.setPointerCapture(e.pointerId);
   }
 
@@ -149,6 +151,7 @@ export function OtTarihAralikSecici({
     if (!surukleniyorRef.current || !surukleBasRef.current) return;
     const tarih = tarihNoktadan(e.clientX, e.clientY);
     if (!tarih) return;
+    if (tarih !== surukleBasRef.current) suruklemeOlduRef.current = true;
     araligiUygula(surukleBasRef.current, tarih);
   }
 
@@ -157,10 +160,21 @@ export function OtTarihAralikSecici({
     const basNokta = surukleBasRef.current;
     const tarih = tarihNoktadan(e.clientX, e.clientY) ?? taslakBit ?? basNokta;
     if (basNokta && tarih) {
-      const { bas, bit } = siralaAralik(basNokta, tarih);
-      onChangeRef.current(bas, bit);
+      if (suruklemeOlduRef.current) {
+        const { bas, bit } = siralaAralik(basNokta, tarih);
+        onChangeRef.current(bas, bit);
+        bekleyenBasRef.current = null;
+      } else if (bekleyenBasRef.current) {
+        const { bas, bit } = siralaAralik(bekleyenBasRef.current, tarih);
+        onChangeRef.current(bas, bit);
+        bekleyenBasRef.current = null;
+      } else {
+        bekleyenBasRef.current = tarih;
+        onChangeRef.current(tarih, tarih);
+      }
     }
     surukleniyorRef.current = false;
+    suruklemeOlduRef.current = false;
     surukleBasRef.current = null;
     setTaslakBit(null);
     if (gridRef.current?.hasPointerCapture(e.pointerId)) {
@@ -245,7 +259,9 @@ export function OtTarihAralikSecici({
       </div>
 
       <p className="ot-rt-aralik-ozet" aria-live="polite">
-        {aralikMetni(basSirali, bitSirali || basSirali)}
+        {bekleyenBasRef.current
+          ? `${aralikMetni(basSirali, bitSirali || basSirali)} · Bitiş gününü seçin`
+          : aralikMetni(basSirali, bitSirali || basSirali)}
       </p>
     </div>
   );

@@ -86,10 +86,7 @@ router.put('/urunler/:id', yetkiZorunlu('duzenleme'), async (req: AuthRequest, r
 
 router.delete('/urunler/:id', yetkiZorunlu('silme'), async (req: AuthRequest, res: Response) => {
   const id = Number(req.params.id);
-  const birimSayisi = await prisma.f001Birim.count({ where: { urunId: id } });
-  if (birimSayisi > 0) {
-    return res.status(409).json({ mesaj: `Bu ürüne bağlı ${birimSayisi} birim var. Önce bağlı birimleri silin.` });
-  }
+  // Birim ve maliyet ilişkileri şemada onDelete: Cascade — ürünle birlikte silinir
   await prisma.f001Urun.delete({ where: { id } });
   return res.json({ mesaj: 'Urun silindi' });
 });

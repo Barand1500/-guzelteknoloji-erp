@@ -202,13 +202,14 @@ export function CariKart({
     [baslangic, baslangicKartTipi, form, kartTipiSecim]
   );
 
-  const cariFiyatTanimiSecenekleri = [
-    { value: '', label: 'Standart' },
-    ...stokFiyatAdlariGetir(),
-  ];
+  const cariFiyatTanimiSecenekleri = stokFiyatAdlariGetir();
 
-  const alisFiyatSecimSecenekleri = stokCokluFiyatAdlariGetir(form.alisFiyatTanimi, 'alis');
-  const satisFiyatSecimSecenekleri = stokCokluFiyatAdlariGetir(form.satisFiyatTanimi, 'satis');
+  const alisFiyatSecimSecenekleri = stokCokluFiyatAdlariGetir(form.alisFiyatTanimi, 'alis').map(
+    (s) => (s.value === '' ? { ...s, label: 'Standart' } : s)
+  );
+  const satisFiyatSecimSecenekleri = stokCokluFiyatAdlariGetir(form.satisFiyatTanimi, 'satis').map(
+    (s) => (s.value === '' ? { ...s, label: 'Standart' } : s)
+  );
 
   useEffect(() => {
     onKirliDegistir(kirli);
@@ -586,6 +587,8 @@ export function CariKart({
                 fiyatSecenekler={alisFiyatSecimSecenekleri}
                 onFiyatChange={(alisFiyatSecimi) => setAlan('alisFiyatSecimi', alisFiyatSecimi)}
                 disabled={saltOkunur}
+                tanimBosMetin="FİYAT"
+                fiyatBosMetin="Standart"
               />
               <CariFiyatTanimiGrup
                 etiket="Satış Fiyat Tanımı"
@@ -602,6 +605,8 @@ export function CariKart({
                 fiyatSecenekler={satisFiyatSecimSecenekleri}
                 onFiyatChange={(satisFiyatSecimi) => setAlan('satisFiyatSecimi', satisFiyatSecimi)}
                 disabled={saltOkunur}
+                tanimBosMetin="FİYAT"
+                fiyatBosMetin="Standart"
               />
             </div>
 

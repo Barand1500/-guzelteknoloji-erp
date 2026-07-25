@@ -62,10 +62,12 @@ export function offlineUrunYonetimiYaz(path: string, method: string, body?: Body
   const d = oku(); const id = idAl(path); const tarih = simdi();
   if (path.includes('/urunler')) {
     if (method === 'DELETE' && id) {
-      const birimSayisi = d.birimler.filter((b) => b.urunId === id).length;
-      if (birimSayisi > 0) throw new Error(`Bu ürüne bağlı ${birimSayisi} birim var. Önce bağlı birimleri silin.`);
+      const birimIdler = new Set(d.birimler.filter((b) => b.urunId === id).map((b) => b.id));
+      d.maliyetler = d.maliyetler.filter((m) => !birimIdler.has(m.birimId));
+      d.birimler = d.birimler.filter((b) => b.urunId !== id);
       d.urunler = d.urunler.filter((u) => u.id !== id);
-      kaydet(d); return { mesaj: 'Urun silindi' };
+      kaydet(d);
+      return { mesaj: 'Urun silindi' };
     }
     const f = formOku<UrunForm & { aktif: boolean }>(body);
     const mevcut = id ? d.urunler.find((u) => u.id === id) : undefined;

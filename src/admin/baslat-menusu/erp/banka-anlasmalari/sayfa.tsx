@@ -250,6 +250,7 @@ export function BankaAnlasmalariSayfasi() {
                   satirEkleGoster={false}
                   satirCogaltGoster={false}
                   seciliSilGoster={false}
+                  dahiliSilmeOnay={false}
                   onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
                   onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                   satirSilMetniAl={bankaAnlasmaSatirEtiketi}

@@ -509,13 +509,6 @@ export function ResmiTatillerSayfasi() {
       >
         <form id="ot-rt-form" className="ot-pb-form" onSubmit={kaydet}>
           {hata ? <p className="ot-form-hata">{hata}</p> : null}
-          <OtOutlinedGirdi
-            etiket="Adı"
-            deger={adi}
-            onChange={setAdi}
-            odakPlaceholder="Örn. Ramazan Bayramı"
-            zorunlu
-          />
           <OtOutlinedAlan etiket="Tarih" zorunlu className="ot-outlined-tarih-aralik">
             <OtTarihAralikSecici
               baslangic={baslangic}
@@ -526,6 +519,13 @@ export function ResmiTatillerSayfasi() {
               }}
             />
           </OtOutlinedAlan>
+          <OtOutlinedGirdi
+            etiket="Adı"
+            deger={adi}
+            onChange={setAdi}
+            odakPlaceholder="Örn. Ramazan Bayramı"
+            zorunlu
+          />
           <OtOutlinedAlan etiket="Renk" className="ot-outlined-renk">
             <div className="ot-rt-renk-liste" role="radiogroup" aria-label="Tatil rengi">
               {RESMI_TATIL_RENKLER.map((r) => {

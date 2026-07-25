@@ -2,7 +2,7 @@ import { usePanelDil } from '@/baglamlar/PanelDilContext';
 import { forwardRef, type CSSProperties } from 'react';
 import type { AdminModul } from '@/admin/ortak/tipler/admin';
 import { BaslatMenuArama } from './BaslatMenuArama';
-import { KATEGORI_IKON, type BaslatMenuDurumu } from './baslatMenuOrtak';
+import { BaslatMenuIkon, type BaslatMenuDurumu } from './baslatMenuOrtak';
 
 interface BaslatMenuKlasikProps {
   menuDurumu: BaslatMenuDurumu;
@@ -111,7 +111,7 @@ function ModulListesi({
           aria-expanded={!katlanmis}
         >
           <span className="ap-menu-kategori-baslik-ikon" aria-hidden>
-            {KATEGORI_IKON[kategori] ?? '•'}
+            <BaslatMenuIkon kategori={kategori} boyut={16} />
           </span>
           <span className="ap-menu-kategori-baslik-metin">{baslik}</span>
           <span className="ap-menu-kategori-ok" aria-hidden>
@@ -120,7 +120,11 @@ function ModulListesi({
         </button>
       ) : (
         <p className="ap-menu-kategori-baslik">
-          {kategori && <span>{KATEGORI_IKON[kategori] ?? '•'}</span>}
+          {kategori && (
+            <span>
+              <BaslatMenuIkon kategori={kategori} boyut={16} />
+            </span>
+          )}
           {baslik}
         </p>
       )}
@@ -130,7 +134,9 @@ function ModulListesi({
           {moduller.map((modul) => (
             <li key={modul.id}>
               <button type="button" onClick={() => onSec(modul)} className="ap-menu-oge">
-                <span className="ap-menu-oge-ikon">{modul.ikon}</span>
+                <span className="ap-menu-oge-ikon">
+                  <BaslatMenuIkon modulId={modul.id} boyut={16} />
+                </span>
                 <span className="font-medium">{t(`modul.${modul.id}`, modul.baslik)}</span>
               </button>
             </li>

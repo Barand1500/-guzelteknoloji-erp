@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 import { modulBul } from '@/admin/veri/adminMenuYapisi';
 import type { AdminSekme } from '@/admin/ortak/tipler/admin';
 
@@ -22,7 +23,6 @@ export function SekmeHoverOnizleme({
   if (!sekme || !anchorRect || typeof document === 'undefined') return null;
 
   const modul = modulBul(sekme.modulId);
-  const ikon = modul?.ikon ?? '📄';
   const modulBaslik = modul?.baslik ?? sekme.baslik;
   const kategori = modul?.kategori ?? 'Panel';
   const gorselVar = Boolean(gorselUrl);
@@ -73,7 +73,7 @@ export function SekmeHoverOnizleme({
             ) : (
               <>
                 <span className="ap-sekme-hover-onizleme-buyuk-ikon" aria-hidden>
-                  {ikon}
+                  <BaslatMenuIkon modulId={sekme.modulId} boyut={28} />
                 </span>
                 <p className="ap-sekme-hover-onizleme-modul-ad">{modulBaslik}</p>
                 <p className="ap-sekme-hover-onizleme-kategori">{kategori}</p>
@@ -85,7 +85,7 @@ export function SekmeHoverOnizleme({
 
       <div className="ap-sekme-hover-onizleme-alt">
         <span className="ap-sekme-hover-onizleme-alt-ikon" aria-hidden>
-          {ikon}
+          <BaslatMenuIkon modulId={sekme.modulId} boyut={14} />
         </span>
         <div className="ap-sekme-hover-onizleme-alt-metin">
           <p className="ap-sekme-hover-onizleme-alt-baslik">{sekme.baslik}</p>

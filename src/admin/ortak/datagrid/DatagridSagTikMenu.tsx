@@ -60,6 +60,8 @@ interface DatagridSagTikMenuProps<TRow extends { id: string }> {
   secimIslemleriGoster?: boolean;
   /** Sayı formülleri menü öğesi (varsayılan false; datagrid demo’da açılır) */
   formulGoster?: boolean;
+  /** Sütun görünürlüğü menü öğesi (varsayılan true) */
+  sutunGorunurlukGoster?: boolean;
   /** CSV indir menü öğesi (varsayılan false; datagrid demo’da açılır) */
   csvDisaGoster?: boolean;
   onSatirEkleBaslat?: (konum: SatirEkleKonumu, satirId: string) => void;
@@ -138,6 +140,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
   tabloAraclariGoster = true,
   secimIslemleriGoster = true,
   formulGoster = false,
+  sutunGorunurlukGoster = true,
   csvDisaGoster = false,
   onSatirEkleBaslat,
   onSatirCogalt,
@@ -456,7 +459,7 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                 id: 'sutunGorunurluk' as const,
                 etiket: menuBasligi('Sütun görünürlüğü'),
                 ikon: MENU_IKONLARI.sutunGorunurluk,
-                goster: tabloAraclariGoster,
+                goster: tabloAraclariGoster && sutunGorunurlukGoster,
               },
               {
                 id: 'csvDisa' as const,

@@ -424,6 +424,7 @@ export function CariSayfasi() {
                   onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
                   onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                   seciliSilGoster={false}
+                  dahiliSilmeOnay={false}
                   satirSilMetniAl={cariSatirEtiketi}
                   onAktifYap={duzenlemeVar ? () => void topluDurumAyarla(true) : undefined}
                   onPasifYap={duzenlemeVar ? () => void topluDurumAyarla(false) : undefined}

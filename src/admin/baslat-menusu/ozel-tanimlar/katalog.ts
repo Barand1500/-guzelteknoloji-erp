@@ -12,7 +12,8 @@ export type OzelTanimModulId =
 export interface OzelTanimModulTanimi {
   id: OzelTanimModulId;
   baslik: string;
-  ikon: string;
+  /** @deprecated Flat SVG OtHubIkon kullanılıyor */
+  ikon?: string;
   aciklama: string;
 }
 
@@ -20,31 +21,26 @@ export const OZEL_TANIM_MODULLERI: readonly OzelTanimModulTanimi[] = [
   {
     id: 'para-birimleri',
     baslik: 'Para Birimleri',
-    ikon: '💱',
     aciklama: 'Kur, sembol ve otomatik güncelleme tanımları',
   },
   {
     id: 'bankalar-kartlar',
     baslik: 'Bankalar ve Kartlar',
-    ikon: '🏦',
     aciklama: 'Banka, kart tipi, marka ve BIN tanımları',
   },
   {
     id: 'vergiler',
     baslik: 'Vergiler',
-    ikon: '🧾',
     aciklama: 'Vergi oranları, türleri ve vergi daireleri',
   },
   {
     id: 'cari-stok',
     baslik: 'Cari ve Stok',
-    ikon: '📦',
     aciklama: 'Cari tipi, stok tipi ve ölçü birimleri',
   },
   {
     id: 'resmi-tatiller',
     baslik: 'Resmi Tatil Günleri',
-    ikon: '📅',
     aciklama: 'Resmi tatil aralıkları ve takvim renkleri',
   },
 ] as const;

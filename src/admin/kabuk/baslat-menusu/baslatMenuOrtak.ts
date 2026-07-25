@@ -7,7 +7,9 @@ import {
   baslatMenuKapaliKategorileriKaydet,
   baslatMenuKapaliKategorileriOku,
 } from './baslatMenuKategoriDurumu';
+import { KATEGORI_FLAT_IKON } from './baslatMenuIkonlar';
 
+/** @deprecated Emoji yerine flat SVG kullanın — geriye dönük uyumluluk */
 export const KATEGORI_IKON: Record<string, string> = {
   'Müşteri / Ajans': '👥',
   Sistem: '⚙️',
@@ -15,6 +17,9 @@ export const KATEGORI_IKON: Record<string, string> = {
   ERP: '🧩',
   Datagrid: '📊',
 };
+
+export { KATEGORI_FLAT_IKON };
+export { BaslatMenuIkon } from './baslatMenuIkonlar';
 
 export type BaslatMenuDurumu = ReturnType<typeof useBaslatMenuDurumu>;
 
