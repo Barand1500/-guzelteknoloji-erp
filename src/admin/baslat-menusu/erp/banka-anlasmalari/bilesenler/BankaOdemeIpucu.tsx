@@ -25,9 +25,7 @@ export function BankaOdemeIpucu({
     [hesapKesimGunu, odemeGunu, tatilSurum]
   );
 
-  if (!onizleme) return null;
-
-  const uyariVar = onizleme.haftaSonu || Boolean(onizleme.tatilAdi);
+  const uyariVar = Boolean(onizleme && (onizleme.haftaSonu || onizleme.tatilAdi));
 
   return (
     <span className="ba-ipucu-sarmal">
@@ -42,6 +40,7 @@ export function BankaOdemeIpucu({
         onBlur={() => setAcik(false)}
         onClick={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           setAcik((a) => !a);
         }}
       >
@@ -49,25 +48,33 @@ export function BankaOdemeIpucu({
       </button>
       {acik ? (
         <span className="ba-ipucu-balon" role="tooltip">
-          <span className="ba-ipucu-satir">
-            <span className="ba-ipucu-etiket">Kesim</span>
-            <span className="ba-ipucu-deger">{onizleme.kesimEtiket}</span>
-          </span>
-          <span className="ba-ipucu-satir">
-            <span className="ba-ipucu-etiket">Ödeme</span>
-            <span className="ba-ipucu-deger">
-              {onizleme.odemeEtiket} · {onizleme.odemeGunAdi}
+          {onizleme ? (
+            <>
+              <span className="ba-ipucu-satir">
+                <span className="ba-ipucu-etiket">Kesim</span>
+                <span className="ba-ipucu-deger">{onizleme.kesimEtiket}</span>
+              </span>
+              <span className="ba-ipucu-satir">
+                <span className="ba-ipucu-etiket">Ödeme</span>
+                <span className="ba-ipucu-deger">
+                  {onizleme.odemeEtiket} · {onizleme.odemeGunAdi}
+                </span>
+              </span>
+              {onizleme.tatilAdi ? (
+                <span className="ba-ipucu-uyari">Resmi tatil: {onizleme.tatilAdi}</span>
+              ) : null}
+              {onizleme.haftaSonu && !onizleme.tatilAdi ? (
+                <span className="ba-ipucu-uyari">Hafta sonuna denk geliyor</span>
+              ) : null}
+              {onizleme.sonrakiIsGunuEtiket ? (
+                <span className="ba-ipucu-alt">İlk iş günü: {onizleme.sonrakiIsGunuEtiket}</span>
+              ) : null}
+            </>
+          ) : (
+            <span className="ba-ipucu-alt">
+              Hesap kesim günü ve ödeme süresini girince sıradaki tarih burada görünür.
             </span>
-          </span>
-          {onizleme.tatilAdi ? (
-            <span className="ba-ipucu-uyari">Resmi tatil: {onizleme.tatilAdi}</span>
-          ) : null}
-          {onizleme.haftaSonu && !onizleme.tatilAdi ? (
-            <span className="ba-ipucu-uyari">Hafta sonuna denk geliyor</span>
-          ) : null}
-          {onizleme.sonrakiIsGunuEtiket ? (
-            <span className="ba-ipucu-alt">İlk iş günü: {onizleme.sonrakiIsGunuEtiket}</span>
-          ) : null}
+          )}
         </span>
       ) : null}
     </span>

@@ -19,6 +19,8 @@ interface CariOutlinedGirdiProps {
   disabled?: boolean;
   onek?: ReactNode;
   sonek?: ReactNode;
+  /** Etiket satırına ek (ör. bilgi ikonu) — girdi düzenini bozmaz */
+  etiketEk?: ReactNode;
   onEnter?: () => void;
 }
 
@@ -58,6 +60,7 @@ export function CariOutlinedGirdi({
   disabled = false,
   onek,
   sonek,
+  etiketEk,
   onEnter,
 }: CariOutlinedGirdiProps) {
   const inputId = useId();
@@ -69,7 +72,9 @@ export function CariOutlinedGirdi({
     <div
       className={`cari-outlined-field${focused ? ' cari-outlined-field--focus' : ''}${disabled ? ' cari-outlined-field--pasif' : ''} ${className ?? ''}`.trim()}
     >
-      <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId} />
+      <CariOutlinedEtiket etiket={etiket} zorunlu={zorunlu} htmlFor={inputId}>
+        {etiketEk}
+      </CariOutlinedEtiket>
       <div
         className="cari-outlined-cerceve"
         onMouseDown={(e) => {

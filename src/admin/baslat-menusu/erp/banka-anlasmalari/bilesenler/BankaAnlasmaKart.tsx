@@ -424,14 +424,12 @@ export function BankaAnlasmaKart({
                       disabled={saltOkunur}
                       onChange={(v) => setAlan('odemeGunu', gunSayisiFiltrele(v, 45))}
                       onek={<span className="ba-gun-sonek">Kesimden</span>}
-                      sonek={
-                        <span className="ba-gun-sonek ba-gun-sonek--ipuclu">
-                          gün sonra
-                          <BankaOdemeIpucu
-                            hesapKesimGunu={form.hesapKesimGunu}
-                            odemeGunu={form.odemeGunu}
-                          />
-                        </span>
+                      sonek={<span className="ba-gun-sonek">gün sonra</span>}
+                      etiketEk={
+                        <BankaOdemeIpucu
+                          hesapKesimGunu={form.hesapKesimGunu}
+                          odemeGunu={form.odemeGunu}
+                        />
                       }
                     />
                   </div>

@@ -173,20 +173,11 @@
   pointer-events: none;
 }
 
-.ba-gun-sonek--ipuclu {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-/* Sonek pointer-events kapalı; sadece ipucu düğmesi tıklanabilir kalır */
-.ba-gun-cumle .ba-ipucu-sarmal {
-  pointer-events: auto;
-}
-
+/* Ödeme süresi bilgi ikonu — etiket satırında */
 .ba-ipucu-sarmal {
   position: relative;
   display: inline-flex;
+  vertical-align: middle;
 }
 
 .ba-ipucu-dugme {
@@ -227,13 +218,14 @@
 
 .ba-ipucu-balon {
   position: absolute;
-  bottom: calc(100% + 0.45rem);
-  right: -0.25rem;
+  top: calc(100% + 0.4rem);
+  left: 0;
   z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 0.22rem;
   min-width: 13.5rem;
+  max-width: 18rem;
   padding: 0.5rem 0.65rem;
   border: 1px solid var(--ap-border, #d4d4d8);
   border-radius: 0.5rem;
@@ -243,7 +235,7 @@
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0;
-  white-space: nowrap;
+  white-space: normal;
   pointer-events: none;
 }
 
@@ -251,6 +243,7 @@
   display: flex;
   gap: 0.5rem;
   justify-content: space-between;
+  white-space: nowrap;
 }
 
 .ba-ipucu-etiket {
