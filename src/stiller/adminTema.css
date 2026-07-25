@@ -8436,7 +8436,18 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-sistem-toggle-ikon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   font-size: 1.25rem;
+  line-height: 1;
+  color: var(--ap-heading);
+}
+
+.ap-sistem-toggle-ikon .ap-baslat-flat-ikon {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .ap-sistem-bilgi-grid {

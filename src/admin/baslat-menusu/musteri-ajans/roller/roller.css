@@ -156,8 +156,17 @@
 }
 
 .ap-roller-gorunum-ikon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.88rem;
   line-height: 1;
+}
+
+.ap-roller-gorunum-ikon .ap-baslat-flat-ikon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
 }
 
 /* Yetki matrisi — sol dikey sayfa listesi + sağ matris */

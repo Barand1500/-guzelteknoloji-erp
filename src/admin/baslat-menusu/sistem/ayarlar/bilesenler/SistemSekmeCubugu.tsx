@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { SistemSekmeId } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import { SISTEM_SEKMELER } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 
@@ -104,7 +104,7 @@ export function DurumAnahtari({
   acik: boolean;
   onChange: (v: boolean) => void;
   renk?: 'yesil' | 'turuncu' | 'mavi' | 'kirmizi';
-  ikon?: string;
+  ikon?: ReactNode;
   devreDisi?: boolean;
   kompakt?: boolean;
   sadeceToggle?: boolean;

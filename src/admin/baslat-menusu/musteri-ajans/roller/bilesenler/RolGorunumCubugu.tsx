@@ -1,9 +1,9 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 export interface RolGorunumSekme {
   id: string;
   ad: string;
-  ikon?: string;
+  ikon?: ReactNode;
 }
 
 interface RolGorunumCubuguProps {

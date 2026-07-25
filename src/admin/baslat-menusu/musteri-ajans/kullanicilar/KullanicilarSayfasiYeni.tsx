@@ -9,6 +9,7 @@ import {
 } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleriYeni';
 import { ErisimAtamasiPaneli } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/ErisimAtamasiPaneli';
 import { RolGorunumCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolGorunumCubugu';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 
 import type { AtanabilirRol } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleri';
 
@@ -79,9 +80,17 @@ import './kullanicilar.css';
 import '@/admin/baslat-menusu/musteri-ajans/roller/roller.css';
 
 const GORUNUM_SEKMELER = [
-  { id: 'kullanicilar', ad: 'Kullanıcılar', ikon: '👤' },
-  { id: 'erisim', ad: 'Erişim Ataması', ikon: '🔑' },
-] as const;
+  {
+    id: 'kullanicilar' as const,
+    ad: 'Kullanıcılar',
+    ikon: <BaslatMenuIkon ad="kullanicilar" boyut={15} />,
+  },
+  {
+    id: 'erisim' as const,
+    ad: 'Erişim Ataması',
+    ikon: <BaslatMenuIkon ad="erisim" boyut={15} />,
+  },
+];
 
 type KullaniciGorunumId = (typeof GORUNUM_SEKMELER)[number]['id'];
 

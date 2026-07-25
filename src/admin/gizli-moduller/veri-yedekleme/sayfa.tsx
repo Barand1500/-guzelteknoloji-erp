@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FormAlani, formInputSinifi } from '@/formlar/FormAlani';
 import { DurumAnahtari } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemSekmeCubugu';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 import { useYedekleme } from '@/admin/gizli-moduller/veri-yedekleme/kullan-yedekleme';
 import { adminYedekApi } from '@/admin/ortak/api/adminSistemApi';
 import { sistemAyarlariGetir, sistemAyarlariGuncelle } from '@/admin/baslat-menusu/sistem/ayarlar/api';
@@ -197,7 +198,7 @@ export function VeriYedeklemeSayfasi() {
               acik={sistemForm.otomatikYedekleme}
               onChange={otomatikYedeklemeDegistir}
               renk="mavi"
-              ikon="💾"
+              ikon={<BaslatMenuIkon ad="veri-yedekleme" boyut={18} />}
               devreDisi={ayarKaydediliyor}
             />
             {sistemForm.otomatikYedekleme && (

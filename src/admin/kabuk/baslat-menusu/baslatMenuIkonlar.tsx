@@ -9,6 +9,8 @@ export type BaslatMenuIkonAd =
   | 'erp'
   | 'datagrid'
   | 'kullanicilar'
+  | 'erisim'
+  | 'matris'
   | 'roller'
   | 'ayarlar'
   | 'sekme-yonetimi'
@@ -165,6 +167,22 @@ function IkonYollari({ ad }: { ad: BaslatMenuIkonAd }) {
         <>
           <path d="M4 19.5h16" {...s} />
           <path d="M7 17V10M12 17V6.5M17 17v-4.5" {...s} />
+        </>
+      );
+    case 'erisim':
+      return (
+        <>
+          <circle cx="8" cy="12" r="3.8" {...s} />
+          <circle cx="8" cy="12" r="1.25" {...s} />
+          <path d="M11.6 12H20" {...s} />
+          <path d="M17.5 12v2.8M20 12v1.8" {...s} />
+        </>
+      );
+    case 'matris':
+      return (
+        <>
+          <rect x="4" y="4" width="16" height="16" rx="1.8" {...s} />
+          <path d="M4 10h16M4 16h16M10 4v16M16 4v16" {...s} />
         </>
       );
     case 'roller':

@@ -15,6 +15,7 @@ import {
 import { RolDuzenleModal } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolDuzenleModal';
 
 import { RolGorunumCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolGorunumCubugu';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 import { RolModulCubugu } from '@/admin/baslat-menusu/musteri-ajans/roller/bilesenler/RolModulCubugu';
 
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
@@ -67,12 +68,17 @@ import './roller.css';
 
 
 const GORUNUM_SEKMELER = [
-
-  { id: 'matris', ad: 'Yetki Matrisi', ikon: '⊞' },
-
-  { id: 'kartlar', ad: 'Rol Tanımları', ikon: '🛡️' },
-
-] as const;
+  {
+    id: 'matris' as const,
+    ad: 'Yetki Matrisi',
+    ikon: <BaslatMenuIkon ad="matris" boyut={15} />,
+  },
+  {
+    id: 'kartlar' as const,
+    ad: 'Rol Tanımları',
+    ikon: <BaslatMenuIkon ad="roller" boyut={15} />,
+  },
+];
 
 
 
