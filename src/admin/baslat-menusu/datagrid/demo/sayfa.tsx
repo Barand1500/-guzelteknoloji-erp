@@ -744,6 +744,7 @@ export function DatagridDemoSayfasi() {
         seciliSatirSayisi={seciliSatirSayisi}
         gridApiRef={gridApiRef}
         menuEtiketi="Sipariş tablosu menüsü"
+        tabloAraclariGoster={false}
         sutunGorunurlukGoster={false}
         hucrePanoyaMetniAl={hucrePanoyaMetni}
         satirSilMetniAl={(satir) => {
