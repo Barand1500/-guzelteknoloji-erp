@@ -6,8 +6,6 @@ import { DG_CIZGI_MODLARI, DG_SAYFA_BOYUTLARI } from '@/admin/ortak/datagrid/dat
 
 export type StokSagTikIslem =
   | 'duzenle'
-  | 'incele'
-  | 'gorunumDuzenle'
   | 'gorunumKaydet'
   | 'aktifYap'
   | 'pasifYap'
@@ -22,9 +20,7 @@ interface StoklarSagTikMenuProps {
   seciliSatirSayisi?: number;
   gridApiRef?: React.RefObject<DataGridApi | null>;
   onDuzenle: (satirId: string) => void;
-  onIncele: (satirId: string) => void;
   onSatirSec?: (satirId: string) => void;
-  onGorunumDuzenle: () => void;
   onGorunumKaydet: () => void;
   onAktifYap?: () => void;
   onPasifYap?: () => void;
@@ -53,12 +49,10 @@ const MENU_OGELERI: {
   secimIslemi?: boolean;
 }[] = [
   { id: 'duzenle', etiket: 'Düzenle', ikon: '✏️', satirGerekli: true, duzenlemeGerekli: true },
-  { id: 'incele', etiket: 'İncele', ikon: '👁️', satirGerekli: true },
   { id: 'aktifYap', etiket: 'Aktif Yap', ikon: '✅', ayiriciOnce: true, secimGerekli: true, secimIslemi: true, duzenlemeGerekli: true },
   { id: 'pasifYap', etiket: 'Pasif Yap', ikon: '⏸️', secimGerekli: true, secimIslemi: true, duzenlemeGerekli: true },
   { id: 'secimiTemizle', etiket: 'Seçimi Temizle', ikon: '✖️', secimGerekli: true, secimIslemi: true },
-  { id: 'gorunumDuzenle', etiket: 'Görünümü Düzenle', ikon: '🎛️', ayiriciOnce: true },
-  { id: 'gorunumKaydet', etiket: 'Görünümü Kaydet', ikon: '💾' },
+  { id: 'gorunumKaydet', etiket: 'Görünümü Kaydet', ikon: '💾', ayiriciOnce: true },
   { id: 'sayfaBoyutu', etiket: 'Kayıt', ikon: '📄', ayiriciOnce: true, flyout: true, tabloAraci: true },
   { id: 'cizgi', etiket: 'Çizgi', ikon: '▦', flyout: true, tabloAraci: true },
   { id: 'sutunGorunurluk', etiket: 'Sütun görünürlüğü', ikon: '▥', tabloAraci: true },
@@ -70,9 +64,7 @@ export function StoklarSagTikMenu({
   seciliSatirSayisi = 0,
   gridApiRef,
   onDuzenle,
-  onIncele,
   onSatirSec,
-  onGorunumDuzenle,
   onGorunumKaydet,
   onAktifYap,
   onPasifYap,
@@ -141,12 +133,6 @@ export function StoklarSagTikMenu({
     switch (id) {
       case 'duzenle':
         if (menu.satirId) onDuzenle(menu.satirId);
-        break;
-      case 'incele':
-        if (menu.satirId) onIncele(menu.satirId);
-        break;
-      case 'gorunumDuzenle':
-        onGorunumDuzenle();
         break;
       case 'gorunumKaydet':
         onGorunumKaydet();

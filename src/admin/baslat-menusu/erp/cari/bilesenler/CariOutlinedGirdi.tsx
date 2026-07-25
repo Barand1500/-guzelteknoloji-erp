@@ -14,6 +14,8 @@ interface CariOutlinedGirdiProps {
   zorunlu?: boolean;
   odakPlaceholder?: string;
   inputMode?: 'text' | 'numeric' | 'decimal';
+  type?: 'text' | 'password';
+  autoComplete?: string;
   className?: string;
   buyukHarf?: boolean;
   disabled?: boolean;
@@ -55,6 +57,8 @@ export function CariOutlinedGirdi({
   zorunlu,
   odakPlaceholder,
   inputMode,
+  type = 'text',
+  autoComplete,
   className,
   buyukHarf,
   disabled = false,
@@ -97,9 +101,11 @@ export function CariOutlinedGirdi({
         {onek ? <div className="cari-outlined-onek">{onek}</div> : null}
         <input
           id={inputId}
+          type={type}
           className="cari-outlined-input"
           value={deger}
           disabled={disabled}
+          autoComplete={autoComplete}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onChange={(e) => {
@@ -120,7 +126,10 @@ export function CariOutlinedGirdi({
           required={zorunlu}
           placeholder={focused ? odakPlaceholder : undefined}
           inputMode={
-            inputMode ?? (kural === 'vergiNo' || kural === 'mersis' || kural === 'postaKodu' ? 'numeric' : 'text')
+            type === 'password'
+              ? undefined
+              : (inputMode ??
+                (kural === 'vergiNo' || kural === 'mersis' || kural === 'postaKodu' ? 'numeric' : 'text'))
           }
         />
         {sonek ? <div className="cari-outlined-sonek">{sonek}</div> : null}

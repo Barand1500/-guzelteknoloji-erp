@@ -2,20 +2,23 @@ import { useId, useState } from 'react';
 import { CariOutlinedEtiket } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
 import type { BankaIbanModu } from '../tipler';
 
-/** TR gövdesi: ülke kodu hariç 24 karakter (toplam TR + 24 = 26) */
+/** TR gövdesi: ülke kodu hariç 24 rakam (toplam TR + 24 = 26) */
 const TR_GOVDE_MAX = 24;
 
 function trGovdeTemizle(deger: string): string {
   return deger
     .replace(/^TR/i, '')
     .replace(/\s+/g, '')
-    .replace(/[^0-9A-Za-z]/g, '')
-    .toUpperCase()
+    .replace(/\D/g, '')
     .slice(0, TR_GOVDE_MAX);
 }
 
 function yabanciTemizle(deger: string): string {
-  return deger.replace(/\s+/g, '').toUpperCase().slice(0, 34);
+  return deger
+    .replace(/\s+/g, '')
+    .toUpperCase()
+    .replace(/[^0-9A-Z]/g, '')
+    .slice(0, 34);
 }
 
 export function BankaIbanGirdi({
@@ -79,7 +82,8 @@ export function BankaIbanGirdi({
           }}
           maxLength={mod === 'TR' ? TR_GOVDE_MAX : 34}
           placeholder={focused ? (mod === 'TR' ? '0000 0000 0000 0000 0000 0000' : 'Ülke kodu + IBAN') : undefined}
-          inputMode="text"
+          inputMode={mod === 'TR' ? 'numeric' : 'text'}
+          pattern={mod === 'TR' ? '[0-9]*' : undefined}
           autoComplete="off"
           spellCheck={false}
           aria-label={mod === 'TR' ? 'IBAN (TR)' : 'Yabancı IBAN'}

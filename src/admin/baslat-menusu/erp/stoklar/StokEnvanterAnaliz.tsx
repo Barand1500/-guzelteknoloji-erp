@@ -79,15 +79,11 @@ export function StokEnvanterAnaliz({
   stok,
   onGeri,
   onDuzenle,
-  onIncele,
-  onGorunumDuzenle,
   onGorunumKaydet,
 }: {
   stok: AdminStok;
   onGeri: () => void;
   onDuzenle: () => void;
-  onIncele: () => void;
-  onGorunumDuzenle?: () => void;
   onGorunumKaydet?: () => void;
 }) {
   const { hataBildir } = useAdminSayfaBildirimi();
@@ -179,8 +175,6 @@ export function StokEnvanterAnaliz({
                 konteynerRef={tabloRef}
                 duzenlemeVar={duzenlemeVar}
                 onDuzenle={() => onDuzenle()}
-                onIncele={() => onIncele()}
-                onGorunumDuzenle={onGorunumDuzenle ?? (() => undefined)}
                 onGorunumKaydet={onGorunumKaydet ?? (() => undefined)}
               />
               <DataGrid

@@ -174,19 +174,15 @@ export function StokFiyatDuzenle({
   stok,
   onGeri,
   onDuzenle,
-  onIncele,
   kaydetRef,
   onKirliDegistir,
-  onGorunumDuzenle,
   onGorunumKaydet,
 }: {
   stok: AdminStok;
   onGeri: () => void;
   onDuzenle: () => void;
-  onIncele: () => void;
   kaydetRef?: MutableRefObject<(() => Promise<void>) | null>;
   onKirliDegistir?: (kirli: boolean) => void;
-  onGorunumDuzenle?: () => void;
   onGorunumKaydet?: () => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
@@ -325,9 +321,7 @@ export function StokFiyatDuzenle({
                 konteynerRef={tabloRef}
                 duzenlemeVar={duzenlemeVar}
                 onDuzenle={() => onDuzenle()}
-                onIncele={() => onIncele()}
                 onSatirSec={(id) => setSeciliIdler([id])}
-                onGorunumDuzenle={onGorunumDuzenle ?? (() => undefined)}
                 onGorunumKaydet={onGorunumKaydet ?? (() => undefined)}
               />
               <DataGrid

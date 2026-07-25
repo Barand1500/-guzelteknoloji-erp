@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { DgIkon } from '@/admin/ortak/datagrid/DgIkonlar';
+import { SagTikIkon, type SagTikIkonAd } from '@/admin/ortak/SagTikIkon';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { DG_CIZGI_MODLARI, DG_SAYFA_BOYUTLARI } from '@/admin/ortak/datagrid/datagridSabitleri';
 import { hucrePanoyaMetni, secimMetnindenKopya } from '@/admin/ortak/datagrid/sagTikYardimci';
@@ -76,7 +77,7 @@ interface DatagridSagTikMenuProps<TRow extends { id: string }> {
 interface MenuOgesi {
   id: DatagridSagTikIslem | 'satirEkle';
   etiket: string;
-  ikon: string;
+  ikon: SagTikIkonAd;
   devreDisi?: boolean;
   tehlike?: boolean;
   ayiriciOnce?: boolean;
@@ -86,28 +87,28 @@ interface MenuOgesi {
 
 type FlyoutTip = 'satirEkle' | 'sayfaBoyutu' | 'cizgi';
 
-const SATIR_EKLE_ALT_OGELER: { konum: SatirEkleKonumu; etiket: string; ikon: string }[] = [
-  { konum: 'ust', etiket: 'Üstüne Ekle', ikon: '↑' },
-  { konum: 'alt', etiket: 'Altına Ekle', ikon: '↓' },
+const SATIR_EKLE_ALT_OGELER: { konum: SatirEkleKonumu; etiket: string; ikon: SagTikIkonAd }[] = [
+  { konum: 'ust', etiket: 'Üstüne Ekle', ikon: 'ust' },
+  { konum: 'alt', etiket: 'Altına Ekle', ikon: 'alt' },
 ];
 
-const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', string> = {
-  satirEkle: '➕',
-  satirDuzenle: '✏️',
-  satirCogalt: '📑',
-  panoyaKopyala: '📋',
-  csvDisa: '⬇️',
-  degeriYay: '↕',
-  satirSil: '🗑️',
-  seciliSil: '🗑️',
-  sayfaBoyutu: '📄',
-  cizgi: '▦',
-  formul: 'ƒx',
-  sutunGorunurluk: '▥',
-  aktifYap: '✅',
-  pasifYap: '⏸️',
-  disaAktar: '📤',
-  secimiTemizle: '✖️',
+const MENU_IKONLARI: Record<DatagridSagTikIslem | 'satirEkle', SagTikIkonAd> = {
+  satirEkle: 'satirEkle',
+  satirDuzenle: 'satirDuzenle',
+  satirCogalt: 'satirCogalt',
+  panoyaKopyala: 'panoyaKopyala',
+  csvDisa: 'csvDisa',
+  degeriYay: 'degeriYay',
+  satirSil: 'satirSil',
+  seciliSil: 'seciliSil',
+  sayfaBoyutu: 'sayfaBoyutu',
+  cizgi: 'cizgi',
+  formul: 'formul',
+  sutunGorunurluk: 'sutunGorunurluk',
+  aktifYap: 'aktifYap',
+  pasifYap: 'pasifYap',
+  disaAktar: 'disaAktar',
+  secimiTemizle: 'secimiTemizle',
 };
 
 type SilmeOnayDurumu =
@@ -425,7 +426,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                               setFlyout((f) => (f === flyoutTip ? null : flyoutTip))
                             }
                           >
-                            <span>{oge.ikon}</span>
+                            <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                              <SagTikIkon ad={oge.ikon} />
+                            </span>
                             <span>{oge.etiket}</span>
                             <span className="ap-sag-tik-ok">›</span>
                           </button>
@@ -445,7 +448,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                                     kapat();
                                   }}
                                 >
-                                  <span>{alt.ikon}</span>
+                                  <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                                    <SagTikIkon ad={alt.ikon} />
+                                  </span>
                                   <span>{menuBasligi(alt.etiket)}</span>
                                 </button>
                               ))}
@@ -469,7 +474,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                                       kapat();
                                     }}
                                   >
-                                    <span aria-hidden>{aktif ? '✓' : '·'}</span>
+                                    <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                                      <SagTikIkon ad={aktif ? 'isaret' : 'nokta'} />
+                                    </span>
                                     <span>{n} Kayıt</span>
                                   </button>
                                 );
@@ -512,7 +519,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
                           onMouseEnter={() => setFlyout(null)}
                           onClick={() => void islemCalistir(oge.id as DatagridSagTikIslem)}
                         >
-                          <span>{oge.ikon}</span>
+                          <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                            <SagTikIkon ad={oge.ikon} />
+                          </span>
                           <span>{oge.etiket}</span>
                         </button>
                       )}

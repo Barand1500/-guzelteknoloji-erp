@@ -1,6 +1,12 @@
 import type { AdminKullanici, KullaniciFormDegeri } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/api';
 import type { AtanabilirRol } from '@/admin/baslat-menusu/musteri-ajans/kullanicilar/bilesenler/KullaniciBilesenleri';
+import {
+  CariOutlinedGirdi,
+  CariOutlinedSarmalayici,
+} from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
+import { OrtakDurumAlani } from '@/admin/baslat-menusu/tanimlar/bilesenler/OrtakDurumAlani';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
+import '@/admin/baslat-menusu/erp/cari/cari.css';
 
 function basHarf(ad: string, kullaniciKodu: string): string {
   const kaynak = ad.trim() || kullaniciKodu.trim();
@@ -77,55 +83,56 @@ export function KullaniciDuzenleFormuYeni({
   atanabilirRoller,
   onSifreDegisti,
   onChange,
+  saltOkunur = false,
 }: KullaniciDuzenleFormuYeniProps) {
   return (
     <div className="ap-kullanici-yeni-form">
       <div className="ap-kullanici-yeni-form-satir">
-        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--ad">
-          <span className="ap-kullanici-yeni-etiket">Ad Soyad</span>
-          <input
-            className="ap-kullanici-yeni-input"
-            placeholder="Ad Soyad"
-            value={form.ad}
-            onChange={(e) => onChange({ ...form, ad: e.target.value })}
-            required
-            autoComplete="name"
-          />
-        </label>
-        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--kod">
-          <span className="ap-kullanici-yeni-etiket">Kullanıcı Kodu</span>
-          <input
-            className="ap-kullanici-yeni-input"
-            placeholder="ADMIN"
-            value={form.kullaniciKodu}
-            onChange={(e) => onChange({ ...form, kullaniciKodu: e.target.value.toUpperCase() })}
-            required
-            autoComplete="username"
-          />
-        </label>
-        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--sifre">
-          <span className="ap-kullanici-yeni-etiket">
-            {seciliId ? 'Yeni şifre' : 'Şifre'}
-          </span>
-          <input
-            className="ap-kullanici-yeni-input"
-            type="password"
-            placeholder={seciliId ? 'Boş = değişmez' : 'Min 6 karakter'}
-            value={form.sifre}
-            onChange={(e) => {
-              onChange({ ...form, sifre: e.target.value });
-              onSifreDegisti(true);
-            }}
-            required={!seciliId}
-            minLength={seciliId ? undefined : 6}
-            autoComplete="new-password"
-          />
-        </label>
-        <label className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--rol">
-          <span className="ap-kullanici-yeni-etiket">Rol</span>
+        <CariOutlinedGirdi
+          className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--ad"
+          etiket="Ad Soyad"
+          zorunlu
+          deger={form.ad}
+          odakPlaceholder="Ad Soyad"
+          autoComplete="name"
+          disabled={saltOkunur}
+          onChange={(ad) => onChange({ ...form, ad })}
+        />
+        <CariOutlinedGirdi
+          className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--kod"
+          etiket="Kullanıcı Kodu"
+          zorunlu
+          deger={form.kullaniciKodu}
+          odakPlaceholder="ADMIN"
+          buyukHarf
+          autoComplete="username"
+          disabled={saltOkunur}
+          onChange={(kullaniciKodu) => onChange({ ...form, kullaniciKodu })}
+        />
+        <CariOutlinedGirdi
+          className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--sifre"
+          etiket={seciliId ? 'Yeni şifre' : 'Şifre'}
+          zorunlu={!seciliId}
+          type="password"
+          deger={form.sifre}
+          odakPlaceholder={seciliId ? 'Boş = değişmez' : 'Min 6 karakter'}
+          autoComplete="new-password"
+          disabled={saltOkunur}
+          onChange={(sifre) => {
+            onChange({ ...form, sifre });
+            onSifreDegisti(true);
+          }}
+        />
+        <CariOutlinedSarmalayici
+          etiket="Rol"
+          zorunlu
+          disabled={saltOkunur}
+          className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--rol cari-outlined-acilir"
+        >
           <FormAcilirSecim
             aria-label="Kullanıcı rolleri"
             coklu
+            disabled={saltOkunur}
             values={form.roller?.length ? form.roller : form.rol ? [form.rol] : []}
             onChangeCoklu={(roller) =>
               onChange({
@@ -135,28 +142,22 @@ export function KullaniciDuzenleFormuYeni({
               })
             }
             secenekler={atanabilirRoller.map((r) => ({ value: r.kod, label: r.baslik }))}
+            className="cari-outlined-acilir-tus"
           />
-        </label>
-        <div className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--aktif">
-          <span className="ap-kullanici-yeni-etiket">Durum</span>
-          <div
-            className={`ap-kullanici-yeni-durum-kutu${form.aktif ? ' ap-kullanici-yeni-durum-kutu--aktif' : ' ap-kullanici-yeni-durum-kutu--pasif'}`}
-          >
-            <span className="ap-kullanici-yeni-durum-rozet" aria-hidden>
-              {form.aktif ? 'Aktif' : 'Pasif'}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={form.aktif}
-              className={`ap-kullanici-yeni-switch${form.aktif ? ' ap-kullanici-yeni-switch--acik' : ''}`}
-              aria-label={`Kullanıcı durumu: ${form.aktif ? 'Aktif' : 'Pasif'}`}
-              onClick={() => onChange({ ...form, aktif: !form.aktif })}
-            >
-              <span className="ap-kullanici-yeni-switch-thumb" />
-            </button>
-          </div>
-        </div>
+        </CariOutlinedSarmalayici>
+        <CariOutlinedSarmalayici
+          etiket="Durum"
+          disabled={saltOkunur}
+          className="ap-kullanici-yeni-alan ap-kullanici-yeni-alan--aktif ap-kullanici-yeni-durum-outlined"
+        >
+          <OrtakDurumAlani
+            aktif={form.aktif}
+            onChange={(aktif) => {
+              if (saltOkunur) return;
+              onChange({ ...form, aktif });
+            }}
+          />
+        </CariOutlinedSarmalayici>
       </div>
     </div>
   );

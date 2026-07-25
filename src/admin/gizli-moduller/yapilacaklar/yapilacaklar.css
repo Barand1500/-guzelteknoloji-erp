@@ -477,7 +477,8 @@
   min-width: 0;
 }
 
-.yap-gorev-alan > span {
+.yap-gorev-alan > span,
+.yap-gorev-alan > label {
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--ap-heading);

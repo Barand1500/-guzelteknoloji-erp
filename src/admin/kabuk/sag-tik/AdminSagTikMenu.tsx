@@ -4,6 +4,8 @@ import { useSagTikPanelOptional } from '@/baglamlar/SagTikPanelContext';
 import { sagTikOgeTanimBul } from '@/admin/baslat-menusu/sistem/ayarlar/veri-sag-tik';
 import type { SagTikOgeId } from '@/admin/ortak/tipler/sagTikPaneli';
 import { VARSAYILAN_SAG_TIK_PANEL } from '@/admin/ortak/tipler/sagTikPaneli';
+import { SagTikIkon, type SagTikIkonAd } from '@/admin/ortak/SagTikIkon';
+import { useSekmeDegisinceKapat } from '@/araclar/sekmePortal';
 import {
   metinAlaniMi,
   panoKopyala,
@@ -37,6 +39,8 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
     setMenu(null);
     setFlyout(null);
   }, []);
+
+  useSekmeDegisinceKapat(kapat);
 
   useEffect(() => {
     function tikla(e: MouseEvent) {
@@ -154,7 +158,9 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
                 onMouseEnter={() => setFlyout('moduller')}
                 onClick={() => setFlyout((f) => (f === 'moduller' ? null : 'moduller'))}
               >
-                <span>{tanim.ikon}</span>
+                <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                  <SagTikIkon ad="moduller" />
+                </span>
                 <span>{tanim.etiket}</span>
                 <span className="ap-sag-tik-ok">›</span>
               </button>
@@ -171,7 +177,9 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
                           kapat();
                         }}
                       >
-                        <span>{m.ikon}</span>
+                        <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                          {m.ikon}
+                        </span>
                         <span>{m.baslik}</span>
                       </button>
                     ) : null
@@ -190,7 +198,9 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
             disabled={ogeDevreDisi(oge.id)}
             onClick={() => void ogeCalistir(oge.id)}
           >
-            <span>{tanim.ikon}</span>
+            <span className="ap-sag-tik-oge-ikon" aria-hidden>
+              <SagTikIkon ad={oge.id as SagTikIkonAd} />
+            </span>
             <span>{tanim.etiket}</span>
           </button>
         );

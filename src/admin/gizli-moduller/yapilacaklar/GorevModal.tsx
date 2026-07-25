@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
+import { TarihSecici } from '@/admin/ortak/TarihSecici';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import {
   sekmePortalHedefi,
@@ -30,6 +31,8 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
   const [onemli, setOnemli] = useState(false);
   const [hata, setHata] = useState('');
   const [tatilSurum, setTatilSurum] = useState(0);
+  const basId = useId();
+  const bitId = useId();
   const sekme = useAdminSekmeKabuk();
   const portalKok = useMemo(
     () => (acik ? sekmePortalHedefi(null, sekme?.sekmeId) : null),
@@ -136,31 +139,32 @@ export function GorevModal({ acik, baslik, gorev, onKaydet, onKapat }: GorevModa
             </label>
 
             <div className="yap-gorev-tarih-grid">
-              <label className="yap-gorev-alan">
-                <span>Başlangıç</span>
-                <input
-                  type="date"
-                  className="ap-input yap-gorev-input"
-                  value={baslangic}
-                  onChange={(e) => {
-                    const v = e.target.value;
+              <div className="yap-gorev-alan">
+                <label htmlFor={basId}>Başlangıç</label>
+                <TarihSecici
+                  id={basId}
+                  varyant="alan"
+                  deger={baslangic}
+                  ariaLabel="Başlangıç tarihi"
+                  onChange={(v) => {
                     setBaslangic(v);
                     if (v && bitis && bitis < v) setBitis(v);
                     if (!v) setBitis('');
                   }}
                 />
-              </label>
-              <label className="yap-gorev-alan">
-                <span>Bitiş</span>
-                <input
-                  type="date"
-                  className="ap-input yap-gorev-input"
-                  value={bitis}
+              </div>
+              <div className="yap-gorev-alan">
+                <label htmlFor={bitId}>Bitiş</label>
+                <TarihSecici
+                  id={bitId}
+                  varyant="alan"
+                  deger={bitis}
                   min={baslangic || undefined}
                   disabled={!baslangic}
-                  onChange={(e) => setBitis(e.target.value)}
+                  ariaLabel="Bitiş tarihi"
+                  onChange={setBitis}
                 />
-              </label>
+              </div>
             </div>
 
             {tatilNotu ? (

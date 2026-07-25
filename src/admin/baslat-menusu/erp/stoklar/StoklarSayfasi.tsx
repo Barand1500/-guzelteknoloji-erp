@@ -3,6 +3,7 @@ import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/Tani
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
+import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import '@/admin/ortak/datagrid/datagrid.css';
 import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
@@ -19,7 +20,6 @@ import { StokBirimListesi } from './StokBirimListesi';
 import { StokEnvanterAnaliz } from './StokEnvanterAnaliz';
 import { StokFiyatAnaliz } from './StokFiyatAnaliz';
 import { StokKarti } from './StokKarti';
-import { StoklarSagTikMenu } from './StoklarSagTikMenu';
 import {
   gelismisFiltreAktifMi,
   stokAramaKriteriVarMi,
@@ -732,10 +732,8 @@ export function StoklarSayfasi() {
             stok={fiyatAnalizStok}
             onGeri={() => listeyeDon()}
             onDuzenle={() => duzenleAc(fiyatAnalizStok.id)}
-            onIncele={() => inceleAc(fiyatAnalizStok.id)}
             kaydetRef={kaydetRef}
             onKirliDegistir={setAltKirli}
-            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
             onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
           />
         ) : gorunum === 'envanterAnaliz' && envanterAnalizStok ? (
@@ -743,8 +741,6 @@ export function StoklarSayfasi() {
             stok={envanterAnalizStok}
             onGeri={listeyeDon}
             onDuzenle={() => duzenleAc(envanterAnalizStok.id)}
-            onIncele={() => inceleAc(envanterAnalizStok.id)}
-            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
             onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
           />
         ) : gorunum === 'birimListesi' && birimListesiStok ? (
@@ -752,10 +748,8 @@ export function StoklarSayfasi() {
             stok={birimListesiStok}
             onGeri={listeyeDon}
             onDuzenle={() => duzenleAc(birimListesiStok.id)}
-            onIncele={() => inceleAc(birimListesiStok.id)}
             kaydetRef={kaydetRef}
             onKirliDegistir={setAltKirli}
-            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
             onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
           />
         ) : gorunum === 'fiyatDuzenle' && fiyatDuzenleStok ? (
@@ -763,10 +757,8 @@ export function StoklarSayfasi() {
             stok={fiyatDuzenleStok}
             onGeri={listeyeDon}
             onDuzenle={() => duzenleAc(fiyatDuzenleStok.id)}
-            onIncele={() => inceleAc(fiyatDuzenleStok.id)}
             kaydetRef={kaydetRef}
             onKirliDegistir={setAltKirli}
-            onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
             onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
           />
         ) : (
@@ -819,16 +811,19 @@ export function StoklarSayfasi() {
                   <TanimYukleniyor />
                 ) : (
                   <div ref={sayfaRef} className="dg-demo-sag-tik-alan stoklar-tablo-alan">
-                    <StoklarSagTikMenu
+                    <DatagridSagTikMenu
                       konteynerRef={sayfaRef}
-                      duzenlemeVar={duzenlemeVar}
+                      kolonlar={kolonlar}
+                      satirlar={filtrelenmis}
                       seciliSatirSayisi={seciliIdler.length}
                       gridApiRef={gridApiRef}
-                      onDuzenle={sagTikDuzenle}
-                      onIncele={(id) => stokSatirSec(id)}
-                      onSatirSec={stokSatirSec}
-                      onGorunumDuzenle={() => placeholderBildir('Görünümü Düzenle')}
-                      onGorunumKaydet={() => placeholderBildir('Görünümü Kaydet')}
+                      menuEtiketi="Stoklar menüsü"
+                      satirEkleGoster={false}
+                      satirCogaltGoster={false}
+                      seciliSilGoster={false}
+                      onSatirDuzenle={duzenlemeVar ? (s) => sagTikDuzenle(s.id) : undefined}
+                      onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
+                      satirSilMetniAl={stokSatirEtiketi}
                       onAktifYap={duzenlemeVar ? () => void topluDurumAyarla(true) : undefined}
                       onPasifYap={duzenlemeVar ? () => void topluDurumAyarla(false) : undefined}
                       onDisaAktar={() => gridApiRef.current?.csvIndir(true)}
@@ -836,6 +831,7 @@ export function StoklarSayfasi() {
                         gridApiRef.current?.secimAyarla([]);
                         setSeciliIdler([]);
                       }}
+                      onBilgi={basariBildir}
                     />
                     <DataGrid
                       key="stoklar_kayitlar_v2"

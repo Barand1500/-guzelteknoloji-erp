@@ -3,6 +3,7 @@ import { SAG_TIK_OGE_TANIMLARI } from '@/admin/baslat-menusu/sistem/ayarlar/veri
 import { DurumAnahtari } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemSekmeCubugu';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import type { SagTikOgeId } from '@/admin/ortak/tipler/sagTikPaneli';
+import { SagTikIkon, type SagTikIkonAd } from '@/admin/ortak/SagTikIkon';
 
 interface SagTikPaneliYonetimSekmeProps {
   form: SistemAyarlariForm;
@@ -73,7 +74,13 @@ export function SagTikPaneliYonetimSekme({ form, onChange }: SagTikPaneliYonetim
                     checked={oge.aktif}
                     onChange={(e) => ogeToggle(oge.id, e.target.checked)}
                   />
-                  <span className="ap-sag-tik-oge-ikon">{tanim.ikon}</span>
+                  <span className="ap-sag-tik-oge-ikon" aria-hidden>
+                    {tanim.ayirici ? (
+                      tanim.ikon
+                    ) : (
+                      <SagTikIkon ad={oge.id as SagTikIkonAd} />
+                    )}
+                  </span>
                   <span>
                     <strong>{tanim.etiket}</strong>
                     <small>{tanim.aciklama}</small>

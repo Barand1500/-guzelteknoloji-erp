@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { CariOutlinedEtiket } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
+import { TarihSecici } from '@/admin/ortak/TarihSecici';
 
 /** Takvim farkı: yıl / ay / gün */
 function sureParcalari(
@@ -66,17 +67,14 @@ export function BankaOutlinedDonem({
       <div className="cari-outlined-cerceve ba-pos-donem-cerceve">
         <label className="ba-pos-donem-parca" htmlFor={basId}>
           <span className="ba-pos-donem-mini-etiket">Başlangıç Tarihi:</span>
-          <input
+          <TarihSecici
             id={basId}
-            type="date"
-            className="cari-outlined-input ba-pos-donem-input"
-            value={baslangic}
-            disabled={disabled}
+            deger={baslangic}
             max={bitis || undefined}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onChange={(e) => onBaslangicChange(e.target.value)}
-            aria-label="Başlangıç tarihi"
+            disabled={disabled}
+            ariaLabel="Başlangıç tarihi"
+            onChange={onBaslangicChange}
+            onFocusChange={setFocused}
           />
         </label>
 
@@ -86,17 +84,14 @@ export function BankaOutlinedDonem({
 
         <label className="ba-pos-donem-parca" htmlFor={bitId}>
           <span className="ba-pos-donem-mini-etiket">Bitiş Tarihi:</span>
-          <input
+          <TarihSecici
             id={bitId}
-            type="date"
-            className="cari-outlined-input ba-pos-donem-input"
-            value={bitis}
-            disabled={disabled}
+            deger={bitis}
             min={baslangic || undefined}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onChange={(e) => onBitisChange(e.target.value)}
-            aria-label="Bitiş tarihi"
+            disabled={disabled}
+            ariaLabel="Bitiş tarihi"
+            onChange={onBitisChange}
+            onFocusChange={setFocused}
           />
         </label>
 

@@ -27,6 +27,7 @@ import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
 import { DG_SAYFA_BOYUTLARI as SAYFA_BOYUTLARI } from './datagridSabitleri';
 import { dgMenuAnchorRect, type DgMenuAnchor } from './dgGeciciMenuAnchor';
+import { useSekmeDegisinceKapat } from '@/araclar/sekmePortal';
 import './datagrid.css';
 
 /** Aksiyon çubuğu (.ap-footer) ilk render'da yoksa panel hiç açılmasın diye yeniden dene. */
@@ -2266,6 +2267,16 @@ export function DataGrid<TRow extends { id: string }>({
     dg.setSutunMenuAcik(false);
     sutunMenuAnchorRef.current = null;
   }, [dg]);
+
+  const overlayKapat = useCallback(() => {
+    dg.setSutunMenuAcik(false);
+    sutunMenuAnchorRef.current = null;
+    setFormulMenuAcik(false);
+    formulMenuAnchorRef.current = null;
+    setSatirPanel(null);
+  }, [dg]);
+
+  useSekmeDegisinceKapat(overlayKapat);
 
   const sutunMenuIcerik = (
     <>
