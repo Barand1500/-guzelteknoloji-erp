@@ -432,16 +432,6 @@ export function CariSayfasi() {
                     gridApiRef.current?.secimAyarla([]);
                     setSeciliIdler([]);
                   }}
-                  onDegeriYay={(kolonId, deger, gorunenler) => {
-                    const hedefIdler = new Set(gorunenler.map((s) => s.id));
-                    const kolon = kolonlar.find((k) => k.id === kolonId);
-                    if (!kolon?.degerYaz) return;
-                    satirlarDegistir(
-                      kayitlar.map((s) =>
-                        hedefIdler.has(s.id) ? kolon.degerYaz!(s, deger) : s
-                      )
-                    );
-                  }}
                   onBilgi={basariBildir}
                 />
 

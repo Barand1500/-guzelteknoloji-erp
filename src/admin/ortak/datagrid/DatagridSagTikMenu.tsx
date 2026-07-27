@@ -463,9 +463,9 @@ export function DatagridSagTikMenu<TRow extends { id: string }>({
               },
               {
                 id: 'csvDisa' as const,
-                etiket: menuBasligi('CSV indir'),
+                etiket: menuBasligi('Dışa aktar (CSV)'),
                 ikon: MENU_IKONLARI.csvDisa,
-                goster: tabloAraclariGoster && csvDisaGoster,
+                goster: csvDisaGoster,
               },
               {
                 id: 'satirSil' as const,
