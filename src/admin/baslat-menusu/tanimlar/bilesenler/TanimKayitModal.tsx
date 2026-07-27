@@ -50,6 +50,7 @@ import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
 import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { logMesaj } from '@/admin/ortak/logMesajiYardimci';
+import { TanimTipIkon } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimTipIkon';
 import { useAdminSekmeKabuk } from '@/baglamlar/AdminSekmeKabukContext';
 import {
   sekmePortalHedefi,
@@ -87,14 +88,6 @@ const TIP_BASLIK: Record<TanimSekmeId, string> = {
   depo: 'Depo',
   kasa: 'Kasa',
   donem: 'Dönem',
-};
-
-const TIP_IKON: Record<TanimSekmeId, string> = {
-  firma: '🏢',
-  sube: '🏪',
-  depo: '📦',
-  kasa: '💰',
-  donem: '📅',
 };
 
 function firmadanForm(f: AdminFirma): FirmaFormDegeri {
@@ -427,7 +420,7 @@ export function TanimKayitModal({
         className={`ap-accent-donen-cerceve--sil ap-accent-donen-cerceve--tanim-kayit${genis ? ' ap-accent-donen-cerceve--tanim-kayit-genis' : ''}`}
       >
         <div className="ap-sil-onay-kart ap-tanimlar-kayit-kart ap-sil-onay-kart--sol-baslik">
-          <ModalSolBaslik baslik={baslik} ikon={TIP_IKON[tip]} onKapat={kapat} />
+          <ModalSolBaslik baslik={baslik} ikon={<TanimTipIkon ad={tip} />} onKapat={kapat} />
 
           <div className="ap-tanimlar-modal-govde ap-tanimlar-modal-govde--tek">
             {baglamBandi ? (

@@ -472,8 +472,18 @@
 }
 
 .ot-btn-disa-ikon {
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+}
+
+.ot-disa-oge-ikon {
+  display: inline-flex;
+  width: 1rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
 }
 
 .ot-btn-disa-ok {

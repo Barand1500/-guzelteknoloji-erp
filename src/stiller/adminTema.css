@@ -5683,6 +5683,23 @@ html:has(.admin-panel[data-tema='acik']) body {
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--ap-heading);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ap-rehber-kart-ikon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: currentColor;
+  opacity: 0.92;
+}
+
+.ap-rehber-ipucu-ikon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--ap-accent);
 }
 
 .ap-rehber-kart-metin {

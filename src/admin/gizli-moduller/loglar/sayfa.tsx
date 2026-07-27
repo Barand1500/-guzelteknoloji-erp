@@ -5,7 +5,6 @@ import {
   logAramaEslesir,
   logGoreliZaman,
   logIslemEtiket,
-  logIslemIkon,
   logIslemSinif,
   logIslemTuruBul,
   logKullaniciAdi,
@@ -17,6 +16,7 @@ import {
   loglariGrupla,
   type LogIslemTuru,
 } from './logYardimci';
+import { LogIslemIkon } from './LogIslemIkon';
 
 const ISLEM_FILTRELERI: { id: LogIslemTuru | 'tumu'; ad: string }[] = [
   { id: 'tumu', ad: 'Tümü' },
@@ -234,7 +234,7 @@ function LogKayitSatiri({ log }: { log: AdminLogKayit }) {
   return (
     <article className="ap-log-kayit">
       <div className={`ap-log-kayit-ikon ${logIslemSinif(tur)}`} aria-hidden>
-        {logIslemIkon(tur)}
+        <LogIslemIkon tur={tur} />
       </div>
 
       <div className="ap-log-kayit-govde">

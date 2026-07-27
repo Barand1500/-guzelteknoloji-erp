@@ -16,19 +16,19 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Kullanıcılar',
     kartlar: [
       {
-        ikon: '👤',
+        ikon: 'kullanici',
         baslik: 'Kullanıcı Ekleme',
         aciklama: 'E-posta, ad soyad ve rol ile yeni kullanıcı oluşturun. Şifre ilk girişte belirlenir.',
         renk: 'mor',
       },
       {
-        ikon: '🔐',
+        ikon: 'kilit',
         baslik: 'Roller',
         aciklama: 'Her kullanıcıya ADMIN, EDITOR vb. rol atanır. Yetkiler Roller modülünden yönetilir.',
         renk: 'mavi',
       },
       {
-        ikon: '⏸️',
+        ikon: 'duraklat',
         baslik: 'Aktif / Pasif',
         aciklama: 'Pasif kullanıcılar panele giriş yapamaz.',
         renk: 'turuncu',
@@ -42,13 +42,13 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Roller ve Yetkiler',
     kartlar: [
       {
-        ikon: '🔐',
+        ikon: 'kilit',
         baslik: 'Rol Tanımları',
         aciklama: 'Her rol hangi modüllere erişebileceğini belirler. Sadece admin kullanıcılar düzenleyebilir.',
         renk: 'mor',
       },
       {
-        ikon: '✅',
+        ikon: 'onay',
         baslik: 'Yetki Matrisi',
         aciklama: 'Modül bazlı okuma/yazma yetkilerini işaretleyin ve kaydedin.',
         renk: 'yesil',
@@ -63,26 +63,26 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Sistem Ayarları',
     kartlar: [
       {
-        ikon: '🎨',
+        ikon: 'palet',
         baslik: 'Kenarlık Rengi',
         aciklama:
           'Genel sekmesindeki «Border Rengi Seçiniz» alanından sekme, menü, aksiyon çubuğu ve rehber vurgu rengini değiştirebilirsiniz. Neon anahtarı parlaklık efektini açar.',
         renk: 'turuncu',
       },
       {
-        ikon: '🌐',
+        ikon: 'kure',
         baslik: 'Site Durumu',
         aciklama: 'Site aktif/pasif ve bakım modu buradan yönetilir. Bakım modunda ziyaretçilere mesaj gösterilir.',
         renk: 'mavi',
       },
       {
-        ikon: '🔗',
+        ikon: 'baglanti',
         baslik: 'Domain',
         aciklama: 'Özel domain tanımlayabilirsiniz. DNS ayarları sunucu tarafında yapılmalıdır.',
         renk: 'mor',
       },
       {
-        ikon: '📜',
+        ikon: 'kayit',
         baslik: 'Log Saklama',
         aciklama: 'İşlem loglarının kaç gün tutulacağını belirleyin.',
         renk: 'camgobegi',
@@ -97,13 +97,13 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Log Takibi',
     kartlar: [
       {
-        ikon: '📜',
+        ikon: 'kayit',
         baslik: 'Log Kayıtları',
         aciklama: 'Panelde yapılan işlemler (kaydet, sil, modül açma) otomatik loglanır.',
         renk: 'mavi',
       },
       {
-        ikon: '🔍',
+        ikon: 'ara',
         baslik: 'Filtreleme',
         aciklama: 'Modül veya işlem tipine göre logları inceleyin.',
         renk: 'mor',
@@ -118,19 +118,19 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Sekme Yönetimi',
     kartlar: [
       {
-        ikon: '📐',
+        ikon: 'cetvel',
         baslik: 'Sekme Boyutu',
         aciklama: 'Sekme genişliği ve yüksekliğini ayarlayın. Değişiklikler üst sekme çubuğunda anında yansır.',
         renk: 'mavi',
       },
       {
-        ikon: '🔀',
+        ikon: 'karistir',
         baslik: 'Yan Yana Görünüm',
         aciklama: 'İlgili sekmeleri gruplayarak aynı anda iki modülü yan yana açabilirsiniz.',
         renk: 'mor',
       },
       {
-        ikon: '🪟',
+        ikon: 'pencere',
         baslik: 'Ayrı Pencere',
         aciklama: 'Sekmeyi aşağı sürükleyerek yüzen pencere olarak ayırabilirsiniz.',
         renk: 'turuncu',
@@ -145,13 +145,13 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Kısayol Ayarları',
     kartlar: [
       {
-        ikon: '⌨️',
+        ikon: 'klavye',
         baslik: 'Kısayol Atama',
         aciklama: 'Kaydet, önizle ve yardım gibi aksiyonlara özel tuş kombinasyonları tanımlayın.',
         renk: 'yesil',
       },
       {
-        ikon: '📖',
+        ikon: 'kitap',
         baslik: 'F1 Yardım',
         aciklama: 'Varsayılan F1 tuşu modül rehberini açar. İsterseniz farklı bir tuşa atayabilirsiniz.',
         renk: 'mavi',
@@ -166,32 +166,32 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Firma',
     kartlar: [
       {
-        ikon: '🏢',
+        ikon: 'firma',
         baslik: 'Firma Kodu ve Unvan',
         aciklama: 'Her firma için benzersiz kod ve ticari unvan girin. Kod harf ve rakamdan oluşur.',
         renk: 'mavi',
       },
       {
-        ikon: '🧾',
+        ikon: 'fatura',
         baslik: 'Vergi Bilgileri',
         aciklama: 'İl filtresiyle vergi dairesini arayıp seçin. Vergi no 10 haneli olmalıdır.',
         renk: 'turuncu',
       },
       {
-        ikon: '✏️',
+        ikon: 'kalem',
         baslik: 'Satırı Düzenle',
         aciklama:
           'Alt çubuktaki Düzenle veya satıra sağ tıklayarak kayıt formunu açın. Panel aksiyon çubuğunun tam üstünden açılır; turuncu kenarlık animasyonu çizgi boyunca ilerler.',
         renk: 'mor',
       },
       {
-        ikon: '⚡',
+        ikon: 'yildirim',
         baslik: 'Hızlı Giriş',
         aciklama: 'Yeni kayıt için alt çubuktaki Yeni düğmesine basın; tablo altındaki hızlı giriş satırından kod ve ad girip Enter ile ekleyin.',
         renk: 'yesil',
       },
       {
-        ikon: '✅',
+        ikon: 'onay',
         baslik: 'Aktif Durum',
         aciklama: 'Pasif firmalar seçim listelerinde görünmez.',
         renk: 'camgobegi',
@@ -206,31 +206,31 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Şube',
     kartlar: [
       {
-        ikon: '🏪',
+        ikon: 'sube',
         baslik: 'Şube Kodu ve Adı',
         aciklama: 'Firma altında şubeleri kod ve ad ile tanımlayın.',
         renk: 'mavi',
       },
       {
-        ikon: '📍',
+        ikon: 'konum',
         baslik: 'Adres',
         aciklama: 'İl ve ilçe alanlarında yazarak arama yapabilirsiniz.',
         renk: 'turuncu',
       },
       {
-        ikon: '📄',
+        ikon: 'belge',
         baslik: 'E-Belge Serileri',
         aciklama: 'e-Fatura, e-Arşiv ve e-İrsaliye seri kodlarını şube bazında girin.',
         renk: 'yesil',
       },
       {
-        ikon: '🏛️',
+        ikon: 'bina',
         baslik: 'Ticari Bilgiler',
         aciklama: 'MERSİS ve ticaret sicil numaralarını şube kaydında tutun.',
         renk: 'mor',
       },
       {
-        ikon: '✏️',
+        ikon: 'kalem',
         baslik: 'Satırı Düzenle',
         aciklama:
           'Düzenle aksiyonu veya sağ tık menüsüyle formu açın. Panel alt çubuğun üst kenarından yükselir; kenarlık animasyonu tam o çizgide ilerler.',
@@ -246,25 +246,25 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Depo',
     kartlar: [
       {
-        ikon: '📦',
+        ikon: 'depo',
         baslik: 'Şube Bağlantısı',
         aciklama: 'Her depo bir şubeye bağlıdır. Önce şube tanımlayın.',
         renk: 'mavi',
       },
       {
-        ikon: '🔖',
+        ikon: 'etiket',
         baslik: 'Depo Kodu ve Adı',
         aciklama: 'Depo kodu benzersiz olmalı; ad alanı listede görünür.',
         renk: 'turuncu',
       },
       {
-        ikon: '📍',
+        ikon: 'konum',
         baslik: 'Adres',
         aciklama: 'Depo adresi şube adresinden farklı olabilir; isteğe bağlı doldurun.',
         renk: 'yesil',
       },
       {
-        ikon: '✏️',
+        ikon: 'kalem',
         baslik: 'Satırı Düzenle',
         aciklama: 'Kayıt formu aksiyon çubuğunun hemen üstünde açılır; takvim ve hesap makinesi panelleriyle aynı kenarlık animasyonunu kullanır.',
         renk: 'mor',
@@ -279,25 +279,25 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Kasa',
     kartlar: [
       {
-        ikon: '💰',
+        ikon: 'para',
         baslik: 'Şube Bağlantısı',
         aciklama: 'Kasalar şube bazında tanımlanır.',
         renk: 'mavi',
       },
       {
-        ikon: '🔖',
+        ikon: 'etiket',
         baslik: 'Kasa Kodu ve Adı',
         aciklama: 'Kasa kodu ve adı ile kayıtları ayırt edin.',
         renk: 'turuncu',
       },
       {
-        ikon: '💱',
+        ikon: 'doviz',
         baslik: 'Para Birimi',
         aciklama: 'TL, USD veya EUR seçin. Kasa hareketleri bu birime göre izlenir.',
         renk: 'yesil',
       },
       {
-        ikon: '✏️',
+        ikon: 'kalem',
         baslik: 'Satırı Düzenle',
         aciklama: 'Alt çubuktan Düzenle ile formu açın; panel çubuğun üst çizgisinden yukarı doğru açılır.',
         renk: 'mor',
@@ -312,25 +312,25 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Dönem',
     kartlar: [
       {
-        ikon: '📅',
+        ikon: 'takvim',
         baslik: 'Dönem Kodu',
         aciklama: 'Genelde yıl formatında kullanılır (ör. 2026).',
         renk: 'mavi',
       },
       {
-        ikon: '📝',
+        ikon: 'not',
         baslik: 'Dönem Adı',
         aciklama: 'Rapor ve listelerde görünecek açıklayıcı adı girin.',
         renk: 'turuncu',
       },
       {
-        ikon: '✏️',
+        ikon: 'kalem',
         baslik: 'Satırı Düzenle',
         aciklama: 'Düzenle paneli aksiyon çubuğunun üstünde açılır; kenarlık animasyonu çubuğun üst çizgisi boyunca ilerler.',
         renk: 'mor',
       },
       {
-        ikon: '✅',
+        ikon: 'onay',
         baslik: 'Aktif Dönem',
         aciklama: 'Aynı anda birden fazla dönem aktif olabilir; pasif dönemler seçilmez.',
         renk: 'yesil',
@@ -345,33 +345,33 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Kayıtlar',
     kartlar: [
       {
-        ikon: '🗂️',
+        ikon: 'klasor',
         baslik: 'Hiyerarşi',
         aciklama:
           'Firmalar listesinden bir firmaya girerek şube ve dönem kayıtlarına; şube satırından depo ve kasa kayıtlarına ulaşın.',
         renk: 'mavi',
       },
       {
-        ikon: '⚡',
+        ikon: 'yildirim',
         baslik: 'Hızlı Giriş',
         aciklama: 'Alt çubuktaki Yeni ile tablo altındaki hızlı giriş satırını açın; zorunlu alanları doldurup Enter ile kaydedin.',
         renk: 'yesil',
       },
       {
-        ikon: '✏️',
+        ikon: 'kalem',
         baslik: 'Satırı Düzenle',
         aciklama:
           'Düzenle aksiyonu veya sağ tık menüsüyle kayıt formunu açın. Panel takvim ve hesap makinesi gibi aksiyon çubuğunun tam üstünden açılır.',
         renk: 'turuncu',
       },
       {
-        ikon: '📋',
+        ikon: 'liste',
         baslik: 'Sütun Yönetimi',
         aciklama: 'Sütun görünürlüğünü ayarlayın, genişlikleri sürükleyerek değiştirin. Tercihler tarayıcıda saklanır.',
         renk: 'mor',
       },
       {
-        ikon: '🗑️',
+        ikon: 'cop',
         baslik: 'Silme',
         aciklama: 'Sil aksiyonu bağlı kayıtları kontrol eder; gerekirse pasif yapma seçeneği sunar.',
         renk: 'camgobegi',
@@ -386,31 +386,31 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Kurulum',
     kartlar: [
       {
-        ikon: '✨',
+        ikon: 'yildiz',
         baslik: 'Sihirbaz Akışı',
         aciklama: 'Firma → Şube → Depo → Kasa → Dönem sırasıyla temel kayıtları oluşturun. Her adımda İleri ve Geri ile ilerleyin.',
         renk: 'mavi',
       },
       {
-        ikon: '🏢',
+        ikon: 'firma',
         baslik: 'Firma ve Vergi',
         aciklama: 'İlk adımda firma kodu, unvan ve vergi bilgilerini girin. Vergi dairesi il filtresiyle aranır.',
         renk: 'turuncu',
       },
       {
-        ikon: '🏪',
+        ikon: 'sube',
         baslik: 'Şube ve Adres',
         aciklama: 'MERKEZ şube varsayılan olarak gelir; adres ve e-belge serilerini bu adımda tamamlayın.',
         renk: 'yesil',
       },
       {
-        ikon: '📦',
+        ikon: 'depo',
         baslik: 'Depo ve Kasa',
         aciklama: 'Depo ve kasa kayıtları şube bağlantılıdır; para birimi ve kod alanlarını kontrol edin.',
         renk: 'mor',
       },
       {
-        ikon: '📅',
+        ikon: 'takvim',
         baslik: 'Dönem',
         aciklama: 'Son adımda muhasebe dönemini tanımlayın. Kurulum tamamlanınca Kayıtlar görünümüne geçilir.',
         renk: 'camgobegi',
@@ -425,20 +425,20 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Tanımlar',
     kartlar: [
       {
-        ikon: '📋',
+        ikon: 'liste',
         baslik: 'Kayıtlar ve Kurulum',
         aciklama:
           'Üstteki Kayıtlar sekmesinde hiyerarşik tablolarla tanımları yönetin; Kurulum Sihirbazı ile sıfırdan hızlı başlangıç yapın.',
         renk: 'mavi',
       },
       {
-        ikon: '✏️',
+        ikon: 'kalem',
         baslik: 'Düzenleme Paneli',
         aciklama: 'Satır düzenleme formu alt aksiyon çubuğunun üstünden açılır; turuncu kenarlık animasyonu çizgi boyunca ilerler.',
         renk: 'turuncu',
       },
       {
-        ikon: '❓',
+        ikon: 'soru',
         baslik: 'Bağlamsal Rehber',
         aciklama: 'Kayıt türüne göre rehber içeriği otomatik değişir. Alt çubuktaki ? düğmesi veya F1 ile açın.',
         renk: 'yesil',
@@ -453,32 +453,32 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Sipariş İçeriği',
     kartlar: [
       {
-        ikon: '⚡',
+        ikon: 'yildirim',
         baslik: 'Hızlı Giriş',
         aciklama:
           'Tablonun altındaki hızlı giriş satırından ürün adı/kodu yazıp Enter ile satır ekleyin. % ile arama, miktar için 2*5 gibi ifadeler kullanılabilir.',
         renk: 'yesil',
       },
       {
-        ikon: '🧮',
+        ikon: 'hesap',
         baslik: 'Formül Desteği',
         aciklama: 'Fiyat ve iskonto alanlarında 1000+%10, 20+20 gibi ifadeler desteklenir. Formül rehberine sütun başlığından ulaşabilirsiniz.',
         renk: 'mavi',
       },
       {
-        ikon: '📋',
+        ikon: 'liste',
         baslik: 'Sütun Yönetimi',
         aciklama: 'Sütunları sürükleyerek sıralayın, gizleyin veya genişliklerini ayarlayın. Tercihler tarayıcıda saklanır.',
         renk: 'mor',
       },
       {
-        ikon: '🖱️',
+        ikon: 'fare',
         baslik: 'Sağ Tık Menüsü',
         aciklama: 'Satıra sağ tıklayarak kopyala, sil, satır düzenle ve toplu işlemlere erişin. Seçili satırlarla çoklu işlem yapılabilir.',
         renk: 'turuncu',
       },
       {
-        ikon: '💰',
+        ikon: 'para',
         baslik: 'KDV Modu',
         aciklama: 'KDV dahil/hariç anahtarı fiyat hesaplamalarını etkiler. Satır toplamları buna göre otomatik güncellenir.',
         renk: 'camgobegi',
@@ -493,19 +493,155 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     bolumBaslik: 'Veri Yedekleme',
     kartlar: [
       {
-        ikon: '💾',
+        ikon: 'kaydet',
         baslik: 'Yedek Oluşturma',
         aciklama: 'Mevcut site verilerinin anlık yedeğini alın. JSON, SQL veya ZIP formatında indirilebilir.',
         renk: 'yesil',
       },
       {
-        ikon: '📥',
+        ikon: 'indir',
         baslik: 'Geri Yükleme',
         aciklama: 'Önceki yedek dosyasını seçerek verileri geri yükleyin. Dikkatli kullanın.',
         renk: 'turuncu',
       },
     ],
     ipucu: 'Düzenli yedek almayı alışkanlık haline getirin.',
+  },
+
+  'ozel-tanimlar': {
+    baslik: 'Özel Tanımlar Rehberi',
+    altBaslik: 'Para birimi, vergi, banka ve diğer kataloglar',
+    bolumBaslik: 'Özel Tanımlar',
+    kartlar: [
+      {
+        ikon: 'liste',
+        baslik: 'Katalog Seçimi',
+        aciklama:
+          'Hub ekranından para birimleri, vergiler, cari/stok tipleri, banka-kart ve resmi tatil kataloglarına geçin.',
+        renk: 'mavi',
+      },
+      {
+        ikon: 'indir',
+        baslik: 'Dışa Aktar',
+        aciklama: 'Para birimleri gibi listelerde Dışa Aktar ile CSV, Excel, PDF veya panoya kopya alın.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: 'kalem',
+        baslik: 'Ekle / Düzenle',
+        aciklama: 'Ekle düğmesi veya satır düzenleme ile kayıtları yönetin. Silme onayı zorunlu alanlarda sorulur.',
+        renk: 'yesil',
+      },
+      {
+        ikon: 'kilit',
+        baslik: 'Şifre Kapısı',
+        aciklama: 'Hassas kataloglar şifre kapısı arkasında olabilir; oturum süresince tekrar sorulmayabilir.',
+        renk: 'mor',
+      },
+    ],
+    ipucu: 'F1 veya alt çubuktaki ? ile bu rehberi istediğiniz zaman açabilirsiniz.',
+  },
+
+  cari: {
+    baslik: 'Cari Rehberi',
+    altBaslik: 'Cari kartlar ve liste',
+    bolumBaslik: 'Cari',
+    kartlar: [
+      {
+        ikon: 'liste',
+        baslik: 'Liste ve Kart',
+        aciklama: 'Cari kayıtlarını tablo veya kart görünümünde inceleyin; hızlı arama ve gelişmiş filtre kullanın.',
+        renk: 'mavi',
+      },
+      {
+        ikon: 'kalem',
+        baslik: 'Düzenleme',
+        aciklama: 'Satıra tıklayarak veya sağ tık / Düzenle ile cari formunu açın.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: 'onay',
+        baslik: 'Aktif / Pasif',
+        aciklama: 'Seçili kayıtları sağ tık menüsünden toplu aktif veya pasif yapabilirsiniz.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Yeni cari için alt çubuktaki Yeni düğmesini kullanın.',
+  },
+
+  stoklar: {
+    baslik: 'Stoklar Rehberi',
+    altBaslik: 'Stok kartları ve analizler',
+    bolumBaslik: 'Stoklar',
+    kartlar: [
+      {
+        ikon: 'depo',
+        baslik: 'Stok Listesi',
+        aciklama: 'Stokları filtreleyin, seçin ve kart / liste görünümleri arasında geçiş yapın.',
+        renk: 'mavi',
+      },
+      {
+        ikon: 'kalem',
+        baslik: 'Stok Kartı',
+        aciklama: 'Düzenle veya satıra çift tık ile stok kartını açın; fiyat ve birim ekranlarına geçebilirsiniz.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: 'hesap',
+        baslik: 'Analizler',
+        aciklama: 'Fiyat analiz, envanter ve birim listesi araçlarına aksiyon çubuğundan ulaşın.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Sağ tık menüsünden seçili stokları aktif/pasif yapabilir veya seçimi temizleyebilirsiniz.',
+  },
+
+  'banka-anlasmalari': {
+    baslik: 'Banka Anlaşmaları Rehberi',
+    altBaslik: 'Banka kayıtları',
+    bolumBaslik: 'Bankalar',
+    kartlar: [
+      {
+        ikon: 'liste',
+        baslik: 'Liste Görünümü',
+        aciklama: 'Banka anlaşmalarını tabloda arayın, filtreleyin ve seçin.',
+        renk: 'mavi',
+      },
+      {
+        ikon: 'kalem',
+        baslik: 'Kart Düzenleme',
+        aciklama: 'Düzenle veya sağ tık ile banka kartını açın; kaydı güncelleyin.',
+        renk: 'turuncu',
+      },
+      {
+        ikon: 'onay',
+        baslik: 'Durum',
+        aciklama: 'Seçili kayıtları aktif veya pasif yapın; seçimi temizleyin.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Yeni banka anlaşması için alt çubuktaki Yeni düğmesini kullanın.',
+  },
+
+  yapilacaklar: {
+    baslik: 'Yapılacaklar Rehberi',
+    altBaslik: 'Görev listesi',
+    bolumBaslik: 'Yapılacaklar',
+    kartlar: [
+      {
+        ikon: 'liste',
+        baslik: 'Görevler',
+        aciklama: 'Görevlerinizi filtreleyerek (aktif, önemli, tamamlanan) yönetin.',
+        renk: 'mavi',
+      },
+      {
+        ikon: 'yildirim',
+        baslik: 'Hızlı Ekleme',
+        aciklama: 'Yeni görev ekleyip öncelik ve tarih atayabilirsiniz.',
+        renk: 'yesil',
+      },
+    ],
+    ipucu: 'Tamamlanan görevleri ayrı filtreden takip edebilirsiniz.',
   },
 };
 
@@ -515,13 +651,13 @@ const VARSAYILAN_REHBER: ModulRehber = {
   bolumBaslik: 'Yardım',
   kartlar: [
     {
-      ikon: '⌨️',
+      ikon: 'klavye',
       baslik: 'Kısayollar',
       aciklama: 'F1 ile bu rehberi açıp kapatabilirsiniz. ESC ile de kapanır.',
       renk: 'yesil',
     },
     {
-      ikon: '💾',
+      ikon: 'kaydet',
       baslik: 'Kaydetme',
       aciklama: 'Değişikliklerinizi alt aksiyon çubuğundaki Kaydet ile kaydedin.',
       renk: 'mavi',
@@ -543,4 +679,19 @@ export function modulRehberBul(modulId: string): ModulRehber {
     kartlar: VARSAYILAN_REHBER.kartlar,
     ipucu: VARSAYILAN_REHBER.ipucu,
   };
+}
+
+/**
+ * Sekme açık kalınca tanımlar gibi sayfaların rehberModulId’si
+ * başka odaklanmış modüle sızmasın.
+ */
+export function etkinRehberModulId(
+  focusModulId: string,
+  rehberModulId: string | null | undefined
+): string {
+  if (!focusModulId) return rehberModulId ?? '';
+  if (!rehberModulId) return focusModulId;
+  if (rehberModulId === focusModulId) return rehberModulId;
+  if (rehberModulId.startsWith(`${focusModulId}-`)) return rehberModulId;
+  return focusModulId;
 }

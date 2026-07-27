@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AdminRehberModal } from './AdminRehberModal';
-import { modulRehberBul } from '@/admin/veri/adminModulRehberleri';
+import { etkinRehberModulId, modulRehberBul } from '@/admin/veri/adminModulRehberleri';
 import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { tooltipMetni } from '@/araclar/tooltipMetni';
@@ -15,7 +15,7 @@ interface ModulRehberSistemiProps {
 export function ModulRehberSistemi({ modulId, zorlaAcik, onAcikDegisti, gizliButon }: ModulRehberSistemiProps) {
   const [acik, setAcik] = useState(false);
   const { rehberModulId } = useAdminAksiyon();
-  const etkinModulId = rehberModulId ?? modulId;
+  const etkinModulId = etkinRehberModulId(modulId, rehberModulId);
   const rehber = modulRehberBul(etkinModulId);
 
   const ac = useCallback(() => {
@@ -35,7 +35,7 @@ export function ModulRehberSistemi({ modulId, zorlaAcik, onAcikDegisti, gizliBut
   useEffect(() => {
     setAcik(false);
     onAcikDegisti?.(false);
-  }, [modulId, rehberModulId, onAcikDegisti]);
+  }, [modulId, onAcikDegisti]);
 
   return (
     <>

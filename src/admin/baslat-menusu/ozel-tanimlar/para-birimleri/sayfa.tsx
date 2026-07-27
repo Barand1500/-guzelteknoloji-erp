@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AdminAramaKutusu, AdminDurumEtiketi } from '@/admin/ortak/AdminFormBilesenleri';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { csvIndir } from '@/admin/ortak/datagrid/formatYardimci';
@@ -17,15 +17,84 @@ import {
 
 const SAYFA_SECENEKLERI = [10, 25, 50] as const;
 
-const DISA_AKTAR_OGELER = [
-  { id: 'yazdir', etiket: 'Yazdır', ikon: '🖨' },
-  { id: 'csv', etiket: 'Csv', ikon: '📄' },
-  { id: 'excel', etiket: 'Excel', ikon: '📊' },
-  { id: 'pdf', etiket: 'Pdf', ikon: '📕' },
-  { id: 'kopyala', etiket: 'Kopyala', ikon: '📋' },
-] as const;
+type DisaAktarIkonAd = 'yazdir' | 'csv' | 'excel' | 'pdf' | 'kopyala' | 'disa';
+type DisaAktarId = 'yazdir' | 'csv' | 'excel' | 'pdf' | 'kopyala';
 
-type DisaAktarId = (typeof DISA_AKTAR_OGELER)[number]['id'];
+function DisaAktarIkon({ ad, boyut = 14 }: { ad: DisaAktarIkonAd; boyut?: number }) {
+  const s = {
+    stroke: 'currentColor',
+    strokeWidth: 1.7,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  let yollar: ReactNode;
+  switch (ad) {
+    case 'disa':
+      yollar = (
+        <>
+          <path d="M7 3.5h7.5L18.5 7.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" {...s} />
+          <path d="M14 3.5V7.5h4M9 11.5h6M9 15h4.5" {...s} />
+        </>
+      );
+      break;
+    case 'yazdir':
+      yollar = (
+        <>
+          <path d="M7 9V4.5h10V9" {...s} />
+          <path d="M7 15.5H5.5A1.5 1.5 0 0 1 4 14V10.5A1.5 1.5 0 0 1 5.5 9h13A1.5 1.5 0 0 1 20 10.5V14a1.5 1.5 0 0 1-1.5 1.5H17" {...s} />
+          <path d="M7 13.5h10V20H7v-6.5Z" {...s} />
+        </>
+      );
+      break;
+    case 'csv':
+      yollar = (
+        <>
+          <path d="M7 3.5h7.5L18.5 7.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" {...s} />
+          <path d="M14 3.5V7.5h4M9 12h6M9 15.5h4" {...s} />
+        </>
+      );
+      break;
+    case 'excel':
+      yollar = (
+        <>
+          <path d="M5 5.5h14v13H5z" {...s} />
+          <path d="M5 10h14M5 14.5h14M10 5.5v13" {...s} />
+        </>
+      );
+      break;
+    case 'pdf':
+      yollar = (
+        <>
+          <path d="M7 3.5h7.5L18.5 7.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" {...s} />
+          <path d="M14 3.5V7.5h4M9 12.5h2.2c1.1 0 1.8.6 1.8 1.5s-.7 1.5-1.8 1.5H9V12.5Zm0 0V18" {...s} />
+        </>
+      );
+      break;
+    case 'kopyala':
+      yollar = (
+        <>
+          <rect x="8" y="4.5" width="10" height="12" rx="1.5" {...s} />
+          <path d="M6 8.5H5.5A1.5 1.5 0 0 0 4 10v8.5A1.5 1.5 0 0 0 5.5 20H13" {...s} />
+        </>
+      );
+      break;
+    default:
+      yollar = <circle cx="12" cy="12" r="7" {...s} />;
+  }
+  return (
+    <svg width={boyut} height={boyut} viewBox="0 0 24 24" fill="none" aria-hidden>
+      {yollar}
+    </svg>
+  );
+}
+
+const DISA_AKTAR_OGELER: { id: DisaAktarId; etiket: string; ikon: DisaAktarIkonAd }[] = [
+  { id: 'yazdir', etiket: 'Yazdır', ikon: 'yazdir' },
+  { id: 'csv', etiket: 'Csv', ikon: 'csv' },
+  { id: 'excel', etiket: 'Excel', ikon: 'excel' },
+  { id: 'pdf', etiket: 'Pdf', ikon: 'pdf' },
+  { id: 'kopyala', etiket: 'Kopyala', ikon: 'kopyala' },
+];
 
 const TABLO_BASLIKLAR = ['Adı', 'Kısa Adı', 'Sembol', 'Kur Tipi', 'Kur', 'Oto Güncelleme', 'Api Url'];
 
@@ -237,7 +306,7 @@ export function ParaBirimleriSayfasi() {
               onClick={() => setDisaAcik((v) => !v)}
             >
               <span className="ot-btn-disa-ikon" aria-hidden>
-                📑
+                <DisaAktarIkon ad="disa" boyut={15} />
               </span>
               Dışa Aktar
               <span className="ot-btn-disa-ok" aria-hidden>
@@ -254,7 +323,9 @@ export function ParaBirimleriSayfasi() {
                     className="ot-disa-oge"
                     onClick={() => void disaAktarSec(oge.id)}
                   >
-                    <span aria-hidden>{oge.ikon}</span>
+                    <span className="ot-disa-oge-ikon" aria-hidden>
+                      <DisaAktarIkon ad={oge.ikon} />
+                    </span>
                     {oge.etiket}
                   </button>
                 ))}

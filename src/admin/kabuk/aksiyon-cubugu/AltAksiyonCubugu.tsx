@@ -4,7 +4,7 @@ import { AksiyonCubuguButon } from './AksiyonCubuguButon';
 import { GorevCubuguTray } from './GorevCubuguTray';
 import { CubukModulArama } from './CubukModulArama';
 import { SaatTakvimWidget } from '../alt-panel/SaatTakvimWidget';
-import { modulRehberBul } from '@/admin/veri/adminModulRehberleri';
+import { modulRehberBul, etkinRehberModulId } from '@/admin/veri/adminModulRehberleri';
 import { BildirimPaneli, useBildirimSayaci } from '../alt-panel/BildirimPaneli';
 import { LogPaneli } from '../alt-panel/LogPaneli';
 import { YedeklemeHizliPaneli } from '../alt-panel/YedeklemeHizliPaneli';
@@ -39,7 +39,7 @@ function AltAksiyonCubuguGovde({
 }: AltAksiyonCubuguProps & { footerRef: RefObject<HTMLElement | null> }) {
   const panelAcik = useAksiyonCubuguPanelAcik();
   const { rehberModulId } = useAdminAksiyon();
-  const rehber = modulRehberBul(rehberModulId ?? focusModulId ?? '');
+  const rehber = modulRehberBul(etkinRehberModulId(focusModulId ?? '', rehberModulId));
   const rehberKisayolu = kisayolAyarlariOku().rehber;
   const [acikPanel, setAcikPanel] = useState<AcikPanel>(null);
   const [hesapAcik, setHesapAcik] = useState(false);

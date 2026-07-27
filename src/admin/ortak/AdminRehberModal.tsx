@@ -1,10 +1,11 @@
 import { useEffect, useCallback } from 'react';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
+import { RehberIkon, type RehberIkonAd } from '@/admin/ortak/RehberIkon';
 
 export interface RehberKart {
   baslik: string;
   aciklama: string;
-  ikon?: string;
+  ikon?: RehberIkonAd;
   renk: 'mor' | 'turuncu' | 'mavi' | 'sari' | 'yesil' | 'camgobegi';
 }
 
@@ -80,7 +81,11 @@ export function AdminRehberModal({
               {kartlar.map((kart) => (
                 <article key={kart.baslik} className={`ap-rehber-kart ap-rehber-kart-${kart.renk}`}>
                   <h4 className="ap-rehber-kart-baslik">
-                    {kart.ikon && <span className="mr-1">{kart.ikon}</span>}
+                    {kart.ikon && (
+                      <span className="ap-rehber-kart-ikon" aria-hidden>
+                        <RehberIkon ad={kart.ikon} boyut={15} />
+                      </span>
+                    )}
                     {kart.baslik}
                   </h4>
                   <p className="ap-rehber-kart-metin">{kart.aciklama}</p>
@@ -90,7 +95,9 @@ export function AdminRehberModal({
 
             {ipucu && (
               <div className="ap-rehber-ipucu">
-                <span>💡</span>
+                <span className="ap-rehber-ipucu-ikon" aria-hidden>
+                  <RehberIkon ad="ampul" boyut={15} />
+                </span>
                 <p>
                   <strong>İpucu:</strong> {ipucu}
                 </p>

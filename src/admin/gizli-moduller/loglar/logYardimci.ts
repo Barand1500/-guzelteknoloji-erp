@@ -56,20 +56,8 @@ const ISLEM_ETIKET: Record<LogIslemTuru, string> = {
   diger: 'İşlem yaptı',
 };
 
-const ISLEM_IKON: Record<LogIslemTuru, string> = {
-  kaydet: '💾',
-  ekle: '➕',
-  sil: '🗑️',
-  guncelle: '🔄',
-  diger: '📋',
-};
-
 export function logIslemEtiket(tur: LogIslemTuru): string {
   return ISLEM_ETIKET[tur];
-}
-
-export function logIslemIkon(tur: LogIslemTuru): string {
-  return ISLEM_IKON[tur];
 }
 
 export function logIslemSinif(tur: LogIslemTuru): string {
