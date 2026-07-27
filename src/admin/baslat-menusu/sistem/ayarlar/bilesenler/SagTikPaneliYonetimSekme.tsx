@@ -2,6 +2,7 @@ import { adminModulleri } from '@/admin/veri/adminMenuYapisi';
 import { SAG_TIK_OGE_TANIMLARI } from '@/admin/baslat-menusu/sistem/ayarlar/veri-sag-tik';
 import { DurumAnahtari } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/SistemSekmeCubugu';
 import { AyarlarSekmeIkon } from '@/admin/baslat-menusu/sistem/ayarlar/bilesenler/AyarlarSekmeIkon';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 import type { SistemAyarlariForm } from '@/admin/baslat-menusu/sistem/ayarlar/tipler';
 import type { SagTikOgeId } from '@/admin/ortak/tipler/sagTikPaneli';
 import { SagTikIkon, type SagTikIkonAd } from '@/admin/ortak/SagTikIkon';
@@ -117,7 +118,7 @@ export function SagTikPaneliYonetimSekme({ form, onChange }: SagTikPaneliYonetim
                 checked={panel.modulIdler.includes(modul.id)}
                 onChange={() => modulToggle(modul.id)}
               />
-              <span>{modul.ikon}</span>
+              <BaslatMenuIkon modulId={modul.id} boyut={14} />
               <span>{modul.baslik}</span>
             </label>
           ))}

@@ -433,7 +433,9 @@ export function RolKartlari({
                   title={tooltipMetni('Rolü düzenle')}
                   aria-label={`${rol.baslik} düzenle`}
                 >
-                  ✏️
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <path d="M11.2 2.8a1.4 1.4 0 0 1 2 2L5.5 12.5 2.5 13.5l1-3L11.2 2.8Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+                  </svg>
                 </button>
               )}
             </div>

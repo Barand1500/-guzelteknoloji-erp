@@ -604,7 +604,6 @@ button.ap-roller-yetki-hucre:hover {
   border: 1px solid var(--ap-border);
   background: color-mix(in srgb, var(--ap-surface-2) 50%, var(--ap-surface));
   color: var(--ap-muted);
-  font-size: 0.75rem;
   transition: background 0.18s ease, color 0.18s ease;
 }
 

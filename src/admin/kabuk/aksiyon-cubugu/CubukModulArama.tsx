@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { modulAra } from '@/admin/veri/adminMenuYapisi';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 import { useModulKatalogOptional } from '@/baglamlar/ModulKatalogContext';
 import { usePanelDil } from '@/baglamlar/PanelDilContext';
 import { useAksiyonCubuguPanelSync } from '@/admin/kabuk/aksiyon-cubugu/AksiyonCubuguPanelContext';
@@ -88,7 +89,7 @@ export function CubukModulArama({ onModulSec }: CubukModulAramaProps) {
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => modulSec(modul)}
                     >
-                      <span className="text-base">{modul.ikon}</span>
+                      <BaslatMenuIkon modulId={modul.id} boyut={15} />
                       <span className="min-w-0 flex-1 text-left">
                         <span className="block truncate text-sm font-medium">
                           {t(`modul.${modul.id}`, modul.baslik)}

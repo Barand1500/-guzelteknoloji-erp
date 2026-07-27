@@ -69,7 +69,9 @@ export function RolDuzenleModal({ acik, rol, onKapat, onKaydet }: RolDuzenleModa
         <div className="ap-sistem-modal-baslik ap-sistem-modal-baslik-v2">
           <div className="flex items-start gap-3">
             <span className="ap-sistem-modal-ikon" aria-hidden>
-              ✏️
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" />
+              </svg>
             </span>
             <div>
               <h2 className="ap-heading text-lg font-semibold">Rol Düzenle</h2>

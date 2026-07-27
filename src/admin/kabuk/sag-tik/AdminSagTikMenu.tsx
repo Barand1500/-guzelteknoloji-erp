@@ -5,6 +5,7 @@ import { sagTikOgeTanimBul } from '@/admin/baslat-menusu/sistem/ayarlar/veri-sag
 import type { SagTikOgeId } from '@/admin/ortak/tipler/sagTikPaneli';
 import { VARSAYILAN_SAG_TIK_PANEL } from '@/admin/ortak/tipler/sagTikPaneli';
 import { SagTikIkon, type SagTikIkonAd } from '@/admin/ortak/SagTikIkon';
+import { BaslatMenuIkon } from '@/admin/kabuk/baslat-menusu/baslatMenuIkonlar';
 import { useSekmeDegisinceKapat } from '@/araclar/sekmePortal';
 import {
   metinAlaniMi,
@@ -178,7 +179,7 @@ export function AdminSagTikMenu({ aksiyonlar }: { aksiyonlar: AdminSagTikAksiyon
                         }}
                       >
                         <span className="ap-sag-tik-oge-ikon" aria-hidden>
-                          {m.ikon}
+                          <BaslatMenuIkon modulId={m.id} boyut={14} />
                         </span>
                         <span>{m.baslik}</span>
                       </button>
