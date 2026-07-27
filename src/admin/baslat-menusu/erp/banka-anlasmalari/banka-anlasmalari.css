@@ -675,7 +675,7 @@
   padding: 0 0.85rem;
   border: 1.5px solid var(--ap-border);
   border-radius: 0.5rem;
-  background: var(--ap-input-bg);
+  background: var(--cari-outlined-etiket-bg, var(--cari-alan-zemin, var(--ap-surface)));
   cursor: pointer;
   user-select: none;
 }
