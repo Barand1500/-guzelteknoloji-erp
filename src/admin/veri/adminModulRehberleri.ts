@@ -623,6 +623,62 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     ipucu: 'Yeni banka anlaşması için alt çubuktaki Yeni düğmesini kullanın.',
   },
 
+  'alis-faturasi': {
+    baslik: 'Alış Faturası Rehberi',
+    altBaslik: 'Tedarikçi faturaları',
+    bolumBaslik: 'Alış Faturası',
+    kartlar: [
+      {
+        ikon: 'liste',
+        baslik: 'Liste ve Yeni',
+        aciklama: 'Kayıtlı alış faturalarını görüntüleyin; Yeni Fatura ile taslak oluşturun.',
+        renk: 'mavi',
+      },
+      {
+        ikon: 'yildirim',
+        baslik: 'Fatura İçeriği',
+        aciklama:
+          'Satır tablosu Sipariş İçeriği ile aynıdır. Stoklardan % ile arayıp ürün ekleyin; KDV dahil/hariç hesaplanır.',
+        renk: 'yesil',
+      },
+      {
+        ikon: 'onay',
+        baslik: 'Taslak ve Onay',
+        aciklama: 'Önce taslak kaydedin, sonra Onayla ile stok girişi ve cari borç hareketi oluşur.',
+        renk: 'turuncu',
+      },
+    ],
+    ipucu: 'e-Fatura gönderimi sonraki aşamada eklenecek; şimdilik manuel kayıt.',
+  },
+
+  'satis-faturasi': {
+    baslik: 'Satış Faturası Rehberi',
+    altBaslik: 'Müşteri faturaları',
+    bolumBaslik: 'Satış Faturası',
+    kartlar: [
+      {
+        ikon: 'liste',
+        baslik: 'Liste ve Yeni',
+        aciklama: 'Kayıtlı satış faturalarını görüntüleyin; Yeni Fatura ile taslak oluşturun.',
+        renk: 'mavi',
+      },
+      {
+        ikon: 'yildirim',
+        baslik: 'Fatura İçeriği',
+        aciklama:
+          'Satır tablosu Sipariş İçeriği ile aynıdır. Stoklardan ürün ekleyin; fiyat ve KDV satırda hesaplanır.',
+        renk: 'yesil',
+      },
+      {
+        ikon: 'onay',
+        baslik: 'Taslak ve Onay',
+        aciklama: 'Onay sonrası stok çıkışı ve cari alacak hareketi oluşur. Onaylı belge silinemez.',
+        renk: 'turuncu',
+      },
+    ],
+    ipucu: 'e-Fatura / e-Arşiv entegrasyonu sonra eklenecek.',
+  },
+
   yapilacaklar: {
     baslik: 'Yapılacaklar Rehberi',
     altBaslik: 'Görev listesi',

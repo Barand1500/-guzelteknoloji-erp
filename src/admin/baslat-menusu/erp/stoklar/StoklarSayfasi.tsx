@@ -20,6 +20,8 @@ import { StokBirimListesi } from './StokBirimListesi';
 import { StokEnvanterAnaliz } from './StokEnvanterAnaliz';
 import { StokFiyatAnaliz } from './StokFiyatAnaliz';
 import { StokKarti } from './StokKarti';
+import { StokKartiModal } from '@/admin/baslat-menusu/erp/belgeler/StokKartiModal';
+import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 import {
   gelismisFiltreAktifMi,
   stokAramaKriteriVarMi,
@@ -180,7 +182,7 @@ function islemlerKolonu(): KolonTanimi<AdminStok> {
     id: 'islemler',
     baslik: '',
     tip: 'salt-okunur',
-    genislik: 68,
+    genislik: 96,
     sabitSag: true,
     siralama: false,
     degerAl: () => null,
@@ -203,6 +205,7 @@ export function StoklarSayfasi() {
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aktifStokId, setAktifStokId] = useState<string | null>(null);
   const [silme, setSilme] = useState<AdminStok | null>(null);
+  const [stokKartiKayit, setStokKartiKayit] = useState<AdminStok | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
   const [altKirli, setAltKirli] = useState(false);
   const [fiyatAnalizStok, setFiyatAnalizStok] = useState<AdminStok | null>(null);
@@ -841,12 +844,37 @@ export function StoklarSayfasi() {
                       gridApiRef={gridApiRef}
                       kolonlar={kolonlar}
                       satirlar={filtrelenmis}
-                      depolamaAnahtari="stoklar_kayitlar_v2"
+                      depolamaAnahtari="stoklar_kayitlar_v3"
+                      kolonGenislikSurumu={3}
                       bosMesaj="Aramanızla eşleşen stok bulunamadı."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => stokSatirSec(s.id)}
                       onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
                       onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
+                      satirIslemEkleri={(s) => (
+                        <button
+                          type="button"
+                          className="dg-islem-tus"
+                          title="Stok kartı"
+                          aria-label="Stok kartı"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStokKartiKayit(s);
+                          }}
+                        >
+                          <span className="dg-islem-ekstre-ikon" aria-hidden>
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                              <path
+                                d="M3.5 7.5 8 4.2l4.5 3.3v4.2A1.4 1.4 0 0 1 11.1 13H4.9A1.4 1.4 0 0 1 3.5 11.7V7.5Z"
+                                stroke="currentColor"
+                                strokeWidth="1.25"
+                                strokeLinejoin="round"
+                              />
+                              <circle cx="8" cy="9.2" r="1.2" stroke="currentColor" strokeWidth="1.25" />
+                            </svg>
+                          </span>
+                        </button>
+                      )}
                       onSecimDegistir={setSeciliIdler}
                       formulMenuGoster
                       ustSolAraclarGoster={false}
@@ -882,6 +910,11 @@ export function StoklarSayfasi() {
             : ''
         }
         ariaLabel="Stok silme onayı"
+      />
+      <StokKartiModal
+        acik={!!stokKartiKayit}
+        stok={stokKartiKayit}
+        onKapat={() => setStokKartiKayit(null)}
       />
     </AdminModulKabuk>
   );

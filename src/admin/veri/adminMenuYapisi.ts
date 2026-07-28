@@ -71,6 +71,20 @@ export const adminModulleri: AdminModul[] = [
     kategori: 'ERP',
     yol: '/gt-admin/banka-anlasmalari',
   },
+  {
+    id: 'alis-faturasi',
+    baslik: 'Alış Faturası',
+    ikon: '🧾',
+    kategori: 'ERP',
+    yol: '/gt-admin/alis-faturasi',
+  },
+  {
+    id: 'satis-faturasi',
+    baslik: 'Satış Faturası',
+    ikon: '🧾',
+    kategori: 'ERP',
+    yol: '/gt-admin/satis-faturasi',
+  },
 ];
 
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
@@ -141,6 +155,8 @@ const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'cari',
   'stoklar',
   'banka-anlasmalari',
+  'alis-faturasi',
+  'satis-faturasi',
   'yapilacaklar',
   'ozel-tanimlar',
 ]);

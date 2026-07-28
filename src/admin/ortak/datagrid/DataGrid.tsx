@@ -406,6 +406,7 @@ export function DataGrid<TRow extends { id: string }>({
   onSatirTikla,
   onSatirDuzenle,
   onSatirSil,
+  satirIslemEkleri,
   onSatirHover,
   hizliGirisIstegeBagli = false,
   hizliGirisVarsayilanAlan = false,
@@ -1621,6 +1622,7 @@ export function DataGrid<TRow extends { id: string }>({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="dg-islem-grup">
+                    {satirIslemEkleri?.(satir)}
                     {(satirDuzenlePaneli || onSatirDuzenle) && (
                       <button
                         type="button"

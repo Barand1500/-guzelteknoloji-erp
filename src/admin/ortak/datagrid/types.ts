@@ -155,6 +155,8 @@ export interface DataGridProps<TRow extends { id: string }> {
   onSatirTikla?: (satir: TRow) => void;
   onSatirDuzenle?: (satir: TRow) => void;
   onSatirSil?: (satir: TRow) => void;
+  /** Düzenle/Sil yanına ekstra işlem düğmeleri (ör. ekstre, stok kartı) */
+  satirIslemEkleri?: (satir: TRow) => ReactNode;
   /** Satır üzerine gelince / ayrılınca (G kısayolu vb.) */
   onSatirHover?: (satir: TRow | null) => void;
   /** true ise hızlı giriş satırı yalnızca hizliGirisOdakla ile açılır */

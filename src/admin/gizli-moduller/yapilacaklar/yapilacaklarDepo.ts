@@ -9,6 +9,8 @@ export interface YapilacakGorev {
   baslik: string;
   tamamlandi: boolean;
   onemli: boolean;
+  /** İsteğe bağlı kullanıcı etiketi */
+  etiket: string | null;
   /** Başlangıç YYYY-MM-DD veya null (tarihsiz) */
   tarih: string | null;
   /** Bitiş YYYY-MM-DD; yoksa tek günlük (tarih ile aynı) */
@@ -24,9 +26,11 @@ export type GorevKayitGirdi = {
   tarih: string | null;
   bitisTarih: string | null;
   onemli: boolean;
+  etiket?: string | null;
 };
 
 const STORAGE_KEY = 'erp-yapilacaklar';
+const ETIKET_STORAGE_KEY = 'erp-yapilacaklar-etiketler';
 
 export function takvimGorevId(tarih: string): string {
   return `takvim:${tarih}`;
@@ -55,16 +59,48 @@ function tarihleriNormalizeEt(
 
 function gorevNormalize(g: Partial<YapilacakGorev> & { id: string; baslik: string }): YapilacakGorev {
   const { tarih, bitisTarih } = tarihleriNormalizeEt(g.tarih, g.bitisTarih ?? g.tarih);
+  const etiket = typeof g.etiket === 'string' ? g.etiket.trim() || null : null;
   return {
     id: g.id,
     baslik: g.baslik,
     tamamlandi: Boolean(g.tamamlandi),
     onemli: Boolean(g.onemli),
+    etiket,
     tarih,
     bitisTarih,
     olusturma: g.olusturma ?? new Date().toISOString(),
     guncelleme: g.guncelleme ?? g.olusturma ?? new Date().toISOString(),
   };
+}
+
+export function gorevEtiketleriniGetir(): string[] {
+  try {
+    const ham = localStorage.getItem(ETIKET_STORAGE_KEY);
+    if (!ham) return [];
+    const parsed = JSON.parse(ham) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return [
+      ...new Set(
+        parsed
+          .filter((e): e is string => typeof e === 'string')
+          .map((e) => e.trim())
+          .filter(Boolean)
+      ),
+    ].sort((a, b) => a.localeCompare(b, 'tr'));
+  } catch {
+    return [];
+  }
+}
+
+export function gorevEtiketiKaydet(etiket: string): string[] {
+  const temiz = etiket.trim();
+  if (!temiz) return gorevEtiketleriniGetir();
+  const liste = gorevEtiketleriniGetir();
+  if (!liste.some((e) => e.toLocaleLowerCase('tr') === temiz.toLocaleLowerCase('tr'))) {
+    liste.push(temiz);
+    localStorage.setItem(ETIKET_STORAGE_KEY, JSON.stringify(liste));
+  }
+  return gorevEtiketleriniGetir();
 }
 
 function okuHam(): YapilacakGorev[] {
@@ -175,11 +211,14 @@ export function gorevEkle(girdi: GorevKayitGirdi): YapilacakGorev {
   if (!baslik) throw new Error('Görev başlığı gerekli');
   const simdi = new Date().toISOString();
   const tarihler = tarihleriNormalizeEt(girdi.tarih, girdi.bitisTarih);
+  const etiket = typeof girdi.etiket === 'string' ? girdi.etiket.trim() || null : null;
+  if (etiket) gorevEtiketiKaydet(etiket);
   const kayit = gorevNormalize({
     id: `g-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     baslik,
     tamamlandi: false,
     onemli: Boolean(girdi.onemli),
+    etiket,
     ...tarihler,
     olusturma: simdi,
     guncelleme: simdi,
@@ -192,7 +231,7 @@ export function gorevEkle(girdi: GorevKayitGirdi): YapilacakGorev {
 
 export function gorevGuncelle(
   id: string,
-  degisim: Partial<Pick<YapilacakGorev, 'baslik' | 'tamamlandi' | 'onemli' | 'tarih' | 'bitisTarih'>>
+  degisim: Partial<Pick<YapilacakGorev, 'baslik' | 'tamamlandi' | 'onemli' | 'tarih' | 'bitisTarih' | 'etiket'>>
 ): YapilacakGorev | null {
   const liste = okuHam();
   const idx = liste.findIndex((g) => g.id === id);
@@ -206,11 +245,20 @@ export function gorevGuncelle(
     degisim.bitisTarih !== undefined ? degisim.bitisTarih : onceki.bitisTarih
   );
 
+  const etiket =
+    degisim.etiket !== undefined
+      ? typeof degisim.etiket === 'string'
+        ? degisim.etiket.trim() || null
+        : null
+      : onceki.etiket;
+  if (etiket) gorevEtiketiKaydet(etiket);
+
   let guncel = gorevNormalize({
     ...onceki,
     baslik,
     tamamlandi: degisim.tamamlandi ?? onceki.tamamlandi,
     onemli: degisim.onemli ?? onceki.onemli,
+    etiket,
     ...tarihler,
     guncelleme: new Date().toISOString(),
   });

@@ -77,7 +77,7 @@ function UrunKoduAdiHucre({ satir }: { satir: SiparisSatiri }) {
   return <span className="dg-urun-adi-ust">{ad || kod}</span>;
 }
 
-function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
+export function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[] {
   const hesapla = (satir: SiparisSatiri, yama: Partial<SiparisSatiri>) =>
     satirHesapla({ ...satir, ...yama }, kdvDahil);
 

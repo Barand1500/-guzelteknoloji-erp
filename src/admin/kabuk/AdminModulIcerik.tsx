@@ -11,6 +11,8 @@ import { TanimlarSayfasi } from '@/admin/baslat-menusu/tanimlar/sayfa';
 import { CariSayfasi } from '@/admin/baslat-menusu/erp/cari/sayfa';
 import { StoklarSayfasi } from '@/admin/baslat-menusu/erp/stoklar/StoklarSayfasi';
 import { BankaAnlasmalariSayfasi } from '@/admin/baslat-menusu/erp/banka-anlasmalari/sayfa';
+import { AlisFaturasiSayfasi } from '@/admin/baslat-menusu/erp/belgeler/alis-faturasi/sayfa';
+import { SatisFaturasiSayfasi } from '@/admin/baslat-menusu/erp/belgeler/satis-faturasi/sayfa';
 import { OzelTanimlarSayfasi } from '@/admin/baslat-menusu/ozel-tanimlar/sayfa';
 import { ModulKabuk } from '@/baglamlar/ModulKabukContext';
 
@@ -55,6 +57,10 @@ function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
       return <StoklarSayfasi />;
     case 'banka-anlasmalari':
       return <BankaAnlasmalariSayfasi />;
+    case 'alis-faturasi':
+      return <AlisFaturasiSayfasi />;
+    case 'satis-faturasi':
+      return <SatisFaturasiSayfasi />;
     case 'ozel-tanimlar':
       return <OzelTanimlarSayfasi />;
     default:

@@ -20,6 +20,8 @@ export type BaslatMenuIkonAd =
   | 'cari'
   | 'stoklar'
   | 'banka-anlasmalari'
+  | 'alis-faturasi'
+  | 'satis-faturasi'
   | 'ozel-tanimlar'
   | 'loglar'
   | 'veri-yedekleme'
@@ -45,6 +47,8 @@ export const MODUL_FLAT_IKON: Record<string, BaslatMenuIkonAd> = {
   cari: 'cari',
   stoklar: 'stoklar',
   'banka-anlasmalari': 'banka-anlasmalari',
+  'alis-faturasi': 'alis-faturasi',
+  'satis-faturasi': 'satis-faturasi',
   'ozel-tanimlar': 'ozel-tanimlar',
   loglar: 'loglar',
   'veri-yedekleme': 'veri-yedekleme',
@@ -228,6 +232,22 @@ function IkonYollari({ ad }: { ad: BaslatMenuIkonAd }) {
           <path d="M4 10h16L12 4.5 4 10Z" {...s} />
           <path d="M6 10.5V18M10 10.5V18M14 10.5V18M18 10.5V18" {...s} />
           <path d="M4.5 18.5h15" {...s} />
+        </>
+      );
+    case 'alis-faturasi':
+      return (
+        <>
+          <rect x="5" y="3.5" width="14" height="17" rx="1.8" {...s} />
+          <path d="M8.5 8h7M8.5 11.5h7M8.5 15h4.5" {...s} />
+          <path d="M15.5 15.5v3.5M13.8 17.2h3.4" {...s} />
+        </>
+      );
+    case 'satis-faturasi':
+      return (
+        <>
+          <rect x="5" y="3.5" width="14" height="17" rx="1.8" {...s} />
+          <path d="M8.5 8h7M8.5 11.5h7M8.5 15h4.5" {...s} />
+          <path d="M15.5 19V15.5M13.8 17.2h3.4" {...s} />
         </>
       );
     case 'loglar':

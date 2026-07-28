@@ -65,6 +65,9 @@ model Firma {
   bildirimler    Bildirim[]
   yedekKayitlari YedekKaydi[]
   datagridDemoKayit DatagridDemoKayit?
+  belgeler          Belge[]
+  stokHareketleri   StokHareket[]
+  cariHareketleri   CariHareket[]
 
   @@map("firmalar")
 }
@@ -301,6 +304,84 @@ model DatagridDemoKayit {
   firma Firma @relation(fields: [firmaId], references: [id], onDelete: Cascade)
 
   @@map("datagrid_demo_kayitlari")
+}
+
+enum BelgeTipi {
+  ALIS_FATURA
+  SATIS_FATURA
+}
+
+enum BelgeDurum {
+  TASLAK
+  ONAYLI
+  IPTAL
+}
+
+model Belge {
+  id               Int        @id @default(autoincrement())
+  firmaId          Int        @map("firma_id")
+  tip              BelgeTipi
+  belgeNo          String     @map("belge_no") @db.VarChar(40)
+  tarih            DateTime   @db.Date
+  vadeTarihi       DateTime?  @map("vade_tarihi") @db.Date
+  cariId           Int?       @map("cari_id")
+  cariKodu         String     @default("") @map("cari_kodu") @db.VarChar(30)
+  cariAdi          String     @default("") @map("cari_adi") @db.VarChar(255)
+  aciklama         String?    @db.VarChar(500)
+  kdvDahil         Boolean    @default(true) @map("kdv_dahil")
+  durum            BelgeDurum @default(TASLAK)
+  araToplam        Decimal    @default(0) @map("ara_toplam") @db.Decimal(18, 4)
+  kdvToplam        Decimal    @default(0) @map("kdv_toplam") @db.Decimal(18, 4)
+  genelToplam      Decimal    @default(0) @map("genel_toplam") @db.Decimal(18, 4)
+  satirlar         Json       @default("[]")
+  onayTarihi       DateTime?  @map("onay_tarihi")
+  kayitTarihi      DateTime   @default(now()) @map("kayit_tarihi")
+  guncellemeTarihi DateTime   @updatedAt @map("guncelleme_tarihi")
+
+  firma           Firma         @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+  stokHareketleri StokHareket[]
+  cariHareketleri CariHareket[]
+
+  @@unique([firmaId, tip, belgeNo])
+  @@index([firmaId, tip, durum])
+  @@index([firmaId, tarih])
+  @@map("belgeler")
+}
+
+model StokHareket {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @map("firma_id")
+  belgeId          Int      @map("belge_id")
+  urunKodu         String   @map("urun_kodu") @db.VarChar(30)
+  urunAdi          String   @default("") @map("urun_adi") @db.VarChar(255)
+  birim            String   @db.VarChar(20)
+  miktar           Decimal  @db.Decimal(18, 4)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+
+  firma Firma @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+  belge Belge @relation(fields: [belgeId], references: [id], onDelete: Cascade)
+
+  @@index([firmaId, urunKodu])
+  @@index([belgeId])
+  @@map("stok_hareketleri")
+}
+
+model CariHareket {
+  id               Int      @id @default(autoincrement())
+  firmaId          Int      @map("firma_id")
+  belgeId          Int      @map("belge_id")
+  cariId           Int?     @map("cari_id")
+  cariKodu         String   @default("") @map("cari_kodu") @db.VarChar(30)
+  tutar            Decimal  @db.Decimal(18, 4)
+  aciklama         String?  @db.VarChar(255)
+  kayitTarihi      DateTime @default(now()) @map("kayit_tarihi")
+
+  firma Firma @relation(fields: [firmaId], references: [id], onDelete: Cascade)
+  belge Belge @relation(fields: [belgeId], references: [id], onDelete: Cascade)
+
+  @@index([firmaId, cariId])
+  @@index([belgeId])
+  @@map("cari_hareketleri")
 }
 
 enum BildirimTipi {

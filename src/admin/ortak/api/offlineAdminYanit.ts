@@ -14,6 +14,10 @@ import {
   offlineDatagridDemoKaydet,
 } from '@/admin/ortak/api/offlineDatagridDemo';
 import {
+  offlineBelgelerGetir,
+  offlineBelgelerYaz,
+} from '@/admin/baslat-menusu/erp/belgeler/offlineBelgeler';
+import {
   offlineCarilerGetir,
   offlineCarilerYaz,
 } from '@/admin/baslat-menusu/erp/cari/offlineCariler';
@@ -60,6 +64,8 @@ const VARSAYILAN_OFFLINE_MODULLER: OfflineModul[] = [
   { id: 9, ad: 'Cari Kartlar', prefix: 'cari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 13, ad: 'Stoklar', prefix: 'stoklar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 14, ad: 'Bankalar', prefix: 'banka_anlasmalari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 15, ad: 'Alis Faturasi', prefix: 'alis_faturasi', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 16, ad: 'Satis Faturasi', prefix: 'satis_faturasi', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
 ];
 
 const OFFLINE_YETKILER = [
@@ -140,6 +146,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
     if (p.includes('/cariler')) return offlineCarilerYaz(p, m, body);
     if (p.includes('/urun-yonetimi')) return offlineUrunYonetimiYaz(p, m, body);
     if (p.includes('/datagrid-demo')) return offlineDatagridDemoKaydet(body);
+    if (p.includes('/belgeler')) return offlineBelgelerYaz(path, m, body);
     if (p.includes('/eklentiler')) return offlineEklentiYaz(m, p);
     return { mesaj: 'Kayit (offline mod)' };
   }
@@ -170,6 +177,7 @@ export function offlineAdminYanit(path: string, method: string, body?: BodyInit 
   if (p.includes('/cariler')) return offlineCarilerGetir(p);
   if (p.includes('/urun-yonetimi')) return offlineUrunYonetimiGetir(p);
   if (p.includes('/datagrid-demo')) return offlineDatagridDemoGetir();
+  if (p.includes('/belgeler')) return offlineBelgelerGetir(path);
 
   return {};
 }

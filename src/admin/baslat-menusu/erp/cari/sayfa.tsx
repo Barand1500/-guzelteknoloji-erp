@@ -25,6 +25,8 @@ import {
 import { CARI_KOLON_GENISLIK_SURUMU, cariKolonlari } from './cariKolonlari';
 import { caridenForm, cariSatirEtiketi } from './cariYardimci';
 import type { AdminCari, CariKartModu } from './tipler';
+import { CariEkstreModal } from '@/admin/baslat-menusu/erp/belgeler/CariEkstreModal';
+import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 
 type Gorunum = 'liste' | 'kart';
 
@@ -105,6 +107,7 @@ export function CariSayfasi() {
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aktifCariId, setAktifCariId] = useState<string | null>(null);
   const [silme, setSilme] = useState<AdminCari | null>(null);
+  const [ekstreCari, setEkstreCari] = useState<AdminCari | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
   const gridApiRef = useRef<DataGridApi | null>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
@@ -495,6 +498,25 @@ export function CariSayfasi() {
                       onSatirTikla={(s) => gridApiRef.current?.secimAyarla([s.id])}
                       onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                       onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
+                      satirIslemEkleri={(s) => (
+                        <button
+                          type="button"
+                          className="dg-islem-tus"
+                          title="Cari ekstre"
+                          aria-label="Cari ekstre"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEkstreCari(s);
+                          }}
+                        >
+                          <span className="dg-islem-ekstre-ikon" aria-hidden>
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                              <rect x="3.5" y="2.5" width="9" height="11" rx="1.2" stroke="currentColor" strokeWidth="1.25" />
+                              <path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+                            </svg>
+                          </span>
+                        </button>
+                      )}
                       onSecimDegistir={setSeciliIdler}
                       onSatirlarDegistir={satirlarDegistir}
                       formulMenuGoster
@@ -528,6 +550,7 @@ export function CariSayfasi() {
         hedefMetin={silme ? cariSatirEtiketi(silme) : ''}
         ariaLabel="Cari silme onayı"
       />
+      <CariEkstreModal acik={!!ekstreCari} cari={ekstreCari} onKapat={() => setEkstreCari(null)} />
     </AdminModulKabuk>
   );
 }

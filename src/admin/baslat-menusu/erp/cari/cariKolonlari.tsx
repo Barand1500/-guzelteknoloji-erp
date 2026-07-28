@@ -8,7 +8,7 @@ import {
 } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { faturaTipiEtiketi } from '@/admin/baslat-menusu/erp/cari/cariYardimci';
 
-export const CARI_KOLON_GENISLIK_SURUMU = 9;
+export const CARI_KOLON_GENISLIK_SURUMU = 10;
 
 export const CARI_VARSAYILAN_GIZLI: string[] = ['id', 'ustId'];
 
@@ -29,7 +29,7 @@ function islemlerKolonu(): KolonTanimi<AdminCari> {
     id: 'islemler',
     baslik: '',
     tip: 'salt-okunur',
-    genislik: 68,
+    genislik: 96,
     sabitSag: true,
     siralama: false,
     degerAl: () => null,

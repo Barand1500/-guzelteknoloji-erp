@@ -499,6 +499,11 @@ function GorevSatir({
       <button type="button" className="yap-satir-metin" onClick={onDuzenle}>
         <span className="yap-satir-baslik">{gorev.baslik}</span>
       </button>
+      {gorev.etiket ? (
+        <span className="yap-satir-etiket" title={gorev.etiket}>
+          {gorev.etiket}
+        </span>
+      ) : null}
       <button
         type="button"
         className={`yap-yildiz${gorev.onemli ? ' yap-yildiz--acik' : ''}`}

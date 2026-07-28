@@ -434,11 +434,6 @@
   margin-top: 1.25rem;
 }
 
-.yap-gorev-modal .ap-accent-donen-cerceve--yap-gorev {
-  --cerceve-yaricap: 1.1rem;
-  width: min(26rem, calc(100vw - 2rem));
-}
-
 .yap-gorev-tatil-not {
   margin: 0;
   padding: 0.45rem 0.6rem;
@@ -450,87 +445,110 @@
   text-align: left;
 }
 
-.yap-gorev-kart {
-  text-align: center;
+.admin-panel[data-tema='koyu'] .yap-gorev-tatil-not {
+  color: #fda4af;
+  background: color-mix(in srgb, #e11d48 16%, var(--ap-surface));
 }
 
-.yap-gorev-ikon {
-  font-size: 1.35rem;
+.yap-gorev-form {
+  gap: 0.95rem;
 }
 
-.yap-gorev-ozet {
-  margin: 0.55rem 0 1rem;
+.yap-gorev-tarih-temizle {
+  margin-top: 0.55rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ap-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-.yap-gorev-govde {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  padding: 0 0.1rem 1.15rem;
-}
-
-.yap-gorev-alan {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.yap-gorev-alan > span,
-.yap-gorev-alan > label {
-  font-size: 0.72rem;
-  font-weight: 700;
+.yap-gorev-tarih-temizle:hover {
   color: var(--ap-heading);
 }
 
-.yap-gorev-input {
-  border-radius: 0.6rem !important;
-  border-color: color-mix(in srgb, var(--ap-border) 85%, transparent) !important;
-  background: color-mix(in srgb, var(--ap-input-bg, var(--ap-surface)) 92%, var(--ap-bg)) !important;
-  padding: 0.55rem 0.7rem !important;
+.yap-gorev-etiket-alan .cari-outlined-icerik {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
 }
 
-.yap-gorev-input:focus,
-.yap-gorev-input:focus-visible {
-  outline: none !important;
-  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border)) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ap-accent) 12%, transparent) !important;
-  --tw-ring-shadow: 0 0 #0000;
-  --tw-ring-offset-shadow: 0 0 #0000;
+.yap-gorev-etiket-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
-.yap-gorev-input:disabled {
-  opacity: 0.55;
+.yap-gorev-etiket-chip {
+  margin: 0;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  background: color-mix(in srgb, var(--ap-surface-2) 35%, var(--ap-surface));
+  color: var(--ap-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.yap-gorev-etiket-chip:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
+}
+
+.yap-gorev-etiket-chip--aktif {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  color: var(--ap-accent);
+}
+
+.yap-gorev-etiket-yeni {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.yap-gorev-etiket-yeni .cari-outlined-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.35rem 0.15rem;
+}
+
+.yap-gorev-etiket-ekle {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  color: var(--ap-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.yap-gorev-etiket-ekle:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
-}
-
-.yap-gorev-tarih-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
 }
 
 .yap-gorev-onemli {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  align-self: flex-start;
-  height: 2.35rem;
-  padding: 0 0.75rem;
-  border-radius: 0.6rem;
-  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
-  background: color-mix(in srgb, var(--ap-input-bg, var(--ap-surface)) 92%, var(--ap-bg));
-  font-size: 0.8rem;
-  font-weight: 650;
-  color: var(--ap-text-muted);
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.35rem 0.15rem;
   cursor: pointer;
   user-select: none;
-  white-space: nowrap;
-  transition:
-    border-color 0.14s ease,
-    background 0.14s ease,
-    color 0.14s ease;
+  color: var(--ap-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .yap-gorev-onemli input {
@@ -541,24 +559,30 @@
 
 .yap-gorev-onemli-yildiz {
   color: color-mix(in srgb, var(--ap-border) 70%, #94a3b8);
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
 .yap-gorev-onemli--acik {
-  border-color: color-mix(in srgb, #eab308 45%, var(--ap-border));
-  background: color-mix(in srgb, #fde68a 28%, var(--ap-surface));
-  color: #92400e;
+  color: var(--ap-heading);
 }
 
 .yap-gorev-onemli--acik .yap-gorev-onemli-yildiz {
   color: #eab308;
 }
 
-.yap-gorev-hata {
-  margin: 0;
-  color: #b91c1c;
-  font-size: 0.78rem;
+.yap-satir-etiket {
+  flex-shrink: 0;
+  max-width: 6.5rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  color: var(--ap-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 860px) {

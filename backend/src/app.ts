@@ -16,6 +16,7 @@ import tanimlarRouter from './routes/tanimlar.js';
 import carilerRouter from './routes/cariler.js';
 import urunYonetimiRouter from './routes/urun-yonetimi.js';
 import datagridDemoRouter from './routes/datagrid-demo.js';
+import belgelerRouter from './routes/belgeler.js';
 import kullaniciAyarlariRouter from './routes/kullanici-ayarlari.js';
 
 export function appOlustur() {
@@ -56,6 +57,7 @@ export function appOlustur() {
   admin.use('/cariler', carilerRouter);
   admin.use('/urun-yonetimi', urunYonetimiRouter);
   admin.use('/datagrid-demo', datagridDemoRouter);
+  admin.use('/belgeler', belgelerRouter);
   admin.use('/kullanici-ayarlari', kullaniciAyarlariRouter);
   admin.use('/', legacyStubsRouter);
 
