@@ -153,6 +153,8 @@ export interface DataGridProps<TRow extends { id: string }> {
   /** Artırıldığında kayıtlı kolon genişlikleri varsayılanlara döner */
   kolonGenislikSurumu?: number;
   onSatirTikla?: (satir: TRow) => void;
+  /** Çift tıklama — verilirse satır düzenlemeden önce bu çağrılır */
+  onSatirCiftTikla?: (satir: TRow) => void;
   onSatirDuzenle?: (satir: TRow) => void;
   onSatirSil?: (satir: TRow) => void;
   /** Düzenle/Sil yanına ekstra işlem düğmeleri (ör. ekstre, stok kartı) */

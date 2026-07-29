@@ -72,20 +72,19 @@ export const adminModulleri: AdminModul[] = [
     yol: '/gt-admin/banka-anlasmalari',
   },
   {
-    id: 'alis-faturasi',
-    baslik: 'Alış Faturası',
+    id: 'belgeler',
+    baslik: 'Belgeler',
     ikon: '🧾',
     kategori: 'ERP',
-    yol: '/gt-admin/alis-faturasi',
-  },
-  {
-    id: 'satis-faturasi',
-    baslik: 'Satış Faturası',
-    ikon: '🧾',
-    kategori: 'ERP',
-    yol: '/gt-admin/satis-faturasi',
+    yol: '/gt-admin/belgeler',
   },
 ];
+
+/** Eski alış/satış yolları — yer imi ve sekme uyumluluğu */
+export const ESKI_BELGE_MODUL_YONLENDIRMELERI: Record<string, string> = {
+  'alis-faturasi': 'belgeler',
+  'satis-faturasi': 'belgeler',
+};
 
 /** Footer vb. üzerinden açılan, başlat menüsünde görünmeyen modüller */
 export const adminGizliModuller: AdminModul[] = [
@@ -119,6 +118,22 @@ export const adminGizliModuller: AdminModul[] = [
     ikon: '✅',
     kategori: 'Sistem',
     yol: '/gt-admin/yapilacaklar',
+    menuGizle: true,
+  },
+  {
+    id: 'alis-faturasi',
+    baslik: 'Belgeler',
+    ikon: '🧾',
+    kategori: 'ERP',
+    yol: '/gt-admin/alis-faturasi',
+    menuGizle: true,
+  },
+  {
+    id: 'satis-faturasi',
+    baslik: 'Belgeler',
+    ikon: '🧾',
+    kategori: 'ERP',
+    yol: '/gt-admin/satis-faturasi',
     menuGizle: true,
   },
 ];
@@ -155,6 +170,7 @@ const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'cari',
   'stoklar',
   'banka-anlasmalari',
+  'belgeler',
   'alis-faturasi',
   'satis-faturasi',
   'yapilacaklar',

@@ -21,7 +21,7 @@ import {
 
 /** Mock-first API — backend yerine localStorage */
 
-export async function belgelerGetir(yon: BelgeYon, tur?: BelgeTur | null): Promise<BelgeKayit[]> {
+export async function belgelerGetir(yon?: BelgeYon | null, tur?: BelgeTur | null): Promise<BelgeKayit[]> {
   return belgelerGetirMock(yon, tur);
 }
 

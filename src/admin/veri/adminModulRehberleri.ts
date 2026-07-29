@@ -623,60 +623,62 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     ipucu: 'Yeni banka anlaşması için alt çubuktaki Yeni düğmesini kullanın.',
   },
 
-  'alis-faturasi': {
-    baslik: 'Alış Faturası Rehberi',
-    altBaslik: 'Tedarikçi faturaları',
-    bolumBaslik: 'Alış Faturası',
+  'belgeler': {
+    baslik: 'Belgeler Rehberi',
+    altBaslik: 'Alış ve satış belgeleri',
+    bolumBaslik: 'Belgeler',
     kartlar: [
       {
         ikon: 'liste',
-        baslik: 'Liste ve Yeni',
-        aciklama: 'Kayıtlı alış faturalarını görüntüleyin; Yeni Fatura ile taslak oluşturun.',
+        baslik: 'Liste ve Belge Ekle',
+        aciklama: 'Tüm belgeleri tek listede görün. Belge Nevi ile alış veya satış yönünü seçin.',
         renk: 'mavi',
       },
       {
         ikon: 'yildirim',
-        baslik: 'Fatura İçeriği',
+        baslik: 'Belge Nevi',
         aciklama:
-          'Satır tablosu Sipariş İçeriği ile aynıdır. Stoklardan % ile arayıp ürün ekleyin; KDV dahil/hariç hesaplanır.',
+          'Alış ve Satış sabit nevilerdir. Özel Tanımlar > Cari ve Stok > Belge Nevileri ile yeni nevi ekleyebilirsiniz.',
         renk: 'yesil',
       },
       {
         ikon: 'onay',
-        baslik: 'Taslak ve Onay',
-        aciklama: 'Önce taslak kaydedin, sonra Onayla ile stok girişi ve cari borç hareketi oluşur.',
+        baslik: 'Kaydet',
+        aciklama: 'Taslağı kaydedin; onay sonrası stok ve cari hareketleri oluşur.',
         renk: 'turuncu',
       },
     ],
-    ipucu: 'e-Fatura gönderimi sonraki aşamada eklenecek; şimdilik manuel kayıt.',
+    ipucu: 'Cari kartından çift tıklayarak hareket ekranına, oradan Belge Ekle ile forma geçebilirsiniz.',
+  },
+
+  'alis-faturasi': {
+    baslik: 'Belgeler Rehberi',
+    altBaslik: 'Alış ve satış belgeleri',
+    bolumBaslik: 'Belgeler',
+    kartlar: [
+      {
+        ikon: 'liste',
+        baslik: 'Liste ve Belge Ekle',
+        aciklama: 'Bu ekran Belgeler modülüne taşındı. Belge Nevi ile alış/satış seçilir.',
+        renk: 'mavi',
+      },
+    ],
+    ipucu: 'Menüden Belgeler öğesini kullanın.',
   },
 
   'satis-faturasi': {
-    baslik: 'Satış Faturası Rehberi',
-    altBaslik: 'Müşteri faturaları',
-    bolumBaslik: 'Satış Faturası',
+    baslik: 'Belgeler Rehberi',
+    altBaslik: 'Alış ve satış belgeleri',
+    bolumBaslik: 'Belgeler',
     kartlar: [
       {
         ikon: 'liste',
-        baslik: 'Liste ve Yeni',
-        aciklama: 'Kayıtlı satış faturalarını görüntüleyin; Yeni Fatura ile taslak oluşturun.',
+        baslik: 'Liste ve Belge Ekle',
+        aciklama: 'Bu ekran Belgeler modülüne taşındı. Belge Nevi ile alış/satış seçilir.',
         renk: 'mavi',
       },
-      {
-        ikon: 'yildirim',
-        baslik: 'Fatura İçeriği',
-        aciklama:
-          'Satır tablosu Sipariş İçeriği ile aynıdır. Stoklardan ürün ekleyin; fiyat ve KDV satırda hesaplanır.',
-        renk: 'yesil',
-      },
-      {
-        ikon: 'onay',
-        baslik: 'Taslak ve Onay',
-        aciklama: 'Onay sonrası stok çıkışı ve cari alacak hareketi oluşur. Onaylı belge silinemez.',
-        renk: 'turuncu',
-      },
     ],
-    ipucu: 'e-Fatura / e-Arşiv entegrasyonu sonra eklenecek.',
+    ipucu: 'Menüden Belgeler öğesini kullanın.',
   },
 
   yapilacaklar: {

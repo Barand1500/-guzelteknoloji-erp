@@ -16,6 +16,9 @@ export interface BelgeKayit {
   id: string;
   yon: BelgeYon;
   tur: BelgeTur;
+  /** Belge nevi id (Alış / Satış / kullanıcı tanımlı) */
+  belgeNeviId: string;
+  belgeNeviAdi: string;
   /** Geriye uyum / filtre: ALIS_FATURA gibi */
   tip: string;
   belgeNo: string;
@@ -54,6 +57,8 @@ export interface BelgeKayit {
 export interface BelgeKayitGirdi {
   yon: BelgeYon;
   tur: BelgeTur;
+  belgeNeviId?: string;
+  belgeNeviAdi?: string;
   belgeNo?: string;
   seri?: string;
   siraNo?: number;

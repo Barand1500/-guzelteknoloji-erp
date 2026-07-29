@@ -39,7 +39,16 @@ function yazJson(anahtar: string, veri: unknown) {
 }
 
 function belgelerOku(): BelgeKayit[] {
-  return okuJson<BelgeKayit[]>(BELGE_ANAHTAR, []);
+  const ham = okuJson<(Partial<BelgeKayit> & BelgeKayit)[]>(BELGE_ANAHTAR, []);
+  return ham.map((b) => {
+    if (b.belgeNeviId && b.belgeNeviAdi) return b;
+    const yon = b.yon === 'SATIS' ? 'SATIS' : 'ALIS';
+    return {
+      ...b,
+      belgeNeviId: yon === 'ALIS' ? 'bn-alis' : 'bn-satis',
+      belgeNeviAdi: yon === 'ALIS' ? 'Alış' : 'Satış',
+    };
+  });
 }
 
 function belgelerYaz(liste: BelgeKayit[]) {
@@ -175,9 +184,9 @@ export function cariBakiyeAl(cariKodu: string): { borc: number; alacak: number; 
   return { borc, alacak, bakiye: yuvarla2(borc - alacak) };
 }
 
-export function belgelerGetirMock(yon: BelgeYon, tur?: BelgeTur | null): BelgeKayit[] {
+export function belgelerGetirMock(yon?: BelgeYon | null, tur?: BelgeTur | null): BelgeKayit[] {
   return belgelerOku()
-    .filter((b) => b.yon === yon && (!tur || b.tur === tur))
+    .filter((b) => (!yon || b.yon === yon) && (!tur || b.tur === tur))
     .sort((a, b) => (a.tarih < b.tarih ? 1 : a.tarih > b.tarih ? -1 : 0));
 }
 
@@ -197,6 +206,14 @@ function girdiNormalize(girdi: BelgeKayitGirdi, mevcut?: BelgeKayit): BelgeKayit
     id: mevcut?.id ?? `b-${Date.now()}`,
     yon: girdi.yon,
     tur: girdi.tur,
+    belgeNeviId:
+      girdi.belgeNeviId ||
+      mevcut?.belgeNeviId ||
+      (girdi.yon === 'ALIS' ? 'bn-alis' : 'bn-satis'),
+    belgeNeviAdi:
+      girdi.belgeNeviAdi ||
+      mevcut?.belgeNeviAdi ||
+      (girdi.yon === 'ALIS' ? 'Alış' : 'Satış'),
     tip: belgeTipKodu(girdi.yon, girdi.tur),
     belgeNo,
     seri,
@@ -436,6 +453,8 @@ export function belgedenAktarMock(
   return belgeOlusturMock({
     yon: kaynak.yon,
     tur: hedefTur,
+    belgeNeviId: kaynak.belgeNeviId,
+    belgeNeviAdi: kaynak.belgeNeviAdi,
     belgeNo: oner.belgeNo,
     seri: oner.seri,
     siraNo: oner.siraNo,
@@ -476,6 +495,8 @@ export function iadeTaslagiOlusturMock(
   return belgeOlusturMock({
     yon: kaynak.yon,
     tur: 'IADE',
+    belgeNeviId: kaynak.belgeNeviId,
+    belgeNeviAdi: kaynak.belgeNeviAdi,
     belgeNo: oner.belgeNo,
     seri: oner.seri,
     siraNo: oner.siraNo,

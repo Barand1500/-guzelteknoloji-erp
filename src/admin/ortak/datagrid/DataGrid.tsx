@@ -404,6 +404,7 @@ export function DataGrid<TRow extends { id: string }>({
   satirSinifAdi,
   kolonGenislikSurumu,
   onSatirTikla,
+  onSatirCiftTikla,
   onSatirDuzenle,
   onSatirSil,
   satirIslemEkleri,
@@ -1572,6 +1573,10 @@ export function DataGrid<TRow extends { id: string }>({
             onSatirTikla(satir);
           }}
           onDoubleClick={() => {
+            if (onSatirCiftTikla) {
+              onSatirCiftTikla(satir);
+              return;
+            }
             const ilk = dg.gorunurKolonlar.find(
               (k) => gezinilebilirKolonMu(k) && k.duzenlenebilir && k.tip !== 'salt-okunur'
             );
@@ -1719,6 +1724,10 @@ export function DataGrid<TRow extends { id: string }>({
                 }}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
+                  if (onSatirCiftTikla) {
+                    onSatirCiftTikla(satir);
+                    return;
+                  }
                   const katman =
                     kolon.tip === 'birlesik' && kolon.birlesikDuzenle
                       ? birlesikDuzenlemeKatmani(e, satir, kolon)

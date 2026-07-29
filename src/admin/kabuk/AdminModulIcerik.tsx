@@ -11,10 +11,10 @@ import { TanimlarSayfasi } from '@/admin/baslat-menusu/tanimlar/sayfa';
 import { CariSayfasi } from '@/admin/baslat-menusu/erp/cari/sayfa';
 import { StoklarSayfasi } from '@/admin/baslat-menusu/erp/stoklar/StoklarSayfasi';
 import { BankaAnlasmalariSayfasi } from '@/admin/baslat-menusu/erp/banka-anlasmalari/sayfa';
-import { AlisFaturasiSayfasi } from '@/admin/baslat-menusu/erp/belgeler/alis-faturasi/sayfa';
-import { SatisFaturasiSayfasi } from '@/admin/baslat-menusu/erp/belgeler/satis-faturasi/sayfa';
+import { BelgelerSayfasi } from '@/admin/baslat-menusu/erp/belgeler/sayfa';
 import { OzelTanimlarSayfasi } from '@/admin/baslat-menusu/ozel-tanimlar/sayfa';
 import { ModulKabuk } from '@/baglamlar/ModulKabukContext';
+import { ESKI_BELGE_MODUL_YONLENDIRMELERI } from '@/admin/veri/adminMenuYapisi';
 
 interface AdminModulIcerikProps {
   modulId: string;
@@ -29,8 +29,10 @@ export function AdminModulIcerik({ modulId, onModulAc }: AdminModulIcerikProps) 
   );
 }
 
-function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
-  switch (modulId) {
+function AdminModulGovde({ modulId, onModulAc }: AdminModulIcerikProps) {
+  const cozulmusId = ESKI_BELGE_MODUL_YONLENDIRMELERI[modulId] ?? modulId;
+
+  switch (cozulmusId) {
     case 'loglar':
       return <LoglarSayfasi />;
     case 'veri-yedekleme':
@@ -52,15 +54,13 @@ function AdminModulGovde({ modulId }: AdminModulIcerikProps) {
     case 'tanimlar':
       return <TanimlarSayfasi />;
     case 'cari':
-      return <CariSayfasi />;
+      return <CariSayfasi onModulAc={onModulAc} />;
     case 'stoklar':
       return <StoklarSayfasi />;
     case 'banka-anlasmalari':
       return <BankaAnlasmalariSayfasi />;
-    case 'alis-faturasi':
-      return <AlisFaturasiSayfasi />;
-    case 'satis-faturasi':
-      return <SatisFaturasiSayfasi />;
+    case 'belgeler':
+      return <BelgelerSayfasi />;
     case 'ozel-tanimlar':
       return <OzelTanimlarSayfasi />;
     default:

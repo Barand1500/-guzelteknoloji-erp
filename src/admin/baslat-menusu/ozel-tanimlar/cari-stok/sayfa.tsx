@@ -7,6 +7,7 @@ import { useOtIcSekmeKlavye } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/ot
 import { CariTipleriListeSayfasi } from './CariTipleriListe';
 import { StokTipleriListeSayfasi } from './StokTipleriListe';
 import { OlcuBirimleriListeSayfasi } from './OlcuBirimleriListe';
+import { BelgeNevileriListeSayfasi } from './BelgeNevileriListe';
 
 export function CariStokHubSayfasi() {
   const [sekme, setSekme] = useState<CariStokSekmeId>('cari-tipleri');
@@ -48,6 +49,7 @@ export function CariStokHubSayfasi() {
         {sekme === 'cari-tipleri' ? <CariTipleriListeSayfasi /> : null}
         {sekme === 'stok-tipleri' ? <StokTipleriListeSayfasi /> : null}
         {sekme === 'olcu-birimler' ? <OlcuBirimleriListeSayfasi /> : null}
+        {sekme === 'belge-nevileri' ? <BelgeNevileriListeSayfasi /> : null}
       </div>
     </div>
   );

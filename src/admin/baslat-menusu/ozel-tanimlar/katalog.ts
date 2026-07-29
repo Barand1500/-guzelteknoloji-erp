@@ -36,7 +36,7 @@ export const OZEL_TANIM_MODULLERI: readonly OzelTanimModulTanimi[] = [
   {
     id: 'cari-stok',
     baslik: 'Cari ve Stok',
-    aciklama: 'Cari tipi, stok tipi ve ölçü birimleri',
+    aciklama: 'Cari tipi, stok tipi, ölçü birimleri ve belge nevileri',
   },
   {
     id: 'resmi-tatiller',
@@ -77,7 +77,7 @@ export const VERGI_SEKMELERI: readonly {
 ] as const;
 
 /** Cari ve Stok iç sekmeleri — Fiyat Tanımları yok */
-export type CariStokSekmeId = 'cari-tipleri' | 'stok-tipleri' | 'olcu-birimler';
+export type CariStokSekmeId = 'cari-tipleri' | 'stok-tipleri' | 'olcu-birimler' | 'belge-nevileri';
 
 export const CARI_STOK_SEKMELERI: readonly {
   id: CariStokSekmeId;
@@ -86,4 +86,5 @@ export const CARI_STOK_SEKMELERI: readonly {
   { id: 'cari-tipleri', baslik: 'Cari Tipleri' },
   { id: 'stok-tipleri', baslik: 'Stok Tipleri' },
   { id: 'olcu-birimler', baslik: 'Ölçü ve Birimler' },
+  { id: 'belge-nevileri', baslik: 'Belge Nevileri' },
 ] as const;

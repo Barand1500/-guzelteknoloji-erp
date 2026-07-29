@@ -1,6 +1,5 @@
 import { FaturaModulu } from '@/admin/baslat-menusu/erp/belgeler/FaturaModulu';
 
-/** Eski yol uyumluluğu — birleşik Belgeler ekranına yönlendirir */
-export function AlisFaturasiSayfasi() {
+export function BelgelerSayfasi() {
   return <FaturaModulu modulId="belgeler" baslik="Belgeler" />;
 }

@@ -14,6 +14,7 @@ import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { cariSil, cariGuncelle, carileriGetir } from './api';
 import { CariKart } from './bilesenler/CariKart';
+import { CariHareketSayfasi } from './CariHareketSayfasi';
 import { CariGelismisArama } from './CariGelismisArama';
 import {
   bosCariGelismisFiltre,
@@ -28,7 +29,7 @@ import type { AdminCari, CariKartModu } from './tipler';
 import { CariEkstreModal } from '@/admin/baslat-menusu/erp/belgeler/CariEkstreModal';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 
-type Gorunum = 'liste' | 'kart';
+type Gorunum = 'liste' | 'kart' | 'hareket';
 
 function CariGezinOk({
   yon,
@@ -91,7 +92,7 @@ function CariListelemeTus({ onGit }: { onGit: () => void }) {
   );
 }
 
-export function CariSayfasi() {
+export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => void } = {}) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { goruntulemeVar, eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('cari');
   const [gorunum, setGorunum] = useState<Gorunum>('liste');
@@ -199,6 +200,17 @@ export function CariSayfasi() {
     [duzenlemeVar, kartKirli]
   );
 
+  const hareketAc = useCallback((satirId?: string) => {
+    const hedefId = satirId ?? baglamCariId;
+    if (!hedefId) {
+      hataBildir('Hareketleri görmek için bir cari satırı seçin.');
+      return;
+    }
+    setSeciliIdler([hedefId]);
+    setAktifCariId(hedefId);
+    setGorunum('hareket');
+  }, [baglamCariId, hataBildir]);
+
   const yeniAc = useCallback(() => {
     if (!eklemeVar) return;
     setKartModu('yeni');
@@ -286,10 +298,15 @@ export function CariSayfasi() {
     {
       kaydet: kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar),
       ekle: eklemeVar,
-      guncelle: duzenlemeVar && cariSecili && gorunum === 'liste',
+      guncelle: duzenlemeVar && cariSecili && (gorunum === 'liste' || gorunum === 'hareket'),
       sil: silmeVar && cariSecili && gorunum === 'liste',
     },
     kartFormu ? kartKirli : false
+  );
+
+  const aktifHareketCari = useMemo(
+    () => (aktifCariId ? kayitlar.find((k) => k.id === aktifCariId) ?? null : null),
+    [aktifCariId, kayitlar]
   );
 
   const silOnayla = useCallback(async () => {
@@ -363,16 +380,22 @@ export function CariSayfasi() {
   const kolonlar = useMemo(() => cariKolonlari(), []);
 
   const modulBaslik =
-    gorunum === 'kart' && kartModu === 'yeni'
-      ? 'Yeni Cari Kart Ekleme'
-      : gorunum === 'kart' && kartModu === 'duzenle'
-        ? 'Cari Kart Düzenleme'
-        : gorunum === 'kart' && kartModu === 'incele'
-          ? 'Cari Kart İnceleme'
-          : 'Cari Kartlar';
+    gorunum === 'hareket'
+      ? 'Cari Hareketleri'
+      : gorunum === 'kart' && kartModu === 'yeni'
+        ? 'Yeni Cari Kart Ekleme'
+        : gorunum === 'kart' && kartModu === 'duzenle'
+          ? 'Cari Kart Düzenleme'
+          : gorunum === 'kart' && kartModu === 'incele'
+            ? 'Cari Kart İnceleme'
+            : 'Cari Kartlar';
 
   const modulAciklama =
-    gorunum === 'liste' ? 'Cari kartlarını listeleyin, arayın ve yönetin.' : undefined;
+    gorunum === 'liste'
+      ? 'Cari kartlarını listeleyin, arayın ve yönetin. Çift tıklayınca hareketler açılır.'
+      : gorunum === 'hareket'
+        ? 'Cari özeti, hareketler ve belgeler.'
+        : undefined;
 
   if (!goruntulemeVar) {
     return (
@@ -385,25 +408,35 @@ export function CariSayfasi() {
       baslik={modulBaslik}
       aciklama={modulAciklama}
       ustAksiyon={
-        gorunum === 'kart' ? (
+        gorunum === 'kart' || gorunum === 'hareket' ? (
           <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
             <CariListelemeTus onGit={() => listeyeDon()} />
-            <CariGezinOk
-              yon="geri"
-              hedef={oncekiCari}
-              onGit={() => oncekiCari && cariyeGit(oncekiCari)}
-            />
-            <CariGezinOk
-              yon="ileri"
-              hedef={sonrakiCari}
-              onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
-            />
+            {gorunum === 'kart' ? (
+              <>
+                <CariGezinOk
+                  yon="geri"
+                  hedef={oncekiCari}
+                  onGit={() => oncekiCari && cariyeGit(oncekiCari)}
+                />
+                <CariGezinOk
+                  yon="ileri"
+                  hedef={sonrakiCari}
+                  onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
+                />
+              </>
+            ) : null}
           </div>
         ) : null
       }
     >
       <div className="ap-tanimlar-sayfa">
-        {gorunum === 'kart' ? (
+        {gorunum === 'hareket' && aktifHareketCari ? (
+          <CariHareketSayfasi
+            cari={aktifHareketCari}
+            onGeri={() => listeyeDon({ kayitSonrasi: true })}
+            onModulAc={onModulAc}
+          />
+        ) : gorunum === 'kart' ? (
           <CariKart
             mod={kartModu}
             cariId={aktifCariId}
@@ -496,6 +529,7 @@ export function CariSayfasi() {
                       bosMesaj="Aramanızla eşleşen cari bulunamadı. Yeni ile cari kart ekleyebilirsiniz."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => gridApiRef.current?.secimAyarla([s.id])}
+                      onSatirCiftTikla={(s) => hareketAc(s.id)}
                       onSatirSil={silmeVar ? (s) => setSilme(s) : undefined}
                       onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}
                       satirIslemEkleri={(s) => (
