@@ -887,6 +887,7 @@ export function DatagridDemoSayfasi() {
         onSatirGuncelle={(s) => satirHesapla(s, kdvDahil)}
 
         satirPanelModu="cubuk"
+        sutunMenuModu="portal"
 
         satirDuzenlePaneli={(satir, onKaydet, onKapat) => (
 

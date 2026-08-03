@@ -4,10 +4,12 @@ import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
 import {
   BELGE_NEVILERI_GUNCELLENDI,
+  BELGE_YON_SECENEKLERI,
   belgeNeviEkle,
   belgeNeviGuncelle,
   belgeNeviSil,
   belgeNevileriGetir,
+  belgeYonEtiketi,
   type BelgeNevi,
 } from '@/admin/baslat-menusu/ozel-tanimlar/veri/belgeNevileri';
 import {
@@ -24,10 +26,7 @@ const TUR_SECENEKLERI = (['SIPARIS', 'IRSALIYE', 'FATURA', 'IADE'] as BelgeTur[]
   label: belgeTurEtiketi(t),
 }));
 
-const YON_SECENEKLERI = [
-  { value: 'ALIS', label: 'Alış' },
-  { value: 'SATIS', label: 'Satış' },
-];
+const YON_SECENEKLERI = BELGE_YON_SECENEKLERI;
 
 export function BelgeNevileriListeSayfasi() {
   const [liste, setListe] = useState<BelgeNevi[]>(() => belgeNevileriGetir());
@@ -138,7 +137,7 @@ export function BelgeNevileriListeSayfasi() {
           <thead>
             <tr>
               <th>Adı</th>
-              <th>Yön</th>
+              <th>Belge türü</th>
               <th>Varsayılan tür</th>
               <th className="ot-pb-islem-th">#</th>
             </tr>
@@ -157,7 +156,7 @@ export function BelgeNevileriListeSayfasi() {
                     {t.adi}
                     {t.sabit ? <span className="ap-muted text-xs"> · sabit</span> : null}
                   </td>
-                  <td>{t.yon === 'ALIS' ? 'Alış' : 'Satış'}</td>
+                  <td>{belgeYonEtiketi(t.yon)}</td>
                   <td>{belgeTurEtiketi(t.varsayilanTur)}</td>
                   <td className="ot-pb-islem-td">
                     <OtIslemButonlari
@@ -215,7 +214,7 @@ export function BelgeNevileriListeSayfasi() {
             zorunlu
           />
           <OtOutlinedAcilir
-            etiket="Yön (Alış / Satış)"
+            etiket="Belge türü (Giriş / Çıkış)"
             deger={yon}
             secenekler={YON_SECENEKLERI}
             onChange={(v) => setYon(v as BelgeYon)}

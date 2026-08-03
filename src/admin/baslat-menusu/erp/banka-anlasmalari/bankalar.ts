@@ -1,5 +1,5 @@
 /**
- * Banka Anlaşmaları uyumluluk katmanı — Özel Tanımlar bankalar kaynağına delege eder.
+ * Bankalar  uyumluluk katmanı — Özel Tanımlar bankalar kaynağına delege eder.
  */
 export {
   bankaEkle,

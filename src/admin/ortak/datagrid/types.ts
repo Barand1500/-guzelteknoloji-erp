@@ -187,4 +187,6 @@ export interface DataGridProps<TRow extends { id: string }> {
   topluDurumTuslariGoster?: boolean;
   /** 'cubuk' modunda satır düzenle paneli aksiyon çubuğunun üstünden açılır */
   satirPanelModu?: 'sheet' | 'cubuk';
+  /** 'cubuk' = alt aksiyon çubuğu üstü (varsayılan); 'portal' = sütun ikonunun yanında (ƒx gibi) */
+  sutunMenuModu?: 'cubuk' | 'portal';
 }

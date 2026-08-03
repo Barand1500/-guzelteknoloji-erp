@@ -1,10 +1,12 @@
-/** Belge nevileri — sabit Alış/Satış + kullanıcı tanımlı (Özel Tanımlar) */
+/** Belge nevileri — Vega tarzı sabitler + kullanıcı tanımlı (Özel Tanımlar) */
 
 import type { BelgeTur, BelgeYon } from '@/admin/baslat-menusu/erp/belgeler/tipler';
 
 export const BELGE_NEVILERI_GUNCELLENDI = 'ap-ozel-belge-nevileri-guncellendi';
 
-const ANAHTAR = 'erp-ozel-belge-nevileri-v1';
+/** v2: Alış/Satış → Alış Faturası / Satış Faturası + stok fişleri */
+const ANAHTAR = 'erp-ozel-belge-nevileri-v2';
+const ESKI_ANAHTAR = 'erp-ozel-belge-nevileri-v1';
 
 export interface BelgeNevi {
   id: string;
@@ -13,7 +15,7 @@ export interface BelgeNevi {
   yon: BelgeYon;
   varsayilanTur: BelgeTur;
   aktif: boolean;
-  /** Sabit Alış / Satış — silinemez, yön değiştirilemez */
+  /** Sabit nevi — silinemez, yön değiştirilemez */
   sabit: boolean;
 }
 
@@ -35,12 +37,21 @@ export interface BelgeNeviSecenek {
 
 export const SABIT_BELGE_NEVI_ALIS = 'bn-alis';
 export const SABIT_BELGE_NEVI_SATIS = 'bn-satis';
+export const SABIT_BELGE_NEVI_STOK_GIRIS = 'bn-stok-giris';
+export const SABIT_BELGE_NEVI_STOK_CIKIS = 'bn-stok-cikis';
+
+const SABIT_IDLER = new Set([
+  SABIT_BELGE_NEVI_ALIS,
+  SABIT_BELGE_NEVI_SATIS,
+  SABIT_BELGE_NEVI_STOK_GIRIS,
+  SABIT_BELGE_NEVI_STOK_CIKIS,
+]);
 
 const VARSAYILAN: BelgeNevi[] = [
   {
     id: SABIT_BELGE_NEVI_ALIS,
-    kod: 'ALIS',
-    adi: 'Alış',
+    kod: 'ALIS_FATURA',
+    adi: 'Alış Faturası',
     yon: 'ALIS',
     varsayilanTur: 'FATURA',
     aktif: true,
@@ -48,13 +59,41 @@ const VARSAYILAN: BelgeNevi[] = [
   },
   {
     id: SABIT_BELGE_NEVI_SATIS,
-    kod: 'SATIS',
-    adi: 'Satış',
+    kod: 'SATIS_FATURA',
+    adi: 'Satış Faturası',
     yon: 'SATIS',
     varsayilanTur: 'FATURA',
     aktif: true,
     sabit: true,
   },
+  {
+    id: SABIT_BELGE_NEVI_STOK_GIRIS,
+    kod: 'STOK_GIRIS',
+    adi: 'Stok Giriş Fişi',
+    yon: 'ALIS',
+    varsayilanTur: 'IRSALIYE',
+    aktif: true,
+    sabit: true,
+  },
+  {
+    id: SABIT_BELGE_NEVI_STOK_CIKIS,
+    kod: 'STOK_CIKIS',
+    adi: 'Stok Çıkış Fişi',
+    yon: 'SATIS',
+    varsayilanTur: 'IRSALIYE',
+    aktif: true,
+    sabit: true,
+  },
+];
+
+/** Belge türü ekran etiketi — Giriş / Çıkış */
+export function belgeYonEtiketi(yon: BelgeYon): string {
+  return yon === 'ALIS' ? 'Giriş' : 'Çıkış';
+}
+
+export const BELGE_YON_SECENEKLERI: { value: BelgeYon; label: string }[] = [
+  { value: 'ALIS', label: 'Giriş' },
+  { value: 'SATIS', label: 'Çıkış' },
 ];
 
 function duyur() {
@@ -69,33 +108,29 @@ export function belgeNeviKodUret(adi: string): string {
     .replace(/[^A-Z0-9ÇĞİÖŞÜ_]/gi, '');
 }
 
+function sabitTanimi(id: string): BelgeNevi | undefined {
+  return VARSAYILAN.find((t) => t.id === id);
+}
+
 function normalize(t: Partial<BelgeNevi> & { adi: string; id: string }): BelgeNevi {
-  const sabit =
-    t.sabit === true || t.id === SABIT_BELGE_NEVI_ALIS || t.id === SABIT_BELGE_NEVI_SATIS;
-  const yon: BelgeYon =
-    sabit && t.id === SABIT_BELGE_NEVI_ALIS
-      ? 'ALIS'
-      : sabit && t.id === SABIT_BELGE_NEVI_SATIS
-        ? 'SATIS'
-        : t.yon === 'SATIS'
-          ? 'SATIS'
-          : 'ALIS';
-  const adi = sabit
-    ? t.id === SABIT_BELGE_NEVI_ALIS
-      ? 'Alış'
-      : 'Satış'
-    : t.adi.trim();
-  const kod = sabit
-    ? yon
-    : (t.kod?.trim() || belgeNeviKodUret(adi) || t.id).toLocaleUpperCase('tr');
+  const sabitSablon = sabitTanimi(t.id);
+  const sabit = t.sabit === true || Boolean(sabitSablon);
+  if (sabit && sabitSablon) {
+    return {
+      ...sabitSablon,
+      aktif: t.aktif !== false,
+      varsayilanTur: (t.varsayilanTur as BelgeTur) || sabitSablon.varsayilanTur,
+    };
+  }
+  const yon: BelgeYon = t.yon === 'SATIS' ? 'SATIS' : 'ALIS';
   return {
     id: t.id,
-    kod,
-    adi,
+    kod: (t.kod?.trim() || belgeNeviKodUret(t.adi) || t.id).toLocaleUpperCase('tr'),
+    adi: t.adi.trim(),
     yon,
     varsayilanTur: (t.varsayilanTur as BelgeTur) || 'FATURA',
     aktif: t.aktif !== false,
-    sabit,
+    sabit: false,
   };
 }
 
@@ -106,34 +141,44 @@ function sabitleriGaranti(liste: BelgeNevi[]): BelgeNevi[] {
     map.set(sabit.id, mevcut ? normalize({ ...mevcut, ...sabit, sabit: true }) : { ...sabit });
   }
   return [...map.values()].sort((a, b) => {
+    const ai = VARSAYILAN.findIndex((v) => v.id === a.id);
+    const bi = VARSAYILAN.findIndex((v) => v.id === b.id);
+    if (ai >= 0 && bi >= 0) return ai - bi;
     if (a.sabit && !b.sabit) return -1;
     if (!a.sabit && b.sabit) return 1;
     return a.adi.localeCompare(b.adi, 'tr');
   });
 }
 
-function oku(): BelgeNevi[] {
+function okuHam(): Partial<BelgeNevi>[] | null {
   try {
-    const ham = localStorage.getItem(ANAHTAR);
-    if (ham) {
-      const liste = JSON.parse(ham) as Partial<BelgeNevi>[];
-      if (Array.isArray(liste) && liste.length > 0) {
-        const normalizeListe = liste
-          .filter((t): t is Partial<BelgeNevi> & { adi: string; id: string } =>
-            Boolean(t?.id && t?.adi)
-          )
-          .map(normalize);
-        return sabitleriGaranti(normalizeListe);
-      }
-    }
+    const ham = localStorage.getItem(ANAHTAR) ?? localStorage.getItem(ESKI_ANAHTAR);
+    if (!ham) return null;
+    const liste = JSON.parse(ham) as Partial<BelgeNevi>[];
+    return Array.isArray(liste) && liste.length > 0 ? liste : null;
   } catch {
-    /* bozuk */
+    return null;
+  }
+}
+
+function oku(): BelgeNevi[] {
+  const ham = okuHam();
+  if (ham) {
+    const normalizeListe = ham
+      .filter((t): t is Partial<BelgeNevi> & { adi: string; id: string } => Boolean(t?.id && t?.adi))
+      .map(normalize);
+    return sabitleriGaranti(normalizeListe);
   }
   return VARSAYILAN.map((t) => ({ ...t }));
 }
 
 function yaz(liste: BelgeNevi[]) {
   localStorage.setItem(ANAHTAR, JSON.stringify(sabitleriGaranti(liste)));
+  try {
+    localStorage.removeItem(ESKI_ANAHTAR);
+  } catch {
+    /* ignore */
+  }
   duyur();
 }
 
@@ -209,8 +254,7 @@ export function belgeNeviGuncelle(idVeyaKod: string, girdi: BelgeNeviGirdi): boo
   const mevcut = oku();
   const hedef = mevcut.find((t) => t.id === idVeyaKod || t.kod === idVeyaKod.toLocaleUpperCase('tr'));
   if (!hedef) return false;
-  if (hedef.sabit) {
-    /* Sabit nevilerde yalnızca varsayılan tür / aktif güncellenebilir */
+  if (hedef.sabit || SABIT_IDLER.has(hedef.id)) {
     yaz(
       mevcut.map((t) =>
         t.id === hedef.id
@@ -252,7 +296,7 @@ export function belgeNeviGuncelle(idVeyaKod: string, girdi: BelgeNeviGirdi): boo
 
 export function belgeNeviSil(idVeyaKod: string): boolean {
   const hedef = belgeNeviBul(idVeyaKod);
-  if (!hedef || hedef.sabit) return false;
+  if (!hedef || hedef.sabit || SABIT_IDLER.has(hedef.id)) return false;
   yaz(oku().filter((t) => t.id !== hedef.id));
   return true;
 }

@@ -12,6 +12,40 @@ export type BelgeSatiri = SiparisSatiri;
 
 export type OdemeKanali = 'KASA' | 'BANKA';
 
+/** Belge geneli oransal iskonto % (İsk1…İsk6; UI’da ilk 3 kullanılır) */
+export type BelgeIskontoDizisi = [number, number, number, number, number, number];
+
+/** Belge geneli tutarsal alt iskonto (1…3) */
+export type BelgeIskontoTutarsal = [number, number, number];
+
+export function bosBelgeIskontolari(): BelgeIskontoDizisi {
+  return [0, 0, 0, 0, 0, 0];
+}
+
+export function bosBelgeIskontoTutarlari(): BelgeIskontoTutarsal {
+  return [0, 0, 0];
+}
+
+export function gecerliBelgeIskontolari(ham: unknown): BelgeIskontoDizisi {
+  const kaynak = Array.isArray(ham) ? ham : [];
+  const sonuc = bosBelgeIskontolari();
+  for (let i = 0; i < 6; i++) {
+    const n = Number(kaynak[i]);
+    sonuc[i] = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
+  }
+  return sonuc;
+}
+
+export function gecerliBelgeIskontoTutarlari(ham: unknown): BelgeIskontoTutarsal {
+  const kaynak = Array.isArray(ham) ? ham : [];
+  const sonuc = bosBelgeIskontoTutarlari();
+  for (let i = 0; i < 3; i++) {
+    const n = Number(kaynak[i]);
+    sonuc[i] = Number.isFinite(n) ? Math.max(0, Math.round(n * 100) / 100) : 0;
+  }
+  return sonuc;
+}
+
 export interface BelgeKayit {
   id: string;
   yon: BelgeYon;
@@ -36,8 +70,15 @@ export interface BelgeKayit {
   cariKodu: string;
   cariAdi: string;
   aciklama: string;
+  kasaId: string | null;
+  kasaKodu: string;
+  kasaAdi: string;
   kdvDahil: boolean;
   durum: BelgeDurum;
+  /** Belge geneli kademeli iskonto % (İsk1…İsk6) */
+  belgeIskontolari: BelgeIskontoDizisi;
+  /** Belge geneli tutarsal alt iskonto (1…3) */
+  belgeIskontoTutarlari: BelgeIskontoTutarsal;
   araToplam: number;
   kdvToplam: number;
   genelToplam: number;
@@ -74,7 +115,12 @@ export interface BelgeKayitGirdi {
   cariKodu: string;
   cariAdi: string;
   aciklama?: string;
+  kasaId?: string | null;
+  kasaKodu?: string;
+  kasaAdi?: string;
   kdvDahil: boolean;
+  belgeIskontolari?: BelgeIskontoDizisi | number[];
+  belgeIskontoTutarlari?: BelgeIskontoTutarsal | number[];
   araToplam: number;
   kdvToplam: number;
   genelToplam: number;
@@ -90,6 +136,19 @@ export interface StokBakiyeSatir {
   depoKodu: string;
   miktar: number;
   birim: string;
+}
+
+/** Stok çıkışında bakiyenin yetmediği ürün */
+export interface StokEksikSatir {
+  urunKodu: string;
+  urunAdi: string;
+  birim: string;
+  /** Depodaki mevcut bakiye */
+  mevcut: number;
+  /** Belgede istenen toplam miktar */
+  istenen: number;
+  /** istenen − mevcut (pozitif) */
+  eksik: number;
 }
 
 export interface StokHareketKayit {
@@ -162,13 +221,57 @@ export function bugunIso(): string {
 }
 
 export function satirToplamlari(satirlar: BelgeSatiri[]) {
-  const araToplam = satirlar.reduce((t, s) => t + (s.gercekToplam || 0), 0);
-  const kdvToplam = satirlar.reduce((t, s) => t + (s.toplamKdvTutar || 0), 0);
-  const genelToplam = satirlar.reduce((t, s) => t + (s.toplamTutar || 0), 0);
+  const aktif = satirlar.filter((s) => s.durum !== false);
+  const araToplam = aktif.reduce((t, s) => t + (s.gercekToplam || 0), 0);
+  const kdvToplam = aktif.reduce((t, s) => t + (s.toplamKdvTutar || 0), 0);
   return {
     araToplam: Math.round(araToplam * 100) / 100,
     kdvToplam: Math.round(kdvToplam * 100) / 100,
-    genelToplam: Math.round(genelToplam * 100) / 100,
+    genelToplam: Math.round((araToplam + kdvToplam) * 100) / 100,
+  };
+}
+
+/**
+ * Ara toplam üzerine önce tutarsal (1→3), sonra oransal % (İsk1→İsk6) uygular;
+ * KDV’yi kalan ara orana göre ölçekler.
+ */
+export function belgeIskontoUygula(
+  araToplam: number,
+  kdvToplam: number,
+  iskontolar: BelgeIskontoDizisi | number[],
+  tutarsallar: BelgeIskontoTutarsal | number[] = [0, 0, 0]
+) {
+  const isk = gecerliBelgeIskontolari(iskontolar);
+  const tut = gecerliBelgeIskontoTutarlari(tutarsallar);
+  let kalan = Math.round(araToplam * 100) / 100;
+  const tutarsalUygulanan: BelgeIskontoTutarsal = [0, 0, 0];
+  for (let i = 0; i < 3; i++) {
+    const dus = Math.min(kalan, tut[i]!);
+    tutarsalUygulanan[i] = dus;
+    kalan = Math.round((kalan - dus) * 100) / 100;
+  }
+  const iskontoTutarlari: BelgeIskontoDizisi = [0, 0, 0, 0, 0, 0];
+  for (let i = 0; i < 6; i++) {
+    const yuzde = isk[i]!;
+    const tutar = Math.round(kalan * (yuzde / 100) * 100) / 100;
+    iskontoTutarlari[i] = tutar;
+    kalan = Math.round((kalan - tutar) * 100) / 100;
+  }
+  const iskontoToplam = Math.round((araToplam - kalan) * 100) / 100;
+  const oran = araToplam > 0 ? kalan / araToplam : 1;
+  const kdv = Math.round(kdvToplam * oran * 100) / 100;
+  const genelToplam = Math.round((kalan + kdv) * 100) / 100;
+  return {
+    /** İskonto öncesi satır toplamı (= Tutar) */
+    tutar: Math.round(araToplam * 100) / 100,
+    netAra: kalan,
+    iskontoToplam,
+    iskontoTutarlari,
+    tutarsalUygulanan,
+    iskontolar: isk,
+    tutarsallar: tut,
+    kdvToplam: kdv,
+    genelToplam,
   };
 }
 

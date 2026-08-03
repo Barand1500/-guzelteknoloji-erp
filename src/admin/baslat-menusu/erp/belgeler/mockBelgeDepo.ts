@@ -4,16 +4,22 @@
  */
 import {
   belgeTipKodu,
+  bosBelgeIskontolari,
+  bosBelgeIskontoTutarlari,
   cariEtkiHesapla,
+  gecerliBelgeIskontolari,
+  gecerliBelgeIskontoTutarlari,
   stokMiktarIsareti,
   type BelgeKayit,
   type BelgeKayitGirdi,
+  type BelgeSatiri,
   type BelgeTur,
   type BelgeYon,
   type CariHareketKayit,
   type OdemeKanali,
   type OdemeKayit,
   type StokBakiyeSatir,
+  type StokEksikSatir,
   type StokHareketKayit,
 } from './tipler';
 
@@ -41,12 +47,16 @@ function yazJson(anahtar: string, veri: unknown) {
 function belgelerOku(): BelgeKayit[] {
   const ham = okuJson<(Partial<BelgeKayit> & BelgeKayit)[]>(BELGE_ANAHTAR, []);
   return ham.map((b) => {
-    if (b.belgeNeviId && b.belgeNeviAdi) return b;
     const yon = b.yon === 'SATIS' ? 'SATIS' : 'ALIS';
     return {
       ...b,
-      belgeNeviId: yon === 'ALIS' ? 'bn-alis' : 'bn-satis',
-      belgeNeviAdi: yon === 'ALIS' ? 'Alış' : 'Satış',
+      belgeNeviId: b.belgeNeviId || (yon === 'ALIS' ? 'bn-alis' : 'bn-satis'),
+      belgeNeviAdi: b.belgeNeviAdi || (yon === 'ALIS' ? 'Alış' : 'Satış'),
+      belgeIskontolari: gecerliBelgeIskontolari(b.belgeIskontolari),
+      belgeIskontoTutarlari: gecerliBelgeIskontoTutarlari(b.belgeIskontoTutarlari),
+      kasaId: b.kasaId ?? null,
+      kasaKodu: b.kasaKodu ?? '',
+      kasaAdi: b.kasaAdi ?? '',
     };
   });
 }
@@ -132,7 +142,7 @@ export function seriOner(
   const anahtar = `${yon}:${tur}:${seri}`;
   const map = seriOku();
   const siraNo = (map[anahtar] ?? 0) + 1;
-  const belgeNo = `${seri}${String(siraNo).padStart(9, '0')}`;
+  const belgeNo = `${seri}${new Date().getFullYear()}${String(siraNo).padStart(7, '0')}`;
   return { seri, siraNo, belgeNo };
 }
 
@@ -174,8 +184,8 @@ export function stokBakiyeAl(urunKodu: string, depoId: string): number {
 export function cariBakiyeAl(cariKodu: string): { borc: number; alacak: number; bakiye: number } {
   let borc = 0;
   let alacak = 0;
-  for (const h of cariHareketOku()) {
-    if (h.cariKodu !== cariKodu) continue;
+  // Görünen hareketlerle aynı filtre — iptal/orphan bakiyeyi şişirmesin
+  for (const h of cariHareketleriGetir(cariKodu)) {
     borc += h.borc;
     alacak += h.alacak;
   }
@@ -201,7 +211,7 @@ function girdiNormalize(girdi: BelgeKayitGirdi, mevcut?: BelgeKayit): BelgeKayit
   const etki = cariEtkiHesapla(girdi.yon, girdi.tur, girdi.genelToplam);
   const seri = girdi.seri || mevcut?.seri || 'BEL';
   const siraNo = girdi.siraNo || mevcut?.siraNo || 0;
-  const belgeNo = girdi.belgeNo?.trim() || mevcut?.belgeNo || `${seri}${String(siraNo).padStart(9, '0')}`;
+  const belgeNo = girdi.belgeNo?.trim() || mevcut?.belgeNo || `${seri}${new Date().getFullYear()}${String(siraNo).padStart(7, '0')}`;
   return {
     id: mevcut?.id ?? `b-${Date.now()}`,
     yon: girdi.yon,
@@ -230,8 +240,17 @@ function girdiNormalize(girdi: BelgeKayitGirdi, mevcut?: BelgeKayit): BelgeKayit
     cariKodu: girdi.cariKodu ?? '',
     cariAdi: girdi.cariAdi ?? '',
     aciklama: girdi.aciklama ?? '',
+    kasaId: girdi.kasaId ?? mevcut?.kasaId ?? null,
+    kasaKodu: girdi.kasaKodu ?? mevcut?.kasaKodu ?? '',
+    kasaAdi: girdi.kasaAdi ?? mevcut?.kasaAdi ?? '',
     kdvDahil: girdi.kdvDahil !== false,
     durum: mevcut?.durum ?? 'TASLAK',
+    belgeIskontolari: gecerliBelgeIskontolari(
+      girdi.belgeIskontolari ?? mevcut?.belgeIskontolari ?? bosBelgeIskontolari()
+    ),
+    belgeIskontoTutarlari: gecerliBelgeIskontoTutarlari(
+      girdi.belgeIskontoTutarlari ?? mevcut?.belgeIskontoTutarlari ?? bosBelgeIskontoTutarlari()
+    ),
     araToplam: girdi.araToplam ?? 0,
     kdvToplam: girdi.kdvToplam ?? 0,
     genelToplam: girdi.genelToplam ?? 0,
@@ -281,20 +300,81 @@ export function belgeGuncelleMock(id: string, girdi: BelgeKayitGirdi): BelgeKayi
   return guncel;
 }
 
+/** Stok çıkışı yapan belgede depodaki bakiyenin yetmediği satırlar */
+export function stokEksikleriBul(
+  satirlar: BelgeSatiri[],
+  yon: BelgeYon,
+  tur: BelgeTur,
+  depoId: string | null | undefined
+): StokEksikSatir[] {
+  if (stokMiktarIsareti(yon, tur) >= 0 || !depoId) return [];
+  const talepler = new Map<string, StokEksikSatir>();
+  for (const s of satirlar) {
+    if (s.durum === false) continue;
+    const kod = s.urun?.sku?.trim();
+    if (!kod || !s.miktar) continue;
+    const onceki = talepler.get(kod);
+    if (onceki) {
+      onceki.istenen = yuvarla2(onceki.istenen + s.miktar);
+      continue;
+    }
+    talepler.set(kod, {
+      urunKodu: kod,
+      urunAdi: s.urun?.ad ?? '',
+      birim: s.birim,
+      mevcut: stokBakiyeAl(kod, depoId),
+      istenen: s.miktar,
+      eksik: 0,
+    });
+  }
+  const eksikler: StokEksikSatir[] = [];
+  for (const t of talepler.values()) {
+    const eksik = yuvarla2(t.istenen - t.mevcut);
+    if (eksik > 0) eksikler.push({ ...t, eksik });
+  }
+  return eksikler;
+}
+
 function stokKontrolEt(belge: BelgeKayit) {
   const isaret = stokMiktarIsareti(belge.yon, belge.tur);
   if (isaret >= 0) return;
   if (!belge.depoId) throw new Error('Stok çıkışı için depo seçimi zorunlu');
-  for (const s of belge.satirlar) {
-    const kod = s.urun?.sku?.trim();
-    if (!kod || !s.miktar) continue;
-    const bakiye = stokBakiyeAl(kod, belge.depoId);
-    if (bakiye < s.miktar) {
-      throw new Error(
-        `Negatif stok engellendi: ${kod} — depoda ${bakiye} ${s.birim}, istenen ${s.miktar}`
-      );
-    }
+  const eksikler = stokEksikleriBul(belge.satirlar, belge.yon, belge.tur, belge.depoId);
+  const ilk = eksikler[0];
+  if (ilk) {
+    throw new Error(
+      `Stok yetersiz: ${ilk.urunKodu} — depoda ${ilk.mevcut} ${ilk.birim}, istenen ${ilk.istenen}`
+    );
   }
+}
+
+/** Belgeye bağlı olmayan elle stok girişi (hızlı ekleme / açılış) */
+export function stokGirisiEkleMock(girdi: {
+  urunKodu: string;
+  urunAdi?: string;
+  depoId: string;
+  depoKodu?: string;
+  miktar: number;
+  birim: string;
+  aciklama?: string;
+}) {
+  const kod = girdi.urunKodu.trim();
+  if (!kod || !girdi.depoId || !girdi.miktar) return;
+  const hareket: StokHareketKayit = {
+    id: `sh-elle-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    belgeId: 'ELLE',
+    belgeNo: girdi.aciklama || 'HIZLI GİRİŞ',
+    yon: 'ALIS',
+    tur: 'FATURA',
+    depoId: girdi.depoId,
+    depoKodu: girdi.depoKodu ?? '',
+    urunKodu: kod,
+    urunAdi: girdi.urunAdi ?? '',
+    birim: girdi.birim,
+    miktar: yuvarla2(girdi.miktar),
+    kayitTarihi: simdi(),
+  };
+  stokHareketYaz([hareket, ...stokHareketOku()]);
 }
 
 function stokHareketOlustur(belge: BelgeKayit) {
@@ -341,7 +421,10 @@ function cariHareketOlustur(belge: BelgeKayit, ters = false) {
   cariHareketYaz(cariler);
 }
 
-export function belgeOnaylaMock(id: string): BelgeKayit {
+export function belgeOnaylaMock(
+  id: string,
+  secenek?: { negatifStokIzin?: boolean }
+): BelgeKayit {
   const liste = belgelerOku();
   const idx = liste.findIndex((b) => b.id === id);
   if (idx < 0) throw new Error('Belge bulunamadı');
@@ -354,7 +437,7 @@ export function belgeOnaylaMock(id: string): BelgeKayit {
     throw new Error('Stok hareketi için depo seçimi gerekli');
   }
 
-  stokKontrolEt(mevcut);
+  if (!secenek?.negatifStokIzin) stokKontrolEt(mevcut);
   stokHareketOlustur(mevcut);
   cariHareketOlustur(mevcut, false);
 
@@ -430,8 +513,11 @@ export function belgeSilMock(id: string): void {
   const liste = belgelerOku();
   const mevcut = liste.find((b) => b.id === id);
   if (!mevcut) throw new Error('Belge bulunamadı');
-  if (mevcut.durum !== 'TASLAK') throw new Error('Sadece taslak belgeler silinebilir');
+  // Kalıcı sil: iptal/stok kontrolüne takılmadan belge + hareketleri kaldır.
+  // Bakiye kalan hareketlerden yeniden hesaplanır.
   belgelerYaz(liste.filter((b) => b.id !== id));
+  cariHareketYaz(cariHareketOku().filter((h) => h.belgeId !== id));
+  stokHareketYaz(stokHareketOku().filter((h) => h.belgeId !== id));
 }
 
 /** Zincir: sipariş→irsaliye veya irsaliye→fatura taslağı */
@@ -603,8 +689,30 @@ export function belgeOdemeleriGetir(belgeId: string): OdemeKayit[] {
   return odemelerOku().filter((o) => o.belgeId === belgeId);
 }
 
-export function cariHareketleriGetir(cariKodu?: string): CariHareketKayit[] {
+/**
+ * İptal / silinmiş belge hareketleri ekranda görünmesin.
+ * - IPTAL durumundaki belgenin tüm hareketleri
+ * - Açıklamasında "(iptal)" geçen ters kayıtlar
+ * - Belgesi artık olmayan orphan hareketler
+ */
+export function cariHareketleriGetir(
+  cariKodu?: string,
+  secenek?: { iptalleriDahilEt?: boolean }
+): CariHareketKayit[] {
   const liste = cariHareketOku();
-  if (!cariKodu) return liste;
-  return liste.filter((h) => h.cariKodu === cariKodu);
+  if (secenek?.iptalleriDahilEt) {
+    return cariKodu ? liste.filter((h) => h.cariKodu === cariKodu) : liste;
+  }
+  const belgeler = belgelerOku();
+  const belgeMap = new Map(belgeler.map((b) => [b.id, b]));
+  const iptalIdler = new Set(belgeler.filter((b) => b.durum === 'IPTAL').map((b) => b.id));
+  return liste.filter((h) => {
+    if (cariKodu && h.cariKodu !== cariKodu) return false;
+    if (h.aciklama?.includes('(iptal)')) return false;
+    if (h.belgeId) {
+      if (iptalIdler.has(h.belgeId)) return false;
+      if (!belgeMap.has(h.belgeId)) return false;
+    }
+    return true;
+  });
 }

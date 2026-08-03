@@ -21,6 +21,8 @@ export function CariOutlinedAramaAcilir({
   bosMetin = 'Seçiniz…',
   /** Açılınca arama alanı kutunun içinde olur; liste alta açılır */
   kutuIciArama = false,
+  /** true ise liste yalnızca yazılan aramaya göre açılır (tüm kayıtlar combo gibi gelmez) */
+  yalnizcaAramaSonucu = false,
 }: {
   etiket: string;
   deger: string;
@@ -32,6 +34,7 @@ export function CariOutlinedAramaAcilir({
   aramaPlaceholder?: string;
   bosMetin?: string;
   kutuIciArama?: boolean;
+  yalnizcaAramaSonucu?: boolean;
 }) {
   const inputId = useId();
   const listeId = useId();
@@ -49,9 +52,11 @@ export function CariOutlinedAramaAcilir({
 
   const filtrelenmis = useMemo(() => {
     const q = normalizeMetin(arama);
-    if (!q) return secenekler;
+    if (!q) return yalnizcaAramaSonucu ? [] : secenekler;
     return secenekler.filter((s) => normalizeMetin(s.label).includes(q));
-  }, [arama, secenekler]);
+  }, [arama, secenekler, yalnizcaAramaSonucu]);
+
+  const listeGoster = acik && (!yalnizcaAramaSonucu || normalizeMetin(arama).length > 0);
 
   useEffect(() => {
     if (!acik) return;
@@ -91,7 +96,9 @@ export function CariOutlinedAramaAcilir({
   const listeIcerik = (
     <ul ref={listeRef} id={listeId} className="cari-arama-acilir-liste" role="listbox">
       {filtrelenmis.length === 0 ? (
-        <li className="cari-arama-acilir-bos">Sonuç bulunamadı</li>
+        <li className="cari-arama-acilir-bos">
+          {yalnizcaAramaSonucu && !normalizeMetin(arama) ? 'Aramak için yazın…' : 'Sonuç bulunamadı'}
+        </li>
       ) : (
         filtrelenmis.map((s) => (
           <li key={s.value}>
@@ -134,37 +141,88 @@ export function CariOutlinedAramaAcilir({
         ) : null}
       </CariOutlinedEtiket>
       <div className="cari-outlined-cerceve cari-arama-acilir-cerceve">
-        {kutuIciArama && acik && !disabled ? (
+        {kutuIciArama && !disabled ? (
           <div className="cari-arama-acilir-kutu-satir">
             <input
               ref={araRef}
               id={inputId}
-              type="search"
+              type="text"
               className="cari-arama-acilir-kutu-girdi"
-              value={arama}
+              value={
+                // Seçiliyken yazmaya başlayana kadar etiketi göster; silince boş kalır
+                (focused || acik) && (arama !== '' || !secili)
+                  ? arama
+                  : (secili?.label ?? '')
+              }
               placeholder={aramaPlaceholder}
               disabled={disabled}
               aria-autocomplete="list"
-              aria-expanded
+              aria-expanded={listeGoster}
               aria-controls={listeId}
-              onChange={(e) => setArama(e.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setArama(v);
+                if (!normalizeMetin(v)) {
+                  if (deger) onChange('');
+                  setAcik(false);
+                  return;
+                }
+                // Seçili etiketten yazmaya geçildiğinde seçimi bırak, aramaya dön
+                if (deger) onChange('');
+                setAcik(true);
+              }}
+              onFocus={() => {
+                setFocused(true);
+                setArama('');
+                setAcik(false);
+              }}
+              onBlur={() => {
+                setFocused(false);
+                setAcik(false);
+                setArama('');
+              }}
               onKeyDown={(e) => {
+                // Seçili etiketi tek tuşla tamamen sil
+                if ((e.key === 'Backspace' || e.key === 'Delete') && !arama && deger) {
+                  e.preventDefault();
+                  onChange('');
+                  setArama('');
+                  setAcik(false);
+                  return;
+                }
                 if (e.key === 'Enter' && filtrelenmis.length === 1) {
                   e.preventDefault();
-                  sec(filtrelenmis[0].value);
+                  sec(filtrelenmis[0]!.value);
                 }
                 if (e.key === 'Escape') {
                   e.preventDefault();
                   setAcik(false);
                   setArama('');
+                  araRef.current?.blur();
                 }
               }}
             />
-            <span className="ap-form-acilir-secim-ok" aria-hidden>
-              ▾
-            </span>
+            {secili ? (
+              <button
+                type="button"
+                className="cari-arama-acilir-temizle"
+                aria-label="Seçimi temizle"
+                title="Temizle"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onChange('');
+                  setArama('');
+                  setAcik(false);
+                  requestAnimationFrame(() => araRef.current?.focus());
+                }}
+              >
+                ×
+              </button>
+            ) : !yalnizcaAramaSonucu ? (
+              <span className="ap-form-acilir-secim-ok" aria-hidden>
+                ▾
+              </span>
+            ) : null}
           </div>
         ) : (
           <button
@@ -197,11 +255,11 @@ export function CariOutlinedAramaAcilir({
         )}
       </div>
 
-      {acik && !disabled && kutuIciArama ? (
+      {listeGoster && !disabled && kutuIciArama ? (
         <div className="cari-arama-acilir-panel cari-arama-acilir-panel--kutu-ici">{listeIcerik}</div>
       ) : null}
 
-      {acik && !disabled && !kutuIciArama
+      {listeGoster && !disabled && !kutuIciArama
         ? createPortal(
             <div
               className="cari-arama-acilir-panel"

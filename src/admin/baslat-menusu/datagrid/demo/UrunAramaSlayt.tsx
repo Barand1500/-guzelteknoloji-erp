@@ -12,6 +12,8 @@ interface UrunAramaSlaytProps {
   onSeciliDegistir: (indeks: number) => void;
   onSec: (urun: UrunKaydi) => void;
   onGeri: () => void;
+  /** Verilirse sonuç bulunamadığında hızlı stok kartı açma butonu görünür */
+  onHizliEkle?: (sorgu: string) => void;
   children: ReactNode;
 }
 
@@ -39,6 +41,7 @@ export function UrunAramaSlayt({
   onSeciliDegistir,
   onSec,
   onGeri,
+  onHizliEkle,
   children,
 }: UrunAramaSlaytProps) {
   const listeRef = useRef<HTMLDivElement>(null);
@@ -153,8 +156,17 @@ export function UrunAramaSlayt({
           <div ref={listeRef} className="dg-urun-arama-liste ap-scroll" role="listbox" aria-label="Arama sonuçları">
             {sonuclar.length === 0 ? (
               <div className="dg-urun-arama-bos">
-                <p>Sonuç bulunamadı.</p>
-                <span>Aramayı değiştirin veya ESC ile tabloya dönün.</span>
+                <p>Böyle bir stoğunuz yok.</p>
+                <span>Aramayı değiştirin, ESC ile dönün veya kartı hemen açın.</span>
+                {onHizliEkle ? (
+                  <button
+                    type="button"
+                    className="dg-urun-arama-hizli-ekle"
+                    onClick={() => onHizliEkle(sorgu)}
+                  >
+                    + Hızlı Ekle
+                  </button>
+                ) : null}
               </div>
             ) : (
               <table className="dg-urun-arama-tablo">

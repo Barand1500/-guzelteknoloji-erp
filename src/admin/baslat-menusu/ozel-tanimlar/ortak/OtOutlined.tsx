@@ -189,6 +189,7 @@ export function OtOutlinedAcilir({
   disabled,
   className,
   bosEtiket,
+  tusMetin,
 }: {
   etiket: string;
   deger: string;
@@ -198,6 +199,8 @@ export function OtOutlinedAcilir({
   disabled?: boolean;
   className?: string;
   bosEtiket?: string;
+  /** Kapalıyken tetikleyicide gösterilecek kısa metin */
+  tusMetin?: string;
 }) {
   return (
     <CariOutlinedSarmalayici
@@ -214,6 +217,7 @@ export function OtOutlinedAcilir({
         aria-label={etiket}
         className="cari-outlined-acilir-tus"
         bosEtiket={bosEtiket}
+        tusMetin={tusMetin}
       />
     </CariOutlinedSarmalayici>
   );

@@ -361,6 +361,23 @@
   max-width: 22rem;
 }
 
+.dg-urun-arama-hizli-ekle {
+  margin-top: 0.55rem;
+  border: 1px solid var(--ap-accent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--ap-accent) 14%, transparent);
+  color: var(--ap-accent);
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dg-urun-arama-hizli-ekle:hover {
+  background: color-mix(in srgb, var(--ap-accent) 24%, transparent);
+}
+
 .dg-urun-arama-ipucu {
   display: flex;
   flex-wrap: wrap;
@@ -1943,6 +1960,7 @@ td.dg-hucre--sabit,
   position: fixed;
   z-index: 10050;
   width: min(300px, calc(100vw - 16px));
+  max-width: min(300px, calc(100vw - 16px));
   max-height: min(420px, calc(100vh - 16px));
   display: flex;
   flex-direction: column;
@@ -2199,7 +2217,8 @@ td.dg-hucre--sabit,
 }
 
 .dg-sutun-menu-cubuk {
-  width: min(360px, 100%);
+  width: min(300px, calc(100vw - 16px));
+  max-width: min(300px, calc(100vw - 16px));
   max-height: min(62vh, 480px);
 }
 
@@ -2276,6 +2295,13 @@ td.dg-hucre--sabit,
   background: var(--ap-surface);
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
   animation: dg-cubuk-panel-giris 0.18s ease-out;
+}
+
+/* Sütun menüsü — datagrid portal ile aynı genişlik */
+.dg-satir-panel-cubuk.dg-sutun-menu-cubuk {
+  width: min(300px, calc(100vw - 16px));
+  max-width: min(300px, calc(100vw - 16px));
+  max-height: min(62vh, 480px);
 }
 
 .dg-satir-panel-cubuk--kenarlik-anim {
@@ -2544,6 +2570,28 @@ td.dg-hucre--sabit,
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+.dg-duzenle-iskonto-cift {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+
+.dg-duzenle-iskonto-cift .dg-duzenle-alan-ipucu {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .dg-duzenle-iskonto-cift {
+    grid-template-columns: 1fr;
+  }
+
+  .dg-duzenle-iskonto-cift .dg-duzenle-alan-ipucu {
+    display: inline;
+  }
 }
 
 .dg-duzenle-alan-baslik {

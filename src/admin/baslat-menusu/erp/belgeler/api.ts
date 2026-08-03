@@ -13,6 +13,8 @@ import {
   odemeEkleMock,
   seriOner,
   stokBakiyeleriGetir,
+  stokEksikleriBul,
+  stokGirisiEkleMock,
   stokHareketleriGetir,
   cariBakiyeAl,
   cariHareketleriGetir,
@@ -37,8 +39,11 @@ export async function belgeGuncelle(id: string, girdi: BelgeKayitGirdi): Promise
   return belgeGuncelleMock(id, girdi);
 }
 
-export async function belgeOnayla(id: string): Promise<BelgeKayit> {
-  return belgeOnaylaMock(id);
+export async function belgeOnayla(
+  id: string,
+  secenek?: { negatifStokIzin?: boolean }
+): Promise<BelgeKayit> {
+  return belgeOnaylaMock(id, secenek);
 }
 
 export async function belgeIptal(id: string): Promise<BelgeKayit> {
@@ -81,4 +86,24 @@ export async function odemeleriGetir(belgeId: string) {
   return belgeOdemeleriGetir(belgeId);
 }
 
-export { seriOner, stokBakiyeleriGetir, stokHareketleriGetir, cariBakiyeAl, cariHareketleriGetir, mockStokSeedKur };
+export async function stokGirisiEkle(girdi: {
+  urunKodu: string;
+  urunAdi?: string;
+  depoId: string;
+  depoKodu?: string;
+  miktar: number;
+  birim: string;
+  aciklama?: string;
+}): Promise<void> {
+  stokGirisiEkleMock(girdi);
+}
+
+export {
+  seriOner,
+  stokBakiyeleriGetir,
+  stokEksikleriBul,
+  stokHareketleriGetir,
+  cariBakiyeAl,
+  cariHareketleriGetir,
+  mockStokSeedKur,
+};

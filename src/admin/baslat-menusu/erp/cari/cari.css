@@ -1193,6 +1193,29 @@
   color: var(--ap-text-muted);
 }
 
+.cari-arama-acilir-temizle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-border) 70%, transparent);
+  color: var(--ap-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cari-arama-acilir-temizle:hover {
+  background: color-mix(in srgb, var(--ap-accent) 22%, transparent);
+  color: var(--ap-heading, var(--ap-text));
+}
+
 .cari-arama-acilir-deger--bos {
   min-height: 1.2em;
 }

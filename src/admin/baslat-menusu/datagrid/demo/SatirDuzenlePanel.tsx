@@ -167,23 +167,25 @@ export function SatirDuzenlePanel({
             onDegistir={(fiyat) => setDegerler((d) => ({ ...d, fiyat }))}
           />
           <DuzenleAlan
-            etiket="Satır iskontosu"
-            ipucu="20+20 → %36"
-            deger={degerler.satirIskonto}
-            onDegistir={(satirIskonto) => setDegerler((d) => ({ ...d, satirIskonto }))}
-          />
-          <DuzenleAlan
-            etiket="Alt iskonto"
-            ipucu="Yüzde veya ifade"
-            deger={degerler.altIskonto}
-            onDegistir={(altIskonto) => setDegerler((d) => ({ ...d, altIskonto }))}
-          />
-          <DuzenleAlan
             etiket="KDV"
             ipucu="%20 veya 18+2"
             deger={degerler.toplamKdv}
             onDegistir={(toplamKdv) => setDegerler((d) => ({ ...d, toplamKdv }))}
           />
+          <div className="dg-duzenle-iskonto-cift" role="group" aria-label="İskontolar">
+            <DuzenleAlan
+              etiket="Satır iskontosu"
+              ipucu="20+20 → %36"
+              deger={degerler.satirIskonto}
+              onDegistir={(satirIskonto) => setDegerler((d) => ({ ...d, satirIskonto }))}
+            />
+            <DuzenleAlan
+              etiket="Alt iskonto"
+              ipucu="Yüzde"
+              deger={degerler.altIskonto}
+              onDegistir={(altIskonto) => setDegerler((d) => ({ ...d, altIskonto }))}
+            />
+          </div>
         </div>
 
         <div className="dg-duzenle-ozet">

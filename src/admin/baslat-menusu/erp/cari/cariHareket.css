@@ -36,10 +36,182 @@
   color: var(--ap-muted);
 }
 
+.cari-hareket-ozet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cari-hareket-ozet-ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cari-hareket-ozet-baslik {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+}
+
+.cari-hareket-gorunum-btn {
+  font-size: 0.78rem;
+  padding: 0.28rem 0.65rem;
+}
+
+.cari-hareket-gorunum-kabuk {
+  position: relative;
+}
+
+.cari-hareket-gorunum-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  width: min(17.5rem, calc(100vw - 2rem));
+  max-height: min(22rem, 70vh);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.65rem;
+  background: var(--ap-surface);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.28);
+  overflow: hidden;
+}
+
+.cari-hareket-gorunum-panel-baslik {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem 0.4rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  flex-shrink: 0;
+}
+
+.cari-hareket-gorunum-panel-baslik h3 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ap-text);
+}
+
+.cari-hareket-gorunum-panel-baslik p {
+  margin: 0.1rem 0 0;
+  font-size: 0.68rem;
+  color: var(--ap-muted);
+}
+
+.cari-hareket-gorunum-panel-aksiyon {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.cari-hareket-gorunum-sifirla {
+  border: none;
+  background: none;
+  color: var(--ap-accent);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.15rem 0.25rem;
+  white-space: nowrap;
+}
+
+.cari-hareket-gorunum-kapat {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: var(--ap-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cari-hareket-gorunum-kapat:hover {
+  background: color-mix(in srgb, var(--ap-hover) 70%, transparent);
+  color: var(--ap-text);
+}
+
+.cari-hareket-gorunum-panel-liste {
+  overflow: auto;
+  padding: 0.15rem 0.65rem 0.45rem;
+}
+
+.cari-hareket-gorunum-satir {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 50%, transparent);
+}
+
+.cari-hareket-gorunum-satir:first-child {
+  border-top: none;
+}
+
+.cari-hareket-gorunum-satir input {
+  accent-color: var(--ap-accent);
+  flex-shrink: 0;
+}
+
+.cari-hareket-gorunum-satir label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: var(--ap-text);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cari-hareket-gorunum-oklar {
+  display: flex;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.cari-hareket-gorunum-ok {
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.2rem;
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  font-size: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.cari-hareket-gorunum-ok:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--ap-accent) 50%, var(--ap-border));
+}
+
+.cari-hareket-gorunum-ok:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Tüm kartlar tek satırda; sığmazsa yatay kaydırılır */
 .cari-hareket-ozet-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(8.5rem, 1fr);
   gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .cari-hareket-ozet-kart {
@@ -129,10 +301,51 @@
 }
 
 .cari-hareket-govde {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.cari-hareket-govde--yenileniyor > .cari-hareket-tablo-wrap {
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.cari-hareket-yenileme-band {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ap-text);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
+}
+
+.cari-hareket-yenileme-spin {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 2px solid color-mix(in srgb, var(--ap-accent) 35%, transparent);
+  border-top-color: var(--ap-accent);
+  border-radius: 50%;
+  animation: cari-hareket-yenileme-don 0.7s linear infinite;
+}
+
+@keyframes cari-hareket-yenileme-don {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .cari-hareket-tablo-wrap {
@@ -189,15 +402,9 @@
   background: color-mix(in srgb, var(--ap-accent) 8%, transparent);
 }
 
-@media (max-width: 980px) {
-  .cari-hareket-ozet-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 640px) {
   .cari-hareket-ozet-grid {
-    grid-template-columns: 1fr;
+    grid-auto-columns: minmax(11rem, 1fr);
   }
 }
 

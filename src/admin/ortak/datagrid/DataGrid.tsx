@@ -421,6 +421,7 @@ export function DataGrid<TRow extends { id: string }>({
   topluBarGoster = true,
   topluDurumTuslariGoster = true,
   satirPanelModu = 'sheet',
+  sutunMenuModu = 'cubuk',
 }: DataGridProps<TRow>) {
   const dg = useDataGridState(kolonlar, depolamaAnahtari, varsayilanGizliKolonlar, kolonGenislikSurumu);
   const [hoverSatirId, setHoverSatirId] = useState<string | null>(null);
@@ -763,15 +764,17 @@ export function DataGrid<TRow extends { id: string }>({
   }, []);
 
   useLayoutEffect(() => {
-    if (!dg.sutunMenuAcik) return;
+    if (!dg.sutunMenuAcik || sutunMenuModu !== 'portal') return;
     sutunMenuKonumGuncelle();
+    const id = requestAnimationFrame(() => sutunMenuKonumGuncelle());
     window.addEventListener('resize', sutunMenuKonumGuncelle);
     window.addEventListener('scroll', sutunMenuKonumGuncelle, true);
     return () => {
+      cancelAnimationFrame(id);
       window.removeEventListener('resize', sutunMenuKonumGuncelle);
       window.removeEventListener('scroll', sutunMenuKonumGuncelle, true);
     };
-  }, [dg.sutunMenuAcik, sutunMenuKonumGuncelle]);
+  }, [dg.sutunMenuAcik, sutunMenuModu, sutunMenuKonumGuncelle]);
 
   useLayoutEffect(() => {
     if (!formulMenuAcik) return;
@@ -2279,6 +2282,15 @@ export function DataGrid<TRow extends { id: string }>({
     sutunMenuAnchorRef.current = null;
   }, [dg]);
 
+  useEffect(() => {
+    if (!dg.sutunMenuAcik || sutunMenuModu !== 'portal') return;
+    const esc = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') sutunMenuKapat();
+    };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [dg.sutunMenuAcik, sutunMenuModu, sutunMenuKapat]);
+
   const overlayKapat = useCallback(() => {
     dg.setSutunMenuAcik(false);
     sutunMenuAnchorRef.current = null;
@@ -2370,11 +2382,26 @@ export function DataGrid<TRow extends { id: string }>({
     </>
   );
 
-  const sutunMenuPanel = dg.sutunMenuAcik ? (
-    <SutunMenuCubukKapak menuRef={menuRef} onKapat={sutunMenuKapat}>
-      <div className="dg-sutun-menu dg-sutun-menu--cubuk">{sutunMenuIcerik}</div>
-    </SutunMenuCubukKapak>
-  ) : null;
+  const sutunMenuPanel = !dg.sutunMenuAcik
+    ? null
+    : sutunMenuModu === 'portal'
+      ? createPortal(
+          <div
+            ref={menuRef}
+            className="dg-sutun-menu dg-sutun-menu-portal"
+            style={sutunMenuPortalStil}
+            role="dialog"
+            aria-label="Sütunlar"
+          >
+            {sutunMenuIcerik}
+          </div>,
+          portalKok
+        )
+      : (
+          <SutunMenuCubukKapak menuRef={menuRef} onKapat={sutunMenuKapat}>
+            <div className="dg-sutun-menu dg-sutun-menu--cubuk">{sutunMenuIcerik}</div>
+          </SutunMenuCubukKapak>
+        );
 
   const formulMenuPanel =
     formulMenuGoster &&

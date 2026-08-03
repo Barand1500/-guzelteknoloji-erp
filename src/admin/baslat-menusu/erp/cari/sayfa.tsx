@@ -381,7 +381,7 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
 
   const modulBaslik =
     gorunum === 'hareket'
-      ? 'Cari Hareketleri'
+      ? ''
       : gorunum === 'kart' && kartModu === 'yeni'
         ? 'Yeni Cari Kart Ekleme'
         : gorunum === 'kart' && kartModu === 'duzenle'
@@ -393,9 +393,7 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   const modulAciklama =
     gorunum === 'liste'
       ? 'Cari kartlarını listeleyin, arayın ve yönetin. Çift tıklayınca hareketler açılır.'
-      : gorunum === 'hareket'
-        ? 'Cari özeti, hareketler ve belgeler.'
-        : undefined;
+      : undefined;
 
   if (!goruntulemeVar) {
     return (
@@ -408,23 +406,19 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
       baslik={modulBaslik}
       aciklama={modulAciklama}
       ustAksiyon={
-        gorunum === 'kart' || gorunum === 'hareket' ? (
+        gorunum === 'kart' ? (
           <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
             <CariListelemeTus onGit={() => listeyeDon()} />
-            {gorunum === 'kart' ? (
-              <>
-                <CariGezinOk
-                  yon="geri"
-                  hedef={oncekiCari}
-                  onGit={() => oncekiCari && cariyeGit(oncekiCari)}
-                />
-                <CariGezinOk
-                  yon="ileri"
-                  hedef={sonrakiCari}
-                  onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
-                />
-              </>
-            ) : null}
+            <CariGezinOk
+              yon="geri"
+              hedef={oncekiCari}
+              onGit={() => oncekiCari && cariyeGit(oncekiCari)}
+            />
+            <CariGezinOk
+              yon="ileri"
+              hedef={sonrakiCari}
+              onGit={() => sonrakiCari && cariyeGit(sonrakiCari)}
+            />
           </div>
         ) : null
       }
@@ -435,6 +429,7 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
             cari={aktifHareketCari}
             onGeri={() => listeyeDon({ kayitSonrasi: true })}
             onModulAc={onModulAc}
+            onYenile={yukle}
           />
         ) : gorunum === 'kart' ? (
           <CariKart
