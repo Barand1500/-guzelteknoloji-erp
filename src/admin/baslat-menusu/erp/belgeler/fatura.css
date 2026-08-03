@@ -1697,6 +1697,36 @@
   flex-shrink: 0;
 }
 
+/* Detaylıda da Hızlı ile aynı footer düğmeleri (stok sayfası stilleri ezmesin) */
+.fatura-hizli-stok-modal .ap-tanimlar-modal-iptal,
+.fatura-hizli-stok-modal .ap-tanimlar-modal-kaydet {
+  appearance: none;
+  margin: 0;
+  padding: 0.5rem 1.15rem;
+  min-height: 2.85rem;
+  border-radius: 0.625rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.15;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+}
+
+.fatura-hizli-stok-modal .ap-tanimlar-modal-kaydet {
+  border: none;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--ap-accent),
+    color-mix(in srgb, var(--ap-accent) 75%, #000)
+  );
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ap-accent) 32%, transparent);
+}
+
 /* Stok kartı gövdesi — sayfadakiyle aynı düzen, ekstra kutu yok */
 .fatura-hizli-stok-detay {
   flex: 1 1 auto;

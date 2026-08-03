@@ -885,14 +885,15 @@ export function FaturaModulu({
         const { satirId, konum } = satirEkleBaglam;
         setSatirlar((onceki) => {
           const idx = onceki.findIndex((s) => s.id === satirId);
-          if (idx < 0) return [yeni, ...onceki];
+          if (idx < 0) return [...onceki, yeni];
           const listeYeni = [...onceki];
           listeYeni.splice(konum === 'ust' ? idx : idx + 1, 0, yeni);
           return listeYeni;
         });
         setSatirEkleBaglam(null);
       } else {
-        setSatirlar((onceki) => [yeni, ...onceki]);
+        /* Son eklenen satır en altta */
+        setSatirlar((onceki) => [...onceki, yeni]);
       }
       hizliGirisApiRef.current?.sifirla();
       requestAnimationFrame(() => gridApiRef.current?.odakAyarla(yeni.id, 'urunKoduAdi'));

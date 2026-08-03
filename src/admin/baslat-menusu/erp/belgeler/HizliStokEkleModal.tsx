@@ -231,7 +231,6 @@ export function HizliStokEkleModal({
         kapat();
         return;
       }
-      if (formAltMod === 'detayli') return;
       if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
         const el = e.target as HTMLElement | null;
         if (el?.tagName === 'TEXTAREA') return;
@@ -242,7 +241,7 @@ export function HizliStokEkleModal({
     }
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [acik, portalKok, kapat, kaydet, modu, formAltMod]);
+  }, [acik, portalKok, kapat, kaydet, modu]);
 
   useEffect(() => {
     if (!acik || !portalKok || modu !== 'soru') return;
@@ -471,7 +470,7 @@ export function HizliStokEkleModal({
               <span className="ap-tanimlar-modal-tus-metin">
                 {kaydediliyor ? 'Kaydediliyor…' : 'Kartı Oluştur'}
               </span>
-              {!detayli ? <span className="ap-tanimlar-modal-kisayol">(ENTER)</span> : null}
+              <span className="ap-tanimlar-modal-kisayol">(ENTER)</span>
             </button>
           </div>
         </div>
