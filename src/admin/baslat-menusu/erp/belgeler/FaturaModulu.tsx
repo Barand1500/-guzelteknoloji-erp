@@ -69,6 +69,7 @@ import { stokUrunKataloguGetir } from './urunKatalogAdapter';
 import { CariOutlinedAramaAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAramaAcilir';
 import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
 import { FaturaCariBulModal } from './FaturaCariBulModal';
+import { FaturaBolumDuzen } from './FaturaBolumDuzen';
 import { HizliStokEkleModal } from './HizliStokEkleModal';
 import { StokEksikUyariModal, type StokTamamlamaSatiri } from './StokEksikUyariModal';
 import { tarihAnahtari } from '@/admin/kabuk/alt-panel/takvimNotlari';
@@ -1114,7 +1115,11 @@ export function FaturaModulu({
     : 'Cari seçilmedi';
 
   return (
-    <div ref={sayfaRef} className={`${sayfaSinif} dg-demo-sayfa dg-demo-sag-tik-alan`}>
+    <div ref={sayfaRef} className={`${sayfaSinif} dg-demo-sayfa dg-demo-sag-tik-alan fatura-sayfa--bolumlu`}>
+      <FaturaBolumDuzen
+        depolamaAnahtari={`gt_fatura_bolum_${modulId}`}
+        ust={
+          <>
       <section className="fatura-ust-serit" aria-label="Belge başlığı">
         <div className="fatura-ust-serit-satir">
           <button
@@ -1378,8 +1383,10 @@ export function FaturaModulu({
           Zincir kaynağı: <strong>{kaynakBelgeNo}</strong>
         </p>
       ) : null}
-
-      
+          </>
+        }
+        orta={
+          <>
       {!saltOkunur ? (
         <DatagridSagTikMenu
           konteynerRef={sayfaRef}
@@ -1535,7 +1542,9 @@ export function FaturaModulu({
           }
         />
       </UrunAramaSlayt>
-
+          </>
+        }
+        alt={
       <section className="fatura-alt-finans" aria-label="Belge toplamı ve iskontolar">
         <button
           type="button"
@@ -1633,6 +1642,8 @@ export function FaturaModulu({
           </div>
         ) : null}
       </section>
+        }
+      />
 
       <FaturaCariBulModal
         acik={cariBulAcik}
