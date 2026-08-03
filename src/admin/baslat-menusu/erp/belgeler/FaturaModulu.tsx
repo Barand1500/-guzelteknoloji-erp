@@ -94,7 +94,13 @@ import '@/admin/baslat-menusu/erp/cari/cari.css';
 import '@/admin/baslat-menusu/ozel-tanimlar/ozel-tanimlar.css';
 import './fatura.css';
 
-const VARSAYILAN_GIZLI = ['etiketler', 'kayit', 'guncelleme'];
+const VARSAYILAN_GIZLI = [
+  'altIskonto',
+  'gercekToplam',
+  'etiketler',
+  'kayit',
+  'guncelleme',
+];
 const KOLON_GENISLIK_SURUMU = 9;
 const TURLER: BelgeTur[] = ['SIPARIS', 'IRSALIYE', 'FATURA', 'IADE'];
 const VARSAYILAN_CARI_VADE_GUN = 30;
@@ -1474,7 +1480,7 @@ export function FaturaModulu({
           tabloAltBaslik="Stok bakiyesi ürün aramada · stok yetmezse kayıtta uyarı verir"
           kolonlar={kolonlar}
           satirlar={gorunurSatirlar}
-          depolamaAnahtari={`gt_fatura_${modulId}_v5`}
+          depolamaAnahtari={`gt_fatura_${modulId}_v6`}
           kolonGenislikSurumu={KOLON_GENISLIK_SURUMU}
           sutunMenuModu="portal"
           hizliGirisKolonlari={
@@ -1500,9 +1506,7 @@ export function FaturaModulu({
                     ipucu: kdvDahil ? 'Fiyat (KDV dahil)' : 'Fiyat (KDV hariç)',
                   },
                   { kolonId: 'satirIskonto', ipucu: 'Bileşik iskonto', varsayilan: '0' },
-                  { kolonId: 'altIskonto', varsayilan: '0' },
                   { kolonId: 'toplamKdv', ipucu: 'KDV (%)', varsayilan: '20' },
-                  { kolonId: 'etiketler', ipucu: 'Virgülle ayırın' },
                   { kolonId: 'durum', tip: 'toggle', varsayilan: 'true' },
                 ]
           }
