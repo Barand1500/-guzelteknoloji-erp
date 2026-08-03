@@ -1054,8 +1054,12 @@ td.dg-hucre--sabit,
 }
 
 .dg-hucre--odak {
+  /* Üst kenar sticky hızlı giriş satırının (z-index:3) altında kalıyordu —
+     çerçeveyi 3px içeriden çizince dört kenar da görünür. */
+  position: relative;
+  z-index: 2;
   outline: 1.5px solid var(--ap-accent);
-  outline-offset: -1.5px;
+  outline-offset: -3px;
 }
 
 .dg-pano-bildirim {
