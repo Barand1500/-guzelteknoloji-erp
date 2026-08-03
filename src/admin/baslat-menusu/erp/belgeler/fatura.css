@@ -27,6 +27,505 @@
   color: var(--fatura-yon-vurgu);
 }
 
+/* —— Kompakt belge üst şeridi (accordion) —— */
+.fatura-ust-serit {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--ap-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
+  overflow: hidden;
+}
+
+.fatura-ust-serit-satir {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 3.5rem;
+}
+
+.fatura-ust-firma {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: 240px;
+  flex: 0 1 220px;
+  padding: 8px 14px;
+  border-right: 1px solid var(--ap-border);
+  text-align: left;
+}
+
+.fatura-ust-firma--tus {
+  appearance: none;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.fatura-ust-firma--tus:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+}
+
+.fatura-ust-firma--tus:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.fatura-ust-firma--bos .fatura-ust-firma-kod {
+  color: var(--ap-muted);
+  font-weight: 700;
+}
+
+.fatura-ust-firma-kod {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--ap-accent);
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fatura-ust-firma-ad {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ap-muted);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fatura-ust-alanlar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 10px;
+  align-items: center;
+  --cari-outlined-etiket-bg: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
+  --cari-alan-zemin: transparent;
+}
+
+.fatura-ust-alan.cari-outlined-field,
+.fatura-ust-alan.cari-outlined-acilir {
+  min-width: 0;
+}
+
+.fatura-ust-alan .cari-outlined-cerceve,
+.fatura-ust-alan .cari-secili-cerceve {
+  background: transparent;
+  min-height: 2.35rem;
+}
+
+.fatura-ust-serit-sag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 3.2rem;
+  min-width: 3.2rem;
+  padding: 0;
+  border-left: 1px solid var(--ap-border);
+  align-self: stretch;
+}
+
+.fatura-ust-aksiyonlar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 4px;
+}
+
+.fatura-ust-ok {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin: 0;
+  border: 1px solid var(--ap-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  color: var(--ap-accent);
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.fatura-ust-ok:hover {
+  background: color-mix(in srgb, var(--ap-accent) 18%, var(--ap-surface));
+  border-color: var(--ap-accent);
+}
+
+.fatura-ust-ok--acik {
+  transform: rotate(180deg);
+}
+
+.fatura-ust-detay {
+  border-top: 1px solid var(--ap-border);
+  padding: 12px 14px 14px;
+  background: color-mix(in srgb, var(--ap-surface) 97%, transparent);
+  animation: fatura-ust-detay-ac 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@keyframes fatura-ust-detay-ac {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fatura-ust-detay-bolum {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fatura-ust-detay-bolum .fatura-sutun-etiket {
+  margin-bottom: 0;
+}
+
+.fatura-ust-musteri-grid {
+  display: flex;
+  align-items: stretch;
+  gap: 10px 12px;
+  --cari-outlined-etiket-bg: color-mix(in srgb, var(--ap-surface) 97%, transparent);
+  --cari-alan-zemin: transparent;
+}
+
+.fatura-ust-detay-cari,
+.fatura-ust-lokasyon-sutun,
+.fatura-ust-aciklama-sutun {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.fatura-ust-detay-cari {
+  flex: 1.5 1 0;
+  gap: 8px;
+  min-width: 240px;
+}
+
+.fatura-ust-detay-cari .fatura-musteri-ozet,
+.fatura-ust-detay-cari .fatura-cari-ozet-bos {
+  flex: 1 1 auto;
+}
+
+.fatura-ust-lokasyon-sutun {
+  flex: 0.55 1 0;
+  gap: 10px;
+  min-width: 140px;
+  max-width: 200px;
+}
+
+/* height:0 + flex-grow: eşit yükseklik dağıtımı (içerik boyutunu ezmez, büyütür) */
+.fatura-ust-lokasyon-sutun > .cari-outlined-field {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 2.95rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.fatura-ust-lokasyon-sutun .cari-outlined-cerceve {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  align-items: stretch;
+  box-sizing: border-box;
+}
+
+.fatura-ust-lokasyon-sutun .cari-outlined-icerik {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.fatura-ust-lokasyon-sutun .ap-form-acilir-secim {
+  flex: 1 1 auto;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.fatura-ust-lokasyon-sutun .cari-outlined-acilir-tus,
+.fatura-ust-lokasyon-sutun .ap-form-acilir-secim-tus {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100% !important;
+  min-height: 100%;
+  align-self: stretch;
+  display: flex !important;
+  align-items: center;
+}
+
+.fatura-ust-aciklama-sutun {
+  flex: 1.25 1 0;
+  min-width: 220px;
+}
+
+.fatura-ust-aciklama-sutun > .cari-outlined-field {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.fatura-ust-aciklama-sutun .cari-outlined-cerceve {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  height: 100%;
+  align-items: stretch;
+  padding: 0.35rem 0.65rem 0.5rem;
+  box-sizing: border-box;
+}
+
+.fatura-ust-aciklama-sutun .cari-outlined-icerik {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  align-self: stretch;
+}
+
+.fatura-ust-aciklama-sutun .fatura-aciklama-textarea {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0 !important;
+  height: 100%;
+  resize: none;
+}
+
+.fatura-musteri-ozet {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ap-surface) 90%, var(--ap-border));
+}
+
+.fatura-musteri-ozet > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fatura-musteri-ozet span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+}
+
+.fatura-musteri-ozet strong {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--ap-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fatura-musteri-ozet--tam {
+  grid-column: 1 / -1;
+}
+
+.fatura-musteri-ozet--tam strong {
+  white-space: normal;
+}
+
+.fatura-cari-aciklama-buyuk {
+  --cari-outlined-etiket-bg: color-mix(in srgb, var(--ap-surface) 97%, transparent);
+  --cari-alan-zemin: transparent;
+}
+
+.fatura-aciklama-textarea {
+  width: 100%;
+  min-height: 7.5rem;
+  resize: vertical;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ap-text);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  padding: 0.35rem 0.15rem;
+}
+
+.fatura-aciklama-textarea::placeholder {
+  color: var(--ap-muted);
+  opacity: 0.85;
+}
+
+.fatura-cari-aciklama-buyuk .cari-outlined-cerceve {
+  align-items: stretch;
+  min-height: 8rem;
+  padding: 0.35rem 0.65rem 0.5rem;
+}
+
+/* —— Alt finans accordion (DataGrid altı) —— */
+.fatura-alt-finans {
+  flex-shrink: 0;
+  margin-top: 8px;
+  border: 1px solid var(--ap-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
+  overflow: hidden;
+}
+
+.fatura-alt-finans-baslik {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.fatura-alt-finans-baslik:hover {
+  background: color-mix(in srgb, var(--ap-accent) 6%, transparent);
+}
+
+.fatura-alt-finans-baslik-metin {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fatura-alt-finans-baslik-metin strong {
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.fatura-alt-finans-ozet-mini {
+  font-size: 0.75rem;
+  color: var(--ap-muted);
+}
+
+.fatura-alt-finans-ok {
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.fatura-alt-finans-govde {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 12px 16px;
+  align-items: stretch;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--ap-border);
+  animation: fatura-ust-detay-ac 0.18s ease;
+}
+
+@media (max-width: 1180px) {
+  .fatura-ust-serit-satir {
+    flex-wrap: wrap;
+  }
+
+  .fatura-ust-firma {
+    max-width: none;
+    flex: 1 1 auto;
+    border-right: none;
+    border-bottom: 1px solid var(--ap-border);
+  }
+
+  .fatura-ust-alanlar {
+    flex: 1 1 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-bottom: 1px solid var(--ap-border);
+  }
+
+  .fatura-ust-serit-sag {
+    border-left: none;
+    margin-left: auto;
+    min-height: 3rem;
+  }
+
+  .fatura-ust-musteri-grid {
+    flex-wrap: wrap;
+  }
+
+  .fatura-ust-detay-cari {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .fatura-ust-lokasyon-sutun {
+    flex: 0.55 1 140px;
+    max-width: none;
+    min-height: 11rem;
+  }
+
+  .fatura-ust-aciklama-sutun {
+    flex: 1.25 1 220px;
+    min-height: 11rem;
+  }
+
+  .fatura-alt-finans-govde {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .fatura-ust-alanlar,
+  .fatura-musteri-ozet {
+    grid-template-columns: 1fr;
+  }
+
+  .fatura-ust-musteri-grid {
+    flex-direction: column;
+  }
+
+  .fatura-ust-lokasyon-sutun,
+  .fatura-ust-aciklama-sutun {
+    flex: 1 1 auto;
+    max-width: none;
+    width: 100%;
+    min-height: 9rem;
+  }
+}
+
 .fatura-liste-ust,
 .fatura-form-ust {
   display: flex;
@@ -265,15 +764,24 @@
 .fatura-alt-isk-blok {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 12px;
+  gap: 8px 14px;
   min-width: 0;
+  height: 100%;
+  align-self: stretch;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-border));
+  box-sizing: border-box;
 }
 
 .fatura-alt-isk-grup {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
   min-width: 0;
+  height: 100%;
+  justify-content: space-between;
 }
 
 .fatura-alt-isk-satir {
@@ -281,6 +789,8 @@
   grid-template-columns: minmax(0, 1fr) 4.5rem;
   align-items: center;
   gap: 6px;
+  flex: 1 1 0;
+  min-height: 2rem;
   font-size: 0.72rem;
   color: var(--ap-muted);
   font-weight: 600;
@@ -297,6 +807,31 @@
   gap: 4px 12px;
 }
 
+.fatura-alt-finans-govde > .fatura-ozet-mini--belge {
+  height: 100%;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-border));
+  box-sizing: border-box;
+}
+
+.fatura-alt-finans-govde > .fatura-ozet-mini--belge > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 0;
+  min-height: 1.6rem;
+  min-width: 0;
+}
+
 .fatura-ozet-mini--belge > div {
   display: flex;
   justify-content: space-between;
@@ -309,6 +844,12 @@
   margin-top: 2px;
   padding-top: 4px;
   border-top: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+}
+
+.fatura-alt-finans-govde > .fatura-ozet-mini--belge .fatura-ozet-mini--genel {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  padding-top: 6px;
 }
 
 .fatura-ozet-mini--belge strong {
@@ -377,6 +918,8 @@
   color: #3dbe86;
 }
 
+.fatura-ust-serit,
+.fatura-alt-finans,
 .fatura-form-ust,
 .fatura-baslik-form,
 .fatura-zincir,
@@ -1026,6 +1569,14 @@
   font: inherit;
   font-size: 0.76rem;
   font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.fatura-isk-girdi:focus,
+.fatura-isk-girdi:focus-visible {
+  outline: none;
+  border-color: var(--ap-accent);
+  box-shadow: inset 0 0 0 1px var(--ap-accent);
 }
 
 .fatura-isk-girdi:disabled {
@@ -1044,9 +1595,276 @@
   color: inherit;
 }
 
-/* Hızlı stok kartı açma modalı — tanımlar kayıt modalı stilini kullanır */
+/* Hızlı stok kartı açma modalı */
 .fatura-hizli-stok-satir {
   grid-column: 1 / -1;
+}
+
+.fatura-hizli-stok-ust {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fatura-hizli-stok-mod-secim {
+  display: inline-flex;
+  align-self: stretch;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ap-surface) 88%, var(--ap-border));
+}
+
+.fatura-hizli-stok-mod-tus {
+  flex: 1 1 0;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--ap-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fatura-hizli-stok-mod-tus:hover:not(:disabled) {
+  color: var(--ap-text);
+  background: color-mix(in srgb, var(--ap-accent) 8%, transparent);
+}
+
+.fatura-hizli-stok-mod-tus--aktif {
+  color: var(--ap-text);
+  background: color-mix(in srgb, var(--ap-accent) 18%, var(--ap-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ap-accent) 35%, transparent);
+}
+
+.fatura-hizli-stok-mod-tus:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.fatura-hizli-stok-modal--detayli {
+  padding: 0.5rem !important;
+  align-items: stretch;
+}
+
+.fatura-hizli-stok-modal--detayli .fatura-hizli-stok-cerceve--detayli {
+  /* Sayfa genişliğine yakın — tanım kayıt 34rem sınırını ezer */
+  width: calc(100vw - 1rem) !important;
+  max-width: calc(100vw - 1rem);
+  max-height: calc(100vh - 1rem);
+  margin: auto;
+  align-self: center;
+}
+
+.fatura-hizli-stok-modal--detayli .fatura-hizli-stok-kart,
+.fatura-hizli-stok-modal--detayli .fatura-hizli-stok-kart--detayli {
+  width: 100% !important;
+  max-width: none;
+  max-height: calc(100vh - 1rem);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0.65rem 1rem 0 !important;
+  box-sizing: border-box;
+}
+
+.fatura-hizli-stok-modal--detayli .fatura-hizli-stok-govde {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 !important;
+}
+
+.fatura-hizli-stok-modal--detayli .fatura-hizli-stok-ust {
+  flex-shrink: 0;
+}
+
+.fatura-hizli-stok-modal--detayli .fatura-hizli-stok-ozet {
+  /* Detaylıda özet şeridi kompakt kalsın */
+  padding: 8px 12px;
+}
+
+.fatura-hizli-stok-modal--detayli .ap-tanimlar-modal-footer {
+  margin-left: -1rem;
+  margin-right: -1rem;
+  flex-shrink: 0;
+}
+
+/* Stok kartı gövdesi — sayfadakiyle aynı düzen, ekstra kutu yok */
+.fatura-hizli-stok-detay {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.fatura-hizli-stok-modal--detayli .stok-karti-kabuk--gomulu {
+  height: auto;
+  min-height: 0;
+  width: 100%;
+  display: block;
+}
+
+.fatura-hizli-stok-modal--detayli .stok-karti-kabuk--gomulu .stok-karti-icerik--gomulu {
+  max-height: none;
+  padding: 0.15rem 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  overflow: visible;
+}
+
+/* Modal içinde dar viewport media query ezmesin — sayfa düzenini koru */
+@media (max-width: 1100px) {
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart {
+    grid-template-columns:
+      minmax(4.2rem, 0.72fr)
+      minmax(2.55rem, 0.4fr)
+      minmax(3.55rem, 0.68fr)
+      minmax(2.55rem, 2.85rem)
+      minmax(2.65rem, 0.4fr)
+      minmax(3.35rem, 0.55fr)
+      minmax(5.1rem, 0.72fr)
+      minmax(4.1rem, 0.52fr)
+      minmax(2.7rem, 0.48fr) !important;
+    min-width: 52rem;
+  }
+
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-kabuk {
+    overflow-x: auto;
+  }
+
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(1) {
+    grid-column: 1 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(2) {
+    grid-column: 2 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(3) {
+    grid-column: 3 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(4) {
+    grid-column: 4 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(5) {
+    grid-column: 5 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(6) {
+    grid-column: 6 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(7) {
+    grid-column: 7 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(8) {
+    grid-column: 8 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--alis > :nth-child(9) {
+    grid-column: 9 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(1) {
+    grid-column: 1 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(2) {
+    grid-column: 2 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(3) {
+    grid-column: 3 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(4) {
+    grid-column: 4 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(5) {
+    grid-column: 5 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(6) {
+    grid-column: 6 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(7) {
+    grid-column: 7 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-kart-grup--satis > :nth-child(8) {
+    grid-column: 8 !important;
+  }
+  .fatura-hizli-stok-modal--detayli .stok-yb-birim-aciklama {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+.fatura-hizli-stok-modal .fatura-hizli-stok-kart:not(.fatura-hizli-stok-kart--detayli) {
+  width: min(520px, calc(100vw - 2rem));
+}
+
+.fatura-hizli-stok-govde {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fatura-hizli-stok-ozet {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--ap-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
+}
+
+.fatura-hizli-stok-ozet-etiket {
+  grid-column: 1;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+  align-self: center;
+}
+
+.fatura-hizli-stok-ozet-metin {
+  grid-column: 2;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ap-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fatura-hizli-stok-ozet-not {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: var(--ap-muted);
+  line-height: 1.4;
+}
+
+.fatura-hizli-stok-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.fatura-hizli-stok-fiyatlar {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+@media (max-width: 560px) {
+  .fatura-hizli-stok-grid,
+  .fatura-hizli-stok-fiyatlar {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Stok yetersiz uyarı modalı */

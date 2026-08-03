@@ -35,6 +35,24 @@ export function urunAramaSorgusuMetni(deger: string | undefined): string {
   return deger.trim();
 }
 
+/** Hızlı giriş / satırda gösterilecek «kod / ad» metni */
+export function urunKoduAdiEtiket(sku: string, ad: string): string {
+  const kod = sku.trim();
+  const adi = ad.trim();
+  if (!kod) return adi;
+  if (!adi || adi.toLocaleLowerCase('tr') === kod.toLocaleLowerCase('tr')) return kod;
+  return `${kod} / ${adi}`;
+}
+
+/** «kod / ad» veya düz metinden kod kısmını ayıklar */
+export function urunKoduAdiKodAl(ham: string | undefined): string {
+  const metin = urunAramaSorgusuMetni(ham);
+  if (!metin) return '';
+  const ayirac = metin.indexOf(' / ');
+  if (ayirac > 0) return metin.slice(0, ayirac).trim();
+  return metin;
+}
+
 export const URUN_ARAMA_ALANLARI = ['urunKoduAdi'] as const;
 
 export function hizliGirisUrunSorgusu(
@@ -60,6 +78,16 @@ export function urunKoduAdiCozumle(
   if (!metin) return { sku: 'YENİ-KOD', ad: 'Yeni ürün' };
 
   const aramaMetni = urunAramaSorgusuMetni(metin);
+
+  // «SKU / Ad» formatı
+  const ayirac = aramaMetni.indexOf(' / ');
+  if (ayirac > 0) {
+    const kod = aramaMetni.slice(0, ayirac).trim();
+    const ad = aramaMetni.slice(ayirac + 3).trim();
+    const skuTam = katalog.find((u) => u.sku.toLowerCase() === kod.toLowerCase());
+    if (skuTam) return { sku: skuTam.sku, ad: skuTam.ad, kur: skuTam.kur };
+    if (kod) return { sku: kod, ad: ad || kod };
+  }
 
   const skuTam = katalog.find((u) => u.sku.toLowerCase() === aramaMetni.toLowerCase());
   if (skuTam) return { sku: skuTam.sku, ad: skuTam.ad, kur: skuTam.kur };

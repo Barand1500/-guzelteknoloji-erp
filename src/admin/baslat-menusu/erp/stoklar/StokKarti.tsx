@@ -8,9 +8,11 @@ import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/Car
 import { CariOutlinedMarka } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedMarka';
 import { CariOutlinedMensei } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedMensei';
 import '@/admin/baslat-menusu/erp/cari/cari.css';
+import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
 import { markaCacheSifirla, stokMarkaEkle } from '@/veri/markalar';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
+import type { UrunKaydi } from '@/admin/baslat-menusu/datagrid/demo/urunAramaYardimci';
 import {
   type AdminBirim,
 } from '@/admin/baslat-menusu/erp/urun-yonetimi/tipler';
@@ -84,6 +86,10 @@ export function StokKarti({
   onKaydedildi,
   kaydetRef,
   onKirliDegistir,
+  gomulu = false,
+  baslangicKod = '',
+  baslangicAd = '',
+  onYeniOlustu,
 }: {
   mod: StokKartModu;
   stokId: string | null;
@@ -91,6 +97,12 @@ export function StokKarti({
   onKaydedildi: () => void;
   kaydetRef: MutableRefObject<(() => Promise<boolean | void | string>) | null>;
   onKirliDegistir: (kirli: boolean) => void;
+  /** Modal içinde yalnızca form içeriği (TanimDuzenleEkrani yok) */
+  gomulu?: boolean;
+  baslangicKod?: string;
+  baslangicAd?: string;
+  /** Yeni kart kaydında ürün özeti (belge hızlı ekleme vb.) */
+  onYeniOlustu?: (urun: UrunKaydi) => void;
 }) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { eklemeVar, duzenlemeVar } = useYetkiler('stoklar');
@@ -156,7 +168,11 @@ export function StokKarti({
 
   useEffect(() => {
     if (mod === 'yeni') {
-      setForm(bosStokForm);
+      setForm({
+        ...bosStokForm,
+        urunKodu: baslangicKod.trim().toLocaleUpperCase('tr'),
+        urunAdi: baslangicAd.trim().toLocaleUpperCase('tr'),
+      });
       setAktif(true);
       return;
     }
@@ -164,7 +180,7 @@ export function StokKarti({
       setForm(stoktenForm(seciliKayit));
       setAktif(seciliKayit.aktif);
     }
-  }, [mod, seciliKayit]);
+  }, [mod, seciliKayit, baslangicKod, baslangicAd]);
 
   useEffect(() => {
     if (mod === 'yeni') {
@@ -275,6 +291,16 @@ export function StokKarti({
         const yeniStok = await stokOlustur({ ...urunForm, aktif });
         await birimSatirlariniKaydet(yeniStok.id);
         basariBildir('Stok kartı eklendi.');
+        const fiyatSatir =
+          birimSatirlari.find((s) => s.varsayilanMi) ?? birimSatirlari[0] ?? null;
+        onYeniOlustu?.({
+          sku: urunForm.urunKodu.trim().toLocaleUpperCase('tr'),
+          ad: urunForm.urunAdi.trim(),
+          birim: urunForm.anaBirim || urunForm.varsayilanBirim || 'ADET',
+          fiyat: Number(fiyatSatir?.satisFiyati1 ?? fiyatSatir?.alisFiyati ?? 0) || 0,
+          kdv: Number(fiyatSatir?.kdv ?? fiyatSatir?.alisKdv ?? 20) || 20,
+          envanter: 0,
+        });
       }
       if (urunForm.marka) {
         stokMarkaEkle(urunForm.marka);
@@ -300,6 +326,7 @@ export function StokKarti({
     hataBildir,
     mod,
     onKaydedildi,
+    onYeniOlustu,
     saltOkunur,
     stokId,
   ]);
@@ -447,6 +474,134 @@ export function StokKarti({
     </div>
   );
 
+  const formIcerik = (
+    <div className={`stok-karti-icerik ap-scroll${gomulu ? ' stok-karti-icerik--gomulu' : ''}`}>
+      <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
+        {anaTanimlar}
+      </fieldset>
+
+      <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
+        <StokYeniBirimler
+          satirlar={birimSatirlari}
+          onChange={birimSatirlariAyarla}
+          kdvDepartmanYuzde={(() => {
+            const dep = kdvDepartmanlari.find((d) => d.value === form.kdvDepartmani);
+            const ham = dep?.yuzde?.trim();
+            if (!ham) return null;
+            const n = Number(ham.replace(',', '.'));
+            return Number.isFinite(n) ? n : null;
+          })()}
+        />
+      </fieldset>
+    </div>
+  );
+
+  if (gomulu) {
+    return (
+      <>
+        <div className="stok-karti-kabuk stok-karti-kabuk--gomulu">{formIcerik}</div>
+        <StokKdvDepartmanModal
+          acik={kdvModalAcik}
+          liste={kdvDepartmanlari}
+          onEkle={(ad, yuzde) => {
+            const sonuc = stokKdvDepartmaniEkle(ad, yuzde);
+            if (!sonuc) return false;
+            setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+            setForm((f) => ({ ...f, kdvDepartmani: sonuc.value }));
+            const n = Number(sonuc.yuzde.replace(',', '.'));
+            if (Number.isFinite(n)) {
+              setBirimSatirlari((onceki) =>
+                onceki.map((s) => ({ ...s, kdv: n, alisKdv: n }))
+              );
+            }
+            return true;
+          }}
+          onGuncelle={(value, ad, yuzde) => {
+            const ok = stokKdvDepartmaniGuncelle(value, ad, yuzde);
+            if (ok) {
+              setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+              if (form.kdvDepartmani === value) {
+                const n = Number(kdvYuzdeFiltrele(yuzde).replace(',', '.'));
+                if (Number.isFinite(n) && kdvYuzdeFiltrele(yuzde).trim()) {
+                  setBirimSatirlari((onceki) =>
+                    onceki.map((s) => ({ ...s, kdv: n, alisKdv: n }))
+                  );
+                }
+              }
+            }
+            return ok;
+          }}
+          onSil={(value) => {
+            stokKdvDepartmaniSil(value);
+            setKdvDepartmanlari(stokKdvDepartmanlariGetir());
+            if (form.kdvDepartmani === value) setForm((f) => ({ ...f, kdvDepartmani: '' }));
+          }}
+          onKapat={() => setKdvModalAcik(false)}
+        />
+        <CariSecenekModal
+          acik={tipModalAcik}
+          baslik="Stok Tipi"
+          placeholder="Yeni stok tipi adı…"
+          liste={stokTipleri.map((t) => ({ value: t.value, label: t.label }))}
+          sabitDegerler={['BASIT_URUN', 'GRUP_URUN', 'VARYASYONLU_URUN']}
+          kullanimNesneAdi="stok tipini"
+          kullanimSayisiAl={(value) => kayitlar.filter((s) => s.urunTipi === value).length}
+          onEkle={(ad) => {
+            const sonuc = stokTipiEkle(ad);
+            if (!sonuc) return false;
+            setStokTipleri(stokTipleriGetir());
+            setForm((f) => ({ ...f, urunTipi: sonuc.value }));
+            return true;
+          }}
+          onGuncelle={(value, ad) => {
+            const ok = stokTipiGuncelle(value, ad);
+            if (ok) setStokTipleri(stokTipleriGetir());
+            return ok;
+          }}
+          onSil={(value) => {
+            stokTipiSil(value);
+            const kalan = stokTipleriGetir();
+            setStokTipleri(kalan);
+            if (form.urunTipi === value) {
+              setForm((f) => ({ ...f, urunTipi: kalan[0]?.value ?? '' }));
+            }
+          }}
+          onKapat={() => setTipModalAcik(false)}
+        />
+        <CariSecenekModal
+          acik={neviModalAcik}
+          baslik="Stok Nevi"
+          placeholder="Yeni stok nevi adı…"
+          liste={stokNevileri.map((n) => ({ value: n.value, label: n.label }))}
+          sabitDegerler={['RESMI', 'GAYRIRESMI']}
+          kullanimNesneAdi="stok nevi"
+          kullanimSayisiAl={(value) => kayitlar.filter((s) => s.urunNevi === value).length}
+          onEkle={(ad) => {
+            const sonuc = stokNeviEkle(ad);
+            if (!sonuc) return false;
+            setStokNevileri(stokNevileriGetir());
+            setForm((f) => ({ ...f, urunNevi: sonuc.value }));
+            return true;
+          }}
+          onGuncelle={(value, ad) => {
+            const ok = stokNeviGuncelle(value, ad);
+            if (ok) setStokNevileri(stokNevileriGetir());
+            return ok;
+          }}
+          onSil={(value) => {
+            stokNeviSil(value);
+            const kalan = stokNevileriGetir();
+            setStokNevileri(kalan);
+            if (form.urunNevi === value) {
+              setForm((f) => ({ ...f, urunNevi: kalan[0]?.value ?? '' }));
+            }
+          }}
+          onKapat={() => setNeviModalAcik(false)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <div className="stok-karti-kabuk">
@@ -463,25 +618,7 @@ export function StokKarti({
           kaydediliyor={kaydediliyor}
           saltOkunur={saltOkunur}
         >
-          <div className="stok-karti-icerik ap-scroll">
-            <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
-              {anaTanimlar}
-            </fieldset>
-
-            <fieldset disabled={saltOkunur} className="stok-karti-form border-0 p-0 m-0 min-w-0">
-              <StokYeniBirimler
-                satirlar={birimSatirlari}
-                onChange={birimSatirlariAyarla}
-                kdvDepartmanYuzde={(() => {
-                  const dep = kdvDepartmanlari.find((d) => d.value === form.kdvDepartmani);
-                  const ham = dep?.yuzde?.trim();
-                  if (!ham) return null;
-                  const n = Number(ham.replace(',', '.'));
-                  return Number.isFinite(n) ? n : null;
-                })()}
-              />
-            </fieldset>
-          </div>
+          {formIcerik}
         </TanimDuzenleEkrani>
       </div>
 

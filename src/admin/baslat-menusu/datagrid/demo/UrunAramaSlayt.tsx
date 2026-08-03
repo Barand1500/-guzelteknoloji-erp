@@ -157,7 +157,7 @@ export function UrunAramaSlayt({
             {sonuclar.length === 0 ? (
               <div className="dg-urun-arama-bos">
                 <p>Böyle bir stoğunuz yok.</p>
-                <span>Aramayı değiştirin, ESC ile dönün veya kartı hemen açın.</span>
+                <span>Aramayı değiştirin, ESC ile dönün veya hızlı stok kartı açın.</span>
                 {onHizliEkle ? (
                   <button
                     type="button"
@@ -211,7 +211,7 @@ export function UrunAramaSlayt({
           <footer className="dg-urun-arama-ipucu">
             <span>Yazarak Filtrele</span>
             <span>↑ ↓ Gezin</span>
-            <span>Enter Seç ve Ekle</span>
+            <span>Enter Seç (alanlar dolar)</span>
             <span>ESC Geri</span>
           </footer>
         </div>

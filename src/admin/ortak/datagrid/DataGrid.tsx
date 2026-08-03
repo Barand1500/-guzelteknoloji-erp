@@ -1938,6 +1938,7 @@ export function DataGrid<TRow extends { id: string }>({
         <input
           ref={refAta ? hizliGirisIlkRef : undefined}
           type="text"
+          data-kolon-id={kolonId}
           className={`dg-hizli-giris-girdi${kucuk ? ' dg-hizli-giris-girdi--kucuk' : ''}${ekSinif ? ` ${ekSinif}` : ''}`}
           placeholder={gosterilenPlaceholder}
           title={ipucu ? dgTooltipMetni(ipucu) : undefined}
