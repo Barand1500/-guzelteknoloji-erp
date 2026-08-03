@@ -64,6 +64,7 @@ const VARSAYILAN_OFFLINE_MODULLER: OfflineModul[] = [
   { id: 9, ad: 'Cari Kartlar', prefix: 'cari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 13, ad: 'Stoklar', prefix: 'stoklar', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 14, ad: 'Bankalar', prefix: 'banka_anlasmalari', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
+  { id: 17, ad: 'Belgeler', prefix: 'belgeler', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 15, ad: 'Alis Faturasi', prefix: 'alis_faturasi', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
   { id: 16, ad: 'Satis Faturasi', prefix: 'satis_faturasi', aktif: true, rolSayisi: 6, kayitTarihi: '', guncellemeTarihi: '' },
 ];

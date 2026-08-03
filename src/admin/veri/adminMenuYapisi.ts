@@ -162,6 +162,22 @@ export function modulIdDenPrefix(modulId: string): string {
   return modulId.replace(/-/g, '_');
 }
 
+/** Belgeler: eski alış/satış yetkisi de geçerli sayılsın */
+function modulGoruntulemeVarMi(
+  modulId: string,
+  kullaniciModulYetkileri: Record<string, string[]>
+): boolean {
+  const prefix = modulIdDenPrefix(modulId);
+  if (kullaniciModulYetkileri[prefix]?.includes('goruntuleme')) return true;
+  if (modulId === 'belgeler') {
+    return (
+      kullaniciModulYetkileri.alis_faturasi?.includes('goruntuleme') === true ||
+      kullaniciModulYetkileri.satis_faturasi?.includes('goruntuleme') === true
+    );
+  }
+  return false;
+}
+
 const PANEL_ALTYAPI_MODUL_IDLERI = new Set([
   'ayarlar',
   'sekme-yonetimi',
@@ -190,8 +206,7 @@ export function modulMenuGorunurMu(
   const prefix = modulIdDenPrefix(modulId);
   if (kullaniciModulYetkileri && Object.keys(kullaniciModulYetkileri).length > 0) {
     if (kullaniciRol.trim().toUpperCase() !== 'SUPER_ADMIN') {
-      const modulYetkiler = kullaniciModulYetkileri[prefix];
-      if (!modulYetkiler?.includes('goruntuleme')) return false;
+      if (!modulGoruntulemeVarMi(modulId, kullaniciModulYetkileri)) return false;
     }
   } else if (!PANEL_ALTYAPI_MODUL_IDLERI.has(modulId)) {
     if (!aktifPrefixler) return true;

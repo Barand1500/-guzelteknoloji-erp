@@ -35,6 +35,7 @@ export const PANEL_MODULLERI = [
   { modulAdi: 'Maliyetler', prefix: 'maliyetler' },
   { modulAdi: 'Stoklar', prefix: 'stoklar' },
   { modulAdi: 'Bankalar', prefix: 'banka_anlasmalari' },
+  { modulAdi: 'Belgeler', prefix: 'belgeler' },
   { modulAdi: 'Alis Faturasi', prefix: 'alis_faturasi' },
   { modulAdi: 'Satis Faturasi', prefix: 'satis_faturasi' },
 ] as const;
