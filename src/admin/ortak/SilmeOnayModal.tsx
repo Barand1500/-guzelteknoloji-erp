@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { DonenAccentCerceve } from '@/admin/ortak/DonenAccentCerceve';
 import { ModalSolBaslik } from '@/admin/ortak/ModalSolBaslik';
@@ -15,7 +15,10 @@ interface SilmeOnayModalProps {
   onKapat: () => void;
   onOnayla: () => void;
   baslik?: string;
-  hedefMetin: string;
+  /** Silme metninde vurgulanan hedef; aciklama verilirse opsiyonel */
+  hedefMetin?: string;
+  /** Varsayılan silme cümlesi yerine özel içerik */
+  aciklama?: ReactNode;
   ariaLabel?: string;
   onayMetin?: string;
   iptalMetin?: string;
@@ -26,7 +29,8 @@ export function SilmeOnayModal({
   onKapat,
   onOnayla,
   baslik = 'Bu kaydı silmek istiyor musunuz?',
-  hedefMetin,
+  hedefMetin = '',
+  aciklama,
   ariaLabel = 'Silme onayı',
   onayMetin = 'Evet, Sil',
   iptalMetin = 'Vazgeç',
@@ -69,7 +73,11 @@ export function SilmeOnayModal({
         <div className="ap-sil-onay-kart ap-sil-onay-kart--sol-baslik">
           <ModalSolBaslik baslik={baslik} ikon="!" onKapat={kapat} />
           <p className="ap-sil-onay-metin">
-            <strong>{hedefMetin}</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+            {aciklama ?? (
+              <>
+                <strong>{hedefMetin}</strong> kalıcı olarak silinecektir. Bu işlem geri alınamaz.
+              </>
+            )}
           </p>
           <div className="ap-sil-onay-aksiyonlar">
             <button type="button" className="ap-sil-onay-tus ap-sil-onay-tus--iptal" onClick={kapat}>

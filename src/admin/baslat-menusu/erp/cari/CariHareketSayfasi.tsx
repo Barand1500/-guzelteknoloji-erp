@@ -15,17 +15,11 @@ import {
   belgeNeviEtiketi,
   yonIcinVarsayilanBelgeNevi,
 } from '@/admin/baslat-menusu/ozel-tanimlar/veri/belgeNevileri';
-import {
-  gorunenOzetKartlar,
-  ozetGorunumOku,
-  ozetGorunumYaz,
-  ozetKartEtiketi,
-  varsayilanOzetGorunum,
-  type CariOzetGorunum,
-  type CariOzetKartId,
-} from '@/admin/baslat-menusu/erp/cari/cariHareketOzetKartlari';
+import { AP_SEKME_DEGISTI } from '@/araclar/sekmePortal';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 import './cariHareket.css';
+
+const OTO_YENILE_MS = 30_000;
 
 interface CariHareketSayfasiProps {
   cari: AdminCari;
@@ -82,6 +76,79 @@ function cariBelgeleriAl(cari: AdminCari): BelgeKayit[] {
     .sort((a, b) => b.tarih.localeCompare(a.tarih));
 }
 
+function ozetAlanlari(cari: AdminCari): { etiket: string; deger: string }[] {
+  const alanlar: { etiket: string; deger: string }[] = [];
+
+  if (cari.cariTipi) {
+    alanlar.push({ etiket: 'Cari Tipi', deger: cariTipiEtiketi(cari.cariTipi) });
+  }
+  if (cari.isletmeTuru) {
+    alanlar.push({ etiket: 'İşletme Türü', deger: isletmeTuruEtiketi(cari.isletmeTuru) });
+  }
+  if (cari.unvan.trim()) {
+    alanlar.push({ etiket: 'Ünvanı', deger: cari.unvan });
+  }
+  if (cari.vergiNo) {
+    alanlar.push({
+      etiket:
+        cari.isletmeTuru === 'GERCEK'
+          ? 'T.C. Kimlik No'
+          : cari.isletmeTuru === 'YABANCI'
+            ? 'Pasaport No'
+            : 'Vergi No',
+      deger: cari.vergiNo,
+    });
+  }
+  if (cari.vergiDairesi) {
+    alanlar.push({ etiket: 'Vergi Dairesi', deger: cari.vergiDairesi });
+  }
+  if (cari.adres) {
+    alanlar.push({ etiket: 'Adres', deger: cari.adres });
+  }
+  if (cari.il) {
+    alanlar.push({ etiket: 'İl', deger: cari.il });
+  }
+  if (cari.ilce) {
+    alanlar.push({ etiket: 'İlçe', deger: cari.ilce });
+  }
+  if (cari.telefon) {
+    const tel =
+      cari.telefonDahili?.trim()
+        ? `${cari.telefon} (Dahili ${cari.telefonDahili.trim()})`
+        : cari.telefon;
+    alanlar.push({ etiket: 'Telefon', deger: tel });
+  }
+  if (cari.gsm) {
+    alanlar.push({ etiket: 'GSM', deger: cari.gsm });
+  }
+  if (cari.eposta) {
+    alanlar.push({ etiket: 'E-posta', deger: cari.eposta });
+  }
+  if (cari.web) {
+    alanlar.push({ etiket: 'Web', deger: cari.web });
+  }
+  alanlar.push({ etiket: 'E-Fatura', deger: cari.efatura ? 'Evet' : 'Hayır' });
+  if (cari.efatura) {
+    if (cari.efaturaTipi) {
+      alanlar.push({ etiket: 'Fatura Tipi', deger: cari.efaturaTipi });
+    }
+    if (cari.alias) {
+      alanlar.push({ etiket: 'E-Fatura Alias', deger: cari.alias });
+    }
+  } else if (cari.earsivTeslimSekli) {
+    alanlar.push({
+      etiket: 'E-Arşiv Teslim',
+      deger: cari.earsivTeslimSekli === 'KAGIT' ? 'Kağıt' : 'Elektronik',
+    });
+  }
+  alanlar.push({ etiket: 'E-İrsaliye', deger: cari.earsiv ? 'Evet' : 'Hayır' });
+  if (cari.earsiv && cari.earsivAlias) {
+    alanlar.push({ etiket: 'E-İrsaliye Alias', deger: cari.earsivAlias });
+  }
+
+  return alanlar;
+}
+
 export function CariHareketSayfasi({
   cari,
   onGeri,
@@ -93,73 +160,10 @@ export function CariHareketSayfasi({
   const [yenileAnahtar, setYenileAnahtar] = useState(0);
   const [yenileniyor, setYenileniyor] = useState(false);
   const [sonYenileme, setSonYenileme] = useState<Date | null>(null);
-  const [gorunumAcik, setGorunumAcik] = useState(false);
-  const [ozetGorunum, setOzetGorunum] = useState<CariOzetGorunum>(() => ozetGorunumOku());
-  const gorunumPanelRef = useRef<HTMLDivElement | null>(null);
-  const gorunumBtnRef = useRef<HTMLButtonElement | null>(null);
-
-  const gorunenKartlar = useMemo(() => gorunenOzetKartlar(ozetGorunum), [ozetGorunum]);
-
-  const gorunumGuncelle = useCallback((sonraki: CariOzetGorunum) => {
-    const gizli =
-      sonraki.gizli.length >= sonraki.sira.length
-        ? sonraki.sira.slice(1)
-        : sonraki.gizli;
-    const temiz = { sira: sonraki.sira, gizli };
-    setOzetGorunum(temiz);
-    ozetGorunumYaz(temiz);
-  }, []);
-
-  const kartGizle = useCallback(
-    (id: CariOzetKartId, gizle: boolean) => {
-      const gizliSet = new Set(ozetGorunum.gizli);
-      if (gizle) {
-        const gorunenSayisi = ozetGorunum.sira.filter((x) => !gizliSet.has(x)).length;
-        if (gorunenSayisi <= 1) return;
-        gizliSet.add(id);
-      } else {
-        gizliSet.delete(id);
-      }
-      gorunumGuncelle({ ...ozetGorunum, gizli: [...gizliSet] });
-    },
-    [ozetGorunum, gorunumGuncelle]
-  );
-
-  const kartTasi = useCallback(
-    (id: CariOzetKartId, yon: 'yukari' | 'asagi') => {
-      const sira = [...ozetGorunum.sira];
-      const idx = sira.indexOf(id);
-      if (idx < 0) return;
-      const hedef = yon === 'yukari' ? idx - 1 : idx + 1;
-      if (hedef < 0 || hedef >= sira.length) return;
-      [sira[idx], sira[hedef]] = [sira[hedef]!, sira[idx]!];
-      gorunumGuncelle({ ...ozetGorunum, sira });
-    },
-    [ozetGorunum, gorunumGuncelle]
-  );
-
-  const gorunumSifirla = useCallback(() => {
-    gorunumGuncelle(varsayilanOzetGorunum());
-  }, [gorunumGuncelle]);
-
-  useEffect(() => {
-    if (!gorunumAcik) return;
-    function disariTikla(e: MouseEvent) {
-      const t = e.target as Node;
-      if (gorunumPanelRef.current?.contains(t)) return;
-      if (gorunumBtnRef.current?.contains(t)) return;
-      setGorunumAcik(false);
-    }
-    function esc(e: KeyboardEvent) {
-      if (e.key === 'Escape') setGorunumAcik(false);
-    }
-    document.addEventListener('mousedown', disariTikla);
-    document.addEventListener('keydown', esc);
-    return () => {
-      document.removeEventListener('mousedown', disariTikla);
-      document.removeEventListener('keydown', esc);
-    };
-  }, [gorunumAcik]);
+  const [ozetAcik, setOzetAcik] = useState(false);
+  const kokRef = useRef<HTMLDivElement | null>(null);
+  const yenileniyorRef = useRef(false);
+  const yenileRef = useRef<(secenek?: { sessiz?: boolean }) => Promise<void>>(async () => {});
 
   const bakiye = useMemo(() => {
     void yenileAnahtar;
@@ -206,24 +210,111 @@ export function CariHareketSayfasi({
     [hareketSatirlari]
   );
 
-  const yenile = useCallback(async () => {
-    if (yenileniyor) return;
-    setYenileniyor(true);
+  const alanlar = useMemo(() => ozetAlanlari(cari), [cari]);
+
+  const yenile = useCallback(async (secenek?: { sessiz?: boolean }) => {
+    if (yenileniyorRef.current) return;
+    const sessiz = secenek?.sessiz === true;
+    yenileniyorRef.current = true;
+    if (!sessiz) setYenileniyor(true);
     try {
-      // Göstergenin fark edilebilmesi için kısa bir bekleme
-      await Promise.all([onYenile?.(), new Promise((r) => setTimeout(r, 350))]);
+      await Promise.all([
+        onYenile?.(),
+        sessiz ? Promise.resolve() : new Promise((r) => setTimeout(r, 350)),
+      ]);
       setYenileAnahtar((n) => n + 1);
       setSonYenileme(new Date());
-      basariBildir('Cari hareketleri yenilendi.', 'Yenilendi');
+      if (!sessiz) basariBildir('Cari hareketleri yenilendi.', 'Yenilendi');
     } finally {
-      setYenileniyor(false);
+      yenileniyorRef.current = false;
+      if (!sessiz) setYenileniyor(false);
     }
-  }, [yenileniyor, onYenile, basariBildir]);
+  }, [onYenile, basariBildir]);
+
+  yenileRef.current = yenile;
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let iptal = false;
+    let oncekiGorunur = false;
+
+    const sayfaGorunurMu = () => {
+      if (document.visibilityState !== 'visible') return false;
+      const el = kokRef.current;
+      if (!el) return false;
+      if (el.closest('.ap-sekme-canli-gizli, [aria-hidden="true"]')) return false;
+      return el.getClientRects().length > 0;
+    };
+
+    const timerDurdur = () => {
+      if (timer != null) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+
+    const sessizYenile = () => {
+      if (iptal || !sayfaGorunurMu()) return;
+      void yenileRef.current({ sessiz: true });
+    };
+
+    const timerBaslat = () => {
+      timerDurdur();
+      if (!sayfaGorunurMu()) return;
+      timer = setInterval(sessizYenile, OTO_YENILE_MS);
+    };
+
+    const gorunurlukAyarla = (gorunur: boolean) => {
+      if (gorunur) {
+        if (!oncekiGorunur) sessizYenile();
+        timerBaslat();
+      } else {
+        timerDurdur();
+      }
+      oncekiGorunur = gorunur;
+    };
+
+    gorunurlukAyarla(sayfaGorunurMu());
+
+    const onVisibility = () => gorunurlukAyarla(sayfaGorunurMu());
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener(AP_SEKME_DEGISTI, onVisibility);
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const kesiliyor = entries.some((e) => e.isIntersecting && e.intersectionRatio > 0);
+        gorunurlukAyarla(kesiliyor && document.visibilityState === 'visible' && sayfaGorunurMu());
+      },
+      { threshold: 0.01 }
+    );
+    const el = kokRef.current;
+    if (el) io.observe(el);
+
+    return () => {
+      iptal = true;
+      timerDurdur();
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener(AP_SEKME_DEGISTI, onVisibility);
+      io.disconnect();
+    };
+  }, [cari.id]);
 
   const belgeAc = (belgeId: string | null | undefined) => {
     if (!belgeId || !onModulAc) return;
     belgeBaslatYaz({ belgeId });
     onModulAc('belgeler');
+  };
+
+  const yazdir = () => {
+    document.body.classList.add('cari-hareket-yazdiriliyor');
+    const temizle = () => {
+      document.body.classList.remove('cari-hareket-yazdiriliyor');
+      window.removeEventListener('afterprint', temizle);
+    };
+    window.addEventListener('afterprint', temizle);
+    window.print();
+    // Bazı tarayıcılarda afterprint gecikebilir / gelmeyebilir
+    window.setTimeout(temizle, 1000);
   };
 
   const belgeEkle = () => {
@@ -234,7 +325,7 @@ export function CariHareketSayfasi({
   };
 
   return (
-    <div className="cari-hareket-sayfa">
+    <div ref={kokRef} className="cari-hareket-sayfa">
       <div className="cari-hareket-ust">
         <div className="cari-hareket-ust-sol">
           <button type="button" className="fatura-btn fatura-btn--ghost" onClick={onGeri}>
@@ -247,7 +338,7 @@ export function CariHareketSayfasi({
               + Belge Ekle
             </button>
           ) : null}
-          <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => window.print()}>
+          <button type="button" className="fatura-btn fatura-btn--ghost" onClick={yazdir}>
             Yazdır
           </button>
           <button
@@ -266,191 +357,47 @@ export function CariHareketSayfasi({
         </div>
       </div>
 
-      <section className="cari-hareket-ozet" aria-label="Cari özet">
-        <div className="cari-hareket-ozet-ust">
-          <p className="cari-hareket-ozet-baslik">Özet</p>
-          <div className="cari-hareket-gorunum-kabuk">
-            <button
-              ref={gorunumBtnRef}
-              type="button"
-              className="fatura-btn fatura-btn--ghost cari-hareket-gorunum-btn"
-              onClick={() => setGorunumAcik((a) => !a)}
-              aria-expanded={gorunumAcik}
-              aria-haspopup="dialog"
-            >
-              Görünümü Düzenle
-            </button>
-            {gorunumAcik ? (
-              <div
-                ref={gorunumPanelRef}
-                className="cari-hareket-gorunum-panel"
-                role="dialog"
-                aria-label="Özet kartları"
-              >
-                <div className="cari-hareket-gorunum-panel-baslik">
-                  <div>
-                    <h3>Kartlar</h3>
-                    <p>Görünür kartlar ve sırası</p>
-                  </div>
-                  <div className="cari-hareket-gorunum-panel-aksiyon">
-                    <button
-                      type="button"
-                      className="cari-hareket-gorunum-sifirla"
-                      onClick={gorunumSifirla}
-                    >
-                      Varsayılana Dön
-                    </button>
-                    <button
-                      type="button"
-                      className="cari-hareket-gorunum-kapat"
-                      onClick={() => setGorunumAcik(false)}
-                      aria-label="Kapat"
-                      title="Kapat"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-                <div className="cari-hareket-gorunum-panel-liste">
-                  {ozetGorunum.sira.map((id, idx, arr) => {
-                    const gizli = ozetGorunum.gizli.includes(id);
-                    const gorunenSayisi = ozetGorunum.sira.length - ozetGorunum.gizli.length;
-                    return (
-                      <div key={id} className="cari-hareket-gorunum-satir">
-                        <input
-                          type="checkbox"
-                          checked={!gizli}
-                          disabled={!gizli && gorunenSayisi <= 1}
-                          onChange={(e) => kartGizle(id, !e.target.checked)}
-                          aria-label={`${ozetKartEtiketi(id)} göster`}
-                        />
-                        <label>{ozetKartEtiketi(id)}</label>
-                        <div className="cari-hareket-gorunum-oklar">
-                          <button
-                            type="button"
-                            className="cari-hareket-gorunum-ok"
-                            disabled={idx === 0}
-                            title="Yukarı taşı"
-                            aria-label="Yukarı taşı"
-                            onClick={() => kartTasi(id, 'yukari')}
-                          >
-                            ▲
-                          </button>
-                          <button
-                            type="button"
-                            className="cari-hareket-gorunum-ok"
-                            disabled={idx === arr.length - 1}
-                            title="Aşağı taşı"
-                            aria-label="Aşağı taşı"
-                            onClick={() => kartTasi(id, 'asagi')}
-                          >
-                            ▼
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
+      <section
+        className={`cari-hareket-ozet${ozetAcik ? ' cari-hareket-ozet--acik' : ''}`}
+        aria-label="Cari özet"
+      >
+        <button
+          type="button"
+          className="cari-hareket-ozet-tetik"
+          onClick={() => setOzetAcik((a) => !a)}
+          aria-expanded={ozetAcik}
+          aria-controls="cari-hareket-ozet-govde"
+        >
+          <div className="cari-hareket-ozet-kimlik">
+            {cari.cariKodu ? <span className="cari-hareket-kod">{cari.cariKodu}</span> : null}
+            <span className="cari-hareket-ad">{cari.cariAdi || cari.unvan || '—'}</span>
           </div>
-        </div>
-        <div className="cari-hareket-ozet-grid">
-          {gorunenKartlar.map((id) => {
-            if (id === 'firma') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">Firma</p>
-                  <strong>{cari.cariAdi || cari.unvan || '—'}</strong>
-                  <span className="cari-hareket-ozet-meta">{cari.yetkili || 'Yetkili yok'}</span>
-                </div>
-              );
-            }
-            if (id === 'vergi') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">Vergi</p>
-                  <strong>{cari.vergiNo || '—'}</strong>
-                  <span className="cari-hareket-ozet-meta">{cari.vergiDairesi || '—'}</span>
-                </div>
-              );
-            }
-            if (id === 'adres') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">Adres / İletişim</p>
-                  <strong>{[cari.ilce, cari.il].filter(Boolean).join(' / ') || '—'}</strong>
-                  <span className="cari-hareket-ozet-meta">
-                    {cari.telefon || cari.gsm || cari.eposta || '—'}
-                  </span>
-                </div>
-              );
-            }
-            if (id === 'bakiye') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart cari-hareket-ozet-kart--bakiye">
-                  <p className="cari-hareket-ozet-etiket">Bakiye</p>
-                  <strong className={bakiye.bakiye >= 0 ? 'cari-hareket-borc' : 'cari-hareket-alacak'}>
-                    {sayiFormatla(Math.abs(bakiye.bakiye))}
-                    <span className="cari-hareket-ba">{bakiye.bakiye >= 0 ? 'B' : 'A'}</span>
-                  </strong>
-                  <span className="cari-hareket-ozet-meta">
-                    Borç {sayiFormatla(bakiye.borc)} · Alacak {sayiFormatla(bakiye.alacak)}
-                  </span>
-                </div>
-              );
-            }
-            if (id === 'kod') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">Cari Kodu</p>
-                  <strong>{cari.cariKodu || '—'}</strong>
-                  <span className="cari-hareket-ozet-meta">{cari.unvan || cari.cariAdi || '—'}</span>
-                </div>
-              );
-            }
-            if (id === 'tip') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">Cari Tipi</p>
-                  <strong>{cariTipiEtiketi(cari.cariTipi)}</strong>
-                  <span className="cari-hareket-ozet-meta">
-                    {isletmeTuruEtiketi(cari.isletmeTuru)}
-                  </span>
-                </div>
-              );
-            }
-            if (id === 'eposta') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">E-posta</p>
-                  <strong>{cari.eposta || '—'}</strong>
-                  <span className="cari-hareket-ozet-meta">{cari.gsm || cari.telefon || '—'}</span>
-                </div>
-              );
-            }
-            if (id === 'web') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">Web</p>
-                  <strong>{cari.web || '—'}</strong>
-                  <span className="cari-hareket-ozet-meta">İnternet sitesi</span>
-                </div>
-              );
-            }
-            if (id === 'efatura') {
-              return (
-                <div key={id} className="cari-hareket-ozet-kart">
-                  <p className="cari-hareket-ozet-etiket">e-Fatura</p>
-                  <strong>{cari.efatura ? 'Evet' : 'Hayır'}</strong>
-                  <span className="cari-hareket-ozet-meta">
-                    e-Arşiv: {cari.earsiv ? 'Evet' : 'Hayır'}
-                  </span>
-                </div>
-              );
-            }
-            return null;
-          })}
+          <div className="cari-hareket-ozet-tetik-sag">
+            <div className="cari-hareket-ozet-bakiye" title="Net bakiye">
+              <span className="cari-hareket-ozet-bakiye-etiket">Bakiye</span>
+              <strong className={bakiye.bakiye >= 0 ? 'cari-hareket-borc' : 'cari-hareket-alacak'}>
+                {sayiFormatla(Math.abs(bakiye.bakiye))}
+                <span className="cari-hareket-ba">{bakiye.bakiye >= 0 ? 'B' : 'A'}</span>
+              </strong>
+            </div>
+            <span className="cari-hareket-ozet-ok" aria-hidden>
+              {ozetAcik ? '▾' : '▸'}
+            </span>
+          </div>
+        </button>
+        <div
+          id="cari-hareket-ozet-govde"
+          className="cari-hareket-ozet-govde"
+          hidden={!ozetAcik}
+        >
+          <dl className="cari-hareket-ozet-dl">
+            {alanlar.map((a) => (
+              <div key={a.etiket} className="cari-hareket-ozet-dl-oge">
+                <dt>{a.etiket}</dt>
+                <dd title={a.deger}>{a.deger}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 

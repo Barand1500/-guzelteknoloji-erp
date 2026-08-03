@@ -5,6 +5,8 @@ import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import '@/admin/ortak/datagrid/datagrid.css';
 import type { DataGridApi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
+import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 import { TanimYukleniyor } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimYukleniyor';
 import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
@@ -92,6 +94,21 @@ function CariListelemeTus({ onGit }: { onGit: () => void }) {
   );
 }
 
+function FlatUyariIkon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden>
+      <path
+        d="M12 3.8 21.2 20.2H2.8L12 3.8Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M12 10v4.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <circle cx="12" cy="17.4" r="1.05" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => void } = {}) {
   const { basariBildir, hataBildir } = useAdminSayfaBildirimi();
   const { goruntulemeVar, eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('cari');
@@ -110,6 +127,10 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   const [silme, setSilme] = useState<AdminCari | null>(null);
   const [ekstreCari, setEkstreCari] = useState<AdminCari | null>(null);
   const [kartKirli, setKartKirli] = useState(false);
+  const [kirliOnay, setKirliOnay] = useState<
+    null | { tip: 'liste' } | { tip: 'cari'; hedef: AdminCari }
+  >(null);
+  const [kirliKaydediliyor, setKirliKaydediliyor] = useState(false);
   const gridApiRef = useRef<DataGridApi | null>(null);
   const sayfaRef = useRef<HTMLDivElement>(null);
   const kaydetRef = useRef<(() => Promise<boolean | void | string>) | null>(null);
@@ -170,34 +191,46 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   const tekSeciliId = seciliIdler.length === 1 ? seciliIdler[0] : null;
   const baglamCariId = tekSeciliId ?? aktifCariId;
 
-  const listeyeDon = useCallback((secenek?: { kayitSonrasi?: boolean }) => {
-    if (!secenek?.kayitSonrasi && kartKirli) {
-      const onay = window.confirm(
-        'Kaydedilmemiş değişiklikler var. Yine de listeye dönmek istiyor musunuz?'
-      );
-      if (!onay) return;
-    }
+  const listeyeDonUygula = useCallback(() => {
     setGorunum('liste');
     setAktifCariId(null);
     setKartKirli(false);
+    setKirliOnay(null);
     void yukle();
-  }, [kartKirli, yukle]);
+  }, [yukle]);
 
-  const cariyeGit = useCallback(
-    (hedef: AdminCari) => {
-      if (kartKirli) {
-        const onay = window.confirm(
-          'Kaydedilmemiş değişiklikler var. Yine de diğer cariye geçmek istiyor musunuz?'
-        );
-        if (!onay) return;
+  const listeyeDon = useCallback(
+    (secenek?: { kayitSonrasi?: boolean }) => {
+      if (!secenek?.kayitSonrasi && kartKirli) {
+        setKirliOnay({ tip: 'liste' });
+        return;
       }
+      listeyeDonUygula();
+    },
+    [kartKirli, listeyeDonUygula]
+  );
+
+  const cariyeGitUygula = useCallback(
+    (hedef: AdminCari) => {
       setSeciliIdler([hedef.id]);
       setAktifCariId(hedef.id);
       setKartModu(duzenlemeVar ? 'duzenle' : 'incele');
       setKartKirli(false);
+      setKirliOnay(null);
       setGorunum('kart');
     },
-    [duzenlemeVar, kartKirli]
+    [duzenlemeVar]
+  );
+
+  const cariyeGit = useCallback(
+    (hedef: AdminCari) => {
+      if (kartKirli) {
+        setKirliOnay({ tip: 'cari', hedef });
+        return;
+      }
+      cariyeGitUygula(hedef);
+    },
+    [kartKirli, cariyeGitUygula]
   );
 
   const hareketAc = useCallback((satirId?: string) => {
@@ -241,6 +274,33 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
     }
     return await kaydetRef.current();
   }, [hataBildir]);
+
+  const kirliKaydetmedenDevam = useCallback(() => {
+    if (!kirliOnay) return;
+    if (kirliOnay.tip === 'liste') {
+      listeyeDonUygula();
+      return;
+    }
+    cariyeGitUygula(kirliOnay.hedef);
+  }, [kirliOnay, listeyeDonUygula, cariyeGitUygula]);
+
+  const kirliKaydetVeDevam = useCallback(async () => {
+    if (!kirliOnay || kirliKaydediliyor) return;
+    setKirliKaydediliyor(true);
+    try {
+      const sonuc = await kaydet();
+      if (sonuc === false) return;
+      if (kirliOnay.tip === 'liste') {
+        listeyeDonUygula();
+        return;
+      }
+      cariyeGitUygula(kirliOnay.hedef);
+    } catch {
+      /* kaydet zaten hata bildirir */
+    } finally {
+      setKirliKaydediliyor(false);
+    }
+  }, [kirliOnay, kirliKaydediliyor, kaydet, listeyeDonUygula, cariyeGitUygula]);
 
   const silAksiyon = useCallback(() => {
     if (!silmeVar) return;
@@ -579,6 +639,63 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
         hedefMetin={silme ? cariSatirEtiketi(silme) : ''}
         ariaLabel="Cari silme onayı"
       />
+      <SistemModal
+        acik={!!kirliOnay}
+        onKapat={() => {
+          if (!kirliKaydediliyor) setKirliOnay(null);
+        }}
+        onEnter={() => void kirliKaydetVeDevam()}
+        baslik="Kaydedilmemiş değişiklikler"
+        altBaslik={
+          kirliOnay?.tip === 'cari'
+            ? 'Bu cari kartında kaydedilmemiş değişiklikler var. Diğer cariye geçmeden önce nasıl devam edilsin?'
+            : 'Bu cari kartında kaydedilmemiş değişiklikler var. Listeye dönmeden önce nasıl devam edilsin?'
+        }
+        ikon={<FlatUyariIkon />}
+        ikonFlat
+        ustCizgi={false}
+        kapatEtiket="✕ ESC"
+        onEscape={kirliKaydetmedenDevam}
+        genislik="sm"
+        kapatmaDevreDisi={kirliKaydediliyor}
+        footer={
+          <SistemModalAksiyonlar>
+            <button
+              type="button"
+              className="fatura-btn fatura-btn--ikincil cari-kirli-modal-tus"
+              onClick={kirliKaydetmedenDevam}
+              disabled={kirliKaydediliyor}
+            >
+              <ModalTusIcerik
+                metin={kirliOnay?.tip === 'cari' ? 'Kaydetmeden Geç' : 'Kaydetmeden Dön'}
+                kisayol="Esc"
+              />
+            </button>
+            <button
+              type="button"
+              className="fatura-btn fatura-btn--birincil cari-kirli-modal-tus"
+              onClick={() => void kirliKaydetVeDevam()}
+              disabled={kirliKaydediliyor}
+            >
+              <ModalTusIcerik
+                metin={
+                  kirliKaydediliyor
+                    ? 'Kaydediliyor…'
+                    : kirliOnay?.tip === 'cari'
+                      ? 'Kaydet ve Geç'
+                      : 'Kaydet ve Dön'
+                }
+                kisayol={kirliKaydediliyor ? undefined : 'Enter'}
+              />
+            </button>
+          </SistemModalAksiyonlar>
+        }
+      >
+        <p className="ap-muted text-sm leading-relaxed">
+          Kaydet seçeneği değişiklikleri kaydeder. Kaydetmeden devam ederseniz yaptığınız değişiklikler
+          kaybolur.
+        </p>
+      </SistemModal>
       <CariEkstreModal acik={!!ekstreCari} cari={ekstreCari} onKapat={() => setEkstreCari(null)} />
     </AdminModulKabuk>
   );

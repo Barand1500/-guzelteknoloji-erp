@@ -21,16 +21,24 @@ interface SistemModalProps {
   onKapat: () => void;
   baslik: string;
   altBaslik?: string;
-  ikon?: string;
+  ikon?: ReactNode;
+  /** İkon kutusunu gölgesiz / düz göster */
+  ikonFlat?: boolean;
   genislik?: SistemModalGenislik;
   kapatmaDevreDisi?: boolean;
   /** false ise arka plana tıklayınca kapanmaz (varsayılan: true) */
   disariTiklaKapat?: boolean;
   /** false ise Escape ile kapanmaz (varsayılan: true) */
   escapeIleKapat?: boolean;
+  /** Escape için özel aksiyon (verilirse onKapat yerine bu çağrılır) */
+  onEscape?: () => void;
+  /** Enter tuşu (Shift olmadan) */
+  onEnter?: () => void;
   baslikId?: string;
   /** Varsayılan true — üstteki gradient çizgi */
   ustCizgi?: boolean;
+  /** Kapat butonu metni (ör. ✕ ESC) */
+  kapatEtiket?: string;
   children: ReactNode;
   footer?: ReactNode;
 }
@@ -41,12 +49,16 @@ export function SistemModal({
   baslik,
   altBaslik,
   ikon,
+  ikonFlat = false,
   genislik = 'md',
   kapatmaDevreDisi,
   disariTiklaKapat = true,
   escapeIleKapat = true,
+  onEscape,
+  onEnter,
   baslikId,
   ustCizgi = true,
+  kapatEtiket = '✕',
   children,
   footer,
 }: SistemModalProps) {
@@ -63,17 +75,23 @@ export function SistemModal({
   useSekmeModalGovdeKilidi(acik, portalKok);
 
   useEffect(() => {
-    if (!acik || !portalKok || !escapeIleKapat) return;
+    if (!acik || !portalKok) return;
     function tusHandler(e: KeyboardEvent) {
       if (sekmePortaliGizliMi(portalKok)) return;
-      if (e.key === 'Escape' && !kapatmaDevreDisi) {
+      if (e.key === 'Escape' && escapeIleKapat && !kapatmaDevreDisi) {
         e.preventDefault();
-        kapat();
+        if (onEscape) onEscape();
+        else kapat();
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey && onEnter && !kapatmaDevreDisi) {
+        e.preventDefault();
+        onEnter();
       }
     }
     document.addEventListener('keydown', tusHandler);
     return () => document.removeEventListener('keydown', tusHandler);
-  }, [acik, portalKok, kapatmaDevreDisi, kapat, escapeIleKapat]);
+  }, [acik, portalKok, kapatmaDevreDisi, kapat, escapeIleKapat, onEscape, onEnter]);
 
   if (!acik || !portalKok) return null;
 
@@ -98,7 +116,13 @@ export function SistemModal({
         >
           {ustCizgi ? <div className="ap-sistem-modal-v2-ust-cizgi" aria-hidden /> : null}
           <div className="ap-sistem-modal-baslik ap-sistem-modal-baslik-v2">
-            {ikon && <span className="ap-sistem-modal-ikon">{ikon}</span>}
+            {ikon ? (
+              <span
+                className={`ap-sistem-modal-ikon${ikonFlat ? ' ap-sistem-modal-ikon--flat' : ''}`}
+              >
+                {ikon}
+              </span>
+            ) : null}
             <div className="min-w-0 flex-1">
               <h2 id={baslikId} className="ap-heading text-base font-bold leading-tight">
                 {baslik}
@@ -107,12 +131,19 @@ export function SistemModal({
             </div>
             <button
               type="button"
-              className="ap-sistem-modal-kapat ap-sistem-modal-kapat-v2"
+              className="ap-sistem-modal-kapat ap-sistem-modal-kapat-v2 ap-modal-kapat-pil"
               onClick={kapat}
               disabled={kapatmaDevreDisi}
-              aria-label="Kapat"
+              aria-label="Kapat (Esc)"
+              title="Kapat (Esc)"
             >
-              ✕
+              {kapatEtiket === '✕ ESC' || kapatEtiket === '✕ Esc' ? (
+                <>
+                  ✕ <span className="ap-modal-kapat-pil-kisayol">ESC</span>
+                </>
+              ) : (
+                kapatEtiket
+              )}
             </button>
           </div>
           <div className="ap-sistem-modal-govde ap-sistem-modal-govde-v2">{children}</div>

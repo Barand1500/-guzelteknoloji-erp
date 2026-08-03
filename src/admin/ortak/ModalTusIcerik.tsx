@@ -7,7 +7,9 @@ export function ModalTusIcerik({ metin, kisayol }: ModalTusIcerikProps) {
   return (
     <>
       <span className="ap-modal-tus-metin">{metin}</span>
-      {kisayol ? <span className="ap-modal-tus-kisayol">({kisayol})</span> : null}
+      {kisayol ? (
+        <span className="ap-modal-tus-kisayol">({kisayol.toLocaleUpperCase('en-US')})</span>
+      ) : null}
     </>
   );
 }

@@ -88,28 +88,16 @@ export function yeniSiparisSatiriOlustur(
   );
 }
 
-/** Birim fiyatı KDV dahil ↔ hariç modları arasında dönüştürür (toplam tutarı korur). */
-export function fiyatKdvModunaCevir(
-  fiyat: number,
-  kdvYuzde: number,
-  eskiDahil: boolean,
-  yeniDahil: boolean
-): number {
-  if (eskiDahil === yeniDahil || !Number.isFinite(fiyat) || fiyat === 0) return fiyat;
-  const carpan = 1 + kdvYuzde / 100;
-  const yeni = eskiDahil ? fiyat / carpan : fiyat * carpan;
-  return Math.round(yeni * 100) / 100;
-}
-
+/**
+ * KDV dahil ↔ hariç: birim fiyat DEĞİŞMEZ.
+ * Toggle sadece hesabı yeniden yorumlar (üzerine KDV / içinden KDV).
+ */
 export function satirlariKdvModunaCevir(
   satirlar: SiparisSatiri[],
-  eskiDahil: boolean,
+  _eskiDahil: boolean,
   yeniDahil: boolean
 ): SiparisSatiri[] {
-  return satirlar.map((s) => {
-    const fiyat = fiyatKdvModunaCevir(s.fiyat, s.toplamKdvYuzde, eskiDahil, yeniDahil);
-    return satirHesapla({ ...s, fiyat }, yeniDahil);
-  });
+  return satirlar.map((s) => satirHesapla(s, yeniDahil));
 }
 
 export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri {

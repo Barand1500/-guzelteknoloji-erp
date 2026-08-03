@@ -5522,10 +5522,11 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-modal-tus-kisayol {
   display: block;
-  font-size: 0.6875rem;
+  font-size: 0.64rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
   opacity: 0.58;
+  text-transform: uppercase;
 }
 
 .ap-sil-onay-tus--onay .ap-modal-tus-kisayol {
@@ -8741,6 +8742,18 @@ html:has(.admin-panel[data-tema='acik']) body {
   flex-shrink: 0;
 }
 
+.ap-sistem-modal-ikon--flat {
+  background: transparent;
+  border-radius: 0;
+  color: var(--ap-accent);
+  box-shadow: none;
+  filter: none;
+}
+
+.ap-sistem-modal-ikon--flat svg {
+  display: block;
+}
+
 .ap-sistem-modal-kapat-v2 {
   align-self: flex-start;
 }
@@ -8755,12 +8768,31 @@ html:has(.admin-panel[data-tema='acik']) body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin-top: 0;
+  margin: 0;
   padding: 0.9rem 1.25rem;
   border-top: 1px solid var(--ap-border);
   background: color-mix(in srgb, var(--ap-hover) 60%, transparent);
   gap: 0.75rem;
   justify-content: flex-end;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0 0 calc(1rem - var(--cerceve-kalinlik, 4px)) calc(1rem - var(--cerceve-kalinlik, 4px));
+}
+
+.ap-sistem-modal-kapat-v2.ap-modal-kapat-pil {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.7rem;
+}
+
+.ap-sistem-modal-kapat-v2 .ap-modal-kapat-pil-kisayol {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+  text-transform: uppercase;
 }
 
 .ap-sistem-modal-bilgi-kutu {
@@ -8793,6 +8825,20 @@ html:has(.admin-panel[data-tema='acik']) body {
   background: var(--ap-surface);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
   padding: 1.25rem;
+}
+
+.ap-sistem-modal.ap-sistem-modal-v2 {
+  padding: 0;
+  overflow: hidden;
+}
+
+.ap-sistem-modal-alt.ap-sistem-modal-alt-v2 {
+  margin-top: 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--ap-border);
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0 0 calc(1rem - var(--cerceve-kalinlik, 4px)) calc(1rem - var(--cerceve-kalinlik, 4px));
 }
 
 .ap-sistem-modal-baslik {
