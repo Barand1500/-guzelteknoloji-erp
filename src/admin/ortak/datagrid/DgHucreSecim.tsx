@@ -115,7 +115,13 @@ export function DgHucreSecim({
 
   const sec = (s: Secenek) => onSec(s.deger);
 
-  const portalKok = sekmePortalHedefi(kokRef.current);
+  const portalKok = (() => {
+    /* Overflow:hidden panellerde sabit liste kesilmesin */
+    if (kokRef.current?.closest('.fatura-bolum-duzen, .dg-demo-sayfa, .dg-kabuk')) {
+      return (document.querySelector('.admin-panel') as HTMLElement | null) ?? document.body;
+    }
+    return sekmePortalHedefi(kokRef.current);
+  })();
 
   return (
     <>
@@ -185,7 +191,7 @@ export function DgHucreSecim({
             const seciliMi = s.deger === deger;
             const odakMi = index === odakIndex;
             return (
-              <li key={s.deger}>
+              <li key={`${s.deger}-${index}`}>
                 <button
                   type="button"
                   id={`${listeId}-oge-${index}`}

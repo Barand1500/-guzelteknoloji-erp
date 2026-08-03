@@ -927,10 +927,15 @@
 .dg-genislik-tutamac {
   position: absolute;
   top: 0;
-  right: 0;
-  width: 4px;
+  right: -3px;
+  width: 8px;
   height: 100%;
   cursor: col-resize;
+  z-index: 2;
+}
+
+.dg-genislik-tutamac:hover {
+  background: color-mix(in srgb, var(--ap-accent, #c45c26) 28%, transparent);
 }
 
 .dg-grup-satir .dg-hucre {

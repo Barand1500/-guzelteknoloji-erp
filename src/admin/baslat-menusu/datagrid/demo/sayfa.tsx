@@ -391,9 +391,9 @@ export function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[
 
       tip: 'badge',
 
-      genislik: 36,
+      genislik: 56,
 
-      minGenislik: 30,
+      minGenislik: 48,
 
       siralama: true,
 
@@ -831,6 +831,13 @@ export function DatagridDemoSayfasi() {
             tip: 'secim',
             varsayilan: 'ADET',
             secenekler: birimSecenekleri(),
+          },
+          {
+            kolonId: 'pb',
+            tip: 'secim',
+            varsayilan: paraBirimiSecenekleri()[0]?.deger ?? 'TRY',
+            secenekler: paraBirimiSecenekleri(),
+            ipucu: 'Para birimi',
           },
           {
             kolonId: 'fiyat',

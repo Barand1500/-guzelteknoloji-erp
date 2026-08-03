@@ -307,6 +307,59 @@ function panoyaSenkronYaz(metin: string): boolean {
   }
 }
 
+const KOLON_OTOMATIK_MAX = 480;
+const KOLON_OTOMATIK_EK = 14;
+
+/** Excel gibi: sütun içeriğinin en geniş satırına göre genişlik ölçer */
+function kolonIcerikGenisligiOlc(tablo: HTMLTableElement, kolonId: string): number {
+  const olcum = document.createElement('div');
+  olcum.setAttribute('aria-hidden', 'true');
+  olcum.style.cssText =
+    'position:fixed;left:-10000px;top:0;visibility:hidden;pointer-events:none;' +
+    'white-space:nowrap;width:max-content;max-width:none;box-sizing:border-box;';
+  document.body.appendChild(olcum);
+
+  let max = 0;
+  const hucreler = tablo.querySelectorAll<HTMLElement>(
+    `th[data-kolon-id="${CSS.escape(kolonId)}"], td[data-kolon-id="${CSS.escape(kolonId)}"]`
+  );
+
+  hucreler.forEach((hucre) => {
+    const kaynak =
+      hucre.tagName === 'TH'
+        ? (hucre.querySelector('.dg-baslik-icerik') as HTMLElement | null) ?? hucre
+        : hucre;
+    const cs = getComputedStyle(kaynak);
+    olcum.style.font = cs.font;
+    olcum.style.letterSpacing = cs.letterSpacing;
+    olcum.style.paddingLeft = cs.paddingLeft || '0.45rem';
+    olcum.style.paddingRight = cs.paddingRight || '0.45rem';
+
+    olcum.replaceChildren();
+    Array.from(kaynak.childNodes).forEach((n) => {
+      if (!(n instanceof HTMLElement)) {
+        olcum.appendChild(n.cloneNode(true));
+        return;
+      }
+      if (
+        n.classList.contains('dg-tooltip') ||
+        n.classList.contains('dg-genislik-tutamac') ||
+        n.classList.contains('dg-sabit-igne')
+      ) {
+        return;
+      }
+      olcum.appendChild(n.cloneNode(true));
+    });
+    if (!olcum.childNodes.length) {
+      olcum.textContent = (kaynak.textContent ?? '').replace(/\s+/g, ' ').trim();
+    }
+    max = Math.max(max, Math.ceil(olcum.getBoundingClientRect().width));
+  });
+
+  document.body.removeChild(olcum);
+  return max;
+}
+
 function HucreGoster<TRow>({
   satir,
   kolon,
@@ -934,6 +987,18 @@ export function DataGrid<TRow extends { id: string }>({
       document.removeEventListener('mouseup', birak);
     };
   }, [resize, dg]);
+
+  const kolonIcerigeSigdir = useCallback(
+    (kolonId: string) => {
+      const tablo = scrollRef.current?.querySelector('table.dg-tablo') as HTMLTableElement | null;
+      if (!tablo) return;
+      const kolon = kolonlar.find((k) => k.id === kolonId);
+      const min = kolon?.minGenislik ?? 48;
+      const olculen = kolonIcerikGenisligiOlc(tablo, kolonId) + KOLON_OTOMATIK_EK;
+      dg.kolonGenislikAyarla(kolonId, Math.min(KOLON_OTOMATIK_MAX, Math.max(min, olculen)));
+    },
+    [kolonlar, dg]
+  );
 
   const satirGuncelle = useCallback(
     (satir: TRow) => {
@@ -1724,6 +1789,16 @@ export function DataGrid<TRow extends { id: string }>({
                 onClick={(e) => {
                   odakAyarla(satir.id, kolon.id);
                   e.currentTarget.focus({ preventScroll: true });
+                  /* Birim / PB gibi seçenekli hücre: tek tıkla açılır liste (sipariş tablosu) */
+                  if (
+                    !duzenliyor &&
+                    onSatirlarDegistir &&
+                    kolon.duzenlenebilir &&
+                    kolon.tip !== 'salt-okunur' &&
+                    kolon.secenekler?.length
+                  ) {
+                    duzenlemeyiBaslat(satir, kolon);
+                  }
                 }}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
@@ -1743,7 +1818,7 @@ export function DataGrid<TRow extends { id: string }>({
                     {dgTooltipMetni(
                       satirIciDuzenlenebilir
                         ? kolon.secenekler?.length
-                          ? 'Düzenlemek için Enter veya çift tıklayın'
+                          ? 'Seçmek için tıklayın'
                           : kolonFormulaTipi(kolon)
                             ? 'Rakam yazınca değişir; Enter ile kaydet'
                             : 'Düzenlemek için çift tıklayın veya F2'
@@ -2680,9 +2755,27 @@ export function DataGrid<TRow extends { id: string }>({
                     {kolon.id !== 'islemler' && (
                       <span
                         className="dg-genislik-tutamac"
+                        title={dgTooltipMetni('Sürükle: boyutlandır · Çift tık: içeriğe sığdır')}
                         onMouseDown={(e) => {
                           e.preventDefault();
-                          setResize({ kolonId: kolon.id, baslangicX: e.clientX, baslangicGenislik: genislik });
+                          e.stopPropagation();
+                          /* Çift tık (2. mousedown): Excel gibi otomatik sığdır */
+                          if (e.detail >= 2) {
+                            setResize(null);
+                            kolonIcerigeSigdir(kolon.id);
+                            return;
+                          }
+                          setResize({
+                            kolonId: kolon.id,
+                            baslangicX: e.clientX,
+                            baslangicGenislik: genislik,
+                          });
+                        }}
+                        onDoubleClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setResize(null);
+                          kolonIcerigeSigdir(kolon.id);
                         }}
                       />
                     )}

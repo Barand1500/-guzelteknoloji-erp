@@ -1,7 +1,7 @@
 import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 
 import { gecerliBirim, type BirimKodu } from './birimVeri';
-import { type ParaBirimiKodu } from './paraBirimiVeri';
+import { gecerliParaBirimi, type ParaBirimiKodu } from './paraBirimiVeri';
 import { urunKoduAdiCozumle, type UrunKaydi } from './urunAramaYardimci';
 
 export interface SiparisSatiri {
@@ -78,7 +78,7 @@ export function yeniSiparisSatiriOlustur(
       toplamKdvYuzde: sayiDeger(degerler.toplamKdv, 20),
       toplamKdvTutar: 0,
       toplamTutar: 0,
-      pb: 'TRY',
+      pb: gecerliParaBirimi(degerler.pb),
       etiketler: etiketleriAyikla(degerler.etiketler),
       durum: durumHam === 'true' || durumHam === '1',
       kayitTarihi: simdi,

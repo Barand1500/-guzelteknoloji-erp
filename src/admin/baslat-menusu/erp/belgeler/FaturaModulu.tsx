@@ -21,6 +21,8 @@ import { siparisKolonlari } from '@/admin/baslat-menusu/datagrid/demo/sayfa';
 import { SatirDuzenlePanel } from '@/admin/baslat-menusu/datagrid/demo/SatirDuzenlePanel';
 import { UrunAramaSlayt } from '@/admin/baslat-menusu/datagrid/demo/UrunAramaSlayt';
 import { birimSecenekleri } from '@/admin/baslat-menusu/datagrid/demo/birimVeri';
+import { paraBirimiSecenekleri } from '@/admin/baslat-menusu/datagrid/demo/paraBirimiVeri';
+import { PARA_BIRIMLERI_GUNCELLENDI } from '@/admin/baslat-menusu/ozel-tanimlar/veri/paraBirimleri';
 import {
   hizliGirisUrunSorgusu,
   urunAramaSorgusuMetni,
@@ -229,7 +231,17 @@ export function FaturaModulu({
   const musteriGridRef = useRef<HTMLDivElement>(null);
 
   const saltOkunur = durum !== 'TASLAK';
-  const kolonlar = useMemo(() => siparisKolonlari(kdvDahil), [kdvDahil]);
+  const [pbSurumu, setPbSurumu] = useState(0);
+  useEffect(() => {
+    const yenile = () => setPbSurumu((n) => n + 1);
+    window.addEventListener(PARA_BIRIMLERI_GUNCELLENDI, yenile);
+    return () => window.removeEventListener(PARA_BIRIMLERI_GUNCELLENDI, yenile);
+  }, []);
+  const kolonlar = useMemo(() => siparisKolonlari(kdvDahil), [kdvDahil, pbSurumu]);
+  const pbSecenekleri = useMemo(() => {
+    void pbSurumu;
+    return paraBirimiSecenekleri();
+  }, [pbSurumu]);
   const seciliSube = useMemo(() => subeler.find((s) => s.id === subeId) ?? null, [subeler, subeId]);
   const seciliDepo = useMemo(() => depolar.find((d) => d.id === depoId) ?? null, [depolar, depoId]);
   const seciliKasa = useMemo(() => kasalar.find((k) => k.id === kasaId) ?? null, [kasalar, kasaId]);
@@ -1474,6 +1486,13 @@ export function FaturaModulu({
                   },
                   { kolonId: 'miktar', ipucu: 'Miktar ifadesi', varsayilan: '1' },
                   { kolonId: 'birim', tip: 'secim', varsayilan: 'ADET', secenekler: birimSecenekleri() },
+                  {
+                    kolonId: 'pb',
+                    tip: 'secim',
+                    varsayilan: pbSecenekleri[0]?.deger ?? 'TRY',
+                    secenekler: pbSecenekleri,
+                    ipucu: 'Para birimi',
+                  },
                   {
                     kolonId: 'fiyat',
                     ipucu: kdvDahil ? 'Fiyat (KDV dahil)' : 'Fiyat (KDV hariç)',
