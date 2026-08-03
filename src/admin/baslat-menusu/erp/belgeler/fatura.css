@@ -934,6 +934,7 @@
   overflow: hidden;
 }
 
+/* Sayfa içi scroll: içerik sığmazsa burada kayar (alt ezilmez) */
 .fatura-bolum-duzen {
   flex: 1 1 auto;
   min-height: 0;
@@ -941,7 +942,33 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ap-accent) 70%, #94a3b8)
+    color-mix(in srgb, var(--ap-border) 40%, transparent);
+}
+
+.fatura-bolum-duzen::-webkit-scrollbar {
+  width: 10px;
+}
+
+.fatura-bolum-duzen::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--ap-border) 30%, transparent);
+  border-radius: 999px;
+}
+
+.fatura-bolum-duzen::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ap-accent) 70%, #94a3b8);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.fatura-bolum-duzen::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ap-accent) 88%, #94a3b8);
+  background-clip: padding-box;
 }
 
 .fatura-bolum-duzen--surukleniyor {
@@ -957,14 +984,19 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
 .fatura-bolum--ust {
   flex: 0 0 auto;
-  overflow: auto;
-  overscroll-behavior: contain;
+  flex-shrink: 0;
+  overflow: visible;
   padding-bottom: 2px;
+}
+
+.fatura-bolum--ust.fatura-bolum--ust-acik {
+  height: auto !important;
+  max-height: none;
+  overflow: visible;
 }
 
 .fatura-bolum--ust .fatura-ust-serit,
@@ -972,9 +1004,19 @@
   flex-shrink: 0;
 }
 
+.fatura-bolum--ust-acik .fatura-ust-serit {
+  overflow: visible;
+}
+
+.fatura-bolum-ayirici--pasif {
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
 .fatura-bolum--orta {
-  flex: 1 1 auto;
-  min-height: 140px;
+  flex: 1 0 200px;
+  min-height: 200px;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -985,17 +1027,26 @@
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .fatura-bolum--alt {
   flex: 0 0 auto;
-  overflow: auto;
-  overscroll-behavior: contain;
+  flex-shrink: 0;
+  min-height: 6rem;
+  overflow: visible;
   padding-top: 2px;
 }
 
+.fatura-bolum--alt.fatura-bolum--alt-acik {
+  height: auto !important;
+  max-height: none;
+  overflow: visible;
+}
+
 .fatura-bolum--alt .fatura-alt-finans {
-  min-height: 100%;
+  min-height: 0;
+  height: auto;
 }
 
 .fatura-bolum-ayirici {

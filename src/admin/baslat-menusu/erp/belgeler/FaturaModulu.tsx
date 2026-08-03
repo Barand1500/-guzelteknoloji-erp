@@ -1130,6 +1130,8 @@ export function FaturaModulu({
     <div ref={sayfaRef} className={`${sayfaSinif} dg-demo-sayfa dg-demo-sag-tik-alan fatura-sayfa--bolumlu`}>
       <FaturaBolumDuzen
         depolamaAnahtari={`gt_fatura_bolum_${modulId}`}
+        ustAcik={baslikDetayAcik}
+        altAcik={finansDetayAcik}
         ust={
           <>
       <section className="fatura-ust-serit" aria-label="Belge başlığı">
