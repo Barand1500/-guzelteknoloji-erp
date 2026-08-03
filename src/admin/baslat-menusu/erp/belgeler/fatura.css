@@ -401,7 +401,7 @@
 /* —— Alt finans accordion (DataGrid altı) —— */
 .fatura-alt-finans {
   flex-shrink: 0;
-  margin-top: 8px;
+  margin-top: 0;
   border: 1px solid var(--ap-border);
   border-radius: 12px;
   background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
@@ -414,7 +414,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border: none;
   background: transparent;
   color: inherit;
@@ -990,7 +990,7 @@
   flex: 0 0 auto;
   flex-shrink: 0;
   overflow: visible;
-  padding-bottom: 2px;
+  padding-bottom: 0;
 }
 
 .fatura-bolum--ust.fatura-bolum--ust-acik {
@@ -1033,24 +1033,26 @@
 .fatura-bolum--alt {
   flex: 0 0 auto;
   flex-shrink: 0;
-  min-height: 6rem;
+  min-height: 3.25rem;
   overflow: visible;
-  padding-top: 2px;
+  padding-top: 0;
 }
 
 .fatura-bolum--alt.fatura-bolum--alt-acik {
   height: auto !important;
   max-height: none;
   overflow: visible;
+  min-height: 0;
 }
 
 .fatura-bolum--alt .fatura-alt-finans {
   min-height: 0;
   height: auto;
+  margin-top: 0;
 }
 
 .fatura-bolum-ayirici {
-  flex: 0 0 14px;
+  flex: 0 0 8px;
   position: relative;
   z-index: 6;
   cursor: ns-resize;
@@ -1059,7 +1061,7 @@
   align-items: center;
   justify-content: center;
   background: transparent;
-  margin: 1px 0;
+  margin: 0;
 }
 
 .fatura-bolum-ayirici-tutamac {
