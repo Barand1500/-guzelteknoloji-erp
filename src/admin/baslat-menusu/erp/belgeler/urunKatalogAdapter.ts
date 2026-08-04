@@ -1,9 +1,9 @@
 import { stoklariGetir, birimleriGetir } from '@/admin/baslat-menusu/erp/stoklar/api';
 import type { BelgeYon } from './tipler';
-import type { UrunKaydi } from '@/admin/baslat-menusu/datagrid/demo/urunAramaYardimci';
+import type { UrunBarkodDetay, UrunKaydi } from '@/admin/baslat-menusu/datagrid/demo/urunAramaYardimci';
 import { stokBakiyeleriGetir, mockStokSeedKur } from './mockBelgeDepo';
 
-/** Stok + birim → katalog; envanter mock bakiyeden */
+/** Stok + birim → katalog; envanter mock bakiyeden; barkodlar birim satırından */
 export async function stokUrunKataloguGetir(yon: BelgeYon, depoId?: string | null): Promise<UrunKaydi[]> {
   const [urunler, birimler] = await Promise.all([stoklariGetir(), birimleriGetir()]);
   const alisMi = yon === 'ALIS';
@@ -20,11 +20,26 @@ export async function stokUrunKataloguGetir(yon: BelgeYon, depoId?: string | nul
         fiyat: 0,
         envanter: 0,
         kdv: 20,
+        barkodlar: [],
       });
       continue;
     }
     const tercih =
       urunBirimleri.find((b) => b.birimAdi === (u.varsayilanBirim || u.anaBirim)) ?? urunBirimleri[0]!;
+
+    const barkodlar: string[] = [];
+    const barkodDetay: Record<string, UrunBarkodDetay> = {};
+    for (const b of urunBirimleri) {
+      const kod = (b.barkod ?? '').trim();
+      if (!kod) continue;
+      if (!barkodlar.includes(kod)) barkodlar.push(kod);
+      barkodDetay[kod] = {
+        birim: b.birimAdi || 'ADET',
+        fiyat: alisMi ? Number(b.alisFiyati) || 0 : Number(b.satisFiyati) || 0,
+        kdv: alisMi ? Number(b.alisKdv) || 20 : Number(b.satisKdv) || 20,
+      };
+    }
+
     katalogHam.push({
       sku: u.urunKodu,
       ad: u.urunAdi,
@@ -32,6 +47,8 @@ export async function stokUrunKataloguGetir(yon: BelgeYon, depoId?: string | nul
       fiyat: alisMi ? Number(tercih.alisFiyati) || 0 : Number(tercih.satisFiyati) || 0,
       envanter: 0,
       kdv: alisMi ? Number(tercih.alisKdv) || 20 : Number(tercih.satisKdv) || 20,
+      barkodlar,
+      barkodDetay: Object.keys(barkodDetay).length ? barkodDetay : undefined,
     });
   }
 

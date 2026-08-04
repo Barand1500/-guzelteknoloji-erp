@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { tarihAnahtari } from '@/admin/kabuk/alt-panel/takvimNotlari';
 import './tarihSecici.css';
@@ -124,27 +124,45 @@ export function TarihSecici({
   }, [acik, deger, min, max]);
 
   useEffect(() => {
-    if (!acik) return;
+    if (!acik) {
+      setKonum(null);
+      return;
+    }
 
     function konumGuncelle() {
       const el = tetikRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      const genislik = 272;
-      const sol = Math.min(Math.max(8, r.left), window.innerWidth - genislik - 8);
-      const altBosluk = window.innerHeight - r.bottom;
-      const panelYukseklik = 320;
-      const ust =
-        altBosluk < panelYukseklik && r.top > panelYukseklik
-          ? r.top - panelYukseklik - 6
-          : r.bottom + 6;
+      const panel = panelRef.current;
+      const genislik = panel?.offsetWidth || 280;
+      const yukseklik = panel?.offsetHeight || 320;
+      const kenar = 10;
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+
+      /* Sağa yasla ama tetik sağından biraz içeri (çok sola kaçmasın) */
+      let sol = r.right - genislik + 55;
+      if (sol < kenar) sol = r.left;
+      sol = Math.max(kenar, Math.min(sol, vw - genislik - kenar));
+
+      let ust = r.bottom + 6;
+      if (ust + yukseklik > vh - kenar && r.top - yukseklik - 6 >= kenar) {
+        ust = r.top - yukseklik - 6;
+      } else {
+        ust = Math.min(ust, Math.max(kenar, vh - yukseklik - kenar));
+      }
       setKonum({ top: ust, left: sol });
     }
 
     konumGuncelle();
+    const raf = requestAnimationFrame(() => {
+      konumGuncelle();
+      requestAnimationFrame(konumGuncelle);
+    });
     window.addEventListener('resize', konumGuncelle);
     window.addEventListener('scroll', konumGuncelle, true);
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener('resize', konumGuncelle);
       window.removeEventListener('scroll', konumGuncelle, true);
     };
@@ -225,12 +243,16 @@ export function TarihSecici({
         </span>
       </button>
 
-      {acik && konum
+      {acik
         ? createPortal(
             <div
               ref={panelRef}
               className="ap-takvim-popup"
-              style={{ top: konum.top, left: konum.left }}
+              style={{
+                top: konum?.top ?? 0,
+                left: konum?.left ?? 0,
+                visibility: konum ? 'visible' : 'hidden',
+              }}
               role="dialog"
               aria-label={ariaLabel}
             >

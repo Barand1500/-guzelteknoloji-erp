@@ -1055,7 +1055,7 @@ export function FaturaModulu({
     [saltOkunur, aramayiKapat, hizliGiriseUrunDoldur, logMesajiAyarla]
   );
 
-  /** Yazılan metin katalogda tam kod/ad eşleşmesi yoksa true */
+  /** Yazılan metin katalogda tam kod/ad/barkod eşleşmesi yoksa true */
   const katalogDisiMi = useCallback(
     (ham: string | undefined) => {
       const metin = urunAramaSorgusuMetni(ham);
@@ -1065,7 +1065,8 @@ export function FaturaModulu({
       return !katalog.some((u) => {
         const sku = u.sku.toLocaleLowerCase('tr');
         const ad = u.ad.toLocaleLowerCase('tr');
-        return sku === kod || sku === tam || ad === tam;
+        if (sku === kod || sku === tam || ad === tam) return true;
+        return (u.barkodlar ?? []).some((b) => b.trim().toLocaleLowerCase('tr') === tam);
       });
     },
     [katalog]
@@ -1111,7 +1112,8 @@ export function FaturaModulu({
           }
           hizliGiriseUrunDoldur(sonraki, false);
         } else {
-          gridApiRef.current?.hizliGirisOdakla?.();
+          /* Satır eklenince odak yeni üründe kalmasın; hızlı giriş (ürün kodu/adı) inputuna dön */
+          requestAnimationFrame(() => gridApiRef.current?.hizliGirisOdakla?.());
         }
       }, 0);
       return yeni.id;
@@ -1727,8 +1729,8 @@ export function FaturaModulu({
               : [
                   {
                     kolonId: 'urunKoduAdi',
-                    placeholder: 'Ürün Adı veya Kodu…',
-                    ipucu: '% ile ara · Enter seç · Enter/+ ekle',
+                    placeholder: 'Barkod, ürün kodu veya adı…',
+                    ipucu: 'Barkod okut / kod yaz · % ile ara · Enter ekle',
                   },
                   { kolonId: 'miktar', ipucu: 'Miktar ifadesi', varsayilan: '1' },
                   { kolonId: 'birim', tip: 'secim', varsayilan: 'ADET', secenekler: birimSecenekleri() },

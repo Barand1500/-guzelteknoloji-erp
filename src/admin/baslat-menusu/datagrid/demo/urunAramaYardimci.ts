@@ -1,3 +1,9 @@
+export interface UrunBarkodDetay {
+  birim: string;
+  fiyat: number;
+  kdv: number;
+}
+
 export interface UrunKaydi {
   sku: string;
   ad: string;
@@ -6,6 +12,31 @@ export interface UrunKaydi {
   fiyat: number;
   envanter: number;
   kdv: number;
+  /** Birim satırlarındaki barkodlar (arama / okutma) */
+  barkodlar?: string[];
+  /** Barkod → birim/fiyat/kdv (okutulunca doğru birim gelsin) */
+  barkodDetay?: Record<string, UrunBarkodDetay>;
+}
+
+function barkodNormalize(ham: string | undefined | null): string {
+  return (ham ?? '').trim().toLocaleLowerCase('tr');
+}
+
+/** Katalogda barkod ile ürün bul (tam eşleşme) */
+export function urunBarkodlaBul(
+  katalog: UrunKaydi[],
+  hamBarkod: string | undefined
+): { urun: UrunKaydi; detay?: UrunBarkodDetay } | null {
+  const q = barkodNormalize(hamBarkod);
+  if (!q) return null;
+  for (const u of katalog) {
+    const liste = u.barkodlar ?? [];
+    if (!liste.some((b) => barkodNormalize(b) === q)) continue;
+    const anahtar =
+      Object.keys(u.barkodDetay ?? {}).find((b) => barkodNormalize(b) === q) ?? q;
+    return { urun: u, detay: u.barkodDetay?.[anahtar] };
+  }
+  return null;
 }
 
 /** Alan değeri % ile başlıyorsa arama modundadır. */
@@ -22,9 +53,11 @@ export function yuzdeAramaSorgusu(deger: string | undefined): string | null {
 export function urunleriAra(katalog: UrunKaydi[], sorgu: string): UrunKaydi[] {
   const q = sorgu.trim().toLowerCase();
   if (!q) return katalog;
-  return katalog.filter(
-    (u) => u.sku.toLowerCase().includes(q) || u.ad.toLowerCase().includes(q)
-  );
+  const qBarkod = barkodNormalize(sorgu);
+  return katalog.filter((u) => {
+    if (u.sku.toLowerCase().includes(q) || u.ad.toLowerCase().includes(q)) return true;
+    return (u.barkodlar ?? []).some((b) => barkodNormalize(b).includes(qBarkod));
+  });
 }
 
 /** Ürün alanı metninden arama sorgusu üretir (% varsa kaldırır). */
@@ -69,15 +102,29 @@ export function hizliGirisUrunAlaniDolu(degerler: Record<string, string>): boole
   return Boolean(degerler.urunKoduAdi?.trim());
 }
 
-/** Tek alandan ürün kodu ve adını çözümler. */
+/** Tek alandan ürün kodu, adını (ve barkod eşleşmesinde birim/fiyat) çözümler. */
 export function urunKoduAdiCozumle(
   ham: string | undefined,
   katalog: UrunKaydi[] = []
-): { sku: string; ad: string; kur?: string } {
+): { sku: string; ad: string; kur?: string; birim?: string; fiyat?: number; kdv?: number } {
   const metin = ham?.trim() ?? '';
   if (!metin) return { sku: 'YENİ-KOD', ad: 'Yeni ürün' };
 
   const aramaMetni = urunAramaSorgusuMetni(metin);
+
+  // Barkod tam eşleşme (okuyucu / elle giriş)
+  const barkodEslesen = urunBarkodlaBul(katalog, aramaMetni);
+  if (barkodEslesen) {
+    const { urun, detay } = barkodEslesen;
+    return {
+      sku: urun.sku,
+      ad: urun.ad,
+      kur: urun.kur,
+      birim: detay?.birim ?? urun.birim,
+      fiyat: detay?.fiyat ?? urun.fiyat,
+      kdv: detay?.kdv ?? urun.kdv,
+    };
+  }
 
   // «SKU / Ad» formatı
   const ayirac = aramaMetni.indexOf(' / ');

@@ -232,11 +232,11 @@ export function FormAcilirSecim({
 
   const stilHesapla = useCallback((): { stil: CSSProperties; usteAc: boolean } | null => {
     if (!tusRef.current || inlineListe) return null;
-    /** Düzenle / satır panelinde portal listeyi her zaman aşağı aç */
+    /** Düzenle / satır panelinde varsayılan aşağı; açıkça yukari istenirse saygı duy */
     const panelIci = Boolean(
       tusRef.current.closest('.dg-duzenle, .dg-satir-panel-cubuk, .ap-tanimlar-duzenle')
     );
-    const yon = panelIci ? 'asagi' : listeYonu;
+    const yon = listeYonu === 'yukari' ? 'yukari' : panelIci ? 'asagi' : listeYonu;
     const sonuc = listeKonumuHesapla(
       tusRef.current,
       listeMinGenislik,
@@ -538,7 +538,10 @@ export function FormAcilirSecim({
           ) : null}
           {gosterilenEtiket}
         </span>
-        <span className="ap-form-acilir-secim-ok" aria-hidden>
+        <span
+          className={`ap-form-acilir-secim-ok${listeYonu === 'yukari' || usteAcik ? ' ap-form-acilir-secim-ok--yukari' : ''}`}
+          aria-hidden
+        >
           ▾
         </span>
       </button>

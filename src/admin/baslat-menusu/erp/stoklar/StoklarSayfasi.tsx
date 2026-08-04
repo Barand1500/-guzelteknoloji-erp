@@ -674,7 +674,9 @@ export function StoklarSayfasi() {
         ? 'Stok Kartı Düzenleme'
         : gorunum === 'kart' && kartModu === 'incele'
           ? 'Stok Kartı İnceleme'
-          : 'Stoklar';
+          : gorunum === 'liste'
+            ? 'Stoklar'
+            : undefined;
 
   const modulAciklama =
     gorunum === 'liste' ? 'Stok kartlarını listeleyin, arayın ve yönetin.' : undefined;

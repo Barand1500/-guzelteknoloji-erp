@@ -310,7 +310,7 @@ export function StokFiyatAnaliz({
         onGeri={onGeri}
         saltOkunur
       >
-        <div className="stok-karti-icerik ap-scroll stok-fiyat-analiz-sayfa-icerik">
+        <div className="stok-karti-icerik stok-fiyat-analiz-sayfa-icerik">
           <div className="stok-fiyat-analiz-icerik">
             <div className="stok-fiyat-analiz-ust">
               <p className="stok-fiyat-analiz-bolum-baslik">Son İşlem Fiyatları</p>
@@ -383,6 +383,7 @@ export function StokFiyatAnaliz({
                       onKirliDegistir?.(false);
                     }}
                     secenekler={FIYAT_ANALIZ_ISLEM_FILTRELERI.map((x) => ({ ...x }))}
+                    listeYonu="yukari"
                     aria-label="İşlem filtresi"
                   />
                 </label>

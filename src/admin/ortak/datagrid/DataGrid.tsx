@@ -367,6 +367,10 @@ function HucreGoster<TRow>({
   satir: TRow;
   kolon: KolonTanimi<TRow>;
 }) {
+  if (typeof kolon?.degerAl !== 'function') {
+    if (kolon?.goster) return <>{kolon.goster(satir, undefined)}</>;
+    return null;
+  }
   const deger = kolon.degerAl(satir);
   if (kolon.goster) return <>{kolon.goster(satir, deger)}</>;
 
@@ -914,6 +918,8 @@ export function DataGrid<TRow extends { id: string }>({
 
     hizliGirisSifirla();
     dg.setSayfa(0);
+    setOdak(null);
+    setDuzenleme(null);
     if (hizliGirisIstegeBagli) {
       setHizliGirisAcik(false);
     } else {
@@ -1516,7 +1522,9 @@ export function DataGrid<TRow extends { id: string }>({
       cizgiModu: () => dg.ayar.cizgiModu,
       cizgiModuAyarla: (mod) => dg.cizgiModuAyarla(mod),
       hizliGirisOdakla: () => {
+        /* Hızlı girişe dönünce satır hücresindeki turuncu odak çerçevesini temizle */
         setOdak(null);
+        setDuzenleme(null);
         if (hizliGirisIstegeBagli) setHizliGirisAcik(true);
         requestAnimationFrame(() => {
           requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
@@ -2022,6 +2030,10 @@ export function DataGrid<TRow extends { id: string }>({
           placeholder={gosterilenPlaceholder}
           title={ipucu ? dgTooltipMetni(ipucu) : undefined}
           value={deger}
+          onFocus={() => {
+            setOdak(null);
+            setDuzenleme(null);
+          }}
           onChange={(e) => {
             const ham = e.target.value;
             girdiDegistir(kolonId, filtrele ? filtrele(ham) : ham);
@@ -2294,6 +2306,10 @@ export function DataGrid<TRow extends { id: string }>({
             data-kolon-id={kolon.id}
             className={`dg-hucre dg-hizli-giris-hucre${sabitHucreSinifi(kolon.id)}`}
             style={hucreStil}
+            onFocusCapture={() => {
+              setOdak(null);
+              setDuzenleme(null);
+            }}
           >
             {secimGirdi(kolon.id, girisAyar)}
           </td>,
@@ -2338,6 +2354,10 @@ export function DataGrid<TRow extends { id: string }>({
       <tr
         className="dg-hizli-giris-satir"
         style={{ ['--dg-header-h' as string]: `${baslikYukseklik}px` }}
+        onMouseDownCapture={() => {
+          setOdak(null);
+          setDuzenleme(null);
+        }}
         onBlurCapture={(e) => {
           const satir = e.currentTarget;
           requestAnimationFrame(() => {

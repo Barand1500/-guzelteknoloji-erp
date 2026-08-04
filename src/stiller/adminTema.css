@@ -12785,6 +12785,11 @@ html:has(.admin-panel[data-tema='acik']) body {
   opacity: 0.82;
 }
 
+.ap-form-acilir-secim-ok--yukari {
+  display: inline-block;
+  transform: rotate(180deg);
+}
+
 .ap-form-acilir-secim-liste {
   margin: 0;
   padding: 0.25rem;

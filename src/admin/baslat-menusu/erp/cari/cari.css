@@ -1,4 +1,4 @@
-/* ——— Cari Kart Form ——— */
+/* ??? Cari Kart Form ??? */
 
 .cari-listeye-don-ikon {
   display: inline-grid;
@@ -72,23 +72,24 @@
 }
 
 /*
-  Kart ekranları — Ayarlar gibi modül panelinde kaydırma.
-  Dış çerçeve paneli yok; içerik kartları kendi border/shadow ile kalır.
+  Kart ekranlar? ? Ayarlar gibi mod?l panelinde kayd?rma.
+  D?? ?er?eve paneli yok; i?erik kartlar? kendi border/shadow ile kal?r.
+  Stok alt ekranlar? (envanter/fiyat/birim) ayn?: iki turuncu ?izgi aras?nda panel kayar.
 */
 .ap-modul-panel:has(.ap-tanimlar-sayfa):has(.cari-kart-sayfa),
-.ap-modul-panel:has(.ap-tanimlar-sayfa):has(.stok-karti-kabuk) {
+.ap-modul-panel:has(.ap-tanimlar-sayfa):has(.stok-karti-kabuk--form) {
   overflow-y: auto !important;
   overflow-x: hidden !important;
 }
 
 .ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk,
-.ap-modul-panel:has(.stok-karti-kabuk) .ap-modul-kabuk {
+.ap-modul-panel:has(.stok-karti-kabuk--form) .ap-modul-kabuk {
   flex: none;
   min-height: auto;
 }
 
 .ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk > .mt-6,
-.ap-modul-panel:has(.stok-karti-kabuk) .ap-modul-kabuk > .mt-6 {
+.ap-modul-panel:has(.stok-karti-kabuk--form) .ap-modul-kabuk > .mt-6 {
   flex: none;
   min-height: auto;
   overflow: visible;
@@ -99,7 +100,7 @@
 }
 
 .ap-modul-panel:has(.cari-kart-sayfa) .ap-tanimlar-sayfa:has(.cari-kart-sayfa),
-.ap-modul-panel:has(.stok-karti-kabuk) .ap-tanimlar-sayfa:has(.stok-karti-kabuk) {
+.ap-modul-panel:has(.stok-karti-kabuk--form) .ap-tanimlar-sayfa:has(.stok-karti-kabuk--form) {
   flex: none;
   min-height: auto;
   overflow: visible;
@@ -112,10 +113,10 @@
   padding: 0.15rem 0 1rem;
 }
 
-.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-kabuk,
-.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-kabuk .ap-tanimlar-duzenle,
-.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-kabuk .ap-tanimlar-duzenle-govde,
-.ap-modul-panel:has(.stok-karti-kabuk) .stok-karti-icerik {
+.ap-modul-panel:has(.stok-karti-kabuk--form) .stok-karti-kabuk--form,
+.ap-modul-panel:has(.stok-karti-kabuk--form) .stok-karti-kabuk--form .ap-tanimlar-duzenle,
+.ap-modul-panel:has(.stok-karti-kabuk--form) .stok-karti-kabuk--form .ap-tanimlar-duzenle-govde,
+.ap-modul-panel:has(.stok-karti-kabuk--form) .stok-karti-kabuk--form .stok-karti-icerik {
   flex: none;
   min-height: auto;
   overflow: visible;
@@ -145,7 +146,7 @@
   grid-column: 1 / -1;
 }
 
-/* Adres / İl·İlçe / Telefon·GSM / E-Posta·Web — ana grid kolonlarında (üst boşluklarla aynı) */
+/* Adres / ?l??l?e / Telefon?GSM / E-Posta?Web ? ana grid kolonlar?nda (?st bo?luklarla ayn?) */
 .cari-adres-il-ilce-satir,
 .cari-iletisim-web-satir {
   grid-column: 1 / -1;
@@ -180,7 +181,7 @@
   box-sizing: border-box;
 }
 
-/* Telefon çerçevesi içinde sağda Dahili (max 4 rakam) */
+/* Telefon ?er?evesi i?inde sa?da Dahili (max 4 rakam) */
 .cari-telefon-cerceve--dahili {
   gap: 0.35rem;
 }
@@ -255,7 +256,7 @@
   min-width: 0;
 }
 
-/* Web + E-Fatura / E-İrsaliye — vergi daire/no gibi kompakt */
+/* Web + E-Fatura / E-?rsaliye ? vergi daire/no gibi kompakt */
 .cari-web-efatura-satir {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -281,7 +282,7 @@
   grid-template-columns: minmax(7.25rem, 8.75rem);
 }
 
-/* E-Fatura|E-İrsaliye = Telefon|GSM · Alış|Satış = E-Posta|Web (aynı ana grid boşluğu) */
+/* E-Fatura|E-?rsaliye = Telefon|GSM ? Al??|Sat?? = E-Posta|Web (ayn? ana grid bo?lu?u) */
 .cari-besli-satir {
   grid-column: 1 / -1;
   display: grid;
@@ -325,7 +326,7 @@
   width: 100%;
 }
 
-/* E-İrsaliye = E-Fatura / Alış-Satış Fiyat Tanımı yüksekliği */
+/* E-?rsaliye = E-Fatura / Al??-Sat?? Fiyat Tan?m? y?ksekli?i */
 .cari-efatura-blok > .cari-outlined-field:first-child .cari-outlined-cerceve,
 .cari-eirsaliye-blok > .cari-outlined-field:first-child .cari-outlined-cerceve {
   min-height: var(--cari-efatura-eirsaliye-h);
@@ -350,7 +351,7 @@
   width: 100%;
 }
 
-/* Alış/Satış Fiyat Tanımı — kompakt input grup */
+/* Al??/Sat?? Fiyat Tan?m? ? kompakt input grup */
 .cari-fiyat-tanim-grup .cari-outlined-cerceve--icerik {
   padding: 0;
   overflow: hidden;
@@ -411,7 +412,7 @@
   letter-spacing: 0.01em;
 }
 
-/* E-Arşiv Teslim Şekli (cari-outlined-kucuk) ile aynı yükseklik */
+/* E-Ar?iv Teslim ?ekli (cari-outlined-kucuk) ile ayn? y?kseklik */
 .cari-fiyat-tanim-grup .cari-outlined-cerceve {
   min-height: var(--cari-efatura-eirsaliye-h, 2.55rem);
   height: var(--cari-efatura-eirsaliye-h, 2.55rem);
@@ -455,7 +456,7 @@
   flex-shrink: 0;
 }
 
-/* Alias satırı — E-Fatura / E-İrsaliye alias */
+/* Alias sat?r? ? E-Fatura / E-?rsaliye alias */
 .cari-alias-fatura-satir {
   grid-column: 1 / -1;
   display: grid;
@@ -487,7 +488,7 @@
   max-width: 12rem;
 }
 
-/* E-Fatura içindeki tip — Hayır iken pasif görünüm */
+/* E-Fatura i?indeki tip ? Hay?r iken pasif g?r?n?m */
 .cari-efatura-grup-tip--pasif {
   opacity: 0.55;
 }
@@ -631,9 +632,9 @@
   }
 }
 
-/* Outlined input — etiket border üstünde, çizgi etiketten önce/sonra devam eder (notch).
-   Etiket ve çerçeve aynı zemini kullanmalı; aksi halde (özellikle gece modunda
-   --ap-surface ≠ --ap-input-bg) etiket arkasında dikdörtgen lekesi görünür. */
+/* Outlined input ? etiket border ?st?nde, ?izgi etiketten ?nce/sonra devam eder (notch).
+   Etiket ve ?er?eve ayn? zemini kullanmal?; aksi halde (?zellikle gece modunda
+   --ap-surface ? --ap-input-bg) etiket arkas?nda dikd?rtgen lekesi g?r?n?r. */
 
 .admin-panel,
 .ap-panel-kart,
@@ -793,7 +794,7 @@
   color: var(--ap-text) !important;
 }
 
-/* Input grup (E-Fatura / Fiyat Tanımı) — diğer outlined alanlarla aynı sol boşluk */
+/* Input grup (E-Fatura / Fiyat Tan?m?) ? di?er outlined alanlarla ayn? sol bo?luk */
 .cari-fiyat-tanim-grup.cari-outlined-acilir .cari-outlined-acilir-tus,
 .cari-fiyat-tanim-grup.cari-outlined-acilir .ap-form-acilir-secim-tus,
 .cari-efatura-grup.cari-outlined-acilir .cari-outlined-acilir-tus,
@@ -851,7 +852,7 @@
   white-space: nowrap;
 }
 
-/* Chip seçim kutuları — outlined ile aynı dil */
+/* Chip se?im kutular? ? outlined ile ayn? dil */
 
 .cari-secili-alan {
   position: relative;
@@ -1040,7 +1041,7 @@
   cursor: pointer;
 }
 
-/* ——— Cari liste tablosu ——— */
+/* ??? Cari liste tablosu ??? */
 
 .dg-cari-bos-hucre {
   color: var(--ap-text-muted);
@@ -1052,7 +1053,7 @@
   letter-spacing: 0.03em;
 }
 
-/* ——— Arama açılır (combobox) ——— */
+/* ??? Arama a??l?r (combobox) ??? */
 
 .cari-arama-acilir-cerceve {
   padding: 0 0.65rem !important;
@@ -1139,7 +1140,7 @@
   color: var(--ap-text);
 }
 
-/* Stok Nevi / FormAcilirSecim ile aynı hover & seçim */
+/* Stok Nevi / FormAcilirSecim ile ayn? hover & se?im */
 .cari-arama-acilir-oge:hover {
   background: color-mix(in srgb, var(--ap-accent) 88%, #fff);
   color: #fff;
@@ -1229,9 +1230,9 @@
   max-height: 220px;
 }
 
-/* Açıkken kutu köşeleri yuvarlak kalsın (liste ayrı yüzer) */
+/* A??kken kutu k??eleri yuvarlak kals?n (liste ayr? y?zer) */
 
-/* ——— Adres / İletişim ——— */
+/* ??? Adres / ?leti?im ??? */
 
 .cari-iletisim-bolumu {
   --cari-alan-zemin: var(--ap-surface);
@@ -1371,7 +1372,7 @@
   color: #ef4444;
 }
 
-/* Adres başlığı — kutusu yok, kenarda; yazıldıkça çizgi açılır */
+/* Adres ba?l??? ? kutusu yok, kenarda; yaz?ld?k?a ?izgi a??l?r */
 .cari-iletisim-kart-baslik {
   position: absolute;
   top: 0;
@@ -1505,7 +1506,7 @@
   border-color: #16a34a;
 }
 
-/* GSM / E-Posta doğrulama — etiket / alan geçiş animasyonu */
+/* GSM / E-Posta do?rulama ? etiket / alan ge?i? animasyonu */
 .cari-dogrula-alan .cari-outlined-etiket-metin,
 .cari-dogrula-alan .cari-dogrula-alan-girdi {
   transition:
@@ -1560,7 +1561,7 @@
   }
 }
 
-/* İletişim kartları — etiket zemini kart ile aynı (gri kutu görünmez) */
+/* ?leti?im kartlar? ? etiket zemini kart ile ayn? (gri kutu g?r?nmez) */
 
 .cari-iletisim-kart .cari-outlined-etiket,
 .cari-iletisim-kart .cari-secili-etiket-satir,
@@ -1574,7 +1575,7 @@
   }
 }
 
-/* ——— Dosya ve Dokümanlar ——— */
+/* ??? Dosya ve Dok?manlar ??? */
 
 .cari-dokuman-bolumu {
   --cari-alan-zemin: var(--ap-surface);
@@ -2267,7 +2268,7 @@
   position: relative;
 }
 
-/* Adres / İletişim silme ile aynı tasarım */
+/* Adres / ?leti?im silme ile ayn? tasar?m */
 .cari-dokuman-cift-not-sil {
   position: absolute;
   top: 0;
@@ -2552,7 +2553,7 @@
   color: var(--ap-text-muted);
 }
 
-/* ——— Telefon ülke kodu ——— */
+/* ??? Telefon ?lke kodu ??? */
 
 .cari-telefon-cerceve {
   gap: 0.25rem;
@@ -2698,7 +2699,7 @@
 
 
 
-/* Kaydedilmemi� de�i�iklik modal butonlar� */
+/* Kaydedilmemi? de?i?iklik modal butonlar? */
 .cari-kirli-modal-tus {
   display: inline-flex;
   flex-direction: column;

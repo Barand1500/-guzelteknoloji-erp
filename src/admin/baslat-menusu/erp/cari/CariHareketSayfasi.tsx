@@ -11,21 +11,17 @@ import { belgelerGetirMock } from '@/admin/baslat-menusu/erp/belgeler/mockBelgeD
 import { sayiFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { belgeBaslatYaz } from '@/admin/baslat-menusu/erp/belgeler/belgeBaslat';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
-import {
-  belgeNeviEtiketi,
-  yonIcinVarsayilanBelgeNevi,
-} from '@/admin/baslat-menusu/ozel-tanimlar/veri/belgeNevileri';
+import { belgeNeviEtiketi } from '@/admin/baslat-menusu/ozel-tanimlar/veri/belgeNevileri';
 import { AP_SEKME_DEGISTI } from '@/araclar/sekmePortal';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 import './cariHareket.css';
 
-const OTO_YENILE_MS = 30_000;
+const OTO_YENILE_MS = 10_000;
 
 interface CariHareketSayfasiProps {
   cari: AdminCari;
   onGeri: () => void;
   onModulAc?: (modulId: string) => void;
-  belgelerEklemeyiVar?: boolean;
   /** Cari listesini yeniden yükler (Yenile) */
   onYenile?: () => void | Promise<void>;
 }
@@ -48,11 +44,6 @@ function tarihGoster(iso: string) {
   const [y, m, g] = gun.split('-');
   if (!y || !m || !g) return iso;
   return `${g}.${m}.${y}`;
-}
-
-function saatGoster(d: Date) {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 
 function hareketIzahat(h: CariHareketKayit, belge?: BelgeKayit | null) {
@@ -153,13 +144,11 @@ export function CariHareketSayfasi({
   cari,
   onGeri,
   onModulAc,
-  belgelerEklemeyiVar = true,
   onYenile,
 }: CariHareketSayfasiProps) {
   const { basariBildir } = useAdminSayfaBildirimi();
   const [yenileAnahtar, setYenileAnahtar] = useState(0);
   const [yenileniyor, setYenileniyor] = useState(false);
-  const [sonYenileme, setSonYenileme] = useState<Date | null>(null);
   const [ozetAcik, setOzetAcik] = useState(false);
   const kokRef = useRef<HTMLDivElement | null>(null);
   const yenileniyorRef = useRef(false);
@@ -223,7 +212,6 @@ export function CariHareketSayfasi({
         sessiz ? Promise.resolve() : new Promise((r) => setTimeout(r, 350)),
       ]);
       setYenileAnahtar((n) => n + 1);
-      setSonYenileme(new Date());
       if (!sessiz) basariBildir('Cari hareketleri yenilendi.', 'Yenilendi');
     } finally {
       yenileniyorRef.current = false;
@@ -305,54 +293,12 @@ export function CariHareketSayfasi({
     onModulAc('belgeler');
   };
 
-  const yazdir = () => {
-    document.body.classList.add('cari-hareket-yazdiriliyor');
-    const temizle = () => {
-      document.body.classList.remove('cari-hareket-yazdiriliyor');
-      window.removeEventListener('afterprint', temizle);
-    };
-    window.addEventListener('afterprint', temizle);
-    window.print();
-    // Bazı tarayıcılarda afterprint gecikebilir / gelmeyebilir
-    window.setTimeout(temizle, 1000);
-  };
-
-  const belgeEkle = () => {
-    if (!onModulAc) return;
-    const nevi = yonIcinVarsayilanBelgeNevi('SATIS');
-    belgeBaslatYaz({ cariId: cari.id, yeni: true, belgeNeviId: nevi.id });
-    onModulAc('belgeler');
-  };
-
   return (
     <div ref={kokRef} className="cari-hareket-sayfa">
       <div className="cari-hareket-ust">
         <div className="cari-hareket-ust-sol">
           <button type="button" className="fatura-btn fatura-btn--ghost" onClick={onGeri}>
             ← Liste
-          </button>
-        </div>
-        <div className="cari-hareket-ust-sag">
-          {belgelerEklemeyiVar && onModulAc ? (
-            <button type="button" className="fatura-btn fatura-btn--birincil" onClick={belgeEkle}>
-              + Belge Ekle
-            </button>
-          ) : null}
-          <button type="button" className="fatura-btn fatura-btn--ghost" onClick={yazdir}>
-            Yazdır
-          </button>
-          <button
-            type="button"
-            className="fatura-btn fatura-btn--ghost"
-            onClick={() => void yenile()}
-            disabled={yenileniyor}
-            title={
-              sonYenileme
-                ? `Son güncelleme ${saatGoster(sonYenileme)}`
-                : 'Hareket, belge ve bakiyeleri yeniden oku'
-            }
-          >
-            {yenileniyor ? 'Yenileniyor…' : 'Yenile'}
           </button>
         </div>
       </div>

@@ -822,7 +822,7 @@ export function DatagridDemoSayfasi() {
         hizliGirisKolonlari={[
           {
             kolonId: 'urunKoduAdi',
-            placeholder: 'Ürün Adı veya Kodu…',
+            placeholder: 'Barkod, ürün kodu veya adı…',
             ipucu: '% İle Ara, ENTER ile Ekle',
           },
           { kolonId: 'miktar', ipucu: 'Miktar ifadesi', varsayilan: '1' },

@@ -36,6 +36,7 @@ function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
     baslik,
     tip: 'sayi',
     genislik,
+    minGenislik: Math.min(genislik, 80),
     siralama: true,
     degerAl: (s) => s[id] as number,
     siralamaDegeri: (s) => s[id] as number,
@@ -48,6 +49,7 @@ function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
       baslik: 'Depo İnd',
       tip: 'sayi',
       genislik: 80,
+      minGenislik: 64,
       siralama: true,
       degerAl: (s) => s.depoInd,
       siralamaDegeri: (s) => s.depoInd,
@@ -58,15 +60,16 @@ function envanterAnalizKolonlari(): KolonTanimi<StokEnvanterAnalizSatir>[] {
       baslik: 'Depo Kodu',
       tip: 'metin',
       genislik: 120,
+      minGenislik: 96,
       siralama: true,
       degerAl: (s) => s.depoKodu,
     },
-    sayiKolon('envanter', 'Envanter'),
-    sayiKolon('sipMk', 'Sip. Mk.'),
+    sayiKolon('envanter', 'Envanter', 100),
+    sayiKolon('sipMk', 'Sip. Mk.', 88),
     sayiKolon('kullanilabilir', 'Kullanılabilir', 110),
-    sayiKolon('altSeviye', 'Alt Seviye'),
-    sayiKolon('ustSeviye', 'Üst Seviye'),
-    sayiKolon('optimumSeviye', 'Optimum Seviye', 110),
+    sayiKolon('altSeviye', 'Alt Seviye', 100),
+    sayiKolon('ustSeviye', 'Üst Seviye', 100),
+    sayiKolon('optimumSeviye', 'Optimum Seviye', 120),
   ];
 }
 
@@ -184,7 +187,8 @@ export function StokEnvanterAnaliz({
                 kolonlar={kolonlar}
                 satirlar={satirlar}
                 yukleniyor={yukleniyor}
-                depolamaAnahtari={`stok_envanter_depo_${stok.id}`}
+                depolamaAnahtari={`stok_envanter_depo_v2_${stok.id}`}
+                kolonGenislikSurumu={2}
                 bosMesaj="Depo envanter kaydı yok."
                 formulMenuGoster={false}
               />

@@ -55,6 +55,101 @@ function KdvHucre({ satir }: { satir: StokBirimListeSatir }) {
   );
 }
 
+function birimListeKolonlari(
+  duzenlenebilir: boolean,
+  birimSecenekleri: { deger: string; etiket: string }[]
+): KolonTanimi<StokBirimListeSatir>[] {
+  const fiyatKolonu = (
+    id: 'satisFiyati1' | 'satisFiyati2' | 'satisFiyati3',
+    baslik: string
+  ): KolonTanimi<StokBirimListeSatir> => ({
+    id,
+    baslik,
+    tip: 'para',
+    genislik: 120,
+    minGenislik: 96,
+    siralama: true,
+    duzenlenebilir,
+    formulaTip: 'sayi',
+    paraSembolu: false,
+    degerAl: (s) => s[id],
+    degerYaz: (s, d) => {
+      let n: number | null;
+      if (d === '' || d === null || d === undefined) n = null;
+      else if (typeof d === 'number') n = Number.isFinite(d) ? d : null;
+      else n = sayiOku(String(d));
+      return { ...s, [id]: n };
+    },
+    siralamaDegeri: (s) => s[id] ?? -1,
+    goster: (s) => <FiyatGosterim deger={s[id]} />,
+  });
+
+  return [
+    {
+      id: 'fiyatAd',
+      baslik: 'Fiyat Ad',
+      tip: 'metin',
+      genislik: 100,
+      minGenislik: 80,
+      zorunlu: true,
+      siralama: true,
+      duzenlenebilir,
+      secenekler: FIYAT_AD_SECENEKLERI,
+      degerAl: (s) => s.fiyatAd,
+      degerYaz: (s, d) => ({ ...s, fiyatAd: String(d ?? '') }),
+    },
+    {
+      id: 'birim',
+      baslik: 'Birim',
+      tip: 'metin',
+      genislik: 88,
+      minGenislik: 72,
+      siralama: true,
+      duzenlenebilir,
+      secenekler: birimSecenekleri,
+      degerAl: (s) => s.birim,
+      degerYaz: (s, d) => ({ ...s, birim: String(d ?? '') }),
+    },
+    {
+      id: 'carpan',
+      baslik: 'Çarpan',
+      tip: 'sayi',
+      genislik: 72,
+      minGenislik: 56,
+      siralama: true,
+      duzenlenebilir,
+      formulaTip: 'sayi',
+      degerAl: (s) => s.carpan,
+      degerYaz: (s, d) => {
+        const n = typeof d === 'number' ? d : sayiOku(String(d ?? '')) ?? s.carpan;
+        return { ...s, carpan: n > 0 ? n : 1 };
+      },
+      siralamaDegeri: (s) => s.carpan,
+      goster: (s) => String(s.carpan),
+    },
+    fiyatKolonu('satisFiyati1', '1. Satış Fiyatı'),
+    fiyatKolonu('satisFiyati2', '2. Satış Fiyatı'),
+    fiyatKolonu('satisFiyati3', '3. Satış Fiyatı'),
+    {
+      id: 'kdv',
+      baslik: 'KDV',
+      tip: 'metin',
+      genislik: 80,
+      minGenislik: 64,
+      siralama: true,
+      duzenlenebilir,
+      secenekler: [
+        { deger: 'dahil', etiket: 'Dahil (D)' },
+        { deger: 'haric', etiket: 'Hariç (H)' },
+      ],
+      degerAl: (s) => (s.kdvDahil ? 'dahil' : 'haric'),
+      degerYaz: (s, d) => ({ ...s, kdvDahil: String(d) === 'dahil' }),
+      siralamaDegeri: (s) => s.kdvYuzde,
+      goster: (s) => <KdvHucre satir={s} />,
+    },
+  ];
+}
+
 export function StokBirimListesi({
   stok,
   onGeri,
@@ -143,94 +238,10 @@ export function StokBirimListesi({
     };
   }, [kaydet, kaydetRef]);
 
-  const kolonlar = useMemo((): KolonTanimi<StokBirimListeSatir>[] => {
-    const duzenlenebilir = duzenlemeVar;
-    const fiyatKolonu = (
-      id: 'satisFiyati1' | 'satisFiyati2' | 'satisFiyati3',
-      baslik: string
-    ): KolonTanimi<StokBirimListeSatir> => ({
-      id,
-      baslik,
-      tip: 'para',
-      genislik: 120,
-      siralama: true,
-      duzenlenebilir,
-      formulaTip: 'sayi',
-      paraSembolu: false,
-      degerAl: (s) => s[id],
-      degerYaz: (s, d) => {
-        let n: number | null;
-        if (d === '' || d === null || d === undefined) n = null;
-        else if (typeof d === 'number') n = Number.isFinite(d) ? d : null;
-        else n = sayiOku(String(d));
-        return { ...s, [id]: n };
-      },
-      siralamaDegeri: (s) => s[id] ?? -1,
-      goster: (s) => <FiyatGosterim deger={s[id]} />,
-    });
-
-    return [
-      {
-        id: 'fiyatAd',
-        baslik: 'Fiyat Ad',
-        tip: 'metin',
-        genislik: 100,
-        minGenislik: 80,
-        zorunlu: true,
-        siralama: true,
-        duzenlenebilir,
-        secenekler: FIYAT_AD_SECENEKLERI,
-        degerAl: (s) => s.fiyatAd,
-        degerYaz: (s, d) => ({ ...s, fiyatAd: String(d ?? '') }),
-      },
-      {
-        id: 'birim',
-        baslik: 'Birim',
-        tip: 'metin',
-        genislik: 88,
-        siralama: true,
-        duzenlenebilir,
-        secenekler: birimSecenekleri,
-        degerAl: (s) => s.birim,
-        degerYaz: (s, d) => ({ ...s, birim: String(d ?? '') }),
-      },
-      {
-        id: 'carpan',
-        baslik: 'Çarpan',
-        tip: 'sayi',
-        genislik: 72,
-        siralama: true,
-        duzenlenebilir,
-        formulaTip: 'sayi',
-        degerAl: (s) => s.carpan,
-        degerYaz: (s, d) => {
-          const n = typeof d === 'number' ? d : sayiOku(String(d ?? '')) ?? s.carpan;
-          return { ...s, carpan: n > 0 ? n : 1 };
-        },
-        siralamaDegeri: (s) => s.carpan,
-        goster: (s) => String(s.carpan),
-      },
-      fiyatKolonu('satisFiyati1', '1. Satış Fiyatı'),
-      fiyatKolonu('satisFiyati2', '2. Satış Fiyatı'),
-      fiyatKolonu('satisFiyati3', '3. Satış Fiyatı'),
-      {
-        id: 'kdv',
-        baslik: 'KDV',
-        tip: 'metin',
-        genislik: 80,
-        siralama: true,
-        duzenlenebilir,
-        secenekler: [
-          { deger: 'dahil', etiket: 'Dahil (D)' },
-          { deger: 'haric', etiket: 'Hariç (H)' },
-        ],
-        degerAl: (s) => (s.kdvDahil ? 'dahil' : 'haric'),
-        degerYaz: (s, d) => ({ ...s, kdvDahil: String(d) === 'dahil' }),
-        siralamaDegeri: (s) => s.kdvYuzde,
-        goster: (s) => <KdvHucre satir={s} />,
-      },
-    ];
-  }, [birimSecenekleri, duzenlemeVar]);
+  const kolonlar = useMemo(
+    () => birimListeKolonlari(duzenlemeVar, birimSecenekleri),
+    [birimSecenekleri, duzenlemeVar]
+  );
 
   return (
     <div className="stok-karti-kabuk stok-birim-liste-sayfa">
@@ -256,14 +267,15 @@ export function StokBirimListesi({
                 onGorunumKaydet={onGorunumKaydet ?? (() => undefined)}
               />
               <DataGrid
-                key={`stok_birim_liste_${stok.id}`}
+                key={`stok_birim_liste_v2_${stok.id}`}
                 tabloBaslik="Birim Listesi"
                 tabloAltBaslik="f001birimler — çift tıklayarak düzenleyin"
                 kolonlar={kolonlar}
                 satirlar={satirlar}
                 yukleniyor={yukleniyor}
                 onSatirlarDegistir={satirlarAyarla}
-                depolamaAnahtari={`stok_birim_liste_api_${stok.id}`}
+                depolamaAnahtari={`stok_birim_liste_v2_${stok.id}`}
+                kolonGenislikSurumu={2}
                 bosMesaj="Bu stok için birim kaydı yok. Önce Fiyat Düzenle ile birim ekleyin."
                 onSatirTikla={(s) => setSeciliIdler([s.id])}
                 satirSinifAdi={(s) =>
@@ -280,7 +292,11 @@ export function StokBirimListesi({
                   <FormAcilirSecim
                     value={aciklamaGorunumu}
                     onChange={(v) => setAciklamaGorunumu(v as BirimAciklamaGorunumu)}
-                    secenekler={BIRIM_ACIKLAMA_GORUNUMLERI.map((x) => ({ ...x }))}
+                    secenekler={BIRIM_ACIKLAMA_GORUNUMLERI.map((x) => ({
+                      value: x.value,
+                      label: x.label,
+                    }))}
+                    listeYonu="yukari"
                     aria-label="Açıklama görünümü"
                   />
                 </label>

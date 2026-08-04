@@ -30,6 +30,8 @@ import { caridenForm, cariSatirEtiketi } from './cariYardimci';
 import type { AdminCari, CariKartModu } from './tipler';
 import { CariEkstreModal } from '@/admin/baslat-menusu/erp/belgeler/CariEkstreModal';
 import { cariBaslatOkuVeTemizle, CARI_BASLAT_OLAY } from './cariBaslat';
+import { belgeBaslatYaz } from '@/admin/baslat-menusu/erp/belgeler/belgeBaslat';
+import { yonIcinVarsayilanBelgeNevi } from '@/admin/baslat-menusu/ozel-tanimlar/veri/belgeNevileri';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 
 type Gorunum = 'liste' | 'kart' | 'hareket';
@@ -362,13 +364,35 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
     setAramaGosterildi(true);
   }, [filtreMetni, gelismisTaslak]);
 
+  const aktifHareketCari = useMemo(
+    () => (aktifCariId ? kayitlar.find((k) => k.id === aktifCariId) ?? null : null),
+    [aktifCariId, kayitlar]
+  );
   const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
   const cariSecili = Boolean(baglamCariId);
+  const hareketSayfasi = gorunum === 'hareket';
+
+  const harekettenBelgeEkle = useCallback(() => {
+    if (!eklemeVar) return;
+    const cari = aktifHareketCari;
+    if (!cari) {
+      hataBildir('Belge eklemek için bir cari seçin.');
+      return;
+    }
+    if (!onModulAc) {
+      hataBildir('Belgeler modülü açılamadı.');
+      return;
+    }
+    const nevi = yonIcinVarsayilanBelgeNevi('SATIS');
+    belgeBaslatYaz({ cariId: cari.id, yeni: true, belgeNeviId: nevi.id });
+    onModulAc('belgeler');
+    void yukle();
+  }, [aktifHareketCari, eklemeVar, hataBildir, onModulAc, yukle]);
 
   useModulAksiyonlari(
     {
       kaydet: kartFormu ? () => kaydet() : undefined,
-      ekle: eklemeVar ? yeniAc : undefined,
+      ekle: eklemeVar ? (hareketSayfasi ? harekettenBelgeEkle : yeniAc) : undefined,
       guncelle: duzenlemeVar ? () => duzenleAc() : undefined,
       sil: silmeVar ? silAksiyon : undefined,
     },
@@ -378,12 +402,10 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
       guncelle: duzenlemeVar && cariSecili && (gorunum === 'liste' || gorunum === 'hareket'),
       sil: silmeVar && cariSecili && gorunum === 'liste',
     },
-    kartFormu ? kartKirli : false
-  );
-
-  const aktifHareketCari = useMemo(
-    () => (aktifCariId ? kayitlar.find((k) => k.id === aktifCariId) ?? null : null),
-    [aktifCariId, kayitlar]
+    kartFormu ? kartKirli : false,
+    {
+      ekle: hareketSayfasi ? 'Belge Ekle' : undefined,
+    }
   );
 
   const silOnayla = useCallback(async () => {

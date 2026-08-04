@@ -60,14 +60,26 @@ export function yeniSiparisSatiriOlustur(
   const simdi = new Date().toISOString();
   const urunCozum = urunKoduAdiCozumle(degerler.urunKoduAdi, urunKatalogu);
   const durumHam = degerler.durum ?? 'true';
+  /* Barkod eşleşmesinde birim/fiyat/kdv dolu gelir — birim varsayılanı (ADET) ezilir */
+  const birimHam = urunCozum.birim ?? degerler.birim;
+  const fiyatHam = degerler.fiyat?.trim()
+    ? degerler.fiyat
+    : urunCozum.fiyat != null
+      ? String(urunCozum.fiyat)
+      : '0';
+  const kdvHam = degerler.toplamKdv?.trim()
+    ? degerler.toplamKdv
+    : urunCozum.kdv != null
+      ? String(urunCozum.kdv)
+      : '20';
 
   return satirHesapla(
     {
       id: `y-${Date.now()}`,
       urun: { sku: urunCozum.sku, ad: urunCozum.ad, kur: urunCozum.kur },
       miktar: sayiDeger(degerler.miktar, 1),
-      birim: gecerliBirim(degerler.birim),
-      fiyat: sayiDeger(degerler.fiyat, 0),
+      birim: gecerliBirim(birimHam),
+      fiyat: sayiDeger(fiyatHam, 0),
       tutar: 0,
       satirIskontoYuzde: iskontoDeger(degerler.satirIskonto, 0),
       satirIskontoTutar: 0,
@@ -75,7 +87,7 @@ export function yeniSiparisSatiriOlustur(
       altIskontoYuzde: iskontoDeger(degerler.altIskonto, 0),
       altIskontoTutar: 0,
       gercekToplam: 0,
-      toplamKdvYuzde: sayiDeger(degerler.toplamKdv, 20),
+      toplamKdvYuzde: sayiDeger(kdvHam, 20),
       toplamKdvTutar: 0,
       toplamTutar: 0,
       pb: gecerliParaBirimi(degerler.pb),

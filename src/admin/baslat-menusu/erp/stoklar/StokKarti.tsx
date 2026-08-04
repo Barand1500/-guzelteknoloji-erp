@@ -499,7 +499,7 @@ export function StokKarti({
   if (gomulu) {
     return (
       <>
-        <div className="stok-karti-kabuk stok-karti-kabuk--gomulu">{formIcerik}</div>
+        <div className="stok-karti-kabuk stok-karti-kabuk--form stok-karti-kabuk--gomulu">{formIcerik}</div>
         <StokKdvDepartmanModal
           acik={kdvModalAcik}
           liste={kdvDepartmanlari}
@@ -604,7 +604,7 @@ export function StokKarti({
 
   return (
     <>
-      <div className="stok-karti-kabuk">
+      <div className="stok-karti-kabuk stok-karti-kabuk--form">
         <TanimDuzenleEkrani
           ustGizle
           ustEtiket={ustEtiket}

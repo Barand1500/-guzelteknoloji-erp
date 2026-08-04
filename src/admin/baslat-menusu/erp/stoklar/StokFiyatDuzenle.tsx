@@ -50,8 +50,7 @@ export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<Stok
     id,
     baslik,
     tip: 'para',
-    genislik: 100,
-    paraSembolu: false,
+    genislik: 88,
     duzenlenebilir,
     formulaTip: 'sayi',
     siralama: true,
@@ -68,9 +67,7 @@ export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<Stok
     id,
     baslik,
     tip: 'badge',
-    genislik: 48,
-    duzenlenebilir,
-    secenekler: stokFiyatPbSecenekleri().map((x) => ({ deger: x.deger, etiket: x.etiket })),
+    genislik: 40,
     siralama: true,
     degerAl: (s) => s[id],
     siralamaDegeri: (s) => s[id],
@@ -83,9 +80,8 @@ export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<Stok
       id: 'fiyatAdi',
       baslik: 'Fiyat Adı',
       tip: 'metin',
-      genislik: 100,
-      minGenislik: 80,
-      zorunlu: true,
+      genislik: 88,
+      minGenislik: 72,
       duzenlenebilir,
       siralama: true,
       degerAl: (s) => s.fiyatAdi,
@@ -118,11 +114,8 @@ export function fiyatDuzenleKolonlari(duzenlenebilir: boolean): KolonTanimi<Stok
       id: 'barkod',
       baslik: 'Barkod',
       tip: 'metin',
-      genislik: 110,
-      minGenislik: 88,
-      duzenlenebilir,
-      siralama: true,
-      degerAl: (s) => s.barkod,
+      genislik: 96,
+      minGenislik: 80,
       degerYaz: (s, d) => fiyatDuzenleSatirGuncelle(s, { barkod: String(d).trim() }),
     },
     {
@@ -312,10 +305,8 @@ export function StokFiyatDuzenle({
         onGeri={onGeri}
         saltOkunur
       >
-        <div className="stok-karti-icerik ap-scroll stok-fiyat-duzenle-sayfa-icerik">
+        <div className="stok-karti-icerik stok-fiyat-duzenle-sayfa-icerik">
           <div className="stok-fiyat-duzenle-icerik">
-            <p className="stok-fiyat-duzenle-bolum-baslik">Fiyat Listesi</p>
-
             <div ref={tabloRef} className="stok-fiyat-duzenle-tablo stok-fiyat-duzenle-tablo--sayfa dg-demo-sag-tik-alan">
               <StoklarSagTikMenu
                 konteynerRef={tabloRef}
@@ -359,6 +350,7 @@ export function StokFiyatDuzenle({
                     value={isaretliAlan}
                     onChange={(v) => setIsaretliAlan(v as IsaretliFiyatAlani)}
                     secenekler={ISARETLI_FIYAT_ALANLARI.map((x) => ({ ...x }))}
+                    listeYonu="yukari"
                     aria-label="İşaretli alan"
                   />
                 </label>

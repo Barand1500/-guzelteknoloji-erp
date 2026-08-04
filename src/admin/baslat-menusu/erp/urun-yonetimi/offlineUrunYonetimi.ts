@@ -7,6 +7,32 @@ interface Depo { urunler: AdminUrun[]; birimler: AdminBirim[]; maliyetler: Admin
 const simdi = () => new Date().toISOString();
 const idUret = (liste: { id: string }[]) => String(Math.max(0, ...liste.map((k) => Number(k.id))) + 1);
 
+/** Belgeler barkod testi için sabit mock barkodlar */
+const MOCK_BARKODLAR: Record<string, { barkod: string; satisFiyati: number; alisFiyati: number }> = {
+  '10.0001': { barkod: '8690001000001', satisFiyati: 0, alisFiyati: 0 },
+  '20.0002': { barkod: '8690002000002', satisFiyati: 18500, alisFiyati: 15000 },
+  '30.0003': { barkod: '8690003000003', satisFiyati: 690, alisFiyati: 420 },
+};
+
+function mockBarkodlariUygula(d: Depo): boolean {
+  let degisti = false;
+  d.birimler = d.birimler.map((b) => {
+    const mock = MOCK_BARKODLAR[b.urunKodu];
+    if (!mock) return b;
+    const barkodBos = !(b.barkod ?? '').trim();
+    const fiyatBos = !Number(b.satisFiyati);
+    if (!barkodBos && !fiyatBos) return b;
+    degisti = true;
+    return {
+      ...b,
+      barkod: barkodBos ? mock.barkod : b.barkod,
+      satisFiyati: fiyatBos ? mock.satisFiyati : b.satisFiyati,
+      alisFiyati: !Number(b.alisFiyati) ? mock.alisFiyati : b.alisFiyati,
+    };
+  });
+  return degisti;
+}
+
 function varsayilan(): Depo {
   const tarih = simdi();
   const urunler: AdminUrun[] = [
@@ -16,14 +42,21 @@ function varsayilan(): Depo {
     { id: '2', ustId: '', urunTipi: 'BASIT_URUN', urunNevi: 'RESMI', urunKodu: '20.0002',
       marka: 'INPOS', urunAdi: 'M530 YENI NESIL YAZARKASA POS', anaBirim: 'ADET',
       varsayilanBirim: 'ADET', mensei: 'TURKIYE', aktif: true, olusturma: tarih, guncelleme: tarih },
+    { id: '3', ustId: '', urunTipi: 'BASIT_URUN', urunNevi: 'RESMI', urunKodu: '30.0003',
+      marka: 'HP', urunAdi: 'HP LASERJET TONER 85A', anaBirim: 'ADET',
+      varsayilanBirim: 'ADET', mensei: 'CIN', aktif: true, olusturma: tarih, guncelleme: tarih },
   ];
   const birimler: AdminBirim[] = [
     { id: '1', urunId: '1', urunKodu: '10.0001', urunAdi: 'FIYAT FARKI', fiyatAdi: 'PERAKENDE',
-      birimAdi: 'ADET', carpan: 1, barkod: '', alisKdv: 20, satisKdv: 20, alisFiyati: 0,
+      birimAdi: 'ADET', carpan: 1, barkod: '8690001000001', alisKdv: 20, satisKdv: 20, alisFiyati: 0,
       satisFiyati: 0, kdvDahil: true, aktif: true, olusturma: tarih, guncelleme: tarih },
     { id: '2', urunId: '2', urunKodu: '20.0002', urunAdi: 'M530 YENI NESIL YAZARKASA POS',
-      fiyatAdi: 'PERAKENDE', birimAdi: 'ADET', carpan: 1, barkod: '', alisKdv: 10,
-      satisKdv: 10, alisFiyati: 0, satisFiyati: 0, kdvDahil: false, aktif: true,
+      fiyatAdi: 'PERAKENDE', birimAdi: 'ADET', carpan: 1, barkod: '8690002000002', alisKdv: 10,
+      satisKdv: 10, alisFiyati: 15000, satisFiyati: 18500, kdvDahil: false, aktif: true,
+      olusturma: tarih, guncelleme: tarih },
+    { id: '3', urunId: '3', urunKodu: '30.0003', urunAdi: 'HP LASERJET TONER 85A',
+      fiyatAdi: 'PERAKENDE', birimAdi: 'ADET', carpan: 1, barkod: '8690003000003', alisKdv: 20,
+      satisKdv: 20, alisFiyati: 420, satisFiyati: 690, kdvDahil: false, aktif: true,
       olusturma: tarih, guncelleme: tarih },
   ];
   const maliyetler = birimler.map((b, i): AdminMaliyet => ({
@@ -38,7 +71,40 @@ function varsayilan(): Depo {
 function oku(): Depo {
   try {
     const ham = localStorage.getItem(ANAHTAR);
-    if (ham) return JSON.parse(ham) as Depo;
+    if (ham) {
+      const d = JSON.parse(ham) as Depo;
+      if (mockBarkodlariUygula(d)) kaydet(d);
+      /* Eksik mock ürünü (toner) ekle */
+      if (!d.urunler.some((u) => u.urunKodu === '30.0003')) {
+        const seed = varsayilan();
+        const ekstraUrun = seed.urunler.find((u) => u.urunKodu === '30.0003');
+        const ekstraBirim = seed.birimler.find((b) => b.urunKodu === '30.0003');
+        if (ekstraUrun && ekstraBirim) {
+          const yeniUrunId = idUret(d.urunler);
+          const yeniBirimId = idUret(d.birimler);
+          d.urunler.push({ ...ekstraUrun, id: yeniUrunId });
+          d.birimler.push({ ...ekstraBirim, id: yeniBirimId, urunId: yeniUrunId });
+          d.maliyetler.push({
+            id: idUret(d.maliyetler),
+            birimId: yeniBirimId,
+            birimAdi: ekstraBirim.birimAdi,
+            urunKodu: ekstraBirim.urunKodu,
+            urunAdi: ekstraBirim.urunAdi,
+            sonAlisMaliyeti: 0,
+            yuruyenAgirlikliOrtalama: 0,
+            agirlikliOrtalama: 0,
+            basitOrtalama: 0,
+            lifo: 0,
+            fifo: 0,
+            aktif: true,
+            olusturma: simdi(),
+            guncelleme: simdi(),
+          });
+          kaydet(d);
+        }
+      }
+      return d;
+    }
   } catch { /* bozuk veri */ }
   const veri = varsayilan(); kaydet(veri); return veri;
 }

@@ -1,18 +1,37 @@
 .cari-hareket-sayfa {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   min-height: 0;
   height: 100%;
-  padding: 4px 2px 12px;
+  padding: 0 2px 8px;
+}
+
+/* Hareket ekranında üst başlık yok — panel/kabuk boşluğunu sıkılaştır */
+.ap-modul-panel:has(.cari-hareket-sayfa) {
+  padding-top: 0.85rem !important;
+  padding-bottom: 0.85rem !important;
+}
+
+.ap-modul-kabuk:has(.cari-hareket-sayfa) > .mt-6 {
+  margin-top: 0.35rem !important;
+}
+
+.ap-tanimlar-sayfa:has(.cari-hareket-sayfa) {
+  flex: 1;
+  min-height: 0;
+  gap: 0.45rem;
 }
 
 .cari-hareket-ust {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
 }
 
 .cari-hareket-ust-sol,
@@ -179,9 +198,11 @@
   font-weight: 600;
   color: var(--ap-text);
   line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cari-hareket-borc {

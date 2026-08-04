@@ -81,11 +81,14 @@
 .ap-takvim-popup {
   position: fixed;
   z-index: 10360;
-  width: 272px;
+  box-sizing: border-box;
+  width: 280px;
+  max-width: calc(100vw - 20px);
   padding: 0.7rem 0.75rem 0.65rem;
   border-radius: 0.7rem;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
   background: var(--ap-surface);
+  color: var(--ap-text);
   box-shadow:
     0 10px 28px rgba(0, 0, 0, 0.28),
     0 0 0 1px color-mix(in srgb, var(--ap-accent) 8%, transparent);
