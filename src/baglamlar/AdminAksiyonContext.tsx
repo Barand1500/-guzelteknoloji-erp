@@ -25,7 +25,8 @@ export type AksiyonId =
   | 'stokFiyatAnaliz'
   | 'stokEnvanterAnaliz'
   | 'stokBirimListesi'
-  | 'stokFiyatDuzenle';
+  | 'stokFiyatDuzenle'
+  | 'belgeAlanYonet';
 
 export interface AksiyonHandlerlar {
   kaydet?: () => Promise<boolean | void | string> | boolean | void | string;
@@ -34,7 +35,7 @@ export interface AksiyonHandlerlar {
   ekle?: () => void;
   altEkle?: () => void;
   sil?: () => Promise<void> | void;
-  onizle?: () => void;
+  onizle?: () => Promise<boolean | void> | boolean | void;
   yayinla?: () => Promise<void> | void;
   oncekiKayit?: () => void;
   sonrakiKayit?: () => void;
@@ -43,6 +44,7 @@ export interface AksiyonHandlerlar {
   stokEnvanterAnaliz?: () => void;
   stokBirimListesi?: () => void;
   stokFiyatDuzenle?: () => void;
+  belgeAlanYonet?: () => void;
 }
 
 export type AksiyonDurumlari = Partial<Record<AksiyonId, boolean>>;
@@ -279,7 +281,7 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
         else if (id === 'ekle' && handlers.ekle) handlers.ekle();
         else if (id === 'altEkle' && handlers.altEkle) handlers.altEkle();
         else if (id === 'sil' && handlers.sil) await handlers.sil();
-        else if (id === 'onizle' && handlers.onizle) handlers.onizle();
+        else if (id === 'onizle' && handlers.onizle) sonuc = await handlers.onizle();
         else if (id === 'yayinla' && handlers.yayinla) await handlers.yayinla();
         else if (id === 'oncekiKayit' && handlers.oncekiKayit) handlers.oncekiKayit();
         else if (id === 'sonrakiKayit' && handlers.sonrakiKayit) handlers.sonrakiKayit();
@@ -288,6 +290,7 @@ export function AdminAksiyonProvider({ children }: { children: ReactNode }) {
         else if (id === 'stokEnvanterAnaliz' && handlers.stokEnvanterAnaliz) handlers.stokEnvanterAnaliz();
         else if (id === 'stokBirimListesi' && handlers.stokBirimListesi) handlers.stokBirimListesi();
         else if (id === 'stokFiyatDuzenle' && handlers.stokFiyatDuzenle) handlers.stokFiyatDuzenle();
+        else if (id === 'belgeAlanYonet' && handlers.belgeAlanYonet) handlers.belgeAlanYonet();
         else return false;
 
         /* Handler false dönerse kendi bildirimini göstermiş demektir */

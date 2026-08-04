@@ -3,6 +3,66 @@ import type { DataGridAyar, DataGridCizgiModu, KolonTanimi, SiralamaYonu } from 
 
 const GECERLI_CIZGI_MODLARI: DataGridCizgiModu[] = ['yok', 'yatay', 'dikey', 'tam'];
 
+export interface KolonGorunumKaydi {
+  id: string;
+  ad: string;
+  kolonSirasi: string[];
+  gizliKolonlar: string[];
+  sabitlenmisKolonlar: string[];
+  kolonGenislikleri: Record<string, number>;
+}
+
+interface KolonGorunumDepo {
+  aktifId: string | null;
+  liste: KolonGorunumKaydi[];
+}
+
+function gorunumAnahtari(depolamaAnahtari: string) {
+  return `${depolamaAnahtari}__gorunumler`;
+}
+
+function gorunumDepoOku(depolamaAnahtari: string): KolonGorunumDepo {
+  try {
+    const ham = localStorage.getItem(gorunumAnahtari(depolamaAnahtari));
+    if (!ham) return { aktifId: null, liste: [] };
+    const j = JSON.parse(ham) as Partial<KolonGorunumDepo>;
+    const liste = Array.isArray(j.liste)
+      ? j.liste.filter(
+          (g): g is KolonGorunumKaydi =>
+            !!g &&
+            typeof g.id === 'string' &&
+            typeof g.ad === 'string' &&
+            Array.isArray(g.kolonSirasi) &&
+            Array.isArray(g.gizliKolonlar)
+        )
+      : [];
+    const aktifId =
+      typeof j.aktifId === 'string' && liste.some((g) => g.id === j.aktifId) ? j.aktifId : null;
+    return { aktifId, liste };
+  } catch {
+    return { aktifId: null, liste: [] };
+  }
+}
+
+function gorunumDepoYaz(depolamaAnahtari: string, depo: KolonGorunumDepo) {
+  try {
+    localStorage.setItem(gorunumAnahtari(depolamaAnahtari), JSON.stringify(depo));
+  } catch {
+    /* yoksay */
+  }
+}
+
+function ayardanGorunum(ayar: DataGridAyar, id: string, ad: string): KolonGorunumKaydi {
+  return {
+    id,
+    ad,
+    kolonSirasi: [...ayar.kolonSirasi],
+    gizliKolonlar: [...ayar.gizliKolonlar],
+    sabitlenmisKolonlar: [...(ayar.sabitlenmisKolonlar ?? [])],
+    kolonGenislikleri: { ...ayar.kolonGenislikleri },
+  };
+}
+
 function cizgiModuOku(
   kayit: Partial<DataGridAyar & { cizgilerAcik?: boolean }>,
   varsayilan: DataGridCizgiModu
@@ -175,17 +235,30 @@ export function useDataGridState<TRow>(
   const [seciliIdler, setSeciliIdler] = useState<Set<string>>(new Set());
   const [sutunMenuAcik, setSutunMenuAcik] = useState(false);
   const [suruklenenKolon, setSuruklenenKolon] = useState<string | null>(null);
+  const [gorunumler, setGorunumler] = useState<KolonGorunumKaydi[]>(() =>
+    gorunumDepoOku(depolamaAnahtari).liste
+  );
+  const [aktifGorunumId, setAktifGorunumId] = useState<string | null>(() =>
+    gorunumDepoOku(depolamaAnahtari).aktifId
+  );
 
   useEffect(() => {
     setAyar(ayarOku(depolamaAnahtari, kolonRef, varsayilanGizliKolonlar, kolonGenislikSurumu));
     setSayfa(0);
     setSiralama(null);
     setSeciliIdler(new Set());
+    const depo = gorunumDepoOku(depolamaAnahtari);
+    setGorunumler(depo.liste);
+    setAktifGorunumId(depo.aktifId);
   }, [depolamaAnahtari, kolonImzasi, varsayilanGizliKolonlar.join('|'), kolonGenislikSurumu]);
 
   useEffect(() => {
     ayarKaydet(depolamaAnahtari, ayar);
   }, [ayar, depolamaAnahtari]);
+
+  useEffect(() => {
+    gorunumDepoYaz(depolamaAnahtari, { aktifId: aktifGorunumId, liste: gorunumler });
+  }, [depolamaAnahtari, aktifGorunumId, gorunumler]);
 
   const gorunurKolonlar = useMemo(() => {
     const harita = new Map(kolonlar.map((k) => [k.id, k]));
@@ -198,7 +271,61 @@ export function useDataGridState<TRow>(
     setAyar(varsayilanAyar(kolonlar, varsayilanGizliKolonlar, kolonGenislikSurumu));
     setSayfa(0);
     setSiralama(null);
+    setAktifGorunumId(null);
   }, [kolonlar, varsayilanGizliKolonlar, kolonGenislikSurumu]);
+
+  const gorunumUygula = useCallback(
+    (gorunumId: string) => {
+      const kayit = gorunumler.find((g) => g.id === gorunumId);
+      if (!kayit) return;
+      const gecerliIdler = new Set(kolonlar.map((k) => k.id));
+      const zorunluIdler = new Set(kolonlar.filter((k) => k.zorunlu).map((k) => k.id));
+      const kolonSirasi = kolonSirasiniBirlestir(
+        kayit.kolonSirasi,
+        kolonlar.map((k) => k.id),
+        gecerliIdler
+      );
+      setAyar((a) => ({
+        ...a,
+        kolonSirasi,
+        gizliKolonlar: (kayit.gizliKolonlar ?? []).filter(
+          (id) => gecerliIdler.has(id) && !zorunluIdler.has(id)
+        ),
+        sabitlenmisKolonlar: (kayit.sabitlenmisKolonlar ?? []).filter((id) => gecerliIdler.has(id)),
+        kolonGenislikleri: {
+          ...a.kolonGenislikleri,
+          ...Object.fromEntries(
+            Object.entries(kayit.kolonGenislikleri ?? {}).filter(([id]) => gecerliIdler.has(id))
+          ),
+        },
+      }));
+      setAktifGorunumId(gorunumId);
+      setSayfa(0);
+    },
+    [gorunumler, kolonlar]
+  );
+
+  const gorunumKaydet = useCallback(
+    (adHam: string) => {
+      const ad = adHam.trim();
+      if (!ad) return false;
+      const mevcut = gorunumler.find((g) => g.ad.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr'));
+      const id = mevcut?.id ?? `g-${Date.now()}`;
+      const kayit = ayardanGorunum(ayar, id, ad);
+      setGorunumler((onceki) => {
+        if (mevcut) return onceki.map((g) => (g.id === id ? kayit : g));
+        return [...onceki, kayit];
+      });
+      setAktifGorunumId(id);
+      return true;
+    },
+    [ayar, gorunumler]
+  );
+
+  const gorunumSil = useCallback((gorunumId: string) => {
+    setGorunumler((onceki) => onceki.filter((g) => g.id !== gorunumId));
+    setAktifGorunumId((aktif) => (aktif === gorunumId ? null : aktif));
+  }, []);
 
   const kolonGizle = useCallback((kolonId: string, gizle: boolean) => {
     const kolon = kolonlar.find((k) => k.id === kolonId);
@@ -302,6 +429,11 @@ export function useDataGridState<TRow>(
     secimiTemizle,
     gorunurKolonlar,
     varsayilanaDon,
+    gorunumler,
+    aktifGorunumId,
+    gorunumUygula,
+    gorunumKaydet,
+    gorunumSil,
     kolonGizle,
     kolonTasi,
     kolonSurukleBirak,

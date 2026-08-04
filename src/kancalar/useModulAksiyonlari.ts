@@ -58,6 +58,7 @@ export function useModulAksiyonlari(
       handlers.yayinla,
       handlers.oncekiKayit,
       handlers.sonrakiKayit,
+      handlers.belgeAlanYonet,
     ]
   );
 
@@ -84,6 +85,7 @@ export function useModulAksiyonlari(
     handlers.stokEnvanterAnaliz,
     handlers.stokBirimListesi,
     handlers.stokFiyatDuzenle,
+    handlers.belgeAlanYonet,
   ]);
 
   const durumKeys = useMemo(() => durumAnahtarlari(durumlar ?? {}), [
@@ -97,6 +99,7 @@ export function useModulAksiyonlari(
     durumlar?.yayinla,
     durumlar?.oncekiKayit,
     durumlar?.sonrakiKayit,
+    durumlar?.belgeAlanYonet,
   ]);
 
   useEffect(() => {
@@ -123,6 +126,7 @@ export function useModulAksiyonlari(
     durumlar?.stokEnvanterAnaliz,
     durumlar?.stokBirimListesi,
     durumlar?.stokFiyatDuzenle,
+    durumlar?.belgeAlanYonet,
   ]);
 
   const etiketKeys = useMemo(() => etiketAnahtarlari(etiketler ?? {}), [
@@ -130,6 +134,8 @@ export function useModulAksiyonlari(
     etiketler?.guncelle,
     etiketler?.ekle,
     etiketler?.sil,
+    etiketler?.onizle,
+    etiketler?.belgeAlanYonet,
   ]);
 
   useEffect(() => {
@@ -146,5 +152,7 @@ export function useModulAksiyonlari(
     etiketler?.kaydet,
     etiketler?.guncelle,
     etiketler?.sil,
+    etiketler?.onizle,
+    etiketler?.belgeAlanYonet,
   ]);
 }

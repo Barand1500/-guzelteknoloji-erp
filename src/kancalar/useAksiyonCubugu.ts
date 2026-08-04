@@ -66,8 +66,20 @@ const STOK_CUBUK: AksiyonButonu[] = [
   A('stokFiyatDuzenle', 'Fiyat Düzenle', false),
 ];
 
+const BELGELER_CUBUK: AksiyonButonu[] = [
+  A('kaydet', 'Kaydet', false, true),
+  A('ekle', 'Yeni Ekle', false),
+  A('sil', 'Sil', false),
+  A('onizle', 'Listeye Dön', false),
+  A('guncelle', 'Cariyi Düzenle', false),
+  A('belgeAlanYonet', 'Alanları Yönet', false),
+];
+
 const MODUL_OZEL_CUBUK: Record<string, AksiyonButonu[]> = {
   stoklar: STOK_CUBUK,
+  belgeler: BELGELER_CUBUK,
+  'alis-faturasi': BELGELER_CUBUK,
+  'satis-faturasi': BELGELER_CUBUK,
 };
 
 const varsayilanAksiyonlar = standartCubuk({ kaydet: { aktif: true } });
@@ -132,22 +144,34 @@ export function useAksiyonCubugu(modulId: string) {
         ? modulYetkiler.includes(kod) || genelYetkiler.includes(kod)
         : modulYetkiler.includes(kod);
 
-    return temel.map((aksiyon) => {
-      const dinamik = aksiyonDurumlari[aksiyon.id as AksiyonId];
-      const ozellikle = aksiyonEtiketleri[aksiyon.id as AksiyonId];
-      const modulEtiket = t(`aksiyon.${aksiyon.id}.${modulId}`, '');
-      const etiket =
-        ozellikle ||
-        (modulEtiket && modulEtiket !== `aksiyon.${aksiyon.id}.${modulId}`
-          ? modulEtiket
-          : t(`aksiyon.${aksiyon.id}`, aksiyon.etiket));
-      const guncel = { ...aksiyon, etiket };
+    return temel
+      .map((aksiyon) => {
+        const dinamik = aksiyonDurumlari[aksiyon.id as AksiyonId];
+        const ozellikle = aksiyonEtiketleri[aksiyon.id as AksiyonId];
+        const modulEtiket = t(`aksiyon.${aksiyon.id}.${modulId}`, '');
+        const etiket =
+          ozellikle ||
+          (modulEtiket && modulEtiket !== `aksiyon.${aksiyon.id}.${modulId}`
+            ? modulEtiket
+            : t(`aksiyon.${aksiyon.id}`, aksiyon.etiket));
+        const guncel = { ...aksiyon, etiket };
 
-      const yetkiKodu = modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id];
-      const yetkiUygun = !yetkiKodu || yetkiVar(yetkiKodu);
-      const temelAktif = dinamik !== undefined ? dinamik : aksiyon.aktif;
+        const yetkiKodu = modulYetki[aksiyon.id as AksiyonId] ?? AKSIYON_YETKI[aksiyon.id];
+        const yetkiUygun = !yetkiKodu || yetkiVar(yetkiKodu);
+        const temelAktif = dinamik !== undefined ? dinamik : aksiyon.aktif;
 
-      return { ...guncel, aktif: temelAktif && yetkiUygun };
-    });
+        return { ...guncel, aktif: temelAktif && yetkiUygun };
+      })
+      .filter((aksiyon) => {
+        /* Belgeler formu: Yeni Ekle yalnızca listede; formda göstermeyelim */
+        if (
+          (modulId === 'belgeler' || modulId === 'alis-faturasi' || modulId === 'satis-faturasi') &&
+          (aksiyon.id === 'ekle' || aksiyon.id === 'belgeAlanYonet') &&
+          !aksiyon.aktif
+        ) {
+          return false;
+        }
+        return true;
+      });
   }, [modulId, aksiyonDurumlari, aksiyonEtiketleri, t, modulYetkiler, genelYetkiler]);
 }

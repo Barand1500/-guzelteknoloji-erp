@@ -19,12 +19,7 @@ import {
   otSayfaDilimleri,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
 import { OtOutlinedAcilir, OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
-import { belgeTurEtiketi, type BelgeTur, type BelgeYon } from '@/admin/baslat-menusu/erp/belgeler/tipler';
-
-const TUR_SECENEKLERI = (['SIPARIS', 'IRSALIYE', 'FATURA', 'IADE'] as BelgeTur[]).map((t) => ({
-  value: t,
-  label: belgeTurEtiketi(t),
-}));
+import type { BelgeYon } from '@/admin/baslat-menusu/erp/belgeler/tipler';
 
 const YON_SECENEKLERI = BELGE_YON_SECENEKLERI;
 
@@ -38,7 +33,6 @@ export function BelgeNevileriListeSayfasi() {
   const [silinecek, setSilinecek] = useState<BelgeNevi | null>(null);
   const [adi, setAdi] = useState('');
   const [yon, setYon] = useState<BelgeYon>('ALIS');
-  const [varsayilanTur, setVarsayilanTur] = useState<BelgeTur>('FATURA');
   const [hata, setHata] = useState('');
 
   const yenile = useCallback(() => setListe(belgeNevileriGetir()), []);
@@ -54,7 +48,6 @@ export function BelgeNevileriListeSayfasi() {
     setHata('');
     setAdi(duzenlenen?.adi ?? '');
     setYon(duzenlenen?.yon ?? 'ALIS');
-    setVarsayilanTur(duzenlenen?.varsayilanTur ?? 'FATURA');
   }, [modalAcik, duzenlenen]);
 
   const filtrelenen = useMemo(() => {
@@ -83,14 +76,13 @@ export function BelgeNevileriListeSayfasi() {
         !belgeNeviGuncelle(duzenlenen.id, {
           adi,
           yon: duzenlenen.sabit ? duzenlenen.yon : yon,
-          varsayilanTur,
           aktif: true,
         })
       ) {
         setHata('Güncellenemedi. Ad / kod benzersiz olmalı.');
         return;
       }
-    } else if (!belgeNeviEkle({ adi, yon, varsayilanTur, aktif: true })) {
+    } else if (!belgeNeviEkle({ adi, yon, aktif: true })) {
       setHata('Eklenemedi. Ad / kod benzersiz olmalı.');
       return;
     }
@@ -138,14 +130,13 @@ export function BelgeNevileriListeSayfasi() {
             <tr>
               <th>Adı</th>
               <th>Belge türü</th>
-              <th>Varsayılan tür</th>
               <th className="ot-pb-islem-th">#</th>
             </tr>
           </thead>
           <tbody>
             {kayitlar.length === 0 ? (
               <tr>
-                <td colSpan={4} className="ot-pb-bos">
+                <td colSpan={3} className="ot-pb-bos">
                   Kayıt bulunamadı.
                 </td>
               </tr>
@@ -157,7 +148,6 @@ export function BelgeNevileriListeSayfasi() {
                     {t.sabit ? <span className="ap-muted text-xs"> · sabit</span> : null}
                   </td>
                   <td>{belgeYonEtiketi(t.yon)}</td>
-                  <td>{belgeTurEtiketi(t.varsayilanTur)}</td>
                   <td className="ot-pb-islem-td">
                     <OtIslemButonlari
                       onDuzenle={() => {
@@ -194,6 +184,7 @@ export function BelgeNevileriListeSayfasi() {
         onKapat={() => setModalAcik(false)}
         baslik={duzenlenen ? 'Belge Nevi Düzenle' : 'Yeni Belge Nevi'}
         genislik="sm"
+        ustCizgi={false}
         footer={
           <SistemModalAksiyonlar>
             <button type="button" className="ap-btn-ghost rounded-lg px-4 py-2 text-sm" onClick={() => setModalAcik(false)}>
@@ -219,12 +210,7 @@ export function BelgeNevileriListeSayfasi() {
             secenekler={YON_SECENEKLERI}
             onChange={(v) => setYon(v as BelgeYon)}
             disabled={Boolean(duzenlenen?.sabit)}
-          />
-          <OtOutlinedAcilir
-            etiket="Varsayılan belge türü"
-            deger={varsayilanTur}
-            secenekler={TUR_SECENEKLERI}
-            onChange={(v) => setVarsayilanTur(v as BelgeTur)}
+            aranabilir={false}
           />
           {hata ? <p className="text-sm text-red-500">{hata}</p> : null}
           {duzenlenen?.sabit ? (

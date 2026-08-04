@@ -60,7 +60,7 @@ function AdminModulGovde({ modulId, onModulAc }: AdminModulIcerikProps) {
     case 'banka-anlasmalari':
       return <BankaAnlasmalariSayfasi />;
     case 'belgeler':
-      return <BelgelerSayfasi />;
+      return <BelgelerSayfasi onModulAc={onModulAc} />;
     case 'ozel-tanimlar':
       return <OzelTanimlarSayfasi />;
     default:

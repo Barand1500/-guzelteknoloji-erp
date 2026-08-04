@@ -1418,6 +1418,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-gorev-cubugu--panel-acik .ap-hesap-makinesi-panel--kenarlik-anim,
 .ap-gorev-cubugu--panel-acik .ap-takvim-panel--kenarlik-anim,
 .ap-gorev-cubugu--panel-acik .ap-cubuk-arama-birim--kenarlik-anim,
+.ap-gorev-cubugu--panel-acik .ap-favori-panel--kenarlik-anim,
 .ap-gorev-cubugu--panel-acik .dg-satir-panel-cubuk--kenarlik-anim {
   border-color: transparent !important;
   border-radius: 0.625rem 0.625rem 0 0;
@@ -1625,6 +1626,12 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-hesap-makinesi-panel--kenarlik-anim {
+  border-color: transparent !important;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.ap-favori-panel--kenarlik-anim {
   border-color: transparent !important;
   overflow: visible;
   isolation: isolate;
@@ -2079,6 +2086,259 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-hesap-makinesi-wrap {
   position: relative;
   overflow: visible;
+}
+
+/* Favori sayfalar paneli */
+.ap-favori-sayfalar-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+.ap-favori-panel {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  width: min(320px, calc(100vw - 1.5rem));
+  max-height: min(26rem, 55vh);
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 0.625rem 0.625rem 0 0;
+  border: 1px solid var(--ap-border);
+  border-bottom: none;
+  background: var(--ap-surface);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.14);
+  animation: ap-hesap-panel-giris 0.18s ease-out;
+}
+
+.ap-favori-panel-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--ap-border);
+  border-radius: 0.625rem 0.625rem 0 0;
+  padding: 0.65rem 0.85rem;
+  background: var(--ap-surface);
+  flex-shrink: 0;
+}
+
+.ap-favori-panel-baslik h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.ap-favori-panel-kapat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+}
+
+.ap-favori-panel-kapat:hover {
+  background: var(--ap-hover);
+  color: var(--ap-heading);
+}
+
+.ap-favori-aktif {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.55rem 0.65rem 0;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 8%, var(--ap-surface));
+  flex-shrink: 0;
+}
+
+.ap-favori-aktif-ad {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--ap-heading);
+}
+
+.ap-favori-aktif-bos {
+  margin: 0.55rem 0.85rem 0;
+  font-size: 0.75rem;
+  color: var(--ap-text-muted);
+  flex-shrink: 0;
+}
+
+.ap-favori-yildiz {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.ap-favori-yildiz:hover {
+  background: color-mix(in srgb, var(--ap-accent) 12%, transparent);
+  color: var(--ap-accent);
+}
+
+.ap-favori-yildiz--aktif {
+  color: var(--ap-accent);
+}
+
+.ap-favori-yildiz--kucuk {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.ap-favori-liste-baslik {
+  margin: 0.65rem 0.85rem 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ap-text-muted);
+  flex-shrink: 0;
+}
+
+.ap-favori-liste {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 0.5rem 0.65rem;
+}
+
+.ap-favori-bos {
+  margin: 0.35rem 0.35rem 0;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--ap-text-muted);
+  text-align: center;
+}
+
+.ap-favori-liste-ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ap-favori-satir {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem 0.3rem;
+  border-radius: 0.45rem;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--ap-surface-2, var(--ap-hover)) 35%, var(--ap-surface));
+  cursor: grab;
+}
+
+.ap-favori-satir:active {
+  cursor: grabbing;
+}
+
+.ap-favori-satir:hover {
+  border-color: var(--ap-border);
+  background: var(--ap-hover);
+}
+
+.ap-favori-satir--surukleniyor {
+  opacity: 0.55;
+}
+
+.ap-favori-satir--hedef {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ap-accent) 25%, transparent);
+}
+
+.ap-favori-surukle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  color: var(--ap-text-muted);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.ap-favori-satir-ac {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.2rem 0.15rem;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ap-favori-satir-ad {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ap-heading);
+}
+
+.ap-favori-sira {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.ap-favori-sira-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 0.85rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.2rem;
+  background: var(--ap-surface);
+  color: var(--ap-text-muted);
+  font-size: 0.45rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ap-favori-sira-btn:hover:not(:disabled) {
+  background: var(--ap-hover);
+  color: var(--ap-heading);
+}
+
+.ap-favori-sira-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .ap-hesap-makinesi-panel {
@@ -5269,8 +5529,8 @@ html:has(.admin-panel[data-tema='acik']) body {
     transparent 0deg 200deg,
     color-mix(in srgb, var(--ap-accent) 12%, transparent) 235deg,
     var(--ap-accent) 285deg,
-    color-mix(in srgb, var(--ap-accent) 75%, #fff) 312deg,
-    color-mix(in srgb, var(--ap-accent) 45%, #fff) 334deg,
+    color-mix(in srgb, var(--ap-accent) 88%, transparent) 312deg,
+    color-mix(in srgb, var(--ap-accent) 52%, transparent) 334deg,
     transparent 360deg
   );
 }
@@ -8975,6 +9235,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-baslat-modern-ozel-tanimlar,
+.ap-baslat-modern-favori,
 .ap-baslat-modern-kapat {
   display: flex;
   height: 2rem;
@@ -8990,14 +9251,22 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-baslat-modern-ozel-tanimlar:hover,
+.ap-baslat-modern-favori:hover,
 .ap-baslat-modern-kapat:hover {
   background: var(--ap-hover);
   color: var(--ap-heading);
 }
 
-.ap-baslat-modern-ozel-tanimlar:hover {
+.ap-baslat-modern-ozel-tanimlar:hover,
+.ap-baslat-modern-favori:hover {
   border-color: color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
   color: color-mix(in srgb, var(--ap-accent) 70%, var(--ap-text));
+}
+
+.ap-baslat-modern-favori--aktif {
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 14%, var(--ap-surface));
+  color: var(--ap-accent);
 }
 
 .ap-baslat-modern-arama {

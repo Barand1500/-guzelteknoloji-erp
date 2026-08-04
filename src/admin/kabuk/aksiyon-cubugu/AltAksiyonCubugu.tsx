@@ -9,6 +9,7 @@ import { BildirimPaneli, useBildirimSayaci } from '../alt-panel/BildirimPaneli';
 import { LogPaneli } from '../alt-panel/LogPaneli';
 import { YedeklemeHizliPaneli } from '../alt-panel/YedeklemeHizliPaneli';
 import { HesapMakinesiPaneli } from '../alt-panel/HesapMakinesiPaneli';
+import { FavoriSayfalarPaneli } from '../alt-panel/FavoriSayfalarPaneli';
 import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { useAdminTema } from '@/baglamlar/AdminTemaContext';
 import { kisayolAyarlariOku } from '@/admin/baslat-menusu/sistem/kisayol-ayarlari/yardimci';
@@ -43,6 +44,7 @@ function AltAksiyonCubuguGovde({
   const rehberKisayolu = kisayolAyarlariOku().rehber;
   const [acikPanel, setAcikPanel] = useState<AcikPanel>(null);
   const [hesapAcik, setHesapAcik] = useState(false);
+  const [favoriAcik, setFavoriAcik] = useState(false);
   const { okunmamisSayi, yenile } = useBildirimSayaci();
   const { aksiyonGeriBildirim } = useAdminAksiyon();
   const { temaDegistir, koyuMu } = useAdminTema();
@@ -56,19 +58,27 @@ function AltAksiyonCubuguGovde({
 
   function panelAc(panel: AcikPanel) {
     setHesapAcik(false);
+    setFavoriAcik(false);
     setAcikPanel((onceki) => (onceki === panel ? null : panel));
     if (panel === 'bildirim') void yenile();
   }
 
   function hesapToggle() {
     setAcikPanel(null);
+    setFavoriAcik(false);
     setHesapAcik((onceki) => !onceki);
+  }
+
+  function favoriToggle() {
+    setAcikPanel(null);
+    setHesapAcik(false);
+    setFavoriAcik((onceki) => !onceki);
   }
 
   return (
     <footer
       ref={footerRef}
-      className={`ap-footer ap-gorev-cubugu flex h-12 shrink-0 items-center gap-2 border-t px-3${panelAcik || hesapAcik ? ' ap-gorev-cubugu--panel-acik' : ''}`}
+      className={`ap-footer ap-gorev-cubugu flex h-12 shrink-0 items-center gap-2 border-t px-3${panelAcik || hesapAcik || favoriAcik ? ' ap-gorev-cubugu--panel-acik' : ''}`}
       data-ap-kesif="aksiyon-cubugu"
     >
       <AksiyonCubuguUstCizgiSlot footerRef={footerRef} />
@@ -90,9 +100,37 @@ function AltAksiyonCubuguGovde({
         })}
       </div>
 
-      {sekmeAyarlari.sekmeAramaAktif && onModulAc && (
-        <div className="ap-aksiyon-cubugu-arama shrink-0">
-          <CubukModulArama onModulSec={(modul) => onModulAc(modul.id)} />
+      {onModulAc && (
+        <div className="ap-aksiyon-cubugu-arama shrink-0 flex items-center gap-1">
+          {sekmeAyarlari.sekmeAramaAktif ? (
+            <CubukModulArama onModulSec={(modul) => onModulAc(modul.id)} />
+          ) : null}
+          <div className="ap-tray-ikon-wrap ap-favori-sayfalar-wrap">
+            <button
+              type="button"
+              className={`ap-tray-ikon ap-favori-sayfalar-btn${favoriAcik ? ' ap-tray-ikon-aktif' : ''}`}
+              title={tooltipMetni('Favori sayfalar')}
+              aria-label="Favori sayfalar"
+              aria-expanded={favoriAcik}
+              onClick={favoriToggle}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
+                <path
+                  d="M12 3.5l2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 16.9 6.75 19.7l1-5.85L3.5 9.7l5.9-.9L12 3.5z"
+                  fill={favoriAcik ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <FavoriSayfalarPaneli
+              acik={favoriAcik}
+              onKapat={() => setFavoriAcik(false)}
+              focusModulId={focusModulId}
+              onModulAc={onModulAc}
+            />
+          </div>
         </div>
       )}
 

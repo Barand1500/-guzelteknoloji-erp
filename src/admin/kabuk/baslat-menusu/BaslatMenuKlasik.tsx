@@ -19,7 +19,7 @@ export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps
   ref
 ) {
   const { t } = usePanelDil();
-  const { arama, setArama, kapaliKategoriler, kategoriToggle, sonuclar, gorunurModuller, kategoriler } =
+  const { arama, setArama, kapaliKategoriler, kategoriToggle, sonuclar, gorunurModuller, kategoriler, sadeceFavoriler, favoriFiltreToggle } =
     menuDurumu;
 
   const modulSec = (modul: AdminModul) => {
@@ -35,34 +35,72 @@ export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps
     >
       <div className="flex items-start justify-between gap-2 border-b border-[var(--ap-border)] bg-[var(--ap-header-bg)] px-3 py-2">
         <div className="min-w-0">
-          <p className="ap-heading text-xs font-bold">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
-          <p className="ap-muted text-[10px]">{t('header.modulAra', 'Modül veya Ayar Ara')}</p>
+          <p className="ap-heading text-xs font-bold">
+            {sadeceFavoriler
+              ? t('header.favoriMenu', 'Favori Sayfalar')
+              : t('header.baslatMenu', 'Başlat Menüsü')}
+          </p>
+          <p className="ap-muted text-[10px]">
+            {sadeceFavoriler
+              ? 'Yalnızca favori modüller'
+              : t('header.modulAra', 'Modül veya Ayar Ara')}
+          </p>
         </div>
-        {onOzelTanimlarAc ? (
+        <div className="ap-baslat-modern-ust-aksiyonlar">
           <button
             type="button"
-            className="ap-baslat-modern-ozel-tanimlar"
-            onClick={onOzelTanimlarAc}
-            aria-label="Özel Tanımlar"
-            title="Özel Tanımlar"
+            className={`ap-baslat-modern-favori${sadeceFavoriler ? ' ap-baslat-modern-favori--aktif' : ''}`}
+            onClick={favoriFiltreToggle}
+            aria-label={sadeceFavoriler ? 'Tüm menüyü göster' : 'Sadece favorileri göster'}
+            title={sadeceFavoriler ? 'Tüm menüyü göster' : 'Sadece favorileri göster'}
+            aria-pressed={sadeceFavoriler}
           >
-            ⚙
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden>
+              <path
+                d="M12 3.5l2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 16.9 6.75 19.7l1-5.85L3.5 9.7l5.9-.9L12 3.5z"
+                fill={sadeceFavoriler ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
-        ) : null}
+          {onOzelTanimlarAc ? (
+            <button
+              type="button"
+              className="ap-baslat-modern-ozel-tanimlar"
+              onClick={onOzelTanimlarAc}
+              aria-label="Özel Tanımlar"
+              title="Özel Tanımlar"
+            >
+              ⚙
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <BaslatMenuArama deger={arama} onDegistir={setArama} variant="klasik" />
 
       <div className="ap-scroll flex-1 overflow-y-auto p-2">
         {arama ? (
-          <ModulListesi
-            baslik={`Arama: "${arama}"`}
-            kategori=""
-            moduller={sonuclar}
-            katlanmis={false}
-            onKategoriToggle={undefined}
-            onSec={modulSec}
-          />
+          sonuclar.length === 0 ? (
+            <p className="ap-baslat-modern-bos px-2 py-3">
+              {sadeceFavoriler ? 'Favori sayfa bulunamadı.' : 'Eşleşen modül bulunamadı.'}
+            </p>
+          ) : (
+            <ModulListesi
+              baslik={`Arama: "${arama}"`}
+              kategori=""
+              moduller={sonuclar}
+              katlanmis={false}
+              onKategoriToggle={undefined}
+              onSec={modulSec}
+            />
+          )
+        ) : sadeceFavoriler && gorunurModuller.length === 0 ? (
+          <p className="ap-baslat-modern-bos px-2 py-3">
+            Henüz favori yok. Aksiyon çubuğundan yıldız ile ekleyin.
+          </p>
         ) : (
           kategoriler.map((kategori) => (
             <ModulListesi

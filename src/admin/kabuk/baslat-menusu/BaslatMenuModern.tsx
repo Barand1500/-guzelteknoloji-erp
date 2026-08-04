@@ -20,7 +20,8 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
   ref
 ) {
   const { t } = usePanelDil();
-  const { arama, setArama, sonuclar, gorunurModuller, kategoriler } = menuDurumu;
+  const { arama, setArama, sonuclar, gorunurModuller, kategoriler, sadeceFavoriler, favoriFiltreToggle } =
+    menuDurumu;
   const [seciliKategori, setSeciliKategori] = useState<string | null>(null);
   const [modernAyar, setModernAyar] = useState(() => {
     const ayar = sekmeAyarlariOku();
@@ -83,9 +84,31 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
       <div className="ap-baslat-modern-ust">
         <div className="ap-baslat-modern-ust-icerik">
           <div className="ap-baslat-modern-baslik-alan">
-            <p className="ap-baslat-modern-baslik">{t('header.baslatMenu', 'Başlat Menüsü')}</p>
+            <p className="ap-baslat-modern-baslik">
+              {sadeceFavoriler
+                ? t('header.favoriMenu', 'Favori Sayfalar')
+                : t('header.baslatMenu', 'Başlat Menüsü')}
+            </p>
           </div>
           <div className="ap-baslat-modern-ust-aksiyonlar">
+            <button
+              type="button"
+              className={`ap-baslat-modern-favori${sadeceFavoriler ? ' ap-baslat-modern-favori--aktif' : ''}`}
+              onClick={favoriFiltreToggle}
+              aria-label={sadeceFavoriler ? 'Tüm menüyü göster' : 'Sadece favorileri göster'}
+              title={sadeceFavoriler ? 'Tüm menüyü göster' : 'Sadece favorileri göster'}
+              aria-pressed={sadeceFavoriler}
+            >
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden>
+                <path
+                  d="M12 3.5l2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 16.9 6.75 19.7l1-5.85L3.5 9.7l5.9-.9L12 3.5z"
+                  fill={sadeceFavoriler ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
             {onOzelTanimlarAc ? (
               <button
                 type="button"
@@ -117,7 +140,9 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
               Arama sonuçları <span className="ap-baslat-modern-sayi">{sonuclar.length}</span>
             </p>
             {sonuclar.length === 0 ? (
-              <p className="ap-baslat-modern-bos">Eşleşen modül bulunamadı.</p>
+              <p className="ap-baslat-modern-bos">
+                {sadeceFavoriler ? 'Favori sayfa bulunamadı.' : 'Eşleşen modül bulunamadı.'}
+              </p>
             ) : (
               <ModulKutuGrid moduller={sonuclar} onSec={modulSec} />
             )}
@@ -125,29 +150,39 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
         ) : (
           <>
             <aside className="ap-baslat-modern-kategori-sutun ap-scroll">
-              <p className="ap-baslat-modern-sutun-baslik">Kategoriler</p>
+              <p className="ap-baslat-modern-sutun-baslik">
+                {sadeceFavoriler ? 'Favori kategoriler' : 'Kategoriler'}
+              </p>
               <div className="ap-baslat-modern-kategori-kutular">
-                {doluKategoriler.map((kategori) => {
-                  const adet = gorunurModuller.filter((m) => m.kategori === kategori).length;
-                  const aktif = seciliKategori === kategori;
-                  return (
-                    <button
-                      key={kategori}
-                      type="button"
-                      className={`ap-baslat-modern-kategori-kutu${aktif ? ' ap-baslat-modern-kategori-kutu-aktif' : ''}`}
-                      onClick={() => setSeciliKategori(kategori)}
-                      aria-pressed={aktif}
-                    >
-                      <span className="ap-baslat-modern-kategori-kutu-ikon" aria-hidden>
-                        <BaslatMenuIkon kategori={kategori} boyut={18} />
-                      </span>
-                      <span className="ap-baslat-modern-kategori-kutu-ad">
-                        {t(`kategori.${kategori}`, kategori)}
-                      </span>
-                      <span className="ap-baslat-modern-kategori-kutu-sayi">{adet}</span>
-                    </button>
-                  );
-                })}
+                {doluKategoriler.length === 0 ? (
+                  <p className="ap-baslat-modern-bos ap-baslat-modern-bos--sutun">
+                    {sadeceFavoriler
+                      ? 'Henüz favori yok. Aksiyon çubuğundan yıldız ile ekleyin.'
+                      : 'Gösterilecek kategori yok.'}
+                  </p>
+                ) : (
+                  doluKategoriler.map((kategori) => {
+                    const adet = gorunurModuller.filter((m) => m.kategori === kategori).length;
+                    const aktif = seciliKategori === kategori;
+                    return (
+                      <button
+                        key={kategori}
+                        type="button"
+                        className={`ap-baslat-modern-kategori-kutu${aktif ? ' ap-baslat-modern-kategori-kutu-aktif' : ''}`}
+                        onClick={() => setSeciliKategori(kategori)}
+                        aria-pressed={aktif}
+                      >
+                        <span className="ap-baslat-modern-kategori-kutu-ikon" aria-hidden>
+                          <BaslatMenuIkon kategori={kategori} boyut={18} />
+                        </span>
+                        <span className="ap-baslat-modern-kategori-kutu-ad">
+                          {t(`kategori.${kategori}`, kategori)}
+                        </span>
+                        <span className="ap-baslat-modern-kategori-kutu-sayi">{adet}</span>
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </aside>
 
@@ -158,10 +193,20 @@ export const BaslatMenuModern = forwardRef<HTMLDivElement, BaslatMenuModernProps
                     {t(`kategori.${seciliKategori}`, seciliKategori)}
                     <span className="ap-baslat-modern-sayi">{seciliModuller.length}</span>
                   </p>
-                  <ModulKutuGrid moduller={seciliModuller} onSec={modulSec} />
+                  {seciliModuller.length === 0 ? (
+                    <p className="ap-baslat-modern-bos">
+                      {sadeceFavoriler ? 'Bu kategoride favori yok.' : 'Modül yok.'}
+                    </p>
+                  ) : (
+                    <ModulKutuGrid moduller={seciliModuller} onSec={modulSec} />
+                  )}
                 </>
               ) : (
-                <p className="ap-baslat-modern-bos">Bir kategori seçin.</p>
+                <p className="ap-baslat-modern-bos">
+                  {sadeceFavoriler
+                    ? 'Henüz favori yok. Aksiyon çubuğundan yıldız ile ekleyin.'
+                    : 'Bir kategori seçin.'}
+                </p>
               )}
             </div>
           </>

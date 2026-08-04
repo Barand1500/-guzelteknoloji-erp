@@ -356,23 +356,25 @@ export function HizliStokEkleModal({
 
             {!detayli ? (
               <div className="fatura-hizli-stok-grid">
-                <TanimGirdi
-                  etiket="Ürün Kodu"
-                  deger={urunKodu}
-                  kural="stokKod"
-                  zorunlu
-                  autoFocus
-                  placeholder="S0001"
-                  onChange={setUrunKodu}
-                />
-                <TanimGirdi
-                  etiket="Ürün Adı"
-                  deger={urunAdi}
-                  kural="ad"
-                  zorunlu
-                  placeholder="Ürün adı"
-                  onChange={setUrunAdi}
-                />
+                <div className="fatura-hizli-stok-kimlik">
+                  <TanimGirdi
+                    etiket="Ürün Kodu"
+                    deger={urunKodu}
+                    kural="stokKod"
+                    zorunlu
+                    autoFocus
+                    placeholder="S0001"
+                    onChange={setUrunKodu}
+                  />
+                  <TanimGirdi
+                    etiket="Ürün Adı"
+                    deger={urunAdi}
+                    kural="ad"
+                    zorunlu
+                    placeholder="Ürün adı"
+                    onChange={setUrunAdi}
+                  />
+                </div>
 
                 <label className="ap-tanimlar-secim-alan block">
                   <span className="ap-tanim-girdi-etiket">

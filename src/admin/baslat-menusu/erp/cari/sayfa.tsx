@@ -29,6 +29,7 @@ import { CARI_KOLON_GENISLIK_SURUMU, cariKolonlari } from './cariKolonlari';
 import { caridenForm, cariSatirEtiketi } from './cariYardimci';
 import type { AdminCari, CariKartModu } from './tipler';
 import { CariEkstreModal } from '@/admin/baslat-menusu/erp/belgeler/CariEkstreModal';
+import { cariBaslatOkuVeTemizle, CARI_BASLAT_OLAY } from './cariBaslat';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 
 type Gorunum = 'liste' | 'kart' | 'hareket';
@@ -266,6 +267,22 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
     },
     [baglamCariId, duzenlemeVar, hataBildir]
   );
+
+  useEffect(() => {
+    const uygula = () => {
+      const baslat = cariBaslatOkuVeTemizle();
+      if (!baslat?.cariId) return;
+      if (baslat.duzenle) {
+        duzenleAc(baslat.cariId);
+        return;
+      }
+      const hedef = kayitlar.find((k) => k.id === baslat.cariId);
+      if (hedef) cariyeGitUygula(hedef);
+    };
+    uygula();
+    window.addEventListener(CARI_BASLAT_OLAY, uygula);
+    return () => window.removeEventListener(CARI_BASLAT_OLAY, uygula);
+  }, [duzenleAc, cariyeGitUygula, kayitlar]);
 
   const kaydet = useCallback(async () => {
     if (!kaydetRef.current) {

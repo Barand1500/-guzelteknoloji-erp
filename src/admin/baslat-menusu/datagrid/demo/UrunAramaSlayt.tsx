@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { paraFormatla, yuzdeFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { birimEtiketi } from './birimVeri';
 import type { UrunKaydi } from './urunAramaYardimci';
@@ -11,6 +11,8 @@ interface UrunAramaSlaytProps {
   onSorguDegistir: (sorgu: string) => void;
   onSeciliDegistir: (indeks: number) => void;
   onSec: (urun: UrunKaydi) => void;
+  /** Birden fazla işaretli ürünü seçim sırasıyla gönderir */
+  onTopluSec?: (urunler: UrunKaydi[]) => void;
   onGeri: () => void;
   /** Verilirse sonuç bulunamadığında hızlı stok kartı açma butonu görünür */
   onHizliEkle?: (sorgu: string) => void;
@@ -40,6 +42,7 @@ export function UrunAramaSlayt({
   onSorguDegistir,
   onSeciliDegistir,
   onSec,
+  onTopluSec,
   onGeri,
   onHizliEkle,
   children,
@@ -48,6 +51,14 @@ export function UrunAramaSlayt({
   const girdiRef = useRef<HTMLInputElement>(null);
   const acilisKilidiRef = useRef(false);
   const aramaMod = mod === 'arama';
+  /** Seçim sırası korunur (sku listesi) */
+  const [isaretliSku, setIsaretliSku] = useState<string[]>([]);
+
+  const topluAktif = sonuclar.length > 1;
+
+  useEffect(() => {
+    setIsaretliSku([]);
+  }, [sorgu, aramaMod]);
 
   useEffect(() => {
     if (!aramaMod) return;
@@ -70,6 +81,35 @@ export function UrunAramaSlayt({
     return () => cancelAnimationFrame(id);
   }, [aramaMod]);
 
+  const isaretToggle = useCallback((sku: string) => {
+    setIsaretliSku((onceki) => {
+      if (onceki.includes(sku)) return onceki.filter((s) => s !== sku);
+      return [...onceki, sku];
+    });
+  }, []);
+
+  const secimiUygula = useCallback(() => {
+    if (acilisKilidiRef.current) return;
+    if (!sonuclar.length) return;
+
+    if (topluAktif && isaretliSku.length > 0) {
+      const sirali = isaretliSku
+        .map((sku) => sonuclar.find((u) => u.sku === sku))
+        .filter((u): u is UrunKaydi => Boolean(u));
+      if (!sirali.length) return;
+      if (sirali.length === 1) {
+        onSec(sirali[0]!);
+        return;
+      }
+      if (onTopluSec) onTopluSec(sirali);
+      else onSec(sirali[0]!);
+      return;
+    }
+
+    const urun = sonuclar[seciliIndeks];
+    if (urun) onSec(urun);
+  }, [isaretliSku, onSec, onTopluSec, seciliIndeks, sonuclar, topluAktif]);
+
   const klavyeIsle = useCallback(
     (e: KeyboardEvent) => {
       if (!aramaMod) return;
@@ -86,14 +126,19 @@ export function UrunAramaSlayt({
         onSeciliDegistir(Math.max(seciliIndeks - 1, 0));
         return;
       }
+      if ((e.key === ' ' || e.code === 'Space') && topluAktif && sonuclar.length && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        const urun = sonuclar[seciliIndeks];
+        if (urun) isaretToggle(urun.sku);
+        return;
+      }
       if (e.key === 'Enter' && sonuclar.length) {
         if (acilisKilidiRef.current) {
           e.preventDefault();
           return;
         }
         e.preventDefault();
-        const urun = sonuclar[seciliIndeks];
-        if (urun) onSec(urun);
+        secimiUygula();
         return;
       }
       if (e.key === 'Escape') {
@@ -101,7 +146,16 @@ export function UrunAramaSlayt({
         onGeri();
       }
     },
-    [aramaMod, onGeri, onSec, onSeciliDegistir, seciliIndeks, sonuclar]
+    [
+      aramaMod,
+      isaretToggle,
+      onGeri,
+      onSeciliDegistir,
+      seciliIndeks,
+      secimiUygula,
+      sonuclar,
+      topluAktif,
+    ]
   );
 
   useEffect(() => {
@@ -115,6 +169,8 @@ export function UrunAramaSlayt({
     const secili = listeRef.current.querySelector<HTMLElement>('[data-secili="true"]');
     if (secili) listeIcindeKaydir(listeRef.current, secili);
   }, [aramaMod, seciliIndeks, sonuclar]);
+
+  const isaretliAdet = isaretliSku.filter((sku) => sonuclar.some((u) => u.sku === sku)).length;
 
   return (
     <div className={`dg-urun-slayt-kabuk${aramaMod ? ' dg-urun-slayt-kabuk--arama' : ''}`}>
@@ -146,14 +202,26 @@ export function UrunAramaSlayt({
               </div>
               <p className="dg-urun-arama-adet">
                 {sonuclar.length} Sonuç{sorgu.trim() ? '' : ' — Tüm Ürünler'}
+                {isaretliAdet > 0 ? ` · ${isaretliAdet} seçili` : ''}
               </p>
             </div>
-            <button type="button" className="dg-urun-arama-geri" onClick={onGeri} aria-label="ESC ile tabloya dön">
-              ESC
-            </button>
+            <div className="dg-urun-arama-baslik-sag">
+              {topluAktif && isaretliAdet > 0 ? (
+                <button
+                  type="button"
+                  className="dg-urun-arama-toplu-ekle"
+                  onClick={secimiUygula}
+                >
+                  Seçilenleri ekle ({isaretliAdet})
+                </button>
+              ) : null}
+              <button type="button" className="dg-urun-arama-geri" onClick={onGeri} aria-label="ESC ile tabloya dön">
+                ESC
+              </button>
+            </div>
           </header>
 
-          <div ref={listeRef} className="dg-urun-arama-liste ap-scroll" role="listbox" aria-label="Arama sonuçları">
+          <div ref={listeRef} className="dg-urun-arama-liste ap-scroll" role="listbox" aria-label="Arama sonuçları" aria-multiselectable={topluAktif}>
             {sonuclar.length === 0 ? (
               <div className="dg-urun-arama-bos">
                 <p>Böyle bir stoğunuz yok.</p>
@@ -172,6 +240,9 @@ export function UrunAramaSlayt({
               <table className="dg-urun-arama-tablo">
                 <thead>
                   <tr>
+                    {topluAktif ? (
+                      <th scope="col" className="dg-urun-arama-th dg-urun-arama-th--secim" aria-label="Seç" />
+                    ) : null}
                     {TABLO_KOLONLARI.map((baslik) => (
                       <th key={baslik} scope="col" className="dg-urun-arama-th">
                         {baslik}
@@ -181,17 +252,40 @@ export function UrunAramaSlayt({
                 </thead>
                 <tbody>
                   {sonuclar.map((urun, i) => {
-                    const secili = i === seciliIndeks;
+                    const odakli = i === seciliIndeks;
+                    const isaretli = isaretliSku.includes(urun.sku);
+                    const siraNo = isaretli ? isaretliSku.indexOf(urun.sku) + 1 : 0;
                     return (
                       <tr
                         key={`${urun.sku}-${i}`}
                         role="option"
-                        aria-selected={secili}
-                        data-secili={secili ? 'true' : undefined}
-                        className={`dg-urun-arama-satir${secili ? ' dg-urun-arama-satir--secili' : ''}`}
+                        aria-selected={odakli || isaretli}
+                        data-secili={odakli ? 'true' : undefined}
+                        className={`dg-urun-arama-satir${odakli ? ' dg-urun-arama-satir--secili' : ''}${isaretli ? ' dg-urun-arama-satir--isaretli' : ''}`}
                         onMouseEnter={() => onSeciliDegistir(i)}
                         onClick={() => onSec(urun)}
                       >
+                        {topluAktif ? (
+                          <td className="dg-urun-arama-hucre dg-urun-arama-hucre--secim">
+                            <label
+                              className="dg-urun-arama-secim"
+                              onClick={(e) => e.stopPropagation()}
+                              onMouseDown={(e) => e.stopPropagation()}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isaretli}
+                                onChange={() => isaretToggle(urun.sku)}
+                                aria-label={`${urun.sku} seç`}
+                              />
+                              {isaretli ? (
+                                <span className="dg-urun-arama-secim-sira" aria-hidden>
+                                  {siraNo}
+                                </span>
+                              ) : null}
+                            </label>
+                          </td>
+                        ) : null}
                         <td className="dg-urun-arama-hucre dg-urun-arama-hucre--kod">{urun.sku}</td>
                         <td className="dg-urun-arama-hucre dg-urun-arama-hucre--ad">{urun.ad}</td>
                         <td className="dg-urun-arama-hucre dg-urun-arama-hucre--birim">{birimEtiketi(urun.birim)}</td>
@@ -211,7 +305,7 @@ export function UrunAramaSlayt({
           <footer className="dg-urun-arama-ipucu">
             <span>Yazarak Filtrele</span>
             <span>↑ ↓ Gezin</span>
-            <span>Enter Seç (alanlar dolar)</span>
+            {topluAktif ? <span>□ İşaretle · Ctrl+Space · Enter / Ekle</span> : <span>Enter Seç (alanlar dolar)</span>}
             <span>ESC Geri</span>
           </footer>
         </div>

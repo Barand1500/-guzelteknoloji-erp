@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
+import { SistemModal } from '@/admin/ortak/SistemModal';
 import type { AdminCari } from '@/admin/baslat-menusu/erp/cari/tipler';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 
@@ -33,15 +33,6 @@ export function FaturaCariBulModal({ acik, cariler, onKapat, onSec }: FaturaCari
       genislik="md"
       ustCizgi={false}
       disariTiklaKapat={false}
-      footer={
-        <SistemModalAksiyonlar>
-          <div className="flex w-full items-center justify-end gap-2">
-            <button type="button" className="ap-btn-ghost rounded-lg px-4 py-2 text-sm" onClick={onKapat}>
-              Kapat
-            </button>
-          </div>
-        </SistemModalAksiyonlar>
-      }
     >
       <div className="fatura-cari-bul">
         <input

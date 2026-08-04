@@ -426,7 +426,6 @@ function HucreGoster<TRow>({
 
 export function DataGrid<TRow extends { id: string }>({
   tabloBaslik,
-  tabloAltBaslik,
   kolonlar,
   satirlar,
   depolamaAnahtari,
@@ -493,6 +492,7 @@ export function DataGrid<TRow extends { id: string }>({
   const [hizliGirisGenisletildi, setHizliGirisGenisletildi] = useState(true);
   const [hizliGirisAcik, setHizliGirisAcik] = useState(!hizliGirisIstegeBagli);
   const [sutunMenuKonum, setSutunMenuKonum] = useState({ top: 0, left: 0 });
+  const [gorunumAdi, setGorunumAdi] = useState('');
   const [formulMenuAcik, setFormulMenuAcik] = useState(false);
   const [formulMenuKonum, setFormulMenuKonum] = useState({ top: 0, left: 0 });
   const [panoBildirim, setPanoBildirim] = useState<{ metin: string; anahtar: number } | null>(null);
@@ -917,7 +917,10 @@ export function DataGrid<TRow extends { id: string }>({
     if (hizliGirisIstegeBagli) {
       setHizliGirisAcik(false);
     } else {
-      requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
+      setOdak(null);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
+      });
     }
     return true;
   }, [
@@ -1513,6 +1516,7 @@ export function DataGrid<TRow extends { id: string }>({
       cizgiModu: () => dg.ayar.cizgiModu,
       cizgiModuAyarla: (mod) => dg.cizgiModuAyarla(mod),
       hizliGirisOdakla: () => {
+        setOdak(null);
         if (hizliGirisIstegeBagli) setHizliGirisAcik(true);
         requestAnimationFrame(() => {
           requestAnimationFrame(() => hizliGirisIlkRef.current?.focus());
@@ -2382,7 +2386,6 @@ export function DataGrid<TRow extends { id: string }>({
       <div className="dg-sutun-menu-baslik">
         <div>
           <h3>Sütunlar</h3>
-          <p>{tabloAltBaslik ?? 'Görünür sütunlar ve sırası'}</p>
         </div>
         <div className="dg-sutun-menu-baslik-aksiyon">
           <button type="button" className="dg-sutun-menu-sifirla" onClick={dg.varsayilanaDon}>
@@ -2399,6 +2402,73 @@ export function DataGrid<TRow extends { id: string }>({
           </button>
         </div>
       </div>
+
+      <div className="dg-sutun-gorunum">
+        <div className="dg-sutun-gorunum-baslik">Kayıtlı sıralamalar</div>
+        {dg.gorunumler.length > 0 ? (
+          <div className="dg-sutun-gorunum-liste">
+            {dg.gorunumler.map((g) => (
+              <div
+                key={g.id}
+                className={`dg-sutun-gorunum-chip${dg.aktifGorunumId === g.id ? ' dg-sutun-gorunum-chip--aktif' : ''}`}
+              >
+                <button
+                  type="button"
+                  className="dg-sutun-gorunum-chip-ad"
+                  title={dgTooltipMetni(`“${g.ad}” sıralamasını uygula`)}
+                  onClick={() => {
+                    dg.gorunumUygula(g.id);
+                    setGorunumAdi(g.ad);
+                  }}
+                >
+                  {g.ad}
+                </button>
+                <button
+                  type="button"
+                  className="dg-sutun-gorunum-chip-sil"
+                  title={dgTooltipMetni('Sıralamayı sil')}
+                  aria-label={`${g.ad} sıralamasını sil`}
+                  onClick={() => {
+                    dg.gorunumSil(g.id);
+                    if (gorunumAdi === g.ad) setGorunumAdi('');
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="dg-sutun-gorunum-bos">Henüz kayıtlı sıralama yok.</p>
+        )}
+        <div className="dg-sutun-gorunum-kaydet">
+          <input
+            type="text"
+            className="dg-sutun-gorunum-input"
+            value={gorunumAdi}
+            maxLength={40}
+            placeholder="Sıralama adı…"
+            aria-label="Sıralama adı"
+            onChange={(e) => setGorunumAdi(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return;
+              e.preventDefault();
+              if (dg.gorunumKaydet(gorunumAdi)) setGorunumAdi(gorunumAdi.trim());
+            }}
+          />
+          <button
+            type="button"
+            className="dg-sutun-gorunum-kaydet-tus"
+            disabled={!gorunumAdi.trim()}
+            onClick={() => {
+              if (dg.gorunumKaydet(gorunumAdi)) setGorunumAdi(gorunumAdi.trim());
+            }}
+          >
+            Kaydet
+          </button>
+        </div>
+      </div>
+
       <div className="dg-sutun-menu-liste ap-scroll">
         {dg.ayar.kolonSirasi
           .filter((id) => id !== 'secim' && id !== 'islemler')

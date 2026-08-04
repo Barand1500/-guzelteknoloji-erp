@@ -8,7 +8,13 @@ import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 import { useAdminLogMesaji, useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { carileriGetir } from '@/admin/baslat-menusu/erp/cari/api';
-import type { AdminCari } from '@/admin/baslat-menusu/erp/cari/tipler';
+import { type AdminCari } from '@/admin/baslat-menusu/erp/cari/tipler';
+import { BelgeCariAlanYonetModal } from './BelgeCariAlanYonetModal';
+import { belgeCariAlanIcerik } from './BelgeCariAlanGoster';
+import {
+  belgeCariAlanDuzeniOku,
+  type BelgeCariAlanDuzeni,
+} from './belgeCariAlanDuzeni';
 import { subeleriGetir, depolariGetir, kasalariGetir } from '@/admin/baslat-menusu/tanimlar/api';
 import type { AdminDepo, AdminKasa, AdminSube } from '@/admin/baslat-menusu/tanimlar/tipler';
 import {
@@ -37,6 +43,7 @@ import { hucrePanoyaMetni } from '@/admin/baslat-menusu/datagrid/demo/sagTikYard
 import {
   belgeIskontoUygula,
   belgeTurEtiketi,
+  belgeDurumEtiketi,
   bosBelgeIskontolari,
   bosBelgeIskontoTutarlari,
   bugunIso,
@@ -50,7 +57,6 @@ import {
   type BelgeTur,
   type BelgeYon,
 
-  type StokBakiyeSatir,
   type StokEksikSatir,
 } from './tipler';
 import {
@@ -63,12 +69,10 @@ import {
   iadeTaslagiOlustur,
 
   seriOner,
-  stokBakiyeleriGetir,
   stokEksikleriBul,
   stokGirisiEkle,
 } from './api';
 import { stokUrunKataloguGetir } from './urunKatalogAdapter';
-import { CariOutlinedAramaAcilir } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedAramaAcilir';
 import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
 import { FaturaCariBulModal } from './FaturaCariBulModal';
 import { FaturaBolumDuzen } from './FaturaBolumDuzen';
@@ -81,6 +85,7 @@ import {
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 import { TarihSecici } from '@/admin/ortak/TarihSecici';
 import { belgeBaslatOkuVeTemizle, BELGE_BASLAT_OLAY } from './belgeBaslat';
+import { cariBaslatYaz } from '@/admin/baslat-menusu/erp/cari/cariBaslat';
 import {
   BELGE_NEVILERI_GUNCELLENDI,
   BELGE_YON_SECENEKLERI,
@@ -102,16 +107,27 @@ const VARSAYILAN_GIZLI = [
   'guncelleme',
 ];
 const KOLON_GENISLIK_SURUMU = 9;
-const TURLER: BelgeTur[] = ['SIPARIS', 'IRSALIYE', 'FATURA', 'IADE'];
 const VARSAYILAN_CARI_VADE_GUN = 30;
 
 type VadeModu = 'CARI' | 'MANUEL';
+type BelgeIskontoModu = 'ORAN' | 'TUTAR';
+
+function iskontoGirdiMetni(deger: number): string {
+  if (!deger) return '';
+  return String(deger).replace('.', ',');
+}
+
+function iskontoSayiOku(ham: string): number {
+  const n = Number(String(ham).trim().replace(/\s/g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
 
 interface FaturaModuluProps {
   /** Geriye uyum — verilirse başlangıç yönü sabittir; yoksa belge nevisinden gelir */
   yon?: BelgeYon;
   modulId?: string;
   baslik?: string;
+  onModulAc?: (modulId: string) => void;
 }
 
 type Gorunum = 'liste' | 'form';
@@ -147,17 +163,11 @@ function belgeNoZamanDamgasiOlustur() {
   return `${d.getFullYear()}${parca(d.getMonth() + 1)}${parca(d.getDate())}-${parca(d.getHours())}${parca(d.getMinutes())}${parca(d.getSeconds())}`;
 }
 
-function faturaAltMetin(yon: BelgeYon) {
-  if (yon === 'SATIS') {
-    return 'Belge nevi ile alış/satış · Stok ve cari hareket · Sipariş → İrsaliye → Fatura';
-  }
-  return 'Belge nevi ile alış/satış · Stok ve cari hareket · Sipariş → İrsaliye → Fatura';
-}
-
 export function FaturaModulu({
   yon: sabitYon,
   modulId = 'belgeler',
   baslik = 'Belgeler',
+  onModulAc,
 }: FaturaModuluProps) {
   const belgelerYetki = useYetkiler('belgeler');
   const alisYetki = useYetkiler('alis-faturasi');
@@ -170,8 +180,10 @@ export function FaturaModulu({
   const silmeVar = belgelerYetki.silmeVar || alisYetki.silmeVar || satisYetki.silmeVar;
   const logMesajiAyarla = useAdminLogMesaji();
 
-  const [gorunum, setGorunum] = useState<Gorunum>('form');
-  const [listeFiltreTur, setListeFiltreTur] = useState<BelgeTur | 'HEPSI'>('HEPSI');
+  const [gorunum, setGorunum] = useState<Gorunum>('liste');
+  const [listeFiltreNeviId, setListeFiltreNeviId] = useState<string>('HEPSI');
+  const [listeFiltreYon, setListeFiltreYon] = useState<BelgeYon | 'HEPSI'>('HEPSI');
+  const [listeArama, setListeArama] = useState('');
   const [liste, setListe] = useState<BelgeKayit[]>([]);
   const [listeYukleniyor, setListeYukleniyor] = useState(true);
 
@@ -198,12 +210,13 @@ export function FaturaModulu({
   const [belgeIskontoTutarlari, setBelgeIskontoTutarlari] = useState<BelgeIskontoTutarsal>(() =>
     bosBelgeIskontoTutarlari()
   );
+  const [belgeIskontoModu, setBelgeIskontoModu] = useState<BelgeIskontoModu>('ORAN');
+  const [belgeIskontoGirdi, setBelgeIskontoGirdi] = useState('');
   const [subeId, setSubeId] = useState('');
   const [depoId, setDepoId] = useState('');
   const [kasaId, setKasaId] = useState('');
   const [cariId, setCariId] = useState('');
   const [baslikDetayAcik, setBaslikDetayAcik] = useState(false);
-  const [finansDetayAcik, setFinansDetayAcik] = useState(false);
   const [cariBulAcik, setCariBulAcik] = useState(false);
   const [kaynakBelgeId, setKaynakBelgeId] = useState<string | null>(null);
   const [kaynakBelgeNo, setKaynakBelgeNo] = useState('');
@@ -216,7 +229,6 @@ export function FaturaModulu({
   const [satirlar, setSatirlar] = useState<SiparisSatiri[]>([]);
   const [kdvDahil, setKdvDahil] = useState(true);
   const [katalog, setKatalog] = useState<UrunKaydi[]>([]);
-  const [bakiyeler, setBakiyeler] = useState<StokBakiyeSatir[]>([]);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silOnayId, setSilOnayId] = useState<string | null>(null);
 
@@ -229,10 +241,14 @@ export function FaturaModulu({
   const [hizliStokAranan, setHizliStokAranan] = useState<string | null>(null);
   const [hizliStokModu, setHizliStokModu] = useState<'soru' | 'form'>('soru');
   const [stokEksikleri, setStokEksikleri] = useState<StokEksikSatir[]>([]);
+  const [alanYonetAcik, setAlanYonetAcik] = useState(false);
+  const [cariAlanDuzeni, setCariAlanDuzeni] = useState<BelgeCariAlanDuzeni>(() => belgeCariAlanDuzeniOku());
   const hizliStokDegerleriRef = useRef<Record<string, string>>({});
   const seciliSatirIdleriRef = useRef<string[]>([]);
   const hizliGirisApiRef = useRef<HizliGirisApi | null>(null);
   const gridApiRef = useRef<DataGridApi | null>(null);
+  /** Toplu seçimde sıradaki ürünler (ilk ürün doldurulduktan sonra kalanlar) */
+  const topluUrunKuyruguRef = useRef<UrunKaydi[]>([]);
   const sayfaRef = useRef<HTMLDivElement>(null);
   const musteriGridRef = useRef<HTMLDivElement>(null);
 
@@ -263,6 +279,12 @@ export function FaturaModulu({
   const turSecenekleri = useMemo(() => BELGE_YON_SECENEKLERI, []);
   const neviSecenekleri = useMemo(() => {
     void neviSurumu;
+    return belgeNeviFormSecenekleri(true)
+      .filter((n) => n.yon === yon)
+      .map((n) => ({ value: n.value, label: n.label }));
+  }, [neviSurumu, yon]);
+  const listeNeviSekmeleri = useMemo(() => {
+    void neviSurumu;
     return belgeNeviFormSecenekleri(true).map((n) => ({ value: n.value, label: n.label }));
   }, [neviSurumu]);
   const subeSecenekleri = useMemo(
@@ -281,15 +303,6 @@ export function FaturaModulu({
     () => subeKasalari.map((k) => ({ value: k.id, label: kodAdEtiket(k.kasaKodu, k.kasaAdi) })),
     [subeKasalari]
   );
-  const cariSecenekleri = useMemo(
-    () =>
-      filtrelenmisCariler.map((c) => ({
-        value: c.id,
-        label: `${c.cariKodu} — ${c.cariAdi || c.unvan} (${c.cariTipi})`,
-      })),
-    [filtrelenmisCariler]
-  );
-  
   const toplamlar = useMemo(() => {
     const ham = satirToplamlari(satirlar.map((s) => satirHesapla(s, kdvDahil)));
     const isk = belgeIskontoUygula(
@@ -309,25 +322,74 @@ export function FaturaModulu({
     };
   }, [satirlar, kdvDahil, belgeIskontolari, belgeIskontoTutarlari]);
 
-  const oransalIskontoYaz = useCallback((indeks: number, ham: string) => {
-    const n = Number(String(ham).replace(',', '.'));
-    const yuzde = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
-    setBelgeIskontolari((onceki) => {
-      const sonraki = [...onceki] as BelgeIskontoDizisi;
-      sonraki[indeks] = yuzde;
-      return sonraki;
-    });
-  }, []);
+  const belgeIskontoModuDegistir = useCallback(
+    (modu: BelgeIskontoModu) => {
+      if (saltOkunur || belgeIskontoModu === modu) return;
+      setBelgeIskontoModu(modu);
+      setBelgeIskontoGirdi('');
+      setBelgeIskontolari(bosBelgeIskontolari());
+      setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
+    },
+    [belgeIskontoModu, saltOkunur]
+  );
 
-  const tutarsalIskontoYaz = useCallback((indeks: number, ham: string) => {
-    const n = Number(String(ham).replace(',', '.'));
-    const tutar = Number.isFinite(n) ? Math.max(0, Math.round(n * 100) / 100) : 0;
-    setBelgeIskontoTutarlari((onceki) => {
-      const sonraki = [...onceki] as BelgeIskontoTutarsal;
-      sonraki[indeks] = tutar;
-      return sonraki;
-    });
-  }, []);
+  const belgeIskontoYaz = useCallback(
+    (ham: string) => {
+      if (saltOkunur) return;
+      const temiz = ham.replace(/[^\d.,]/g, '');
+      const noktaIndeks = Math.max(temiz.lastIndexOf(','), temiz.lastIndexOf('.'));
+      let normal = temiz;
+      if (noktaIndeks >= 0) {
+        const tam = temiz.slice(0, noktaIndeks).replace(/[.,]/g, '');
+        const kesir = temiz.slice(noktaIndeks + 1).replace(/[.,]/g, '').slice(0, 4);
+        normal = `${tam},${kesir}`;
+        if (temiz.endsWith(',') || temiz.endsWith('.')) normal = `${tam},`;
+      } else {
+        normal = temiz.replace(/[.,]/g, '');
+      }
+
+      let sayi = iskontoSayiOku(normal);
+      if (belgeIskontoModu === 'ORAN') {
+        if (sayi > 100) {
+          sayi = 100;
+          normal = '100';
+        }
+        sayi = Math.max(0, sayi);
+        setBelgeIskontoGirdi(normal);
+        setBelgeIskontolari([sayi, 0, 0, 0, 0, 0]);
+        setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
+        return;
+      }
+
+      sayi = Math.max(0, Math.round(sayi * 100) / 100);
+      setBelgeIskontoGirdi(normal);
+      setBelgeIskontoTutarlari([sayi, 0, 0]);
+      setBelgeIskontolari(bosBelgeIskontolari());
+    },
+    [belgeIskontoModu, saltOkunur]
+  );
+
+  const belgeIskontoBlur = useCallback(() => {
+    if (saltOkunur) return;
+    const sayi = iskontoSayiOku(belgeIskontoGirdi);
+    if (belgeIskontoModu === 'ORAN') {
+      const yuzde = Math.min(100, Math.max(0, sayi));
+      setBelgeIskontoGirdi(iskontoGirdiMetni(yuzde));
+      setBelgeIskontolari([yuzde, 0, 0, 0, 0, 0]);
+      setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
+      return;
+    }
+    const tutar = Math.max(0, Math.round(sayi * 100) / 100);
+    setBelgeIskontoGirdi(tutar ? sayiFormatla(tutar) : '');
+    setBelgeIskontoTutarlari([tutar, 0, 0]);
+    setBelgeIskontolari(bosBelgeIskontolari());
+  }, [belgeIskontoGirdi, belgeIskontoModu, saltOkunur]);
+
+  useEffect(() => {
+    if (neviSecenekleri.length === 0) return;
+    if (neviSecenekleri.some((n) => n.value === belgeNeviId)) return;
+    setBelgeNeviId(neviSecenekleri[0]!.value);
+  }, [neviSecenekleri, belgeNeviId]);
 
   const gorunurSatirlar = useMemo(
     () => satirlar.map((s) => satirHesapla(s, kdvDahil)),
@@ -338,16 +400,65 @@ export function FaturaModulu({
     return vadeTarihi || null;
   }, [vadeModu, tarih, vadeTarihi]);
 
-  const filtreliListe = useMemo(
-    () => (listeFiltreTur === 'HEPSI' ? liste : liste.filter((b) => b.tur === listeFiltreTur)),
-    [liste, listeFiltreTur]
-  );
+  const filtreliListe = useMemo(() => {
+    const q = listeArama.trim().toLocaleLowerCase('tr');
+    return liste.filter((b) => {
+      if (listeFiltreNeviId !== 'HEPSI' && b.belgeNeviId !== listeFiltreNeviId) return false;
+      if (listeFiltreYon !== 'HEPSI' && b.yon !== listeFiltreYon) return false;
+      if (!q) return true;
+      const haystack = [
+        b.belgeNo,
+        b.belgeNeviAdi,
+        b.cariAdi,
+        b.cariKodu,
+        b.subeKodu,
+        b.depoKodu,
+        belgeTurEtiketi(b.tur),
+        b.yon === 'ALIS' ? 'giriş' : 'çıkış',
+      ]
+        .join(' ')
+        .toLocaleLowerCase('tr');
+      return haystack.includes(q);
+    });
+  }, [liste, listeFiltreNeviId, listeFiltreYon, listeArama]);
+
+  const listeOzet = useMemo(() => {
+    const q = listeArama.trim().toLocaleLowerCase('tr');
+    const taban = liste.filter((b) => {
+      if (listeFiltreNeviId !== 'HEPSI' && b.belgeNeviId !== listeFiltreNeviId) return false;
+      if (!q) return true;
+      const haystack = [b.belgeNo, b.belgeNeviAdi, b.cariAdi, b.cariKodu]
+        .join(' ')
+        .toLocaleLowerCase('tr');
+      return haystack.includes(q);
+    });
+    let giris = 0;
+    let cikis = 0;
+    let adetGiris = 0;
+    let adetCikis = 0;
+    for (const b of taban) {
+      if (b.yon === 'ALIS') {
+        giris += b.genelToplam || 0;
+        adetGiris += 1;
+      } else {
+        cikis += b.genelToplam || 0;
+        adetCikis += 1;
+      }
+    }
+    return {
+      giris: Math.round(giris * 100) / 100,
+      cikis: Math.round(cikis * 100) / 100,
+      genel: Math.round((giris + cikis) * 100) / 100,
+      adetGiris,
+      adetCikis,
+      adet: adetGiris + adetCikis,
+    };
+  }, [liste, listeFiltreNeviId, listeArama]);
 
   const katalogYenile = useCallback(
     async (depo?: string) => {
       const urunler = await stokUrunKataloguGetir(yon, depo || depoId || null);
       setKatalog(urunler);
-      setBakiyeler(stokBakiyeleriGetir(depo || depoId || undefined));
     },
     [yon, depoId]
   );
@@ -375,6 +486,13 @@ export function FaturaModulu({
       setListeYukleniyor(false);
     }
   }, [sabitYon, logMesajiAyarla, katalogYenile]);
+
+  const listeyeDon = useCallback(() => {
+    setGorunum('liste');
+    setSilOnayId(null);
+    setStokEksikleri([]);
+    void listeyiYukle();
+  }, [listeyiYukle]);
 
   useEffect(() => {
     void listeyiYukle();
@@ -453,6 +571,8 @@ export function FaturaModulu({
       setAciklama('');
       setBelgeIskontolari(bosBelgeIskontolari());
       setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
+      setBelgeIskontoModu('ORAN');
+      setBelgeIskontoGirdi('');
       setSubeId(sube?.id ?? '');
       setDepoId(depo?.id ?? '');
       setKasaId(kasa?.id ?? '');
@@ -502,8 +622,17 @@ export function FaturaModulu({
       setVadeTarihi(b.vadeTarihi);
     }
     setAciklama(b.aciklama ?? '');
-    setBelgeIskontolari(gecerliBelgeIskontolari(b.belgeIskontolari));
-    setBelgeIskontoTutarlari(gecerliBelgeIskontoTutarlari(b.belgeIskontoTutarlari));
+    const oranlar = gecerliBelgeIskontolari(b.belgeIskontolari);
+    const tutarlar = gecerliBelgeIskontoTutarlari(b.belgeIskontoTutarlari);
+    setBelgeIskontolari(oranlar);
+    setBelgeIskontoTutarlari(tutarlar);
+    if ((tutarlar[0] ?? 0) > 0) {
+      setBelgeIskontoModu('TUTAR');
+      setBelgeIskontoGirdi(iskontoGirdiMetni(tutarlar[0] ?? 0));
+    } else {
+      setBelgeIskontoModu('ORAN');
+      setBelgeIskontoGirdi(iskontoGirdiMetni(oranlar[0] ?? 0));
+    }
     setSubeId(b.subeId ?? '');
     setDepoId(b.depoId ?? '');
     setKasaId(b.kasaId ?? '');
@@ -557,10 +686,9 @@ export function FaturaModulu({
     }
     if (!baslatIslendiRef.current) {
       baslatIslendiRef.current = true;
-      // Liste yok — doğrudan yeni belge formu
-      yeniBelgeAc();
+      setGorunum('liste');
     }
-  }, [listeYukleniyor, baslatUygula, yeniBelgeAc]);
+  }, [listeYukleniyor, baslatUygula]);
 
   // Cari → Belge Ekle: sekme zaten açıksa sessionStorage + olay ile cariyi uygula
   useEffect(() => {
@@ -693,6 +821,7 @@ export function FaturaModulu({
         logMesajiAyarla('Belge kaydedildi — cari ve stok hareketi oluştu');
         await listeyiYukle();
         await katalogYenile(onayli.depoId ?? depoId);
+        setGorunum('liste');
         return onayli;
       } catch (err) {
         logMesajiAyarla(err instanceof Error ? err.message : 'Kayıt başarısız');
@@ -758,22 +887,39 @@ export function FaturaModulu({
       await belgeSil(silOnayId);
       setSilOnayId(null);
       if (aktifId === silOnayId) {
-        yeniBelgeAc();
+        setGorunum('liste');
       }
       logMesajiAyarla('Belge silindi');
       await listeyiYukle();
     } catch (err) {
       logMesajiAyarla(err instanceof Error ? err.message : 'Silme başarısız');
     }
-  }, [silOnayId, silmeVar, aktifId, yeniBelgeAc, logMesajiAyarla, listeyiYukle]);
+  }, [silOnayId, silmeVar, aktifId, logMesajiAyarla, listeyiYukle]);
 
   const formKaydetAktif = gorunum === 'form' && !saltOkunur && (aktifId ? duzenlemeVar : eklemeVar);
   const formSilAktif = gorunum === 'form' && Boolean(aktifId) && silmeVar;
+  const cariyiDuzenleAktif = gorunum === 'form' && Boolean(seciliCari?.id) && duzenlemeVar;
+  const listeyeDonAktif = gorunum === 'form';
+  const alanYonetAktif = gorunum === 'form';
 
   useModulAksiyonlari(
     {
       kaydet: formKaydetAktif ? async () => Boolean(await kaydet()) : undefined,
-      ekle: eklemeVar ? () => yeniBelgeAc() : undefined,
+      onizle: listeyeDonAktif
+        ? () => {
+            listeyeDon();
+            return false;
+          }
+        : undefined,
+      guncelle: cariyiDuzenleAktif
+        ? () => {
+            if (!seciliCari?.id) return;
+            cariBaslatYaz({ cariId: seciliCari.id, duzenle: true });
+            onModulAc?.('cari');
+          }
+        : undefined,
+      belgeAlanYonet: alanYonetAktif ? () => setAlanYonetAcik(true) : undefined,
+      ekle: gorunum === 'liste' && eklemeVar ? () => yeniBelgeAc() : undefined,
       sil: formSilAktif
         ? () => {
             setSilOnayId(aktifId);
@@ -782,8 +928,17 @@ export function FaturaModulu({
     },
     {
       kaydet: formKaydetAktif && !kaydediliyor,
-      ekle: eklemeVar,
+      onizle: listeyeDonAktif,
+      guncelle: cariyiDuzenleAktif,
+      belgeAlanYonet: alanYonetAktif,
+      ekle: gorunum === 'liste' && eklemeVar,
       sil: formSilAktif && !kaydediliyor,
+    },
+    undefined,
+    {
+      onizle: 'Listeye Dön',
+      guncelle: 'Cariyi Düzenle',
+      belgeAlanYonet: 'Alanları Yönet',
     }
   );
 
@@ -829,6 +984,7 @@ export function FaturaModulu({
   const aramayiAc = useCallback(
     (sorgu: string) => {
       if (saltOkunur) return;
+      topluUrunKuyruguRef.current = [];
       setAramaSorgusu(sorgu);
       setAramaSonuclari(urunleriAra(katalog, sorgu));
       setSeciliIndeks(0);
@@ -842,34 +998,61 @@ export function FaturaModulu({
     setAramaSorgusu('');
     setAramaSonuclari([]);
     setSeciliIndeks(0);
-    if (!satirEkleKorunsun) setSatirEkleBaglam(null);
+    if (!satirEkleKorunsun) {
+      setSatirEkleBaglam(null);
+      topluUrunKuyruguRef.current = [];
+    }
+  }, []);
+
+  const hizliGiriseUrunDoldur = useCallback((urun: UrunKaydi, miktariKoruma = false) => {
+    const api = hizliGirisApiRef.current;
+    const mevcut = api?.degerler ?? {};
+    api?.alanAyarla('urunKoduAdi', urunKoduAdiEtiket(urun.sku, urun.ad));
+    api?.alanAyarla(
+      'miktar',
+      miktariKoruma && mevcut.miktar?.trim() ? mevcut.miktar : '1'
+    );
+    api?.alanAyarla('birim', urun.birim);
+    api?.alanAyarla('fiyat', String(urun.fiyat));
+    api?.alanAyarla('toplamKdv', String(urun.kdv));
+    requestAnimationFrame(() => {
+      const miktarEl = document.querySelector<HTMLInputElement>(
+        '.dg-hizli-giris-satir input[data-kolon-id="miktar"], .dg-hizli-giris-girdi[data-kolon-id="miktar"]'
+      );
+      if (miktarEl) {
+        miktarEl.focus();
+        miktarEl.select();
+      } else {
+        gridApiRef.current?.hizliGirisOdakla?.();
+      }
+    });
   }, []);
 
   /** Arama sonucundan seçim: satıra eklemez, hızlı giriş alanlarını doldurur */
   const urunSecVeDoldur = useCallback(
     (urun: UrunKaydi) => {
       if (saltOkunur) return;
-      const api = hizliGirisApiRef.current;
-      const mevcut = api?.degerler ?? {};
-      api?.alanAyarla('urunKoduAdi', urunKoduAdiEtiket(urun.sku, urun.ad));
-      api?.alanAyarla('miktar', mevcut.miktar?.trim() ? mevcut.miktar : '1');
-      api?.alanAyarla('birim', mevcut.birim?.trim() ? mevcut.birim : urun.birim);
-      api?.alanAyarla('fiyat', mevcut.fiyat?.trim() ? mevcut.fiyat : String(urun.fiyat));
-      api?.alanAyarla('toplamKdv', mevcut.toplamKdv?.trim() ? mevcut.toplamKdv : String(urun.kdv));
+      topluUrunKuyruguRef.current = [];
+      hizliGiriseUrunDoldur(urun, true);
       aramayiKapat(true);
-      requestAnimationFrame(() => {
-        gridApiRef.current?.hizliGirisOdakla?.();
-        // Miktar alanına geç — ürün seçildi, kullanıcı düzenleyip ekleyecek
-        const miktarEl = document.querySelector<HTMLInputElement>(
-          '.dg-hizli-giris-satir input[data-kolon-id="miktar"], .dg-hizli-giris-girdi[data-kolon-id="miktar"]'
-        );
-        if (miktarEl) {
-          miktarEl.focus();
-          miktarEl.select();
-        }
-      });
     },
-    [saltOkunur, aramayiKapat]
+    [saltOkunur, aramayiKapat, hizliGiriseUrunDoldur]
+  );
+
+  /** Birden fazla ürün: ilki inputlara, kalanlar ekleme sonrası sırayla */
+  const urunTopluSecVeDoldur = useCallback(
+    (urunler: UrunKaydi[]) => {
+      if (saltOkunur || urunler.length === 0) return;
+      const [ilk, ...kalan] = urunler;
+      if (!ilk) return;
+      topluUrunKuyruguRef.current = kalan;
+      hizliGiriseUrunDoldur(ilk, false);
+      aramayiKapat(true);
+      if (kalan.length > 0) {
+        logMesajiAyarla(`${urunler.length} ürün seçildi — sırayla ekleyin (${kalan.length} kaldı)`);
+      }
+    },
+    [saltOkunur, aramayiKapat, hizliGiriseUrunDoldur, logMesajiAyarla]
   );
 
   /** Yazılan metin katalogda tam kod/ad eşleşmesi yoksa true */
@@ -915,10 +1098,25 @@ export function FaturaModulu({
         setSatirlar((onceki) => [...onceki, yeni]);
       }
       hizliGirisApiRef.current?.sifirla();
-      requestAnimationFrame(() => gridApiRef.current?.odakAyarla(yeni.id, 'urunKoduAdi'));
+
+      const sonraki = topluUrunKuyruguRef.current.shift();
+      /* DataGrid sifirla + odak sonrası sıradaki ürünü doldur */
+      window.setTimeout(() => {
+        if (sonraki) {
+          const kalan = topluUrunKuyruguRef.current.length;
+          if (kalan > 0) {
+            logMesajiAyarla(`Sıradaki ürün yüklendi — ${kalan} kaldı`);
+          } else {
+            logMesajiAyarla('Son seçilen ürün yüklendi');
+          }
+          hizliGiriseUrunDoldur(sonraki, false);
+        } else {
+          gridApiRef.current?.hizliGirisOdakla?.();
+        }
+      }, 0);
       return yeni.id;
     },
-    [kdvDahil, satirEkleBaglam]
+    [kdvDahil, satirEkleBaglam, hizliGiriseUrunDoldur, logMesajiAyarla]
   );
 
   const hizliStokEklendi = useCallback(
@@ -976,7 +1174,6 @@ export function FaturaModulu({
   }
 
   const sayfaSinif = `fatura-sayfa fatura-sayfa--${yon === 'ALIS' ? 'alis' : 'satis'}`;
-  const altMetin = faturaAltMetin(yon);
 
   if (gorunum === 'liste') {
     return (
@@ -984,7 +1181,7 @@ export function FaturaModulu({
         <div className="fatura-liste-ust">
           <div>
             <h2 className="fatura-baslik">{baslik}</h2>
-            <p className="fatura-alt">{altMetin}</p>
+            <p className="fatura-alt">Tüm belgeler · tür ve yön filtresi · giriş / çıkış özeti</p>
           </div>
           {eklemeVar ? (
             <div className="fatura-liste-aksiyon">
@@ -995,125 +1192,149 @@ export function FaturaModulu({
           ) : null}
         </div>
 
+        <div className="fatura-liste-ozet">
+          <button
+            type="button"
+            className={`fatura-liste-ozet-kart fatura-liste-ozet-kart--giris${listeFiltreYon === 'ALIS' ? ' fatura-liste-ozet-kart--aktif' : ''}`}
+            onClick={() => setListeFiltreYon((v) => (v === 'ALIS' ? 'HEPSI' : 'ALIS'))}
+          >
+            <span>Girişler Toplam</span>
+            <strong>{para(listeOzet.giris)}</strong>
+            <em>{listeOzet.adetGiris} belge</em>
+          </button>
+          <button
+            type="button"
+            className={`fatura-liste-ozet-kart fatura-liste-ozet-kart--cikis${listeFiltreYon === 'SATIS' ? ' fatura-liste-ozet-kart--aktif' : ''}`}
+            onClick={() => setListeFiltreYon((v) => (v === 'SATIS' ? 'HEPSI' : 'SATIS'))}
+          >
+            <span>Çıkışlar Toplam</span>
+            <strong>{para(listeOzet.cikis)}</strong>
+            <em>{listeOzet.adetCikis} belge</em>
+          </button>
+          <button
+            type="button"
+            className={`fatura-liste-ozet-kart fatura-liste-ozet-kart--genel${listeFiltreYon === 'HEPSI' ? ' fatura-liste-ozet-kart--aktif' : ''}`}
+            onClick={() => setListeFiltreYon('HEPSI')}
+          >
+            <span>Genel Toplam</span>
+            <strong>{para(listeOzet.genel)}</strong>
+            <em>{listeOzet.adet} belge</em>
+          </button>
+        </div>
+
         <section className="fatura-liste-bolum">
           <div className="fatura-liste-bolum-ust">
-            <h3 className="fatura-bolum-baslik">Belge listesi</h3>
-            <div className="fatura-tur-sekme">
+            <div className="fatura-liste-arama">
+              <input
+                type="search"
+                className="fatura-liste-arama-input"
+                value={listeArama}
+                onChange={(e) => setListeArama(e.target.value)}
+                placeholder="Belge no, cari, nevi ara…"
+                aria-label="Belgelerde ara"
+              />
+            </div>
+            <div className="fatura-tur-sekme" role="tablist" aria-label="Belge nevi">
               <button
                 type="button"
-                className={listeFiltreTur === 'HEPSI' ? 'aktif' : ''}
-                onClick={() => setListeFiltreTur('HEPSI')}
+                className={listeFiltreNeviId === 'HEPSI' ? 'aktif' : ''}
+                onClick={() => setListeFiltreNeviId('HEPSI')}
               >
                 Hepsi
               </button>
-              {TURLER.map((t) => (
+              {listeNeviSekmeleri.map((n) => (
                 <button
-                  key={t}
+                  key={n.value}
                   type="button"
-                  className={listeFiltreTur === t ? 'aktif' : ''}
-                  onClick={() => setListeFiltreTur(t)}
+                  className={listeFiltreNeviId === n.value ? 'aktif' : ''}
+                  onClick={() => setListeFiltreNeviId(n.value)}
                 >
-                  {belgeTurEtiketi(t)}
+                  {n.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="fatura-liste-tablo-wrap">
-          {listeYukleniyor ? (
-            <p className="fatura-bos">Yükleniyor…</p>
-          ) : filtreliListe.length === 0 ? (
-            <p className="fatura-bos">Kayıt yok. + Belge Ekle ile yeni belge oluşturun.</p>
-          ) : (
-            <table className="fatura-liste-tablo">
-              <thead>
-                <tr>
-                  <th>Nevi</th>
-                  <th>Tür</th>
-                  <th>Belge No</th>
-                  <th>Tarih</th>
-                  <th>Cari</th>
-                  <th>Şube/Depo</th>
-                  <th>Borç</th>
-                  <th>Alacak</th>
-                  <th>Toplam</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {filtreliListe.map((b) => (
-                  <tr key={b.id}>
-                    <td>{b.belgeNeviAdi || (b.yon === 'ALIS' ? 'Alış' : 'Satış')}</td>
-                    <td>{belgeTurEtiketi(b.tur)}</td>
-                    <td>
-                      <button type="button" className="fatura-link" onClick={() => void belgeAc(b)}>
-                        {b.belgeNo}
-                      </button>
-                      {b.kaynakBelgeNo ? (
-                        <div className="fatura-mini">← {b.kaynakBelgeNo}</div>
-                      ) : null}
-                    </td>
-                    <td>{b.tarih}</td>
-                    <td>{b.cariAdi || b.cariKodu || '—'}</td>
-                    <td>
-                      {b.subeKodu || '—'} / {b.depoKodu || '—'}
-                    </td>
-                    <td className="fatura-sayi">{para(b.cariBorc)}</td>
-                    <td className="fatura-sayi">{para(b.cariAlacak)}</td>
-                    <td className="fatura-sayi">{para(b.genelToplam)}</td>
-                    <td className="fatura-liste-aksiyon">
-                      <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void belgeAc(b)}>
-                        Aç
-                      </button>
-                      {silmeVar ? (
-                        <button
-                          type="button"
-                          className="fatura-btn fatura-btn--tehlike"
-                          onClick={() => setSilOnayId(b.id)}
-                        >
-                          Sil
-                        </button>
-                      ) : null}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          </div>
-        </section>
-
-        <div className="fatura-bakiye-kutu">
-          <h3 className="fatura-bolum-baslik">Depo stok bakiyesi</h3>
-          {bakiyeler.length === 0 ? (
-            <p className="fatura-bos">Henüz stok hareketi yok. İlk fatura açılışında seed stok yazılır.</p>
-          ) : (
-            <div className="fatura-liste-tablo-wrap fatura-bakiye-tablo-wrap">
+            {listeYukleniyor ? (
+              <p className="fatura-bos">Yükleniyor…</p>
+            ) : filtreliListe.length === 0 ? (
+              <p className="fatura-bos">
+                {liste.length === 0
+                  ? 'Henüz belge yok. + Belge Ekle ile yeni belge oluşturun.'
+                  : 'Filtreye uyan belge bulunamadı.'}
+              </p>
+            ) : (
               <table className="fatura-liste-tablo">
                 <thead>
                   <tr>
-                    <th>Ürün</th>
-                    <th>Depo</th>
-                    <th>Miktar</th>
+                    <th>Yön</th>
+                    <th>Tür</th>
+                    <th>Nevi</th>
+                    <th>Belge No</th>
+                    <th>Tarih</th>
+                    <th>Cari</th>
+                    <th>Durum</th>
+                    <th>Toplam</th>
+                    <th />
                   </tr>
                 </thead>
                 <tbody>
-                  {bakiyeler.map((s) => (
-                    <tr key={`${s.depoId}-${s.urunKodu}`}>
+                  {filtreliListe.map((b) => (
+                    <tr key={b.id}>
                       <td>
-                        {s.urunKodu} — {s.urunAdi}
+                        <span
+                          className={`fatura-liste-yon-rozet fatura-liste-yon-rozet--${b.yon === 'ALIS' ? 'giris' : 'cikis'}`}
+                        >
+                          {b.yon === 'ALIS' ? 'Giriş' : 'Çıkış'}
+                        </span>
                       </td>
-                      <td>{s.depoKodu || s.depoId}</td>
-                      <td className="fatura-sayi">
-                        {s.miktar} {s.birim}
+                      <td>{belgeTurEtiketi(b.tur)}</td>
+                      <td>{b.belgeNeviAdi || '—'}</td>
+                      <td>
+                        <button type="button" className="fatura-link" onClick={() => void belgeAc(b)}>
+                          {b.belgeNo}
+                        </button>
+                        {b.kaynakBelgeNo ? <div className="fatura-mini">← {b.kaynakBelgeNo}</div> : null}
+                      </td>
+                      <td>{b.tarih}</td>
+                      <td>
+                        <div className="fatura-liste-cari">
+                          <strong>{b.cariAdi || '—'}</strong>
+                          {b.cariKodu ? <span>{b.cariKodu}</span> : null}
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`fatura-liste-durum fatura-liste-durum--${b.durum.toLowerCase()}`}>
+                          {belgeDurumEtiketi(b.durum)}
+                        </span>
+                      </td>
+                      <td className="fatura-sayi">{para(b.genelToplam)}</td>
+                      <td className="fatura-liste-aksiyon">
+                        <button
+                          type="button"
+                          className="fatura-btn fatura-btn--ghost"
+                          onClick={() => void belgeAc(b)}
+                        >
+                          Aç
+                        </button>
+                        {silmeVar ? (
+                          <button
+                            type="button"
+                            className="fatura-btn fatura-btn--tehlike"
+                            onClick={() => setSilOnayId(b.id)}
+                          >
+                            Sil
+                          </button>
+                        ) : null}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </section>
 
         <SilmeOnayModal
           acik={Boolean(silOnayId)}
@@ -1129,15 +1350,18 @@ export function FaturaModulu({
 
   const firmaKodu = seciliCari?.cariKodu || '—';
   const firmaAdi = seciliCari
-    ? seciliCari.unvan || seciliCari.cariAdi || '—'
+    ? seciliCari.cariAdi || seciliCari.unvan || '—'
     : 'Cari seçilmedi';
+  const altSatir1 = cariAlanDuzeni.alt.slice(0, 2);
+  const altSatir2 = cariAlanDuzeni.alt.slice(2, 6);
+  const altSatir3 = cariAlanDuzeni.alt.slice(6, 8);
 
   return (
     <div ref={sayfaRef} className={`${sayfaSinif} dg-demo-sayfa dg-demo-sag-tik-alan fatura-sayfa--bolumlu`}>
       <FaturaBolumDuzen
         depolamaAnahtari={`gt_fatura_bolum_${modulId}`}
         ustAcik={baslikDetayAcik}
-        altAcik={finansDetayAcik}
+        altAcik
         ust={
           <>
       <section className="fatura-ust-serit" aria-label="Belge başlığı">
@@ -1149,9 +1373,22 @@ export function FaturaModulu({
             disabled={saltOkunur}
             onClick={() => setCariBulAcik(true)}
           >
-            <span className="fatura-ust-firma-kod">{firmaKodu}</span>
-            <span className="fatura-ust-firma-ad">{firmaAdi}</span>
+            <div className="fatura-ust-firma-ana">
+              <span className="fatura-ust-firma-kod">{firmaKodu}</span>
+              <span className="fatura-ust-firma-ad">{firmaAdi}</span>
+            </div>
+            {seciliCari ? (
+              <div className="fatura-ust-firma-meta">
+                {cariAlanDuzeni.ust.map((alanId) => (
+                  <div key={alanId} className="fatura-ust-firma-meta-slot">
+                    {belgeCariAlanIcerik(alanId, seciliCari, 'ust')}
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </button>
+
+          <div className="fatura-ust-ayrac" aria-hidden />
 
           <div className="fatura-ust-alanlar">
             {!saltOkunur ? (
@@ -1160,6 +1397,7 @@ export function FaturaModulu({
                 deger={yon}
                 secenekler={turSecenekleri}
                 className="fatura-ust-alan"
+                aranabilir={false}
                 onChange={(v) => {
                   const yeniYon = v === 'ALIS' ? 'ALIS' : 'SATIS';
                   if (aktifNevi.yon === yeniYon) return;
@@ -1184,6 +1422,7 @@ export function FaturaModulu({
                 deger={belgeNeviId}
                 secenekler={neviSecenekleri}
                 className="fatura-ust-alan"
+                aranabilir={false}
                 onChange={(id) => {
                   setBelgeNeviId(id);
                   const nevi = belgeNeviBul(id);
@@ -1288,47 +1527,43 @@ export function FaturaModulu({
         {baslikDetayAcik ? (
           <div id="fatura-ust-detay" className="fatura-ust-detay">
             <div className="fatura-ust-detay-bolum">
-              <p className="fatura-sutun-etiket">Müşteri bilgileri</p>
               <div className="fatura-ust-musteri-grid" ref={musteriGridRef}>
                 <div className="fatura-ust-detay-cari">
-                  <CariOutlinedAramaAcilir
-                    etiket={yon === 'SATIS' ? 'Müşteri' : 'Tedarikçi'}
-                    deger={cariId}
-                    disabled={saltOkunur}
-                    secenekler={cariSecenekleri}
-                    bosMetin=""
-                    aramaPlaceholder="Cari kodu veya unvan ara…"
-                    kutuIciArama
-                    yalnizcaAramaSonucu
-                    onChange={setCariId}
-                  />
                   {seciliCari ? (
-                    <div className="fatura-musteri-ozet">
-                      <div>
-                        <span>Yetkili</span>
-                        <strong>{seciliCari.yetkili || '—'}</strong>
-                      </div>
-                      <div>
-                        <span>Vergi</span>
-                        <strong>
-                          {[seciliCari.vergiDairesi, seciliCari.vergiNo].filter(Boolean).join(' · ') ||
-                            '—'}
-                        </strong>
-                      </div>
-                      <div>
-                        <span>İletişim</span>
-                        <strong>{seciliCari.telefon || seciliCari.gsm || seciliCari.eposta || '—'}</strong>
-                      </div>
-                      <div className="fatura-musteri-ozet--tam">
-                        <span>Adres</span>
-                        <strong>
-                          {[seciliCari.adres, seciliCari.ilce, seciliCari.il].filter(Boolean).join(', ') ||
-                            '—'}
-                        </strong>
-                      </div>
+                    <div className="fatura-musteri-ozet fatura-musteri-ozet--modern fatura-musteri-ozet--duzenli">
+                      {altSatir1.length > 0 ? (
+                        <div className="fatura-musteri-ozet-satir fatura-musteri-ozet-satir--2">
+                          {altSatir1.map((alanId) => (
+                            <div key={alanId} className="fatura-musteri-ozet-slot">
+                              {belgeCariAlanIcerik(alanId, seciliCari, 'alt')}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                      {altSatir2.length > 0 ? (
+                        <div className="fatura-musteri-ozet-satir fatura-musteri-ozet-satir--4">
+                          {altSatir2.map((alanId) => (
+                            <div key={alanId} className="fatura-musteri-ozet-slot">
+                              {belgeCariAlanIcerik(alanId, seciliCari, 'alt')}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                      {altSatir3.length > 0 ? (
+                        <div className="fatura-musteri-ozet-satir fatura-musteri-ozet-satir--2">
+                          {altSatir3.map((alanId) => (
+                            <div key={alanId} className="fatura-musteri-ozet-slot">
+                              {belgeCariAlanIcerik(alanId, seciliCari, 'alt')}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                      {cariAlanDuzeni.alt.length === 0 ? (
+                        <p className="fatura-cari-ozet-bos">Alt alanda gösterilecek alan yok — Alanları Yönet’ten ekleyin.</p>
+                      ) : null}
                     </div>
                   ) : (
-                    <p className="fatura-cari-ozet-bos">Cari seçilmedi — üstten veya buradan seçebilirsiniz.</p>
+                    <p className="fatura-cari-ozet-bos">Cari seçilmedi — üstten bir cari seçin.</p>
                   )}
                 </div>
 
@@ -1339,6 +1574,7 @@ export function FaturaModulu({
                     disabled={saltOkunur}
                     secenekler={subeSecenekleri}
                     bosEtiket="Şube seçin…"
+                    aranabilir={false}
                     tusMetin={
                       seciliSube ? kodAdKisa(seciliSube.subeKodu, seciliSube.subeAdi) : undefined
                     }
@@ -1358,6 +1594,7 @@ export function FaturaModulu({
                     disabled={saltOkunur}
                     secenekler={depoSecenekleri}
                     bosEtiket="Depo seçin…"
+                    aranabilir={false}
                     tusMetin={
                       seciliDepo ? kodAdKisa(seciliDepo.depoKodu, seciliDepo.depoAdi) : undefined
                     }
@@ -1369,6 +1606,7 @@ export function FaturaModulu({
                     disabled={saltOkunur}
                     secenekler={kasaSecenekleri}
                     bosEtiket="Kasa seçin…"
+                    aranabilir={false}
                     tusMetin={
                       seciliKasa ? kodAdKisa(seciliKasa.kasaKodu, seciliKasa.kasaAdi) : undefined
                     }
@@ -1472,12 +1710,12 @@ export function FaturaModulu({
         }}
         onSeciliDegistir={setSeciliIndeks}
         onSec={urunSecVeDoldur}
+        onTopluSec={urunTopluSecVeDoldur}
         onGeri={() => aramayiKapat(false)}
         onHizliEkle={saltOkunur ? undefined : (sorgu) => hizliStokAc(sorgu, undefined, 'form')}
       >
         <DataGrid
           tabloBaslik="Hareketler"
-          tabloAltBaslik="Stok bakiyesi ürün aramada · stok yetmezse kayıtta uyarı verir"
           kolonlar={kolonlar}
           satirlar={gorunurSatirlar}
           depolamaAnahtari={`gt_fatura_${modulId}_v6`}
@@ -1570,104 +1808,70 @@ export function FaturaModulu({
           </>
         }
         alt={
-      <section className="fatura-alt-finans" aria-label="Belge toplamı ve iskontolar">
-        <button
-          type="button"
-          className={`fatura-alt-finans-baslik${finansDetayAcik ? ' fatura-alt-finans-baslik--acik' : ''}`}
-          aria-expanded={finansDetayAcik}
-          aria-controls="fatura-alt-finans-govde"
-          onClick={() => setFinansDetayAcik((v) => !v)}
-        >
-          <span className="fatura-alt-finans-baslik-metin">
-            <strong>Belge toplamı</strong>
-            <span className="fatura-alt-finans-ozet-mini">
-              Genel {para(toplamlar.genelToplam)}
-              {toplamlar.iskontoToplam > 0 ? ` · İsk. ${para(toplamlar.iskontoToplam)}` : ''}
-            </span>
-          </span>
-          <span className={`fatura-ust-ok fatura-alt-finans-ok${finansDetayAcik ? ' fatura-ust-ok--acik' : ''}`} aria-hidden>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-              <path
-                d="M6 9l6 6 6-6"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-        </button>
-        {finansDetayAcik ? (
-          <div id="fatura-alt-finans-govde" className="fatura-alt-finans-govde">
-            <div className="fatura-alt-isk-blok">
-              <div className="fatura-alt-isk-grup">
-                {[0, 1, 2].map((i) => (
-                  <label key={`tut-${i}`} className="fatura-alt-isk-satir">
-                    <span>{i + 1}. Alt İskonto Tutarı</span>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      className="fatura-isk-girdi"
-                      disabled={saltOkunur}
-                      value={
-                        belgeIskontoTutarlari[i]
-                          ? String(belgeIskontoTutarlari[i]).replace('.', ',')
-                          : ''
-                      }
-                      onChange={(e) => tutarsalIskontoYaz(i, e.target.value)}
-                      aria-label={`${i + 1}. alt iskonto tutarı`}
-                    />
-                  </label>
-                ))}
-              </div>
-              <div className="fatura-alt-isk-grup">
-                {[0, 1, 2].map((i) => (
-                  <label key={`oran-${i}`} className="fatura-alt-isk-satir">
-                    <span>{i + 1}. Alt İskonto %</span>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      className="fatura-isk-girdi"
-                      disabled={saltOkunur}
-                      value={
-                        belgeIskontolari[i] ? String(belgeIskontolari[i]).replace('.', ',') : ''
-                      }
-                      onChange={(e) => oransalIskontoYaz(i, e.target.value)}
-                      aria-label={`${i + 1}. alt iskonto yüzde`}
-                    />
-                  </label>
-                ))}
+      <section className="fatura-alt-finans" aria-label="Belge toplamı">
+        <div className="fatura-alt-finans-baslik fatura-alt-finans-baslik--sabit">
+          <div className="fatura-alt-finans-ozet-satir">
+            <div className="fatura-alt-finans-ozet-kalem fatura-alt-finans-ozet-kalem--iskonto">
+              <div className="fatura-alt-iskonto-girdi">
+                <select
+                  className="fatura-alt-iskonto-secim"
+                  disabled={saltOkunur}
+                  value={belgeIskontoModu}
+                  aria-label="İskonto türü"
+                  onChange={(e) =>
+                    belgeIskontoModuDegistir(e.target.value === 'TUTAR' ? 'TUTAR' : 'ORAN')
+                  }
+                >
+                  <option value="ORAN">İskonto Oranı</option>
+                  <option value="TUTAR">İskonto Tutarı</option>
+                </select>
+                <div className="fatura-alt-iskonto-alan">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    className="fatura-alt-iskonto-input"
+                    disabled={saltOkunur}
+                    value={belgeIskontoGirdi}
+                    onChange={(e) => belgeIskontoYaz(e.target.value)}
+                    onBlur={belgeIskontoBlur}
+                    placeholder={belgeIskontoModu === 'ORAN' ? '0' : '0,00'}
+                    aria-label={belgeIskontoModu === 'ORAN' ? 'İskonto oranı' : 'İskonto tutarı'}
+                  />
+                  <span className="fatura-alt-iskonto-birim" aria-hidden>
+                    {belgeIskontoModu === 'ORAN' ? '%' : '₺'}
+                  </span>
+                </div>
               </div>
             </div>
-
-            <div className="fatura-ozet-mini fatura-ozet-mini--belge">
-              <div>
-                <span>Tutar</span>
-                <strong>{para(toplamlar.tutar)}</strong>
-              </div>
-              <div>
+            <div className="fatura-alt-finans-ozet-ozetler">
+              <div className="fatura-alt-finans-ozet-kalem">
                 <span>Toplam İskonto</span>
-                <strong>
-                  {toplamlar.iskontoToplam > 0 ? para(toplamlar.iskontoToplam) : ''}
-                </strong>
+                <strong>{para(toplamlar.iskontoToplam)}</strong>
               </div>
-              <div>
-                <span>AraToplam</span>
-                <strong>{para(toplamlar.araToplam)}</strong>
-              </div>
-              <div>
-                <span>KDV</span>
+              <div className="fatura-alt-finans-ozet-kalem">
+                <span>Toplam KDV</span>
                 <strong>{para(toplamlar.kdvToplam)}</strong>
               </div>
-              <div className="fatura-ozet-mini--vurgu fatura-ozet-mini--genel">
-                <span>Genel Toplam</span>
-                <strong>{para(toplamlar.genelToplam)}</strong>
+              <div className="fatura-alt-finans-ozet-kalem">
+                <span>Ara Toplam</span>
+                <strong>{para(toplamlar.araToplam)}</strong>
+              </div>
+              <div className="fatura-alt-finans-ozet-kalem fatura-alt-finans-ozet-kalem--toplam">
+                <span>Toplam Tutar</span>
+                <strong>{para(toplamlar.tutar)}</strong>
               </div>
             </div>
           </div>
-        ) : null}
+        </div>
       </section>
         }
+      />
+
+      <BelgeCariAlanYonetModal
+        acik={alanYonetAcik}
+        baslangic={cariAlanDuzeni}
+        onKapat={() => setAlanYonetAcik(false)}
+        onKaydet={setCariAlanDuzeni}
       />
 
       <FaturaCariBulModal
