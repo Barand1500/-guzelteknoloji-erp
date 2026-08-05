@@ -126,26 +126,35 @@ export function urunKoduAdiCozumle(
     };
   }
 
+  const katalogUrun = (u: UrunKaydi) => ({
+    sku: u.sku,
+    ad: u.ad,
+    kur: u.kur,
+    birim: u.birim,
+    fiyat: u.fiyat,
+    kdv: u.kdv,
+  });
+
   // «SKU / Ad» formatı
   const ayirac = aramaMetni.indexOf(' / ');
   if (ayirac > 0) {
     const kod = aramaMetni.slice(0, ayirac).trim();
     const ad = aramaMetni.slice(ayirac + 3).trim();
     const skuTam = katalog.find((u) => u.sku.toLowerCase() === kod.toLowerCase());
-    if (skuTam) return { sku: skuTam.sku, ad: skuTam.ad, kur: skuTam.kur };
+    if (skuTam) return katalogUrun(skuTam);
     if (kod) return { sku: kod, ad: ad || kod };
   }
 
   const skuTam = katalog.find((u) => u.sku.toLowerCase() === aramaMetni.toLowerCase());
-  if (skuTam) return { sku: skuTam.sku, ad: skuTam.ad, kur: skuTam.kur };
+  if (skuTam) return katalogUrun(skuTam);
 
   const adTam = katalog.find((u) => u.ad.toLowerCase() === aramaMetni.toLowerCase());
-  if (adTam) return { sku: adTam.sku, ad: adTam.ad, kur: adTam.kur };
+  if (adTam) return katalogUrun(adTam);
 
   if (aramaMetni) {
     const sonuclar = urunleriAra(katalog, aramaMetni);
     if (sonuclar.length === 1) {
-      return { sku: sonuclar[0].sku, ad: sonuclar[0].ad, kur: sonuclar[0].kur };
+      return katalogUrun(sonuclar[0]!);
     }
   }
 

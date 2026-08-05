@@ -8,6 +8,7 @@ interface BaslatMenuKlasikProps {
   menuDurumu: BaslatMenuDurumu;
   onModulSec: (modul: AdminModul) => void;
   onKapat: () => void;
+  onProfilAc?: () => void;
   onOzelTanimlarAc?: () => void;
   kenarlikAnim?: boolean;
   dockStil?: CSSProperties;
@@ -15,7 +16,7 @@ interface BaslatMenuKlasikProps {
 }
 
 export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps>(function BaslatMenuKlasik(
-  { menuDurumu, onModulSec, onKapat, onOzelTanimlarAc, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
+  { menuDurumu, onModulSec, onKapat, onProfilAc, onOzelTanimlarAc, kenarlikAnim = false, dockStil, dockYerlesim = 'dikdortgen' },
   ref
 ) {
   const { t } = usePanelDil();
@@ -74,6 +75,25 @@ export const BaslatMenuKlasik = forwardRef<HTMLDivElement, BaslatMenuKlasikProps
               title="Özel Tanımlar"
             >
               ⚙
+            </button>
+          ) : null}
+          {onProfilAc ? (
+            <button
+              type="button"
+              className="ap-baslat-modern-profil"
+              onClick={onProfilAc}
+              aria-label={t('header.profil', 'Profil')}
+              title={t('header.profil', 'Profil')}
+            >
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden>
+                <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+                <path
+                  d="M5.5 18.25c1.35-2.6 3.55-3.9 6.5-3.9s5.15 1.3 6.5 3.9"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                />
+              </svg>
             </button>
           ) : null}
         </div>

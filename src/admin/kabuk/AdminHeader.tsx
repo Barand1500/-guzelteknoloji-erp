@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { useAuth } from '@/baglamlar/AuthContext';
 import { useSistemKesifOptional } from '@/baglamlar/SistemKesifContext';
 import { AdminProfilModal } from '@/admin/ortak/AdminProfilModal';
 import { BaslatMenu } from './baslat-menusu/BaslatMenu';
@@ -7,7 +6,6 @@ import { UstSekmeCubugu } from './sekme-cubugu/UstSekmeCubugu';
 import type { AdminModul, AdminSekme } from '@/admin/ortak/tipler/admin';
 import type { SekmeSagTikIslem } from '@/admin/kabuk/sekme-cubugu/sekmeSagTikYardimci';
 import { sekmeAyarlariOku, sekmeTabCssDegiskenleri } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
-import { tooltipMetni } from '@/araclar/tooltipMetni';
 
 interface AdminHeaderProps {
   sekmeler: AdminSekme[];
@@ -38,7 +36,6 @@ export function AdminHeader({
   baslatMenuAcik: disBaslatMenuAcik,
   onBaslatMenuAcikDegistir,
 }: AdminHeaderProps) {
-  const { kullanici } = useAuth();
   const kesif = useSistemKesifOptional();
   const [menuAcikIc, setMenuAcikIc] = useState(false);
   const [profilAcik, setProfilAcik] = useState(false);
@@ -62,7 +59,10 @@ export function AdminHeader({
     return () => window.removeEventListener('ap-sekme-ayarlari-guncellendi', guncelle);
   }, []);
 
-  const basHarf = kullanici?.ad?.charAt(0).toUpperCase() ?? '?';
+  const profilAc = () => {
+    menuAcikDegistir(false);
+    setProfilAcik(true);
+  };
 
   return (
     <>
@@ -105,31 +105,6 @@ export function AdminHeader({
           onSekmeSagTikIslem={onSekmeSagTikIslem}
           baslatMenuAcik={menuAcik}
         />
-
-        <div
-          className={`ml-auto flex shrink-0 items-center gap-2 self-stretch border-l border-[var(--ap-border)] ${
-            kareYerlesim ? 'ap-header-sag px-2' : 'px-4'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => setProfilAcik(true)}
-            className={kareYerlesim ? 'ap-profil-btn ap-profil-btn--kare' : 'ap-profil-btn'}
-            title={tooltipMetni('Profil ayarları')}
-          >
-            <span className="ap-profil-avatar">{basHarf}</span>
-            <span className={`ap-profil-ad ${kareYerlesim ? '' : 'hidden sm:block'}`}>{kullanici?.ad ?? 'Profil'}</span>
-            {!kareYerlesim && (
-              <svg viewBox="0 0 20 20" className="ap-profil-ok hidden h-3.5 w-3.5 opacity-60 sm:block" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
       </header>
 
       <AdminProfilModal acik={profilAcik} onKapat={() => setProfilAcik(false)} />
@@ -138,6 +113,7 @@ export function AdminHeader({
         acik={menuAcik}
         onKapat={() => menuAcikDegistir(false)}
         onModulSec={onModulSec}
+        onProfilAc={profilAc}
         baslatButonRef={baslatBtnRef}
         kareMod={kareYerlesim}
       />

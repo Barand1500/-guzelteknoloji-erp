@@ -109,7 +109,9 @@ export function SistemModal({
       ) : (
         <div className="ap-sistem-modal-arka-tik" aria-hidden />
       )}
-      <DonenAccentCerceve className="ap-accent-donen-cerceve--sistem">
+      <DonenAccentCerceve
+        className={`ap-accent-donen-cerceve--sistem${genislik !== 'md' ? ` ap-accent-donen-cerceve--sistem-${genislik}` : ''}`}
+      >
         <div
           className={`ap-sistem-modal ap-sistem-modal-v2 ${genislikSinifi}`.trim()}
           onClick={(e) => e.stopPropagation()}

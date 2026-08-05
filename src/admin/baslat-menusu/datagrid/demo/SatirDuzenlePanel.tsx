@@ -3,7 +3,7 @@ import { ifadeHesapla } from '@/admin/ortak/datagrid/formulaYardimci';
 import { paraFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
 import { gecerliBirim, birimSecenekleri } from './birimVeri';
-import { satirHesapla, type SiparisSatiri } from './demoVeri';
+import { satirHesapla, satirKdvYuzdeYaz, type SiparisSatiri } from './demoVeri';
 
 const KAPAT_ESIGI = 72;
 
@@ -170,7 +170,15 @@ export function SatirDuzenlePanel({
             etiket="KDV"
             ipucu="%20 veya 18+2"
             deger={degerler.toplamKdv}
-            onDegistir={(toplamKdv) => setDegerler((d) => ({ ...d, toplamKdv }))}
+            onDegistir={(toplamKdv) =>
+              setDegerler((d) => {
+                if (!kdvDahil) return { ...d, toplamKdv };
+                const ara = formdanSatirOlustur(satir, d, true);
+                const yuzde = ifadeHesapla(toplamKdv, 'sayi') ?? ara.toplamKdvYuzde;
+                const guncel = satirKdvYuzdeYaz(ara, yuzde, true);
+                return { ...d, toplamKdv, fiyat: String(guncel.fiyat) };
+              })
+            }
           />
           <div className="dg-duzenle-iskonto-cift" role="group" aria-label="İskontolar">
             <DuzenleAlan

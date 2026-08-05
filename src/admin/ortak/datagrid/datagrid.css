@@ -483,24 +483,23 @@
 }
 
 .dg-hizli-giris-girdi--arama {
-  border-color: color-mix(in srgb, var(--ap-border) 85%, transparent) !important;
+  border: none !important;
   border-bottom: 2px solid var(--ap-accent) !important;
-  border-radius: 0.25rem 0.25rem 0 0;
-  background: color-mix(in srgb, var(--ap-accent) 5%, var(--ap-input-bg, var(--ap-surface))) !important;
+  border-radius: 0;
+  background: transparent !important;
   color: var(--ap-heading);
   font-weight: 600;
   box-shadow: none;
   transition:
-    border-color 0.2s ease,
     border-bottom-color 0.2s ease,
-    background-color 0.2s ease;
+    color 0.2s ease;
 }
 
 .dg-hizli-giris-girdi--arama:focus {
   outline: none;
   border-bottom-width: 2px;
   border-bottom-color: var(--ap-accent) !important;
-  box-shadow: 0 2px 0 0 color-mix(in srgb, var(--ap-accent) 35%, transparent);
+  box-shadow: none;
 }
 
 .dg-hizli-giris-girdi--arama::placeholder {
@@ -1476,21 +1475,24 @@ td.dg-hucre--sabit,
   white-space: nowrap;
 }
 
-.dg-hizli-giris-hucre[data-kolon-id='birim'] {
+.dg-hizli-giris-hucre[data-kolon-id='birim'],
+.dg-hizli-giris-hucre[data-kolon-id='pb'] {
   padding: 0 !important;
   text-align: center;
   vertical-align: stretch;
 }
 
-.dg-hizli-giris-hucre[data-kolon-id='birim'] .ap-form-acilir-secim {
+.dg-hizli-giris-hucre[data-kolon-id='birim'] .ap-form-acilir-secim,
+.dg-hizli-giris-hucre[data-kolon-id='pb'] .ap-form-acilir-secim {
   display: block;
   width: 100%;
   height: 100%;
   min-height: 2.15rem;
 }
 
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus {
-  display: flex;
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus {
+  display: flex !important;
   align-items: center;
   justify-content: space-between;
   gap: 0.2rem;
@@ -1499,38 +1501,48 @@ td.dg-hucre--sabit,
   min-height: 2.15rem;
   box-sizing: border-box;
   margin: 0;
-  padding: 0.28rem 0.4rem;
-  border: 1.5px solid var(--ap-accent);
-  border-radius: 0;
-  background: var(--ap-surface);
-  color: var(--ap-accent);
+  padding: 0.28rem 0.15rem !important;
+  border: none !important;
+  border-bottom: 1px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ap-heading) !important;
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.2;
-  box-shadow: none;
+  box-shadow: none !important;
+  outline: none !important;
   cursor: pointer;
 }
 
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true'] {
-  border-bottom-color: transparent;
-  background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true'],
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus[aria-expanded='true'] {
+  border-bottom-color: var(--ap-accent) !important;
+  background: transparent !important;
   position: relative;
   z-index: 10301;
 }
 
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus:hover,
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus:focus,
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus:focus-visible {
-  outline: none;
-  border-color: var(--ap-accent);
-  box-shadow: none;
-  background: color-mix(in srgb, var(--ap-accent) 6%, var(--ap-surface));
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus:hover,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus:focus,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus:focus-visible,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus:hover,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus:focus,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus:focus-visible {
+  outline: none !important;
+  border: none !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-accent) 55%, transparent) !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
 
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true']:hover,
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true']:focus,
-.dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true']:focus-visible {
-  border-bottom-color: transparent;
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true']:hover,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true']:focus,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-form-acilir-secim-tus[aria-expanded='true']:focus-visible,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus[aria-expanded='true']:hover,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus[aria-expanded='true']:focus,
+.dg-hizli-giris-satir .dg-hizli-giris-combobox.ap-input.ap-form-acilir-secim-tus[aria-expanded='true']:focus-visible {
+  border-bottom-color: var(--ap-accent) !important;
 }
 
 .dg-hizli-giris-combobox .ap-form-acilir-secim-tus-metin {
@@ -1548,10 +1560,9 @@ td.dg-hucre--sabit,
 }
 
 .dg-hizli-giris-combobox-liste.ap-form-acilir-secim-liste {
-  border: 1.5px solid var(--ap-accent);
-  border-top: none;
-  border-radius: 0;
-  margin-top: -1px;
+  border: 1px solid var(--ap-border);
+  border-radius: 0.5rem;
+  margin-top: 2px;
   padding: 0.2rem;
   box-shadow: 0 8px 20px color-mix(in srgb, var(--ap-heading) 12%, transparent);
   background: var(--ap-surface);
@@ -3196,8 +3207,8 @@ td.dg-hucre--sabit,
 .dg-hizli-giris-satir {
   --dg-hizli-bg: color-mix(in srgb, var(--ap-accent) 11%, var(--ap-surface));
   --dg-hizli-border: color-mix(in srgb, var(--ap-accent) 24%, var(--ap-border));
-  --dg-hizli-input-bg: var(--ap-input-bg);
-  --dg-hizli-input-border: var(--ap-border);
+  --dg-hizli-input-bg: transparent;
+  --dg-hizli-input-border: transparent;
   --dg-hizli-input-focus: var(--ap-accent);
   background: var(--dg-hizli-bg);
   border-top: 1px solid var(--dg-hizli-border);
@@ -3379,20 +3390,22 @@ td.dg-hucre--sabit,
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid var(--dg-hizli-input-border);
-  border-radius: 0.5rem;
-  background: var(--dg-hizli-input-bg);
+  padding: 0.35rem 0.15rem;
+  border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
   color: var(--ap-heading);
   font-size: 0.8125rem;
   line-height: 1.35;
   font-family: inherit;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  box-shadow: none;
+  transition: border-bottom-color 0.12s, color 0.12s;
 }
 
 .dg-hizli-giris-girdi--kucuk {
   font-size: 0.75rem;
-  padding: 0.32rem 0.45rem;
+  padding: 0.28rem 0.1rem;
   color: var(--ap-heading);
 }
 
@@ -3403,8 +3416,9 @@ td.dg-hucre--sabit,
 
 .dg-hizli-giris-girdi:focus {
   outline: none;
-  border-color: var(--dg-hizli-input-focus);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 18%, transparent);
+  border-bottom-color: var(--dg-hizli-input-focus);
+  box-shadow: none;
+  background: transparent;
 }
 
 .dg-hizli-giris-girdi::placeholder {
@@ -3415,10 +3429,22 @@ td.dg-hucre--sabit,
 .dg-hizli-giris-secim {
   appearance: none;
   cursor: pointer;
-  padding-right: 1.75rem;
+  padding-right: 1.5rem !important;
+  border: none !important;
+  border-bottom: 1px solid transparent !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.5rem center;
+  background-position: right 0.15rem center;
+}
+
+.dg-hizli-giris-secim:focus,
+.dg-hizli-giris-secim:focus-visible {
+  outline: none !important;
+  border-bottom-color: var(--ap-accent) !important;
+  box-shadow: none !important;
 }
 
 .dg-hizli-giris-secim-satir {
@@ -3521,11 +3547,11 @@ td.dg-hucre--sabit,
 .dg-kompakt .dg-hucre--sayi { font-size: 0.75rem; }
 .dg-kompakt .dg-hizli-giris-satir td { padding: 0.35rem 0.38rem; }
 .dg-kompakt .dg-hizli-giris-girdi {
-  padding: 0.28rem 0.38rem;
+  padding: 0.25rem 0.1rem;
   font-size: 0.75rem;
-  border-radius: 0.375rem;
+  border-radius: 0;
 }
-.dg-kompakt .dg-hizli-giris-girdi--kucuk { font-size: 0.6875rem; padding: 0.22rem 0.35rem; }
+.dg-kompakt .dg-hizli-giris-girdi--kucuk { font-size: 0.6875rem; padding: 0.2rem 0.08rem; }
 .dg-kompakt .dg-hizli-giris-onizle { font-size: 0.6875rem; }
 .dg-kompakt .dg-hizli-giris-ekle { font-size: 1.2rem; }
 .dg-kompakt .dg-etiket { font-size: 0.5625rem; padding: 0.08rem 0.28rem; }

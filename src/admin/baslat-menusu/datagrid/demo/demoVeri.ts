@@ -52,6 +52,22 @@ function etiketleriAyikla(ham?: string) {
   }));
 }
 
+function yuvarla2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/** KDV hariç fiyat → dahil birim fiyat (100 → 120) */
+export function kdvHaricFiyattanDahil(fiyat: number, kdvYuzde: number): number {
+  const oran = kdvYuzde / 100;
+  return oran > 0 ? yuvarla2(fiyat * (1 + oran)) : fiyat;
+}
+
+/** KDV dahil fiyat → hariç birim fiyat (120 → 100) */
+export function kdvDahilFiyattanHaric(fiyat: number, kdvYuzde: number): number {
+  const oran = kdvYuzde / 100;
+  return oran > 0 ? yuvarla2(fiyat / (1 + oran)) : fiyat;
+}
+
 export function yeniSiparisSatiriOlustur(
   degerler: Record<string, string>,
   kdvDahil = false,
@@ -72,6 +88,13 @@ export function yeniSiparisSatiriOlustur(
     : urunCozum.kdv != null
       ? String(urunCozum.kdv)
       : '20';
+  const kdvYuzde = sayiDeger(kdvHam, 20);
+  const kullaniciFiyatGirdi = Boolean(degerler.fiyat?.trim());
+  let fiyat = sayiDeger(fiyatHam, 0);
+  /* Katalog fiyatı KDV hariç; dahil modda birim fiyatı yükselt (100→120) */
+  if (kdvDahil && !kullaniciFiyatGirdi && urunCozum.fiyat != null) {
+    fiyat = kdvHaricFiyattanDahil(fiyat, kdvYuzde);
+  }
 
   return satirHesapla(
     {
@@ -79,7 +102,7 @@ export function yeniSiparisSatiriOlustur(
       urun: { sku: urunCozum.sku, ad: urunCozum.ad, kur: urunCozum.kur },
       miktar: sayiDeger(degerler.miktar, 1),
       birim: gecerliBirim(birimHam),
-      fiyat: sayiDeger(fiyatHam, 0),
+      fiyat,
       tutar: 0,
       satirIskontoYuzde: iskontoDeger(degerler.satirIskonto, 0),
       satirIskontoTutar: 0,
@@ -87,7 +110,7 @@ export function yeniSiparisSatiriOlustur(
       altIskontoYuzde: iskontoDeger(degerler.altIskonto, 0),
       altIskontoTutar: 0,
       gercekToplam: 0,
-      toplamKdvYuzde: sayiDeger(kdvHam, 20),
+      toplamKdvYuzde: kdvYuzde,
       toplamKdvTutar: 0,
       toplamTutar: 0,
       pb: gecerliParaBirimi(degerler.pb),
@@ -101,17 +124,34 @@ export function yeniSiparisSatiriOlustur(
 }
 
 /**
- * KDV dahil ↔ hariç: birim fiyat DEĞİŞMEZ.
- * Toggle sadece hesabı yeniden yorumlar (üzerine KDV / içinden KDV).
+ * Vega: toggle’da YALNIZCA birim fiyat dönüşür (100↔120).
+ * Net matrah (gerçek toplam) sabit kalır → genel toplam bozulmaz.
  */
 export function satirlariKdvModunaCevir(
   satirlar: SiparisSatiri[],
-  _eskiDahil: boolean,
+  eskiDahil: boolean,
   yeniDahil: boolean
 ): SiparisSatiri[] {
-  return satirlar.map((s) => satirHesapla(s, yeniDahil));
+  if (eskiDahil === yeniDahil) {
+    return satirlar.map((s) => satirHesapla(s, yeniDahil));
+  }
+  return satirlar.map((s) => {
+    const hesapli = satirHesapla(s, eskiDahil);
+    const miktar = hesapli.miktar > 0 ? hesapli.miktar : 1;
+    const netBirim = yuvarla2(hesapli.gercekToplam / miktar);
+    const fiyat = yeniDahil
+      ? kdvHaricFiyattanDahil(netBirim, hesapli.toplamKdvYuzde)
+      : netBirim;
+    return satirHesapla({ ...hesapli, fiyat }, yeniDahil);
+  });
 }
 
+/**
+ * Vega satır hesabı:
+ * - Hariç (fiyat 100, adet 10): tutar 1000, gerçek 1000, KDV 200, toplam 1200
+ * - Dahil (fiyat 120, adet 10): tutar 1200, gerçek 1000, KDV 200, toplam 1200
+ * Toplam tutar (ödenecek) her iki modda da aynıdır.
+ */
 export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri {
   const satirIskontoYuzde = Math.min(100, Math.max(0, s.satirIskontoYuzde));
   const altIskontoYuzde = Math.min(100, Math.max(0, s.altIskontoYuzde));
@@ -122,28 +162,23 @@ export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri 
   const indirimli = Math.round((netTutar - altIskontoTutar) * 100) / 100;
   const kdvOran = s.toplamKdvYuzde / 100;
 
+  let gercekToplam: number;
+  let toplamKdvTutar: number;
+  let toplamTutar: number;
+
   if (kdvDahil) {
-    const toplamTutar = indirimli;
-    const gercekToplam =
+    /* Fiyat KDV dahil → tutar brüt; gerçek = net matrah; toplam = brüt */
+    toplamTutar = indirimli;
+    gercekToplam =
       kdvOran > 0 ? Math.round((indirimli / (1 + kdvOran)) * 100) / 100 : indirimli;
-    const toplamKdvTutar = Math.round((toplamTutar - gercekToplam) * 100) / 100;
-    return {
-      ...s,
-      satirIskontoYuzde,
-      altIskontoYuzde,
-      tutar,
-      satirIskontoTutar,
-      netTutar,
-      altIskontoTutar,
-      gercekToplam,
-      toplamKdvTutar,
-      toplamTutar,
-    };
+    toplamKdvTutar = Math.round((toplamTutar - gercekToplam) * 100) / 100;
+  } else {
+    /* Fiyat KDV hariç → tutar net; KDV eklenir; toplam = net + KDV */
+    gercekToplam = indirimli;
+    toplamKdvTutar = Math.round(gercekToplam * kdvOran * 100) / 100;
+    toplamTutar = Math.round((gercekToplam + toplamKdvTutar) * 100) / 100;
   }
 
-  const gercekToplam = indirimli;
-  const toplamKdvTutar = Math.round(gercekToplam * kdvOran * 100) / 100;
-  const toplamTutar = Math.round((gercekToplam + toplamKdvTutar) * 100) / 100;
   return {
     ...s,
     satirIskontoYuzde,
@@ -158,8 +193,25 @@ export function satirHesapla(s: SiparisSatiri, kdvDahil = false): SiparisSatiri 
   };
 }
 
-function yuvarla2(n: number): number {
-  return Math.round(n * 100) / 100;
+/**
+ * KDV % değişince:
+ * - Hariç: fiyat aynı kalır, KDV tutarı / toplam güncellenir
+ * - Dahil: net matrah sabit, birim fiyat yeni orana göre güncellenir (Vega)
+ */
+export function satirKdvYuzdeYaz(
+  s: SiparisSatiri,
+  yeniYuzde: number,
+  kdvDahil = false
+): SiparisSatiri {
+  const yuzde = Number.isFinite(yeniYuzde) ? Math.max(0, yeniYuzde) : s.toplamKdvYuzde;
+  if (!kdvDahil) {
+    return satirHesapla({ ...s, toplamKdvYuzde: yuzde }, false);
+  }
+  const mevcut = satirHesapla(s, true);
+  const miktar = mevcut.miktar > 0 ? mevcut.miktar : 1;
+  const netBirim = yuvarla2(mevcut.gercekToplam / miktar);
+  const fiyat = kdvHaricFiyattanDahil(netBirim, yuzde);
+  return satirHesapla({ ...mevcut, toplamKdvYuzde: yuzde, fiyat }, true);
 }
 
 /** Tutar yazılınca miktar sabit → birim fiyat; miktar yoksa fiyat sabit → miktar */
@@ -210,10 +262,12 @@ export function satirToplamTutarYaz(
 ): SiparisSatiri {
   const toplam = Math.max(0, Number.isFinite(yeniToplam) ? yeniToplam : 0);
   if (kdvDahil) {
+    /* Dahil: yazılan toplam brüt (1200) → fiyata */
     const kalanOran = 1 - s.altIskontoYuzde / 100;
     const net = kalanOran > 0 ? yuvarla2(toplam / kalanOran) : toplam;
     return satirNetTutarYaz(s, net, kdvDahil);
   }
+  /* Hariç: yazılan toplam brüt/ödenecek (1200) → KDV çıkar → net matrah */
   const kdvOran = s.toplamKdvYuzde / 100;
   const gercek = kdvOran > 0 ? yuvarla2(toplam / (1 + kdvOran)) : toplam;
   return satirGercekTutarYaz(s, gercek, kdvDahil);

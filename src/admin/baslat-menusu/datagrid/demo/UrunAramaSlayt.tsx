@@ -333,7 +333,11 @@ export function UrunAramaSlayt({
           <footer className="dg-urun-arama-ipucu">
             <span>Yazarak Filtrele</span>
             <span>↑ ↓ Gezin</span>
-            {topluAktif ? <span>□ İşaretle · Ctrl+Space · Enter / Ekle</span> : <span>Enter Seç (alanlar dolar)</span>}
+            {topluAktif ? (
+              <span>□ İşaretle · Ctrl+Space · Enter: fiyatlılar satıra · 0 ₺ düzenleme</span>
+            ) : (
+              <span>Enter Seç (alanlar dolar)</span>
+            )}
             <span>ESC Geri</span>
           </footer>
         </div>

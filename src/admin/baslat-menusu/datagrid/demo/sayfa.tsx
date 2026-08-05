@@ -13,6 +13,7 @@ import {
   DEMO_SIPARIS_SATIRLARI,
   satirGercekTutarYaz,
   satirHesapla,
+  satirKdvYuzdeYaz,
   satirNetTutarYaz,
   satirlariKdvModunaCevir,
   satirToplamTutarYaz,
@@ -338,9 +339,7 @@ export function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[
       degerYaz: (s, d) => {
         const yuzde =
           typeof d === 'number' ? d : ifadeHesapla(String(d), 'sayi') ?? parseFloat(String(d).replace(',', '.')) ?? s.toplamKdvYuzde;
-        return hesapla(s, {
-          toplamKdvYuzde: Number.isFinite(yuzde) ? yuzde : s.toplamKdvYuzde,
-        });
+        return satirKdvYuzdeYaz(s, Number.isFinite(yuzde) ? yuzde : s.toplamKdvYuzde, kdvDahil);
       },
 
       goster: (s) => (

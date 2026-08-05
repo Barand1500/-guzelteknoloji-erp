@@ -379,6 +379,9 @@ export async function profilGuncelle(form: ProfilGuncelleForm): Promise<AuthKull
   const payload: Record<string, string> = {
     ad: form.ad.trim(),
   };
+  if (form.email?.trim()) {
+    payload.email = form.email.trim();
+  }
   if (form.yeniSifre?.trim()) {
     payload.yeniSifre = form.yeniSifre.trim();
     payload.mevcutSifre = form.mevcutSifre?.trim() ?? '';

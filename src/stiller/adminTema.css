@@ -5570,6 +5570,14 @@ html:has(.admin-panel[data-tema='acik']) body {
   max-height: 90vh;
 }
 
+.ap-accent-donen-cerceve--sistem-sm {
+  width: min(28rem, calc(100vw - 2rem));
+}
+
+.ap-accent-donen-cerceve--sistem-lg {
+  width: min(96vw, 72rem);
+}
+
 .ap-accent-donen-cerceve--tanim-kayit {
   --cerceve-yaricap: 1.1rem;
   --cerceve-kalinlik: 4px;
@@ -5583,6 +5591,8 @@ html:has(.admin-panel[data-tema='acik']) body {
 .ap-accent-donen-cerceve--sistem .ap-sistem-modal {
   border: none;
   box-shadow: none;
+  width: 100%;
+  max-width: none;
 }
 
 .ap-accent-donen-cerceve--profil {
@@ -9087,6 +9097,10 @@ html:has(.admin-panel[data-tema='acik']) body {
   padding: 1.25rem;
 }
 
+.ap-sistem-modal-sm {
+  width: min(28rem, 100%);
+}
+
 .ap-sistem-modal.ap-sistem-modal-v2 {
   padding: 0;
   overflow: hidden;
@@ -9148,9 +9162,185 @@ html:has(.admin-panel[data-tema='acik']) body {
   color: #fff;
 }
 
+.ap-sistem-modal-btn-birincil:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.ap-sistem-modal-btn-birincil:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ap-sistem-modal-btn-tehlike {
+  color: #f87171;
+  border-color: rgb(239 68 68 / 0.3);
+}
+
 .ap-sistem-modal-btn-tehlike:hover {
   border-color: rgba(239, 68, 68, 0.5);
   color: #ef4444;
+  background: rgb(239 68 68 / 0.08);
+}
+
+.ap-profil-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ap-profil-modal-bolum {
+  margin-top: 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ap-border);
+}
+
+.ap-profil-modal-avatar {
+  display: flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--ap-accent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ap-profil-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.ap-profil-sekmeler {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.ap-profil-sekme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 0.5rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: var(--ap-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.ap-profil-sekme:hover {
+  color: var(--ap-heading);
+}
+
+.ap-profil-sekme--aktif {
+  color: var(--ap-accent);
+  border-bottom-color: var(--ap-accent);
+}
+
+.ap-profil-sekme svg {
+  flex-shrink: 0;
+}
+
+.ap-profil-bolum-baslik {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ap-heading);
+}
+
+.ap-profil-sifre-bolum {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ap-profil-sifre-bolum--ayirici {
+  margin-top: 0.35rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid var(--ap-border);
+}
+
+.ap-profil-sifre-wrap {
+  position: relative;
+}
+
+.ap-profil-sifre-input {
+  padding-right: 2.5rem;
+}
+
+.ap-profil-sifre-goz {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--ap-text-muted);
+}
+
+.ap-profil-sifre-goz:hover {
+  color: var(--ap-heading);
+  background: var(--ap-hover);
+}
+
+.ap-profil-aksiyon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.25rem;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: filter 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.ap-profil-aksiyon-btn--birincil {
+  border: 1px solid var(--ap-accent);
+  background: var(--ap-accent);
+  color: #fff;
+}
+
+.ap-profil-aksiyon-btn--birincil:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.ap-profil-aksiyon-btn--birincil:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ap-profil-aksiyon-btn--ikincil {
+  border: 1px solid var(--ap-border);
+  background: var(--ap-input-bg);
+  color: var(--ap-heading);
+}
+
+.ap-profil-aksiyon-btn--ikincil:hover {
+  border-color: color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
+  background: var(--ap-hover);
+}
+
+.ap-sistem-modal-ikon--flat:has(.ap-profil-modal-avatar),
+.ap-sistem-modal-ikon--flat:has(svg) {
+  color: var(--ap-accent);
 }
 
 .ap-sistem-json-editor {
@@ -9236,6 +9426,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-baslat-modern-ozel-tanimlar,
 .ap-baslat-modern-favori,
+.ap-baslat-modern-profil,
 .ap-baslat-modern-kapat {
   display: flex;
   height: 2rem;
@@ -9252,13 +9443,15 @@ html:has(.admin-panel[data-tema='acik']) body {
 
 .ap-baslat-modern-ozel-tanimlar:hover,
 .ap-baslat-modern-favori:hover,
+.ap-baslat-modern-profil:hover,
 .ap-baslat-modern-kapat:hover {
   background: var(--ap-hover);
   color: var(--ap-heading);
 }
 
 .ap-baslat-modern-ozel-tanimlar:hover,
-.ap-baslat-modern-favori:hover {
+.ap-baslat-modern-favori:hover,
+.ap-baslat-modern-profil:hover {
   border-color: color-mix(in srgb, var(--ap-accent) 40%, var(--ap-border));
   color: color-mix(in srgb, var(--ap-accent) 70%, var(--ap-text));
 }

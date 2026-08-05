@@ -30,6 +30,7 @@ import type { AdminDepo, AdminKasa, AdminSube } from '@/admin/baslat-menusu/tani
 import {
   satirHesapla,
   satirlariKdvModunaCevir,
+  kdvHaricFiyattanDahil,
   yeniSiparisSatiriOlustur,
   type SiparisSatiri,
 } from '@/admin/baslat-menusu/datagrid/demo/demoVeri';
@@ -324,7 +325,7 @@ export function FaturaModulu({
   const [cariler, setCariler] = useState<AdminCari[]>([]);
   const [durum, setDurum] = useState<BelgeKayit['durum']>('TASLAK');
   const [satirlar, setSatirlar] = useState<SiparisSatiri[]>([]);
-  const [kdvDahil, setKdvDahil] = useState(true);
+  const [kdvDahil, setKdvDahil] = useState(false);
   const [katalog, setKatalog] = useState<UrunKaydi[]>([]);
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [silOnayId, setSilOnayId] = useState<string | null>(null);
@@ -397,10 +398,8 @@ export function FaturaModulu({
     [subeKasalari]
   );
   const toplamlar = useMemo(() => {
-    const ham = satirToplamlari(
-      satirlar.map((s) => satirHesapla(s, kdvDahil)),
-      kdvDahil
-    );
+    const hesapli = satirlar.map((s) => satirHesapla(s, kdvDahil));
+    const ham = satirToplamlari(hesapli, kdvDahil);
     const isk = belgeIskontoUygula(
       ham.araToplam,
       ham.kdvToplam,
@@ -414,6 +413,7 @@ export function FaturaModulu({
       tutar: ham.brutTutar,
       araToplam: isk.netAra,
       kdvToplam: isk.kdvToplam,
+      /** Her iki modda da ödenecek (1200) */
       genelToplam: isk.genelToplam,
       netAra: isk.netAra,
       /** Satır + alt + belge iskontosu */
@@ -700,7 +700,7 @@ export function FaturaModulu({
       setKaynakBelgeNo('');
       setDurum('TASLAK');
       setSatirlar([]);
-      setKdvDahil(true);
+      setKdvDahil(false);
       setSeciliSatirSayisi(0);
       seciliSatirIdleriRef.current = [];
       numarayiYenile(hedefTur, sube);
@@ -1162,13 +1162,16 @@ export function FaturaModulu({
   const hizliGiriseUrunDoldur = useCallback((urun: UrunKaydi, miktariKoruma = false) => {
     const api = hizliGirisApiRef.current;
     const mevcut = api?.degerler ?? {};
+    const birimFiyat = kdvDahil
+      ? kdvHaricFiyattanDahil(urun.fiyat, urun.kdv)
+      : urun.fiyat;
     api?.alanAyarla('urunKoduAdi', urunKoduAdiEtiket(urun.sku, urun.ad));
     api?.alanAyarla(
       'miktar',
       miktariKoruma && mevcut.miktar?.trim() ? mevcut.miktar : '1'
     );
     api?.alanAyarla('birim', urun.birim);
-    api?.alanAyarla('fiyat', String(urun.fiyat));
+    api?.alanAyarla('fiyat', String(birimFiyat));
     api?.alanAyarla('toplamKdv', String(urun.kdv));
     requestAnimationFrame(() => {
       const miktarEl = document.querySelector<HTMLInputElement>(
@@ -1181,7 +1184,7 @@ export function FaturaModulu({
         gridApiRef.current?.hizliGirisOdakla?.();
       }
     });
-  }, []);
+  }, [kdvDahil]);
 
   /** Arama sonucundan seçim: satıra eklemez, hızlı giriş alanlarını doldurur */
   const urunSecVeDoldur = useCallback(
@@ -1194,20 +1197,91 @@ export function FaturaModulu({
     [saltOkunur, aramayiKapat, hizliGiriseUrunDoldur]
   );
 
-  /** Birden fazla ürün: ilki inputlara, kalanlar ekleme sonrası sırayla */
+  const urundenSatirOlustur = useCallback(
+    (urun: UrunKaydi, idSonek = '') => {
+      const birimFiyat = kdvDahil
+        ? kdvHaricFiyattanDahil(urun.fiyat, urun.kdv)
+        : urun.fiyat;
+      const satir = yeniSiparisSatiriOlustur(
+        {
+          urunKoduAdi: urunKoduAdiEtiket(urun.sku, urun.ad),
+          miktar: '1',
+          birim: urun.birim,
+          fiyat: String(birimFiyat),
+          toplamKdv: String(urun.kdv),
+        },
+        kdvDahil,
+        [urun, ...katalog]
+      );
+      return idSonek ? { ...satir, id: `${satir.id}${idSonek}` } : satir;
+    },
+    [kdvDahil, katalog]
+  );
+
+  /**
+   * Toplu seçim:
+   * - Fiyatlı ürünler → doğrudan satıra eklenir
+   * - 0 fiyatlılar → sırayla hızlı girişte düzenlemeye gelir
+   * Tek seçim UrunAramaSlayt’ta onSec → urunSecVeDoldur (bozulmaz)
+   */
   const urunTopluSecVeDoldur = useCallback(
     (urunler: UrunKaydi[]) => {
       if (saltOkunur || urunler.length === 0) return;
-      const [ilk, ...kalan] = urunler;
-      if (!ilk) return;
-      topluUrunKuyruguRef.current = kalan;
-      hizliGiriseUrunDoldur(ilk, false);
-      aramayiKapat(true);
-      if (kalan.length > 0) {
-        logMesajiAyarla(`${urunler.length} ürün seçildi — sırayla ekleyin (${kalan.length} kaldı)`);
+
+      if (urunler.length === 1) {
+        urunSecVeDoldur(urunler[0]!);
+        return;
       }
+
+      const fiyatlilar = urunler.filter((u) => Number(u.fiyat) > 0);
+      const fiyatsizlar = urunler.filter((u) => !(Number(u.fiyat) > 0));
+
+      if (fiyatlilar.length > 0) {
+        const yeniSatirlar = fiyatlilar.map((u, i) => urundenSatirOlustur(u, `-${i}`));
+        setSatirlar((onceki) => {
+          if (satirEkleBaglam) {
+            const { satirId, konum } = satirEkleBaglam;
+            const idx = onceki.findIndex((s) => s.id === satirId);
+            if (idx < 0) return [...onceki, ...yeniSatirlar];
+            const liste = [...onceki];
+            liste.splice(konum === 'ust' ? idx : idx + 1, 0, ...yeniSatirlar);
+            return liste;
+          }
+          return [...onceki, ...yeniSatirlar];
+        });
+        if (satirEkleBaglam) setSatirEkleBaglam(null);
+      }
+
+      if (fiyatsizlar.length > 0) {
+        const [ilk, ...kalan] = fiyatsizlar;
+        topluUrunKuyruguRef.current = kalan;
+        hizliGiriseUrunDoldur(ilk!, false);
+        aramayiKapat(true);
+        const parcalar: string[] = [];
+        if (fiyatlilar.length > 0) parcalar.push(`${fiyatlilar.length} ürün satıra eklendi`);
+        parcalar.push(
+          kalan.length > 0
+            ? `${fiyatsizlar.length} fiyatsız ürün düzenlenecek (${kalan.length} kuyrukta)`
+            : '1 fiyatsız ürün düzenlemeye alındı'
+        );
+        logMesajiAyarla(parcalar.join(' — '));
+        return;
+      }
+
+      topluUrunKuyruguRef.current = [];
+      aramayiKapat(false);
+      logMesajiAyarla(`${fiyatlilar.length} ürün satıra eklendi`);
+      requestAnimationFrame(() => gridApiRef.current?.hizliGirisOdakla?.());
     },
-    [saltOkunur, aramayiKapat, hizliGiriseUrunDoldur, logMesajiAyarla]
+    [
+      saltOkunur,
+      urunSecVeDoldur,
+      urundenSatirOlustur,
+      satirEkleBaglam,
+      hizliGiriseUrunDoldur,
+      aramayiKapat,
+      logMesajiAyarla,
+    ]
   );
 
   /** Yazılan metin katalogda tam kod/ad/barkod eşleşmesi yoksa true */
@@ -1290,7 +1364,10 @@ export function FaturaModulu({
       api?.alanAyarla('urunKoduAdi', urunKoduAdiEtiket(urun.sku, urun.ad));
       api?.alanAyarla('miktar', onceki.miktar?.trim() ? onceki.miktar : '1');
       api?.alanAyarla('birim', onceki.birim?.trim() ? onceki.birim : urun.birim);
-      api?.alanAyarla('fiyat', onceki.fiyat?.trim() ? onceki.fiyat : String(urun.fiyat));
+      const birimFiyat = kdvDahil
+        ? kdvHaricFiyattanDahil(urun.fiyat, urun.kdv)
+        : urun.fiyat;
+      api?.alanAyarla('fiyat', onceki.fiyat?.trim() ? onceki.fiyat : String(birimFiyat));
       api?.alanAyarla(
         'toplamKdv',
         onceki.toplamKdv?.trim() ? onceki.toplamKdv : String(urun.kdv)
@@ -1310,7 +1387,7 @@ export function FaturaModulu({
         }
       });
     },
-    [aramayiKapat, logMesajiAyarla, katalogYenile, depoId]
+    [aramayiKapat, logMesajiAyarla, katalogYenile, depoId, kdvDahil]
   );
 
   const hizliGirisOnizleme = useCallback(
