@@ -1427,22 +1427,22 @@ td.dg-hucre--sabit,
 }
 
 .dg-hucre[data-kolon-id='miktar'] .dg-hucre-girdi {
-  display: inline-block;
-  width: auto;
-  min-width: 1.1rem;
-  height: 1.1rem;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0 0.22rem;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   border: none;
-  border-radius: 0.3rem;
-  background: var(--ap-surface-2);
-  color: var(--ap-heading);
-  font-size: 0.625rem;
-  font-weight: 600;
-  line-height: 1.1rem;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   text-align: center;
-  field-sizing: content;
+  field-sizing: initial;
 }
 
 .dg-hucre[data-kolon-id='birim'],
@@ -1454,13 +1454,6 @@ td.dg-hucre--sabit,
 
 .dg-baslik-hucre[data-kolon-id='birim'] .dg-baslik-icerik {
   justify-content: center;
-}
-
-.dg-hucre[data-kolon-id='miktar'] .dg-rozet {
-  min-width: 1.1rem;
-  height: 1.1rem;
-  padding: 0 0.22rem;
-  font-size: 0.625rem;
 }
 
 .dg-hucre[data-kolon-id='birim'] .dg-birim-etiket {

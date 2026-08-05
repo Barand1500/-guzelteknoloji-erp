@@ -125,7 +125,8 @@ export function yeniSiparisSatiriOlustur(
 
 /**
  * Vega: toggle’da YALNIZCA birim fiyat dönüşür (100↔120).
- * Net matrah (gerçek toplam) sabit kalır → genel toplam bozulmaz.
+ * İskonto oranları korunur; fiyata iskonto gömülmez (çift kesim olmaz).
+ * İskontosuz satırda ödenecek toplam her iki modda aynı kalır.
  */
 export function satirlariKdvModunaCevir(
   satirlar: SiparisSatiri[],
@@ -137,11 +138,9 @@ export function satirlariKdvModunaCevir(
   }
   return satirlar.map((s) => {
     const hesapli = satirHesapla(s, eskiDahil);
-    const miktar = hesapli.miktar > 0 ? hesapli.miktar : 1;
-    const netBirim = yuvarla2(hesapli.gercekToplam / miktar);
     const fiyat = yeniDahil
-      ? kdvHaricFiyattanDahil(netBirim, hesapli.toplamKdvYuzde)
-      : netBirim;
+      ? kdvHaricFiyattanDahil(hesapli.fiyat, hesapli.toplamKdvYuzde)
+      : kdvDahilFiyattanHaric(hesapli.fiyat, hesapli.toplamKdvYuzde);
     return satirHesapla({ ...hesapli, fiyat }, yeniDahil);
   });
 }

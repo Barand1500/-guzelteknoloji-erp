@@ -145,8 +145,6 @@ export function siparisKolonlari(kdvDahil: boolean): KolonTanimi<SiparisSatiri>[
 
       siralamaDegeri: (s) => s.miktar,
 
-      goster: (s) => <span className="dg-rozet">{s.miktar}</span>,
-
     },
 
     {
