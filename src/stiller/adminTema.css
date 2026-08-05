@@ -8972,6 +8972,26 @@ html:has(.admin-panel[data-tema='acik']) body {
   pointer-events: auto;
 }
 
+.ap-sistem-modal-sira {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  max-width: 100%;
+  max-height: 100%;
+  pointer-events: none;
+}
+
+.ap-sistem-modal-sira > * {
+  pointer-events: auto;
+}
+
+.ap-sistem-modal-sira--yan {
+  gap: 0;
+}
+
 .ap-sistem-modal-arka-tik {
   position: absolute;
   inset: 0;

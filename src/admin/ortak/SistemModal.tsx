@@ -41,6 +41,8 @@ interface SistemModalProps {
   kapatEtiket?: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Modal kartının sağına ek panel (yardım vb.) */
+  yanIcerik?: ReactNode;
 }
 
 export function SistemModal({
@@ -61,6 +63,7 @@ export function SistemModal({
   kapatEtiket = '✕',
   children,
   footer,
+  yanIcerik,
 }: SistemModalProps) {
   const sekme = useAdminSekmeKabuk();
   const kapat = useCallback(() => {
@@ -109,49 +112,52 @@ export function SistemModal({
       ) : (
         <div className="ap-sistem-modal-arka-tik" aria-hidden />
       )}
-      <DonenAccentCerceve
-        className={`ap-accent-donen-cerceve--sistem${genislik !== 'md' ? ` ap-accent-donen-cerceve--sistem-${genislik}` : ''}`}
-      >
-        <div
-          className={`ap-sistem-modal ap-sistem-modal-v2 ${genislikSinifi}`.trim()}
-          onClick={(e) => e.stopPropagation()}
+      <div className={`ap-sistem-modal-sira${yanIcerik ? ' ap-sistem-modal-sira--yan' : ''}`}>
+        <DonenAccentCerceve
+          className={`ap-accent-donen-cerceve--sistem${genislik !== 'md' ? ` ap-accent-donen-cerceve--sistem-${genislik}` : ''}`}
         >
-          {ustCizgi ? <div className="ap-sistem-modal-v2-ust-cizgi" aria-hidden /> : null}
-          <div className="ap-sistem-modal-baslik ap-sistem-modal-baslik-v2">
-            {ikon ? (
-              <span
-                className={`ap-sistem-modal-ikon${ikonFlat ? ' ap-sistem-modal-ikon--flat' : ''}`}
+          <div
+            className={`ap-sistem-modal ap-sistem-modal-v2 ${genislikSinifi}`.trim()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {ustCizgi ? <div className="ap-sistem-modal-v2-ust-cizgi" aria-hidden /> : null}
+            <div className="ap-sistem-modal-baslik ap-sistem-modal-baslik-v2">
+              {ikon ? (
+                <span
+                  className={`ap-sistem-modal-ikon${ikonFlat ? ' ap-sistem-modal-ikon--flat' : ''}`}
+                >
+                  {ikon}
+                </span>
+              ) : null}
+              <div className="min-w-0 flex-1">
+                <h2 id={baslikId} className="ap-heading text-base font-bold leading-tight">
+                  {baslik}
+                </h2>
+                {altBaslik && <p className="ap-muted mt-1 text-sm leading-snug">{altBaslik}</p>}
+              </div>
+              <button
+                type="button"
+                className="ap-sistem-modal-kapat ap-sistem-modal-kapat-v2 ap-modal-kapat-pil"
+                onClick={kapat}
+                disabled={kapatmaDevreDisi}
+                aria-label="Kapat (Esc)"
+                title="Kapat (Esc)"
               >
-                {ikon}
-              </span>
-            ) : null}
-            <div className="min-w-0 flex-1">
-              <h2 id={baslikId} className="ap-heading text-base font-bold leading-tight">
-                {baslik}
-              </h2>
-              {altBaslik && <p className="ap-muted mt-1 text-sm leading-snug">{altBaslik}</p>}
+                {kapatEtiket === '✕ ESC' || kapatEtiket === '✕ Esc' ? (
+                  <>
+                    ✕ <span className="ap-modal-kapat-pil-kisayol">ESC</span>
+                  </>
+                ) : (
+                  kapatEtiket
+                )}
+              </button>
             </div>
-            <button
-              type="button"
-              className="ap-sistem-modal-kapat ap-sistem-modal-kapat-v2 ap-modal-kapat-pil"
-              onClick={kapat}
-              disabled={kapatmaDevreDisi}
-              aria-label="Kapat (Esc)"
-              title="Kapat (Esc)"
-            >
-              {kapatEtiket === '✕ ESC' || kapatEtiket === '✕ Esc' ? (
-                <>
-                  ✕ <span className="ap-modal-kapat-pil-kisayol">ESC</span>
-                </>
-              ) : (
-                kapatEtiket
-              )}
-            </button>
+            <div className="ap-sistem-modal-govde ap-sistem-modal-govde-v2">{children}</div>
+            {footer && <div className="ap-sistem-modal-alt ap-sistem-modal-alt-v2">{footer}</div>}
           </div>
-          <div className="ap-sistem-modal-govde ap-sistem-modal-govde-v2">{children}</div>
-          {footer && <div className="ap-sistem-modal-alt ap-sistem-modal-alt-v2">{footer}</div>}
-        </div>
-      </DonenAccentCerceve>
+        </DonenAccentCerceve>
+        {yanIcerik}
+      </div>
     </div>,
     portalKok
   );

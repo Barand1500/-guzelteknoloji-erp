@@ -15,8 +15,6 @@ import { BelgeListeFiltreYonetModal } from './BelgeListeFiltreYonetModal';
 import { belgeCariAlanIcerik } from './BelgeCariAlanGoster';
 import {
   belgeCariAlanDuzeniOku,
-  belgeCariAltDuzenId,
-  belgeCariAltSatirlariBol,
   type BelgeCariAlanDuzeni,
 } from './belgeCariAlanDuzeni';
 import {
@@ -123,6 +121,8 @@ const VARSAYILAN_CARI_VADE_GUN = 30;
 type VadeModu = 'CARI' | 'MANUEL';
 type BelgeIskontoModu = 'ORAN' | 'TUTAR';
 
+const BELGE_ISKONTO_ORAN_MAX = 6;
+
 function iskontoGirdiMetni(deger: number): string {
   if (!deger) return '';
   return String(deger).replace('.', ',');
@@ -131,6 +131,55 @@ function iskontoGirdiMetni(deger: number): string {
 function iskontoSayiOku(ham: string): number {
   const n = Number(String(ham).trim().replace(/\s/g, '').replace(',', '.'));
   return Number.isFinite(n) ? n : 0;
+}
+
+/** DataGrid / stok ile aynı: "10+10+5" — rakam, virgül/nokta ve + */
+function belgeIskontoOranFiltrele(ham: string): string {
+  let sonuc = '';
+  let sonArtı = true;
+  let virgulVar = false;
+  let kademe = 0;
+  for (const ch of ham) {
+    if (ch >= '0' && ch <= '9') {
+      sonuc += ch;
+      sonArtı = false;
+    } else if ((ch === ',' || ch === '.') && !virgulVar && !sonArtı) {
+      sonuc += ',';
+      virgulVar = true;
+      sonArtı = false;
+    } else if (ch === '+' && !sonArtı && kademe < BELGE_ISKONTO_ORAN_MAX - 1) {
+      sonuc += '+';
+      sonArtı = true;
+      virgulVar = false;
+      kademe += 1;
+    }
+  }
+  return sonuc;
+}
+
+function belgeIskontoOranlariOku(ham: string): BelgeIskontoDizisi {
+  const sonuc = bosBelgeIskontolari();
+  const parcalar = ham
+    .split('+')
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+  for (let i = 0; i < Math.min(BELGE_ISKONTO_ORAN_MAX, parcalar.length); i++) {
+    const n = Number(parcalar[i]!.replace(',', '.'));
+    sonuc[i] = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
+  }
+  return sonuc;
+}
+
+function belgeIskontoOranMetni(oranlar: BelgeIskontoDizisi): string {
+  let son = -1;
+  for (let i = 0; i < BELGE_ISKONTO_ORAN_MAX; i++) {
+    if ((oranlar[i] ?? 0) > 0) son = i;
+  }
+  if (son < 0) return '';
+  return oranlar
+    .slice(0, son + 1)
+    .map((n) => iskontoGirdiMetni(n) || '0')
+    .join('+');
 }
 
 interface FaturaModuluProps {
@@ -437,6 +486,16 @@ export function FaturaModulu({
   const belgeIskontoYaz = useCallback(
     (ham: string) => {
       if (saltOkunur) return;
+
+      if (belgeIskontoModu === 'ORAN') {
+        const normal = belgeIskontoOranFiltrele(ham);
+        const oranlar = belgeIskontoOranlariOku(normal);
+        setBelgeIskontoGirdi(normal);
+        setBelgeIskontolari(oranlar);
+        setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
+        return;
+      }
+
       const temiz = ham.replace(/[^\d.,]/g, '');
       const noktaIndeks = Math.max(temiz.lastIndexOf(','), temiz.lastIndexOf('.'));
       let normal = temiz;
@@ -450,18 +509,6 @@ export function FaturaModulu({
       }
 
       let sayi = iskontoSayiOku(normal);
-      if (belgeIskontoModu === 'ORAN') {
-        if (sayi > 100) {
-          sayi = 100;
-          normal = '100';
-        }
-        sayi = Math.max(0, sayi);
-        setBelgeIskontoGirdi(normal);
-        setBelgeIskontolari([sayi, 0, 0, 0, 0, 0]);
-        setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
-        return;
-      }
-
       const maxTutar = satirToplamlari(
         satirlar.map((s) => satirHesapla(s, kdvDahil)),
         kdvDahil
@@ -480,14 +527,14 @@ export function FaturaModulu({
 
   const belgeIskontoBlur = useCallback(() => {
     if (saltOkunur) return;
-    const sayi = iskontoSayiOku(belgeIskontoGirdi);
     if (belgeIskontoModu === 'ORAN') {
-      const yuzde = Math.min(100, Math.max(0, sayi));
-      setBelgeIskontoGirdi(iskontoGirdiMetni(yuzde));
-      setBelgeIskontolari([yuzde, 0, 0, 0, 0, 0]);
+      const oranlar = belgeIskontoOranlariOku(belgeIskontoGirdi);
+      setBelgeIskontolari(oranlar);
       setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
+      setBelgeIskontoGirdi(belgeIskontoOranMetni(oranlar));
       return;
     }
+    const sayi = iskontoSayiOku(belgeIskontoGirdi);
     const maxTutar = satirToplamlari(
       satirlar.map((s) => satirHesapla(s, kdvDahil)),
       kdvDahil
@@ -651,19 +698,19 @@ export function FaturaModulu({
       sag.style.minHeight = '';
     };
 
+    /** 5+ alt satırda yan yana şube/depo/kasa — yükseklik eşitleme yok */
+    if (root.classList.contains('fatura-ust-musteri-grid--yogun')) {
+      temizle();
+      return;
+    }
+
     const esitle = () => {
       temizle();
       const hedef =
         sol.querySelector<HTMLElement>('.fatura-musteri-ozet, .fatura-cari-ozet-bos') ?? sol;
       const solH = Math.ceil(hedef.getBoundingClientRect().height);
-      const duzen4_4 = belgeCariAltDuzenId(cariAlanDuzeni.altSatirlar) === '4-4';
-      /* 4-4: sol iki sıra — yan sütunlar sola küçülsün; diğer/boş: ezilmesin */
-      const h =
-        duzen4_4 && seciliCari
-          ? solH
-          : Math.max(solH, Math.ceil(orta.scrollHeight), Math.ceil(sag.scrollHeight));
+      const h = Math.max(solH, Math.ceil(orta.scrollHeight), Math.ceil(sag.scrollHeight));
       if (h <= 0) return;
-      /* minHeight yetmez — flex çocukların dolması için sabit height gerekir */
       orta.style.height = `${h}px`;
       sag.style.height = `${h}px`;
     };
@@ -681,7 +728,7 @@ export function FaturaModulu({
       ro.disconnect();
       temizle();
     };
-  }, [baslikDetayAcik, seciliCari, cariAlanDuzeni.alt, cariAlanDuzeni.altSatirlar]);
+  }, [baslikDetayAcik, seciliCari, cariAlanDuzeni.ust, cariAlanDuzeni.satirlar]);
 
   const numarayiYenile = useCallback(
     (hedefTur: BelgeTur, sube?: AdminSube | null) => {
@@ -771,7 +818,7 @@ export function FaturaModulu({
       setBelgeIskontoGirdi(iskontoGirdiMetni(tutarlar[0] ?? 0));
     } else {
       setBelgeIskontoModu('ORAN');
-      setBelgeIskontoGirdi(iskontoGirdiMetni(oranlar[0] ?? 0));
+      setBelgeIskontoGirdi(belgeIskontoOranMetni(oranlar));
     }
     setSubeId(b.subeId ?? '');
     setDepoId(b.depoId ?? '');
@@ -1426,10 +1473,8 @@ export function FaturaModulu({
     [kdvDahil, katalog]
   );
 
-  const altSatirGruplari = useMemo(
-    () => belgeCariAltSatirlariBol(cariAlanDuzeni.alt, cariAlanDuzeni.altSatirlar),
-    [cariAlanDuzeni.alt, cariAlanDuzeni.altSatirlar]
-  );
+  const musteriSatirlari = cariAlanDuzeni.satirlar;
+  const musteriYogunDuzen = musteriSatirlari.length > 4;
 
   if (!goruntulemeVar) {
     return <YetkisizErisim aciklama={`${baslik} için Görüntüleme yetkisi gerekir.`} />;
@@ -1717,7 +1762,7 @@ export function FaturaModulu({
               <span className="fatura-ust-firma-kod">{firmaKodu}</span>
               <span className="fatura-ust-firma-ad">{firmaAdi}</span>
             </div>
-            {seciliCari ? (
+            {seciliCari && cariAlanDuzeni.ust.length > 0 ? (
               <div className="fatura-ust-firma-meta">
                 {cariAlanDuzeni.ust.map((alanId) => (
                   <div key={alanId} className="fatura-ust-firma-meta-slot">
@@ -1848,21 +1893,17 @@ export function FaturaModulu({
           <div id="fatura-ust-detay" className="fatura-ust-detay">
             <div className="fatura-ust-detay-bolum">
               <div
-                className={`fatura-ust-musteri-grid${
-                  belgeCariAltDuzenId(cariAlanDuzeni.altSatirlar) === '4-4'
-                    ? ' fatura-ust-musteri-grid--duzen-4-4'
-                    : ''
-                }`}
+                className={`fatura-ust-musteri-grid${musteriYogunDuzen ? ' fatura-ust-musteri-grid--yogun' : ''}`}
                 ref={musteriGridRef}
               >
                 <div className="fatura-ust-detay-cari">
                   {seciliCari ? (
                     <div className="fatura-musteri-ozet fatura-musteri-ozet--modern fatura-musteri-ozet--duzenli">
-                      {altSatirGruplari.map((satir, sira) => {
-                        const sutun = cariAlanDuzeni.altSatirlar[sira] ?? satir.length;
+                      {musteriSatirlari.map((satir, sira) => {
+                        const sutun = satir.length;
                         return (
                           <div
-                            key={`alt-satir-${sira}`}
+                            key={`cari-satir-${sira}`}
                             className={`fatura-musteri-ozet-satir fatura-musteri-ozet-satir--n${sutun}`}
                           >
                             {satir.map((alanId) => (
@@ -1873,8 +1914,10 @@ export function FaturaModulu({
                           </div>
                         );
                       })}
-                      {cariAlanDuzeni.alt.length === 0 ? (
-                        <p className="fatura-cari-ozet-bos">Alt alanda gösterilecek alan yok — Alanları Yönet’ten ekleyin.</p>
+                      {musteriSatirlari.length === 0 ? (
+                        <p className="fatura-cari-ozet-bos">
+                          Gösterilecek alan yok — Alanları Yönet’ten satır ekleyin.
+                        </p>
                       ) : null}
                     </div>
                   ) : (
@@ -2143,7 +2186,7 @@ export function FaturaModulu({
                     belgeIskontoModuDegistir(v === 'TUTAR' ? 'TUTAR' : 'ORAN')
                   }
                 />
-                <div
+                  <div
                   className={`fatura-alt-iskonto-alan${belgeIskontoModu === 'ORAN' ? '' : ' fatura-alt-iskonto-alan--birimsiz'}`}
                 >
                   <input
@@ -2154,7 +2197,12 @@ export function FaturaModulu({
                     value={belgeIskontoGirdi}
                     onChange={(e) => belgeIskontoYaz(e.target.value)}
                     onBlur={belgeIskontoBlur}
-                    placeholder={belgeIskontoModu === 'ORAN' ? '0' : '0,00'}
+                    placeholder={belgeIskontoModu === 'ORAN' ? '10+10' : '0,00'}
+                    title={
+                      belgeIskontoModu === 'ORAN'
+                        ? 'Örn: 20 veya 20+20 (bileşik iskonto, en fazla 6 kademe)'
+                        : undefined
+                    }
                     aria-label={belgeIskontoModu === 'ORAN' ? 'İskonto oranı' : 'İskonto tutarı'}
                   />
                   {belgeIskontoModu === 'ORAN' ? (

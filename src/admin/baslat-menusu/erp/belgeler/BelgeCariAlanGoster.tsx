@@ -92,7 +92,7 @@ function OzetItem({ etiket, deger, genis }: { etiket: string; deger: string; gen
 export function belgeCariAlanIcerik(
   alanId: BelgeCariAlanId,
   cari: AdminCari,
-  yer: 'ust' | 'alt'
+  yer: 'ust' | 'alt' = 'alt'
 ): ReactNode {
   const kimlik = kimlikSatiri(cari);
   const efaturaSag = cari.efatura
