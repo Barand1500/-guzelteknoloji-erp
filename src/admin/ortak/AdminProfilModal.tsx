@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useId, useState, type FormEvent } from 'react';
 import { useAuth } from '@/baglamlar/AuthContext';
-import { SistemModal } from '@/admin/ortak/SistemModal';
-import { FormAlani, formInputSinifi } from '@/formlar/FormAlani';
+import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
+import { ModalTusIcerik } from '@/admin/ortak/ModalTusIcerik';
+import { CariOutlinedGirdi } from '@/admin/baslat-menusu/erp/cari/bilesenler/CariOutlinedGirdi';
+import '@/admin/baslat-menusu/erp/cari/cari.css';
+import '@/admin/baslat-menusu/ozel-tanimlar/ozel-tanimlar.css';
 
 interface AdminProfilModalProps {
   acik: boolean;
@@ -37,30 +40,13 @@ function AnahtarFlatIkon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden>
       <circle cx="8" cy="14" r="3.25" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M11 14h9v-2.5h-2V9h-2.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function KaydetFlatIkon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
       <path
-        d="M5 5.5A1.5 1.5 0 0 1 6.5 4H16l3 3v11.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 18.5v-13z"
+        d="M11 14h9v-2.5h-2V9h-2.5"
         stroke="currentColor"
         strokeWidth="1.75"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M8 4.5V9h7V4.5M8 19v-5h8v5" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function GonderFlatIkon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
-      <path d="M4 6.5 20 12 4 17.5 6.5 12 4 6.5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
-      <path d="M6.5 12H14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
     </svg>
   );
 }
@@ -82,7 +68,11 @@ function GozFlatIkon({ acik }: { acik: boolean }) {
   }
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
-      <path d="M2.2 12C3 9.5 7 5 12 5s9 4.5 9.8 7c-.8 2.5-4.8 7-9.8 7s-9-4.5-9.8-7z" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M2.2 12C3 9.5 7 5 12 5s9 4.5 9.8 7c-.8 2.5-4.8 7-9.8 7s-9-4.5-9.8-7z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
       <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75" />
     </svg>
   );
@@ -101,16 +91,13 @@ function SifreAlani({
 }) {
   const [goster, setGoster] = useState(false);
   return (
-    <FormAlani etiket={etiket}>
-      <div className="ap-profil-sifre-wrap">
-        <input
-          type={goster ? 'text' : 'password'}
-          className={`${formInputSinifi} ap-profil-sifre-input`}
-          value={deger}
-          onChange={(e) => onChange(e.target.value)}
-          autoComplete={autoComplete}
-          minLength={6}
-        />
+    <CariOutlinedGirdi
+      etiket={etiket}
+      deger={deger}
+      onChange={onChange}
+      type={goster ? 'text' : 'password'}
+      autoComplete={autoComplete}
+      sonek={
         <button
           type="button"
           className="ap-profil-sifre-goz"
@@ -120,14 +107,16 @@ function SifreAlani({
         >
           <GozFlatIkon acik={goster} />
         </button>
-      </div>
-    </FormAlani>
+      }
+    />
   );
 }
 
 export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
-  const { kullanici, profilKaydet } = useAuth();
+  const { kullanici, profilKaydet, cikisYap } = useAuth();
   const baslikId = useId();
+  const bilgiFormId = useId();
+  const sifreFormId = useId();
   const [sekme, setSekme] = useState<ProfilSekme>('bilgilerim');
   const [ad, setAd] = useState('');
   const [eposta, setEposta] = useState('');
@@ -140,6 +129,11 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
   const [basari, setBasari] = useState('');
 
   const kapat = useCallback(() => onKapat(), [onKapat]);
+
+  function hesaptanCikis() {
+    cikisYap();
+    kapat();
+  }
 
   useEffect(() => {
     if (!acik || !kullanici) return;
@@ -154,8 +148,8 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
     setBasari('');
   }, [acik, kullanici]);
 
-  async function bilgiKaydet(e: FormEvent) {
-    e.preventDefault();
+  async function bilgiKaydet(e?: FormEvent) {
+    e?.preventDefault();
     if (!kullanici || kaydediliyor) return;
     setHata('');
     setBasari('');
@@ -173,8 +167,8 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
     }
   }
 
-  async function sifreDegistir(e: FormEvent) {
-    e.preventDefault();
+  async function sifreDegistir(e?: FormEvent) {
+    e?.preventDefault();
     if (!kullanici || kaydediliyor) return;
     setHata('');
     setBasari('');
@@ -218,9 +212,23 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
     setBasari(`Sıfırlama kodu ${sifirlaEposta.trim()} adresine gönderildi.`);
   }
 
+  function enterIleKaydet() {
+    if (sekme === 'bilgilerim') void bilgiKaydet();
+    else void sifreDegistir();
+  }
+
   if (!kullanici) return null;
 
   const kullaniciAdi = kullanici.kullaniciKodu ?? 'kullanici';
+  const aktifFormId = sekme === 'bilgilerim' ? bilgiFormId : sifreFormId;
+  const kaydetMetin =
+    sekme === 'bilgilerim'
+      ? kaydediliyor
+        ? 'Kaydediliyor…'
+        : 'Kaydet'
+      : kaydediliyor
+        ? 'Güncelleniyor…'
+        : 'Şifreyi Değiştir';
 
   return (
     <SistemModal
@@ -235,6 +243,28 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
       kapatEtiket="✕ ESC"
       disariTiklaKapat={false}
       ustCizgi={false}
+      onEnter={enterIleKaydet}
+      footer={
+        <SistemModalAksiyonlar>
+          <div className="ap-profil-modal-footer">
+            <button
+              type="button"
+              className="ap-profil-footer-tus ap-profil-footer-tus--cikis"
+              onClick={hesaptanCikis}
+            >
+              Çıkış Yap
+            </button>
+            <button
+              type="submit"
+              form={aktifFormId}
+              className="ap-profil-footer-tus ap-profil-footer-tus--kaydet"
+              disabled={kaydediliyor}
+            >
+              <ModalTusIcerik metin={kaydetMetin} kisayol="Enter" />
+            </button>
+          </div>
+        </SistemModalAksiyonlar>
+      }
     >
       <div className="ap-profil-modal">
         <div className="ap-profil-sekmeler" role="tablist" aria-label="Profil sekmeleri">
@@ -272,50 +302,25 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
         {basari ? <p className="ap-admin-modal-basari">{basari}</p> : null}
 
         {sekme === 'bilgilerim' ? (
-          <form className="ap-profil-modal-form" onSubmit={(e) => void bilgiKaydet(e)}>
-            <FormAlani etiket="Ad Soyad">
-              <input
-                className={formInputSinifi}
-                value={ad}
-                onChange={(e) => setAd(e.target.value)}
-                required
-                minLength={2}
-                autoComplete="name"
-              />
-            </FormAlani>
-
-            <FormAlani etiket="Kullanıcı Adı (değiştirilemez)">
-              <input
-                className={formInputSinifi}
-                value={kullaniciAdi}
-                readOnly
-                aria-readonly="true"
-              />
-            </FormAlani>
-
-            <FormAlani etiket="E-posta (isteğe bağlı)">
-              <input
-                type="email"
-                className={formInputSinifi}
-                value={eposta}
-                onChange={(e) => setEposta(e.target.value)}
-                autoComplete="email"
-                placeholder="ornek@firma.com"
-              />
-            </FormAlani>
-
-            <button
-              type="submit"
-              className="ap-profil-aksiyon-btn ap-profil-aksiyon-btn--birincil"
-              disabled={kaydediliyor}
-            >
-              <KaydetFlatIkon />
-              {kaydediliyor ? 'Kaydediliyor...' : 'Kaydet'}
-            </button>
+          <form id={bilgiFormId} className="ot-pb-form" onSubmit={(e) => void bilgiKaydet(e)}>
+            <CariOutlinedGirdi etiket="Ad Soyad" deger={ad} onChange={setAd} zorunlu autoComplete="name" />
+            <CariOutlinedGirdi
+              etiket="Kullanıcı Adı (değiştirilemez)"
+              deger={kullaniciAdi}
+              onChange={() => undefined}
+              disabled
+            />
+            <CariOutlinedGirdi
+              etiket="E-posta (isteğe bağlı)"
+              deger={eposta}
+              onChange={setEposta}
+              autoComplete="email"
+              odakPlaceholder="ornek@firma.com"
+            />
           </form>
         ) : (
-          <div className="ap-profil-modal-form">
-            <form className="ap-profil-sifre-bolum" onSubmit={(e) => void sifreDegistir(e)}>
+          <div className="ot-pb-form">
+            <form id={sifreFormId} className="ap-profil-sifre-bolum" onSubmit={(e) => void sifreDegistir(e)}>
               <p className="ap-profil-bolum-baslik">Mevcut Şifre ile Değiştir</p>
               <SifreAlani
                 etiket="Mevcut Şifre"
@@ -335,33 +340,18 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
                 onChange={setYeniSifreTekrar}
                 autoComplete="new-password"
               />
-              <button
-                type="submit"
-                className="ap-profil-aksiyon-btn ap-profil-aksiyon-btn--birincil"
-                disabled={kaydediliyor}
-              >
-                <AnahtarFlatIkon />
-                {kaydediliyor ? 'Güncelleniyor...' : 'Şifreyi Değiştir'}
-              </button>
             </form>
 
             <div className="ap-profil-sifre-bolum ap-profil-sifre-bolum--ayirici">
               <p className="ap-profil-bolum-baslik">E-posta ile Sıfırla</p>
-              <FormAlani etiket="E-posta">
-                <input
-                  type="email"
-                  className={formInputSinifi}
-                  value={sifirlaEposta}
-                  onChange={(e) => setSifirlaEposta(e.target.value)}
-                  autoComplete="email"
-                />
-              </FormAlani>
-              <button
-                type="button"
-                className="ap-profil-aksiyon-btn ap-profil-aksiyon-btn--ikincil"
-                onClick={kodGonder}
-              >
-                <GonderFlatIkon />
+              <CariOutlinedGirdi
+                etiket="E-posta"
+                deger={sifirlaEposta}
+                onChange={setSifirlaEposta}
+                autoComplete="email"
+                odakPlaceholder="ornek@firma.com"
+              />
+              <button type="button" className="ap-sistem-modal-btn ap-profil-kod-gonder" onClick={kodGonder}>
                 Kod Gönder
               </button>
             </div>
