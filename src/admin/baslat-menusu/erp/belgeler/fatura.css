@@ -325,7 +325,7 @@
 
 .fatura-ust-musteri-grid {
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   gap: 8px 10px;
   --cari-outlined-etiket-bg: color-mix(in srgb, var(--ap-surface) 97%, transparent);
   --cari-alan-zemin: transparent;
@@ -337,18 +337,19 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  align-self: stretch;
 }
 
 .fatura-ust-detay-cari {
   flex: 1.5 1 0;
   gap: 0;
   min-width: 240px;
+  align-self: flex-start;
 }
 
 .fatura-ust-detay-cari .fatura-musteri-ozet,
 .fatura-ust-detay-cari .fatura-cari-ozet-bos {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  width: 100%;
 }
 
 .fatura-ust-lokasyon-sutun {
@@ -356,13 +357,16 @@
   gap: 6px;
   min-width: 140px;
   max-width: 200px;
+  align-self: flex-start;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-/* height:0 + flex-grow: eşit yükseklik dağıtımı (içerik boyutunu ezmez, büyütür) */
+/* Sabit sütun yüksekliğinde üç alan eşit dağılır */
 .fatura-ust-lokasyon-sutun > .cari-outlined-field {
   flex: 1 1 0;
   height: 0;
-  min-height: 2.4rem;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -397,7 +401,7 @@
   flex: 1 1 auto;
   width: 100%;
   height: 100% !important;
-  min-height: 100%;
+  min-height: 0 !important;
   align-self: stretch;
   display: flex !important;
   align-items: center;
@@ -406,12 +410,15 @@
 .fatura-ust-aciklama-sutun {
   flex: 1.25 1 0;
   min-width: 220px;
+  align-self: flex-start;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .fatura-ust-aciklama-sutun > .cari-outlined-field {
   flex: 1 1 0;
   height: 0;
-  min-height: 5.5rem;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -575,18 +582,19 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 2px 8px 4px;
+  padding: 2px 8px;
+  height: auto;
 }
 
 .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir {
   gap: 0;
-  padding: 6px 0;
+  padding: 5px 0;
   border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
 }
 
 .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir:last-child {
   border-bottom: none;
-  padding-bottom: 4px;
+  padding-bottom: 5px;
 }
 
 .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--2,
@@ -628,19 +636,19 @@
 /* Alanları Yönet modal */
 .fatura-alan-yonet {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
-  gap: 8px 12px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(200px, 0.9fr);
+  gap: 6px 8px;
   align-items: start;
 }
 
 .fatura-alan-yonet-onizle {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--ap-surface);
 }
 
@@ -653,7 +661,7 @@
 }
 
 .fatura-alan-yonet-onizle-etiket {
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -662,8 +670,8 @@
 
 .fatura-alan-yonet-onizle-uyari {
   margin: 0;
-  font-size: 0.68rem;
-  line-height: 1.35;
+  font-size: 0.62rem;
+  line-height: 1.3;
   font-weight: 550;
   color: color-mix(in srgb, var(--ap-accent) 72%, var(--ap-muted));
 }
@@ -671,7 +679,7 @@
 .fatura-alan-yonet-onizle-ust {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
   padding: 0;
   height: auto;
   align-items: stretch;
@@ -680,15 +688,15 @@
 }
 
 .fatura-alan-yonet-onizle-ust .fatura-alan-yonet-chip {
-  flex: 1 1 calc(33.33% - 4px);
-  min-width: 4.5rem;
+  flex: 1 1 calc(33.33% - 3px);
+  min-width: 3.8rem;
   max-width: 100%;
   border: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
-  border-radius: 6px;
+  border-radius: 5px;
   border-right: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
   background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
-  padding: 5px 7px;
-  font-size: 0.68rem;
+  padding: 3px 5px;
+  font-size: 0.62rem;
 }
 
 .fatura-alan-yonet-onizle-ust .fatura-alan-yonet-chip:last-child {
@@ -698,7 +706,7 @@
 .fatura-alan-yonet-onizle-alt {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   padding: 0;
   height: auto;
   justify-content: flex-start;
@@ -706,7 +714,7 @@
 
 .fatura-alan-yonet-alt-satir {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   padding: 0;
   border-bottom: none;
 }
@@ -717,11 +725,11 @@
 
 .fatura-alan-yonet-alt-satir .fatura-alan-yonet-chip {
   border: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
-  border-radius: 6px;
+  border-radius: 5px;
   border-right: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
   background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
-  padding: 5px 7px;
-  font-size: 0.68rem;
+  padding: 3px 5px;
+  font-size: 0.62rem;
 }
 
 .fatura-alan-yonet-alt-satir .fatura-alan-yonet-chip:last-child {
@@ -740,8 +748,8 @@
 .fatura-alan-yonet-chip--bos {
   color: var(--ap-muted);
   font-weight: 550;
-  padding: 6px 8px;
-  font-size: 0.72rem;
+  padding: 4px 6px;
+  font-size: 0.64rem;
   border-style: dashed;
   background: transparent;
 }
@@ -749,20 +757,19 @@
 .fatura-alan-yonet-duzen {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 5px;
+  justify-content: flex-start;
+  gap: 4px;
   min-width: 0;
-  min-height: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--ap-surface);
-  align-self: stretch;
+  align-self: start;
   box-sizing: border-box;
 }
 
 .fatura-alan-yonet-duzen-label {
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -772,17 +779,17 @@
 .fatura-alan-yonet-duzen-satir {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
 }
 
 .fatura-alan-yonet-duzen-pill {
   appearance: none;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 3px 6px;
+  border-radius: 5px;
   border: 1px solid color-mix(in srgb, var(--ap-border) 90%, transparent);
   background: transparent;
   color: var(--ap-muted);
-  font-size: 0.7rem;
+  font-size: 0.64rem;
   font-weight: 650;
   cursor: pointer;
   transition:
@@ -805,13 +812,12 @@
 .fatura-alan-yonet-hedef-secim {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 5px;
-  border-radius: 10px;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-border));
   border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
-  align-self: stretch;
-  min-height: 100%;
+  align-self: start;
   box-sizing: border-box;
   align-items: stretch;
 }
@@ -819,14 +825,14 @@
 .fatura-alan-yonet-hedef-tus {
   appearance: none;
   border: none;
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: 6px;
+  padding: 5px 8px;
   background: transparent;
   color: var(--ap-muted);
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
-  align-self: stretch;
+  min-height: 2.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -847,7 +853,7 @@
 
 .fatura-alan-yonet-liste {
   border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background: var(--ap-surface);
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
@@ -866,8 +872,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 7px 10px;
+  gap: 6px;
+  padding: 5px 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
   background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
 }
@@ -875,27 +881,27 @@
 .fatura-alan-yonet-liste-baslik-sol {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
   min-width: 0;
 }
 
 .fatura-alan-yonet-liste-baslik strong {
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 750;
 }
 
 .fatura-alan-yonet-liste-aciklama {
-  font-size: 0.64rem;
+  font-size: 0.58rem;
   font-weight: 550;
   color: var(--ap-muted);
 }
 
 .fatura-alan-yonet-adet {
   flex-shrink: 0;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 700;
   color: var(--ap-muted);
-  padding: 2px 6px;
+  padding: 1px 5px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--ap-border) 35%, transparent);
 }
@@ -903,22 +909,22 @@
 .fatura-alan-yonet-ul {
   list-style: none;
   margin: 0;
-  padding: 4px;
+  padding: 3px;
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-height: 132px;
+  max-height: 108px;
   overflow: auto;
   flex: 1 1 auto;
 }
 
 .fatura-alan-yonet-oge {
   display: grid;
-  grid-template-columns: 1.1rem 1.3rem minmax(0, 1fr);
+  grid-template-columns: 1rem 1.15rem minmax(0, 1fr);
   align-items: center;
-  gap: 5px;
-  padding: 5px 7px;
-  border-radius: 7px;
+  gap: 4px;
+  padding: 3px 5px;
+  border-radius: 6px;
   border: 1px solid transparent;
   cursor: grab;
   user-select: none;
@@ -949,18 +955,18 @@
 
 .fatura-alan-yonet-surukle {
   color: var(--ap-muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   line-height: 1;
 }
 
 .fatura-alan-yonet-sira {
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: var(--ap-muted);
 }
 
 .fatura-alan-yonet-ad {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--ap-text);
   overflow: hidden;
@@ -971,7 +977,7 @@
 .fatura-alan-yonet-havuz {
   grid-column: 1 / -1;
   border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background: var(--ap-surface);
 }
@@ -980,26 +986,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 4px 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
 }
 
 .fatura-alan-yonet-havuz-baslik strong {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 700;
 }
 
 .fatura-alan-yonet-havuz-baslik span {
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: var(--ap-muted);
 }
 
 .fatura-alan-yonet-bos {
   margin: 0;
-  padding: 8px 10px;
-  font-size: 0.72rem;
+  padding: 6px 8px;
+  font-size: 0.64rem;
   color: var(--ap-muted);
   list-style: none;
 }
@@ -1007,9 +1013,9 @@
 .fatura-alan-yonet-havuz-chip-ler {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  padding: 8px 10px;
-  max-height: 72px;
+  gap: 4px;
+  padding: 6px 8px;
+  max-height: 56px;
   overflow: auto;
 }
 
@@ -1018,12 +1024,12 @@
   display: inline-flex;
   align-items: center;
   max-width: 100%;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 3px 6px;
+  border-radius: 5px;
   border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
   background: transparent;
   color: var(--ap-text);
-  font-size: 0.7rem;
+  font-size: 0.64rem;
   font-weight: 600;
   cursor: pointer;
   transition:
@@ -1052,7 +1058,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -1060,18 +1066,21 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 6px;
+  gap: 4px;
 }
 
 .fatura-alan-yonet-ok {
-  min-width: 2.1rem;
-  padding-left: 0.45rem;
-  padding-right: 0.45rem;
+  min-width: 1.9rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
 }
 
 .fatura-alan-yonet-araclar > .ap-sistem-modal-btn {
   align-self: stretch;
   white-space: nowrap;
+  font-size: 0.72rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
 }
 
 .fatura-alan-yonet-araclar .ap-sistem-modal-btn:disabled {
@@ -1081,8 +1090,8 @@
 
 .fatura-alan-yonet-ipucu {
   margin: 0;
-  font-size: 0.7rem;
-  line-height: 1.35;
+  font-size: 0.62rem;
+  line-height: 1.3;
   color: var(--ap-muted);
 }
 
@@ -1265,43 +1274,56 @@
   min-width: 0;
 }
 
-.fatura-alt-iskonto-secim.ap-form-acilir-secim {
-  flex: 0 0 auto;
-  width: auto;
-  max-width: 8.6rem;
+.fatura-alt-iskonto-girdi > .ap-form-acilir-secim {
+  flex: 0 0 8.4rem;
+  width: 8.4rem;
+  min-width: 8.4rem;
+  max-width: 8.4rem;
 }
 
-.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus {
+.ap-form-acilir-secim-tus.fatura-alt-iskonto-secim {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
   height: 2rem;
-  max-width: 8.6rem;
   padding: 0 0.35rem 0 0.45rem;
   border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--ap-surface) 92%, transparent);
   color: var(--ap-text);
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 650;
   outline: none;
   cursor: pointer;
   gap: 0.2rem;
 }
 
-.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus:focus,
-.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus:focus-visible,
-.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus[aria-expanded='true'] {
+.ap-form-acilir-secim-tus.fatura-alt-iskonto-secim:focus,
+.ap-form-acilir-secim-tus.fatura-alt-iskonto-secim:focus-visible,
+.ap-form-acilir-secim-tus.fatura-alt-iskonto-secim[aria-expanded='true'] {
   border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 16%, transparent);
 }
 
-.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus:disabled {
+.ap-form-acilir-secim-tus.fatura-alt-iskonto-secim:disabled {
   opacity: 0.75;
   cursor: default;
 }
 
-.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus-metin {
-  font-size: 0.72rem;
+.fatura-alt-finans-ozet-kalem--iskonto .ap-form-acilir-secim-tus.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus-metin {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.68rem;
   font-weight: 650;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ap-text);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fatura-alt-iskonto-alan {
@@ -1327,6 +1349,10 @@
   outline: none;
   appearance: textfield;
   -moz-appearance: textfield;
+}
+
+.fatura-alt-iskonto-alan--birimsiz .fatura-alt-iskonto-input {
+  padding-right: 0.45rem;
 }
 
 .fatura-alt-iskonto-input::-webkit-outer-spin-button,
@@ -1752,14 +1778,14 @@
 .fatura-liste-filtre-yonet {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .fatura-liste-filtre-yonet-tarih-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  min-height: 200px;
+  gap: 8px;
+  min-height: 0;
 }
 
 .fatura-liste-filtre-yonet-tarih-grid .fatura-liste-filtre-yonet-kart {
@@ -1768,6 +1794,8 @@
 
 .fatura-liste-filtre-yonet-tarih-grid .fatura-liste-filtre-yonet-ul {
   flex: 1;
+  max-height: 168px;
+  overflow: auto;
 }
 
 .fatura-liste-filtre-yonet-tarih-grid .fatura-liste-filtre-yonet-araclar {
@@ -1777,9 +1805,9 @@
 .fatura-liste-filtre-yonet-kart {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 10px;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
   background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
 }
@@ -1788,24 +1816,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  font-size: 0.78rem;
+  gap: 6px;
+  font-size: 0.7rem;
 }
 
 .fatura-liste-filtre-yonet-baslik strong {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .fatura-liste-filtre-yonet-baslik span {
   color: var(--ap-muted);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.62rem;
 }
 
 .fatura-liste-filtre-yonet-satir {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -1815,7 +1843,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -1825,15 +1853,15 @@
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .fatura-liste-filtre-yonet-oge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 8px;
-  border-radius: 8px;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
   border: 1px solid transparent;
   background: color-mix(in srgb, var(--ap-surface) 90%, transparent);
   cursor: pointer;
@@ -1860,9 +1888,9 @@
 }
 
 .fatura-liste-filtre-yonet-sira {
-  width: 1.1rem;
+  width: 1rem;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 800;
   color: var(--ap-muted);
   flex-shrink: 0;
@@ -1870,13 +1898,13 @@
 
 .fatura-liste-filtre-yonet-ad {
   flex: 1;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 650;
   white-space: nowrap;
 }
 
 .fatura-liste-filtre-yonet-sabit-etiket {
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1888,7 +1916,7 @@
   border: none;
   background: transparent;
   color: var(--ap-muted);
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
   padding: 0 2px;
@@ -1901,30 +1929,33 @@
 
 .fatura-liste-filtre-yonet-araclar {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
 }
 
 .fatura-liste-filtre-yonet-satir > .fatura-liste-filtre-yonet-araclar {
   flex-direction: row;
-  padding-top: 2px;
+  padding-top: 1px;
 }
 
 .fatura-liste-filtre-yonet-araclar .ap-sistem-modal-btn {
-  min-width: 2.1rem;
-  padding-inline: 0.45rem;
+  min-width: 1.9rem;
+  padding-inline: 0.35rem;
+  font-size: 0.72rem;
+  padding-top: 0.28rem;
+  padding-bottom: 0.28rem;
 }
 
 .fatura-liste-filtre-yonet-alt {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-top: 8px;
+  gap: 4px;
+  padding-top: 6px;
   border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
 }
 
 .fatura-liste-filtre-yonet-alt-etiket {
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 750;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -1934,7 +1965,7 @@
 .fatura-liste-filtre-yonet-havuz {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
   align-content: flex-start;
 }
 
@@ -1942,11 +1973,11 @@
   appearance: none;
   border: 1px dashed color-mix(in srgb, var(--ap-border) 90%, transparent);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   background: color-mix(in srgb, var(--ap-surface) 92%, transparent);
   color: var(--ap-text);
   font: inherit;
-  font-size: 0.74rem;
+  font-size: 0.64rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1965,9 +1996,9 @@
 
 .fatura-liste-filtre-yonet-bos {
   margin: 0;
-  padding: 8px 4px;
+  padding: 5px 3px;
   color: var(--ap-muted);
-  font-size: 0.76rem;
+  font-size: 0.66rem;
   list-style: none;
 }
 

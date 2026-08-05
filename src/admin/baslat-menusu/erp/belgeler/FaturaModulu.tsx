@@ -643,24 +643,38 @@ export function FaturaModulu({
     const sag = root.querySelector<HTMLElement>('.fatura-ust-aciklama-sutun');
     if (!sol || !orta || !sag) return;
 
-    const esitle = () => {
+    const temizle = () => {
+      orta.style.height = '';
       orta.style.minHeight = '';
+      sag.style.height = '';
       sag.style.minHeight = '';
-      const h = Math.ceil(sol.getBoundingClientRect().height);
+    };
+
+    const esitle = () => {
+      temizle();
+      const hedef =
+        sol.querySelector<HTMLElement>('.fatura-musteri-ozet, .fatura-cari-ozet-bos') ?? sol;
+      const h = Math.ceil(hedef.getBoundingClientRect().height);
       if (h <= 0) return;
-      orta.style.minHeight = `${h}px`;
-      sag.style.minHeight = `${h}px`;
+      /* minHeight yetmez — flex çocukların dolması için sabit height gerekir */
+      orta.style.height = `${h}px`;
+      sag.style.height = `${h}px`;
     };
 
     esitle();
-    const ro = new ResizeObserver(esitle);
+    const raf = requestAnimationFrame(esitle);
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(esitle);
+    });
     ro.observe(sol);
+    const ozet = sol.querySelector('.fatura-musteri-ozet, .fatura-cari-ozet-bos');
+    if (ozet) ro.observe(ozet);
     return () => {
+      cancelAnimationFrame(raf);
       ro.disconnect();
-      orta.style.minHeight = '';
-      sag.style.minHeight = '';
+      temizle();
     };
-  }, [baslikDetayAcik, seciliCari]);
+  }, [baslikDetayAcik, seciliCari, cariAlanDuzeni.alt, cariAlanDuzeni.altSatirlar]);
 
   const numarayiYenile = useCallback(
     (hedefTur: BelgeTur, sube?: AdminSube | null) => {
@@ -2115,7 +2129,9 @@ export function FaturaModulu({
                     belgeIskontoModuDegistir(v === 'TUTAR' ? 'TUTAR' : 'ORAN')
                   }
                 />
-                <div className="fatura-alt-iskonto-alan">
+                <div
+                  className={`fatura-alt-iskonto-alan${belgeIskontoModu === 'ORAN' ? '' : ' fatura-alt-iskonto-alan--birimsiz'}`}
+                >
                   <input
                     type="text"
                     inputMode="decimal"
@@ -2127,9 +2143,11 @@ export function FaturaModulu({
                     placeholder={belgeIskontoModu === 'ORAN' ? '0' : '0,00'}
                     aria-label={belgeIskontoModu === 'ORAN' ? 'İskonto oranı' : 'İskonto tutarı'}
                   />
-                  <span className="fatura-alt-iskonto-birim" aria-hidden>
-                    {belgeIskontoModu === 'ORAN' ? '%' : '₺'}
-                  </span>
+                  {belgeIskontoModu === 'ORAN' ? (
+                    <span className="fatura-alt-iskonto-birim" aria-hidden>
+                      %
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </div>

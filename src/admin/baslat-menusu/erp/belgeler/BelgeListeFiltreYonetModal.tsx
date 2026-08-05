@@ -106,7 +106,7 @@ export function BelgeListeFiltreYonetModal({
       acik={acik}
       onKapat={onKapat}
       baslik="Filtreleri Düzenle"
-      genislik="lg"
+      genislik="md"
       ustCizgi={false}
       disariTiklaKapat={false}
       footer={

@@ -333,7 +333,7 @@ export function BelgeCariAlanYonetModal({
       onKapat={onKapat}
       baslik="Alanları Yönet"
       altBaslik="Alan seç · sırala · alt düzenini ayarla"
-      genislik="lg"
+      genislik="md"
       ustCizgi={false}
       disariTiklaKapat={false}
       footer={
