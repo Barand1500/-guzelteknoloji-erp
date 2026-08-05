@@ -117,6 +117,16 @@ const MODUL_AKSIYON_YETKI: Partial<Record<string, Partial<Record<AksiyonId, Yetk
     stokBirimListesi: 'goruntuleme',
     stokFiyatDuzenle: 'duzenleme',
   },
+  /* Liste: Filtreleri Düzenle (görüntüleme); form: Cariyi Düzenle aktifliği FaturaModulu'nda duzenlemeVar */
+  belgeler: {
+    guncelle: 'goruntuleme',
+  },
+  'alis-faturasi': {
+    guncelle: 'goruntuleme',
+  },
+  'satis-faturasi': {
+    guncelle: 'goruntuleme',
+  },
 };
 
 const AKSIYON_YETKI: Partial<Record<string, YetkiKodu>> = {
@@ -166,7 +176,7 @@ export function useAksiyonCubugu(modulId: string) {
         /* Belgeler formu: Yeni Ekle yalnızca listede; formda göstermeyelim */
         if (
           (modulId === 'belgeler' || modulId === 'alis-faturasi' || modulId === 'satis-faturasi') &&
-          (aksiyon.id === 'ekle' || aksiyon.id === 'belgeAlanYonet') &&
+          (aksiyon.id === 'ekle' || aksiyon.id === 'belgeAlanYonet' || aksiyon.id === 'guncelle') &&
           !aksiyon.aktif
         ) {
           return false;

@@ -220,11 +220,30 @@ export function bugunIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function satirToplamlari(satirlar: BelgeSatiri[]) {
+export function satirToplamlari(satirlar: BelgeSatiri[], kdvDahil = false) {
   const aktif = satirlar.filter((s) => s.durum !== false);
-  const araToplam = aktif.reduce((t, s) => t + (s.gercekToplam || 0), 0);
-  const kdvToplam = aktif.reduce((t, s) => t + (s.toplamKdvTutar || 0), 0);
+  let brutTutar = 0;
+  let satirIskontoToplam = 0;
+  let araToplam = 0;
+  let kdvToplam = 0;
+  for (const s of aktif) {
+    const gercek = s.gercekToplam || 0;
+    const tutar = s.tutar || 0;
+    const kdvOran = (s.toplamKdvYuzde || 0) / 100;
+    /** İskonto öncesi matrah (KDV dahil fiyatta tutar / (1+KDV)) */
+    const brut =
+      kdvDahil && kdvOran > 0 ? Math.round((tutar / (1 + kdvOran)) * 100) / 100 : tutar;
+    brutTutar += brut;
+    satirIskontoToplam += Math.round((brut - gercek) * 100) / 100;
+    araToplam += gercek;
+    kdvToplam += s.toplamKdvTutar || 0;
+  }
   return {
+    /** Satır iskontoları öncesi toplam (Toplam Tutar) */
+    brutTutar: Math.round(brutTutar * 100) / 100,
+    /** Satır + alt iskonto (matrah) */
+    satirIskontoToplam: Math.round(satirIskontoToplam * 100) / 100,
+    /** Satır iskontoları sonrası, belge iskontosu öncesi */
     araToplam: Math.round(araToplam * 100) / 100,
     kdvToplam: Math.round(kdvToplam * 100) / 100,
     genelToplam: Math.round((araToplam + kdvToplam) * 100) / 100,
@@ -234,6 +253,9 @@ export function satirToplamlari(satirlar: BelgeSatiri[]) {
 /**
  * Ara toplam üzerine önce tutarsal (1→3), sonra oransal % (İsk1→İsk6) uygular;
  * KDV’yi kalan ara orana göre ölçekler.
+ * tutar = iskonto öncesi satır toplamı (Toplam Tutar)
+ * netAra = iskonto sonrası (Ara Toplam)
+ * genelToplam = netAra + kdv (Genel Toplam)
  */
 export function belgeIskontoUygula(
   araToplam: number,

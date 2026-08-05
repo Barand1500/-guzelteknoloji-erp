@@ -88,6 +88,17 @@ export function UrunAramaSlayt({
     });
   }, []);
 
+  const tumunuSecToggle = useCallback(() => {
+    setIsaretliSku((onceki) => {
+      const gorunenSku = sonuclar.map((u) => u.sku);
+      const hepsiSecili =
+        gorunenSku.length > 0 && gorunenSku.every((sku) => onceki.includes(sku));
+      if (hepsiSecili) return onceki.filter((sku) => !gorunenSku.includes(sku));
+      const eklenen = gorunenSku.filter((sku) => !onceki.includes(sku));
+      return [...onceki, ...eklenen];
+    });
+  }, [sonuclar]);
+
   const secimiUygula = useCallback(() => {
     if (acilisKilidiRef.current) return;
     if (!sonuclar.length) return;
@@ -171,6 +182,13 @@ export function UrunAramaSlayt({
   }, [aramaMod, seciliIndeks, sonuclar]);
 
   const isaretliAdet = isaretliSku.filter((sku) => sonuclar.some((u) => u.sku === sku)).length;
+  const tumuSecili = sonuclar.length > 0 && isaretliAdet === sonuclar.length;
+  const kismiSecili = isaretliAdet > 0 && !tumuSecili;
+  const tumunuSecRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (tumunuSecRef.current) tumunuSecRef.current.indeterminate = kismiSecili;
+  }, [kismiSecili]);
 
   return (
     <div className={`dg-urun-slayt-kabuk${aramaMod ? ' dg-urun-slayt-kabuk--arama' : ''}`}>
@@ -241,7 +259,17 @@ export function UrunAramaSlayt({
                 <thead>
                   <tr>
                     {topluAktif ? (
-                      <th scope="col" className="dg-urun-arama-th dg-urun-arama-th--secim" aria-label="Seç" />
+                      <th scope="col" className="dg-urun-arama-th dg-urun-arama-th--secim">
+                        <label className="dg-urun-arama-secim dg-urun-arama-secim--tum" title="Tümünü seç">
+                          <input
+                            ref={tumunuSecRef}
+                            type="checkbox"
+                            checked={tumuSecili}
+                            onChange={tumunuSecToggle}
+                            aria-label="Tümünü seç"
+                          />
+                        </label>
+                      </th>
                     ) : null}
                     {TABLO_KOLONLARI.map((baslik) => (
                       <th key={baslik} scope="col" className="dg-urun-arama-th">

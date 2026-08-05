@@ -242,7 +242,7 @@
   max-width: 100%;
 }
 
-.fatura-ust-serit-sag {
+.fatura-ust-serit-sol {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -252,7 +252,7 @@
   max-width: 2.75rem;
   padding: 0;
   margin: 0;
-  border-left: 1px solid var(--ap-border);
+  border-right: 1px solid var(--ap-border);
   align-self: stretch;
 }
 
@@ -260,30 +260,31 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding-right: 4px;
+  flex: 0 0 auto;
+  padding: 0 8px;
+  align-self: center;
 }
 
 .fatura-ust-ok {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.125rem;
+  height: 2.125rem;
   margin: 0;
-  border: 1px solid var(--ap-border);
-  border-radius: 999px;
+  border: none;
+  border-radius: 0.625rem;
   background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
   color: var(--ap-accent);
   cursor: pointer;
+  flex-shrink: 0;
   transition:
     transform 0.18s ease,
-    background 0.12s ease,
-    border-color 0.12s ease;
+    background 0.12s ease;
 }
 
 .fatura-ust-ok:hover {
   background: color-mix(in srgb, var(--ap-accent) 18%, var(--ap-surface));
-  border-color: var(--ap-accent);
 }
 
 .fatura-ust-ok--acik {
@@ -588,11 +589,21 @@
   padding-bottom: 4px;
 }
 
-.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--2 {
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--2,
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--4 {
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--4,
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -617,83 +628,108 @@
 /* Alanları Yönet modal */
 .fatura-alan-yonet {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 16px 20px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  gap: 8px 12px;
   align-items: start;
 }
 
-.fatura-alan-yonet-sol {
+.fatura-alan-yonet-onizle {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
-}
-
-.fatura-alan-yonet-kart {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--ap-border);
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--ap-surface) 96%, var(--ap-border));
+  background: var(--ap-surface);
 }
 
-.fatura-alan-yonet-kart--havuz {
-  padding: 0;
-  overflow: hidden;
-  gap: 0;
+.fatura-alan-yonet-onizle--ust {
+  align-self: start;
 }
 
-.fatura-alan-yonet-kart--havuz .fatura-alan-yonet-liste-baslik {
-  border-radius: 0;
+.fatura-alan-yonet-onizle--alt {
+  align-self: start;
 }
 
-.fatura-alan-yonet-kart--havuz .fatura-alan-yonet-oge {
-  grid-template-columns: 1.1rem minmax(0, 1fr);
-}
-
-.fatura-alan-yonet-bolum-etiket {
-  margin: 0;
-  font-size: 0.68rem;
+.fatura-alan-yonet-onizle-etiket {
+  font-size: 0.66rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--ap-muted);
 }
 
-.fatura-alan-yonet-ust-onizle {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.fatura-alan-yonet-onizle-uyari {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  font-weight: 550;
+  color: color-mix(in srgb, var(--ap-accent) 72%, var(--ap-muted));
 }
 
-.fatura-alan-yonet-alt-onizle {
+.fatura-alan-yonet-onizle-ust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0;
+  height: auto;
+  align-items: stretch;
+  background: transparent;
+  overflow: visible;
+}
+
+.fatura-alan-yonet-onizle-ust .fatura-alan-yonet-chip {
+  flex: 1 1 calc(33.33% - 4px);
+  min-width: 4.5rem;
+  max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
+  border-radius: 6px;
+  border-right: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
+  padding: 5px 7px;
+  font-size: 0.68rem;
+}
+
+.fatura-alan-yonet-onizle-ust .fatura-alan-yonet-chip:last-child {
+  border-right: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
+}
+
+.fatura-alan-yonet-onizle-alt {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  padding: 0;
+  height: auto;
+  justify-content: flex-start;
 }
 
 .fatura-alan-yonet-alt-satir {
   display: grid;
-  gap: 6px;
+  gap: 4px;
+  padding: 0;
+  border-bottom: none;
 }
 
-.fatura-alan-yonet-alt-satir--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.fatura-alan-yonet-alt-satir:last-child {
+  border-bottom: none;
 }
 
-.fatura-alan-yonet-alt-satir--4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.fatura-alan-yonet-alt-satir .fatura-alan-yonet-chip {
+  border: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
+  border-radius: 6px;
+  border-right: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
+  padding: 5px 7px;
+  font-size: 0.68rem;
+}
+
+.fatura-alan-yonet-alt-satir .fatura-alan-yonet-chip:last-child {
+  border-right: 1px solid color-mix(in srgb, var(--ap-border) 82%, transparent);
 }
 
 .fatura-alan-yonet-chip {
   display: block;
-  padding: 6px 8px;
-  border-radius: 7px;
-  border: 1px dashed color-mix(in srgb, var(--ap-border) 90%, transparent);
-  background: color-mix(in srgb, var(--ap-surface) 92%, transparent);
-  font-size: 0.72rem;
   font-weight: 600;
   color: var(--ap-text);
   overflow: hidden;
@@ -702,95 +738,128 @@
 }
 
 .fatura-alan-yonet-chip--bos {
-  border-style: dashed;
   color: var(--ap-muted);
   font-weight: 550;
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  border-style: dashed;
+  background: transparent;
 }
 
-.fatura-alan-yonet-bos {
-  padding: 10px 8px;
-  font-size: 0.75rem;
-  color: var(--ap-muted);
-  list-style: none;
-}
-
-.fatura-alan-yonet-ul--havuz {
-  max-height: 180px;
-}
-
-.fatura-alan-yonet-hayalet {
-  position: fixed;
-  top: -1000px;
-  left: -1000px;
-  z-index: 99999;
-  pointer-events: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
-  background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-accent));
-  color: var(--ap-text);
-  font-size: 0.8rem;
-  font-weight: 650;
-  box-shadow: 0 8px 20px color-mix(in srgb, #000 35%, transparent);
-  white-space: nowrap;
-}
-
-.fatura-alan-yonet-sag {
+.fatura-alan-yonet-duzen {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: center;
+  gap: 5px;
   min-width: 0;
-}
-
-.fatura-alan-yonet-araclar {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 6px;
-}
-
-.fatura-alan-yonet-tasi-sutun {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 0 0 auto;
-}
-
-.fatura-alan-yonet-tasi-sutun .ap-sistem-modal-btn {
-  width: 100%;
-  white-space: nowrap;
-}
-
-.fatura-alan-yonet-oklar {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 4px;
-  flex: 0 0 auto;
-}
-
-.fatura-alan-yonet-ok {
-  min-width: 2.1rem;
-  padding-left: 0.45rem;
-  padding-right: 0.45rem;
-}
-
-.fatura-alan-yonet-araclar > .ap-sistem-modal-btn {
+  min-height: 100%;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
+  border-radius: 10px;
+  background: var(--ap-surface);
   align-self: stretch;
-  white-space: nowrap;
+  box-sizing: border-box;
 }
 
-.fatura-alan-yonet-araclar .ap-sistem-modal-btn:disabled {
-  opacity: 0.42;
-  cursor: not-allowed;
+.fatura-alan-yonet-duzen-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+}
+
+.fatura-alan-yonet-duzen-satir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fatura-alan-yonet-duzen-pill {
+  appearance: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 90%, transparent);
+  background: transparent;
+  color: var(--ap-muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.fatura-alan-yonet-duzen-pill:hover {
+  color: var(--ap-text);
+  border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+}
+
+.fatura-alan-yonet-duzen-pill--aktif {
+  color: var(--ap-accent);
+  border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 12%, transparent);
+}
+
+.fatura-alan-yonet-hedef-secim {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-border));
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  align-self: stretch;
+  min-height: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+.fatura-alan-yonet-hedef-tus {
+  appearance: none;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--ap-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.fatura-alan-yonet-hedef-tus:hover {
+  color: var(--ap-text);
+}
+
+.fatura-alan-yonet-hedef-tus--aktif {
+  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
+  color: var(--ap-accent);
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 18%, transparent);
 }
 
 .fatura-alan-yonet-liste {
-  border: 1px solid var(--ap-border);
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
   border-radius: 10px;
   overflow: hidden;
   background: var(--ap-surface);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+}
+
+.fatura-alan-yonet-liste--hedef {
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 18%, transparent);
 }
 
 .fatura-alan-yonet-liste-baslik {
@@ -798,20 +867,37 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--ap-border);
+  padding: 7px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
   background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
 }
 
-.fatura-alan-yonet-liste-baslik strong {
-  font-size: 0.8rem;
-  font-weight: 700;
+.fatura-alan-yonet-liste-baslik-sol {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
 
-.fatura-alan-yonet-liste-baslik span {
-  font-size: 0.72rem;
-  font-weight: 650;
+.fatura-alan-yonet-liste-baslik strong {
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.fatura-alan-yonet-liste-aciklama {
+  font-size: 0.64rem;
+  font-weight: 550;
   color: var(--ap-muted);
+}
+
+.fatura-alan-yonet-adet {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ap-muted);
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ap-border) 35%, transparent);
 }
 
 .fatura-alan-yonet-ul {
@@ -820,17 +906,18 @@
   padding: 4px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  max-height: 220px;
+  gap: 1px;
+  max-height: 132px;
   overflow: auto;
+  flex: 1 1 auto;
 }
 
 .fatura-alan-yonet-oge {
   display: grid;
-  grid-template-columns: 1.1rem 1.4rem minmax(0, 1fr);
+  grid-template-columns: 1.1rem 1.3rem minmax(0, 1fr);
   align-items: center;
-  gap: 6px;
-  padding: 7px 8px;
+  gap: 5px;
+  padding: 5px 7px;
   border-radius: 7px;
   border: 1px solid transparent;
   cursor: grab;
@@ -862,18 +949,18 @@
 
 .fatura-alan-yonet-surukle {
   color: var(--ap-muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1;
 }
 
 .fatura-alan-yonet-sira {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: var(--ap-muted);
 }
 
 .fatura-alan-yonet-ad {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 600;
   color: var(--ap-text);
   overflow: hidden;
@@ -881,11 +968,139 @@
   white-space: nowrap;
 }
 
+.fatura-alan-yonet-havuz {
+  grid-column: 1 / -1;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--ap-surface);
+}
+
+.fatura-alan-yonet-havuz-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
+}
+
+.fatura-alan-yonet-havuz-baslik strong {
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.fatura-alan-yonet-havuz-baslik span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ap-muted);
+}
+
+.fatura-alan-yonet-bos {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  color: var(--ap-muted);
+  list-style: none;
+}
+
+.fatura-alan-yonet-havuz-chip-ler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 10px;
+  max-height: 72px;
+  overflow: auto;
+}
+
+.fatura-alan-yonet-havuz-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
+  background: transparent;
+  color: var(--ap-text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.fatura-alan-yonet-havuz-chip:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 8%, transparent);
+  color: var(--ap-accent);
+}
+
+.fatura-alan-yonet-havuz-chip--kapali,
+.fatura-alan-yonet-havuz-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fatura-alan-yonet-havuz-chip--surukleniyor {
+  opacity: 0.4;
+}
+
+.fatura-alan-yonet-alt-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fatura-alan-yonet-araclar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.fatura-alan-yonet-ok {
+  min-width: 2.1rem;
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+}
+
+.fatura-alan-yonet-araclar > .ap-sistem-modal-btn {
+  align-self: stretch;
+  white-space: nowrap;
+}
+
+.fatura-alan-yonet-araclar .ap-sistem-modal-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
 .fatura-alan-yonet-ipucu {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   line-height: 1.35;
   color: var(--ap-muted);
+}
+
+.fatura-alan-yonet-hayalet {
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  z-index: 99999;
+  pointer-events: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-surface) 92%, var(--ap-accent));
+  color: var(--ap-text);
+  font-size: 0.8rem;
+  font-weight: 650;
+  box-shadow: 0 8px 20px color-mix(in srgb, #000 35%, transparent);
+  white-space: nowrap;
 }
 
 @media (max-width: 760px) {
@@ -893,8 +1108,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .fatura-alan-yonet-alt-satir--4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .fatura-alan-yonet-havuz,
+  .fatura-alan-yonet-alt-bar {
+    grid-column: 1;
   }
 }
 
@@ -1212,9 +1428,9 @@
     border-bottom: 1px solid var(--ap-border);
   }
 
-  .fatura-ust-serit-sag {
-    border-left: none;
-    margin-left: auto;
+  .fatura-ust-serit-sol {
+    border-right: 1px solid var(--ap-border);
+    border-bottom: 1px solid var(--ap-border);
     flex: 0 0 2.75rem;
     width: 2.75rem;
     min-width: 2.75rem;
@@ -1251,7 +1467,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--4 {
+  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--4,
+  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n3,
+  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1349,10 +1567,26 @@
 .fatura-liste-bolum-ust {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: 10px 12px;
   flex-wrap: wrap;
   flex-shrink: 0;
+}
+
+.fatura-liste-ust-oge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.fatura-liste-ust-oge.fatura-tur-sekme:last-child {
+  margin-left: auto;
+}
+
+.fatura-liste-tarih-grup {
+  flex: 0 1 auto;
 }
 
 .fatura-liste-ozet {
@@ -1421,10 +1655,19 @@
   color: color-mix(in srgb, var(--ap-accent) 78%, var(--ap-text));
 }
 
+.fatura-liste-filtre-satir {
+  display: flex;
+  align-items: center;
+  gap: 8px 10px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .fatura-liste-arama {
-  flex: 1 1 220px;
-  min-width: 180px;
-  max-width: 320px;
+  flex: 0 1 15rem;
+  min-width: 11rem;
+  max-width: 17rem;
 }
 
 .fatura-liste-arama-input {
@@ -1445,6 +1688,303 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 14%, transparent);
 }
 
+.fatura-liste-tarih-filtre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
+}
+
+.fatura-liste-tarih-pill {
+  appearance: none;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--ap-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.fatura-liste-tarih-pill:hover {
+  color: var(--ap-text);
+  background: color-mix(in srgb, var(--ap-accent) 8%, transparent);
+}
+
+.fatura-liste-tarih-pill--aktif {
+  color: var(--ap-accent);
+  background: color-mix(in srgb, var(--ap-accent) 16%, var(--ap-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 28%, transparent);
+}
+
+.fatura-liste-tarih-aralik {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 96%, transparent);
+}
+
+.fatura-liste-tarih-aralik-ayrac {
+  color: var(--ap-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.fatura-liste-tarih-aralik .ap-tarih-tetik--satir {
+  min-height: 1.85rem;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.74rem;
+}
+
+.fatura-liste-filtre-yonet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fatura-liste-filtre-yonet-tarih-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-height: 200px;
+}
+
+.fatura-liste-filtre-yonet-tarih-grid .fatura-liste-filtre-yonet-kart {
+  min-height: 0;
+}
+
+.fatura-liste-filtre-yonet-tarih-grid .fatura-liste-filtre-yonet-ul {
+  flex: 1;
+}
+
+.fatura-liste-filtre-yonet-tarih-grid .fatura-liste-filtre-yonet-araclar {
+  flex-direction: row;
+}
+
+.fatura-liste-filtre-yonet-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 85%, transparent);
+  background: color-mix(in srgb, var(--ap-surface) 94%, var(--ap-border));
+}
+
+.fatura-liste-filtre-yonet-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.fatura-liste-filtre-yonet-baslik strong {
+  font-size: 0.8rem;
+}
+
+.fatura-liste-filtre-yonet-baslik span {
+  color: var(--ap-muted);
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.fatura-liste-filtre-yonet-satir {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fatura-liste-filtre-yonet-ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.fatura-liste-filtre-yonet-ul--yatay {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.fatura-liste-filtre-yonet-oge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--ap-surface) 90%, transparent);
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.fatura-liste-filtre-yonet-ul--yatay .fatura-liste-filtre-yonet-oge {
+  flex: 0 1 auto;
+}
+
+.fatura-liste-filtre-yonet-oge:hover {
+  border-color: color-mix(in srgb, var(--ap-border) 80%, transparent);
+}
+
+.fatura-liste-filtre-yonet-oge--aktif {
+  border-color: color-mix(in srgb, var(--ap-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+}
+
+.fatura-liste-filtre-yonet-oge--sabit {
+  cursor: default;
+  opacity: 0.92;
+  background: color-mix(in srgb, var(--ap-border) 12%, var(--ap-surface));
+}
+
+.fatura-liste-filtre-yonet-sira {
+  width: 1.1rem;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--ap-muted);
+  flex-shrink: 0;
+}
+
+.fatura-liste-filtre-yonet-ad {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.fatura-liste-filtre-yonet-sabit-etiket {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+}
+
+.fatura-liste-filtre-yonet-kaldir {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ap-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.fatura-liste-filtre-yonet-kaldir:hover {
+  color: var(--ap-text);
+}
+
+.fatura-liste-filtre-yonet-araclar {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.fatura-liste-filtre-yonet-satir > .fatura-liste-filtre-yonet-araclar {
+  flex-direction: row;
+  padding-top: 2px;
+}
+
+.fatura-liste-filtre-yonet-araclar .ap-sistem-modal-btn {
+  min-width: 2.1rem;
+  padding-inline: 0.45rem;
+}
+
+.fatura-liste-filtre-yonet-alt {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+}
+
+.fatura-liste-filtre-yonet-alt-etiket {
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ap-muted);
+}
+
+.fatura-liste-filtre-yonet-havuz {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+
+.fatura-liste-filtre-yonet-chip {
+  appearance: none;
+  border: 1px dashed color-mix(in srgb, var(--ap-border) 90%, transparent);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--ap-surface) 92%, transparent);
+  color: var(--ap-text);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fatura-liste-filtre-yonet-chip:hover:not(:disabled) {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  color: var(--ap-accent);
+}
+
+.fatura-liste-filtre-yonet-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fatura-liste-filtre-yonet-bos {
+  margin: 0;
+  padding: 8px 4px;
+  color: var(--ap-muted);
+  font-size: 0.76rem;
+  list-style: none;
+}
+
+@media (max-width: 640px) {
+  .fatura-liste-filtre-yonet-tarih-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fatura-liste-filtre-yonet-satir {
+    flex-direction: column;
+  }
+
+  .fatura-liste-filtre-yonet-satir > .fatura-liste-filtre-yonet-araclar {
+    align-self: flex-end;
+  }
+}
+
 .fatura-liste-bolum .fatura-liste-tablo-wrap {
   border: none;
   border-radius: 10px;
@@ -1453,10 +1993,6 @@
   min-height: 0;
   max-height: none;
   overflow: auto;
-}
-
-.fatura-liste-bolum .fatura-tur-sekme {
-  margin-left: auto;
 }
 
 .fatura-liste-yon-rozet {
@@ -3228,8 +3764,14 @@
     align-items: stretch;
   }
 
+  .fatura-liste-ust-oge.fatura-tur-sekme:last-child,
   .fatura-liste-bolum .fatura-tur-sekme {
     margin-left: 0;
+  }
+
+  .fatura-liste-arama {
+    flex: 1 1 auto;
+    max-width: none;
   }
 
   .fatura-genel-kompakt .fatura-genel-3col {

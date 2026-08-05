@@ -11,11 +11,20 @@ import { useYetkiler } from '@/kancalar/useYetkiler';
 import { carileriGetir } from '@/admin/baslat-menusu/erp/cari/api';
 import { type AdminCari } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { BelgeCariAlanYonetModal } from './BelgeCariAlanYonetModal';
+import { BelgeListeFiltreYonetModal } from './BelgeListeFiltreYonetModal';
 import { belgeCariAlanIcerik } from './BelgeCariAlanGoster';
 import {
   belgeCariAlanDuzeniOku,
+  belgeCariAltSatirlariBol,
   type BelgeCariAlanDuzeni,
 } from './belgeCariAlanDuzeni';
+import {
+  LISTE_TARIH_ETIKET,
+  belgeListeFiltreDuzeniOku,
+  type BelgeListeFiltreDuzeni,
+  type ListeTarihDonem,
+  type ListeTarihDonemSecilebilir,
+} from './belgeListeFiltreDuzeni';
 import { subeleriGetir, depolariGetir, kasalariGetir } from '@/admin/baslat-menusu/tanimlar/api';
 import type { AdminDepo, AdminKasa, AdminSube } from '@/admin/baslat-menusu/tanimlar/tipler';
 import {
@@ -48,7 +57,6 @@ import {
   bosBelgeIskontolari,
   bosBelgeIskontoTutarlari,
   bugunIso,
-  cariTipiBelgeyeUygunMu,
   gecerliBelgeIskontolari,
   gecerliBelgeIskontoTutarlari,
   satirToplamlari,
@@ -133,6 +141,87 @@ interface FaturaModuluProps {
 
 type Gorunum = 'liste' | 'form';
 
+function isoGun(d: Date) {
+  return tarihAnahtari(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/** Belge.tarih (ISO) için dönem aralığı; null = filtre yok */
+function listeTarihAraligi(
+  donem: ListeTarihDonem,
+  baslangic: string,
+  bitis: string
+): { min: string; max: string } | null {
+  const simdi = new Date();
+  const bugun = isoGun(simdi);
+  const gunOnce = (n: number) => {
+    const d = new Date(simdi.getFullYear(), simdi.getMonth(), simdi.getDate());
+    d.setDate(d.getDate() - n);
+    return isoGun(d);
+  };
+  const haftaPazartesi = (referans: Date) => {
+    const d = new Date(referans.getFullYear(), referans.getMonth(), referans.getDate());
+    const gun = d.getDay();
+    const pazartesiOffset = gun === 0 ? -6 : 1 - gun;
+    d.setDate(d.getDate() + pazartesiOffset);
+    return d;
+  };
+
+  if (donem === 'HEPSI') return null;
+  if (donem === 'BUGUN') return { min: bugun, max: bugun };
+  if (donem === 'DUN') {
+    const dun = gunOnce(1);
+    return { min: dun, max: dun };
+  }
+  if (donem === 'HAFTA') {
+    return { min: isoGun(haftaPazartesi(simdi)), max: bugun };
+  }
+  if (donem === 'GECEN_HAFTA') {
+    const buPzt = haftaPazartesi(simdi);
+    const gecenPzt = new Date(buPzt);
+    gecenPzt.setDate(gecenPzt.getDate() - 7);
+    const gecenPaz = new Date(buPzt);
+    gecenPaz.setDate(gecenPaz.getDate() - 1);
+    return { min: isoGun(gecenPzt), max: isoGun(gecenPaz) };
+  }
+  if (donem === 'AY') {
+    return { min: tarihAnahtari(simdi.getFullYear(), simdi.getMonth(), 1), max: bugun };
+  }
+  if (donem === 'GECEN_AY') {
+    const y = simdi.getMonth() === 0 ? simdi.getFullYear() - 1 : simdi.getFullYear();
+    const m = simdi.getMonth() === 0 ? 11 : simdi.getMonth() - 1;
+    const sonGun = new Date(y, m + 1, 0).getDate();
+    return {
+      min: tarihAnahtari(y, m, 1),
+      max: tarihAnahtari(y, m, sonGun),
+    };
+  }
+  if (donem === 'YIL') {
+    return { min: tarihAnahtari(simdi.getFullYear(), 0, 1), max: bugun };
+  }
+  if (donem === 'GECEN_YIL') {
+    const y = simdi.getFullYear() - 1;
+    return { min: tarihAnahtari(y, 0, 1), max: tarihAnahtari(y, 11, 31) };
+  }
+  if (donem === 'SON_7') return { min: gunOnce(6), max: bugun };
+  if (donem === 'SON_30') return { min: gunOnce(29), max: bugun };
+  if (donem === 'SON_90') return { min: gunOnce(89), max: bugun };
+  if (donem !== 'ARALIK') return null;
+
+  const a = (baslangic || '').trim();
+  const b = (bitis || '').trim();
+  if (!a && !b) return null;
+  if (a && b) return a <= b ? { min: a, max: b } : { min: b, max: a };
+  if (a) return { min: a, max: a };
+  return { min: b, max: b };
+}
+
+function belgeTarihUygunMu(belgeTarih: string, aralik: { min: string; max: string } | null) {
+  if (!aralik) return true;
+  const t = (belgeTarih || '').slice(0, 10);
+  if (!t) return false;
+  return t >= aralik.min && t <= aralik.max;
+}
+
 function para(n: number) {
   return sayiFormatla(n);
 }
@@ -185,6 +274,13 @@ export function FaturaModulu({
   const [listeFiltreNeviId, setListeFiltreNeviId] = useState<string>('HEPSI');
   const [listeFiltreYon, setListeFiltreYon] = useState<BelgeYon | 'HEPSI'>('HEPSI');
   const [listeArama, setListeArama] = useState('');
+  const [listeTarihDonem, setListeTarihDonem] = useState<ListeTarihDonem>('HEPSI');
+  const [listeTarihBaslangic, setListeTarihBaslangic] = useState('');
+  const [listeTarihBitis, setListeTarihBitis] = useState('');
+  const [listeFiltreDuzeni, setListeFiltreDuzeni] = useState<BelgeListeFiltreDuzeni>(() =>
+    belgeListeFiltreDuzeniOku()
+  );
+  const [listeFiltreYonetAcik, setListeFiltreYonetAcik] = useState(false);
   const [liste, setListe] = useState<BelgeKayit[]>([]);
   const [listeYukleniyor, setListeYukleniyor] = useState(true);
 
@@ -269,10 +365,6 @@ export function FaturaModulu({
   const seciliDepo = useMemo(() => depolar.find((d) => d.id === depoId) ?? null, [depolar, depoId]);
   const seciliKasa = useMemo(() => kasalar.find((k) => k.id === kasaId) ?? null, [kasalar, kasaId]);
   const seciliCari = useMemo(() => cariler.find((c) => c.id === cariId) ?? null, [cariler, cariId]);
-  const filtrelenmisCariler = useMemo(() => {
-    const uygun = cariler.filter((c) => cariTipiBelgeyeUygunMu(yon, c.cariTipi));
-    return uygun.length > 0 ? uygun : cariler;
-  }, [cariler, yon]);
   const subeDepolari = useMemo(
     () => depolar.filter((d) => !subeId || d.subeId === subeId),
     [depolar, subeId]
@@ -305,20 +397,27 @@ export function FaturaModulu({
     [subeKasalari]
   );
   const toplamlar = useMemo(() => {
-    const ham = satirToplamlari(satirlar.map((s) => satirHesapla(s, kdvDahil)));
+    const ham = satirToplamlari(
+      satirlar.map((s) => satirHesapla(s, kdvDahil)),
+      kdvDahil
+    );
     const isk = belgeIskontoUygula(
       ham.araToplam,
       ham.kdvToplam,
       belgeIskontolari,
       belgeIskontoTutarlari
     );
+    const iskontoToplam =
+      Math.round((ham.satirIskontoToplam + isk.iskontoToplam) * 100) / 100;
     return {
-      tutar: isk.tutar,
+      /** İskonto öncesi satır tutarları */
+      tutar: ham.brutTutar,
       araToplam: isk.netAra,
       kdvToplam: isk.kdvToplam,
       genelToplam: isk.genelToplam,
       netAra: isk.netAra,
-      iskontoToplam: isk.iskontoToplam,
+      /** Satır + alt + belge iskontosu */
+      iskontoToplam,
       iskontoTutarlari: isk.iskontoTutarlari,
     };
   }, [satirlar, kdvDahil, belgeIskontolari, belgeIskontoTutarlari]);
@@ -362,12 +461,20 @@ export function FaturaModulu({
         return;
       }
 
+      const maxTutar = satirToplamlari(
+        satirlar.map((s) => satirHesapla(s, kdvDahil)),
+        kdvDahil
+      ).araToplam;
+      if (sayi > maxTutar) {
+        sayi = maxTutar;
+        normal = iskontoGirdiMetni(maxTutar) || '0';
+      }
       sayi = Math.max(0, Math.round(sayi * 100) / 100);
       setBelgeIskontoGirdi(normal);
       setBelgeIskontoTutarlari([sayi, 0, 0]);
       setBelgeIskontolari(bosBelgeIskontolari());
     },
-    [belgeIskontoModu, saltOkunur]
+    [belgeIskontoModu, saltOkunur, satirlar, kdvDahil]
   );
 
   const belgeIskontoBlur = useCallback(() => {
@@ -380,11 +487,15 @@ export function FaturaModulu({
       setBelgeIskontoTutarlari(bosBelgeIskontoTutarlari());
       return;
     }
-    const tutar = Math.max(0, Math.round(sayi * 100) / 100);
+    const maxTutar = satirToplamlari(
+      satirlar.map((s) => satirHesapla(s, kdvDahil)),
+      kdvDahil
+    ).araToplam;
+    const tutar = Math.min(maxTutar, Math.max(0, Math.round(sayi * 100) / 100));
     setBelgeIskontoGirdi(tutar ? sayiFormatla(tutar) : '');
     setBelgeIskontoTutarlari([tutar, 0, 0]);
     setBelgeIskontolari(bosBelgeIskontolari());
-  }, [belgeIskontoGirdi, belgeIskontoModu, saltOkunur]);
+  }, [belgeIskontoGirdi, belgeIskontoModu, saltOkunur, satirlar, kdvDahil]);
 
   useEffect(() => {
     if (neviSecenekleri.length === 0) return;
@@ -401,11 +512,17 @@ export function FaturaModulu({
     return vadeTarihi || null;
   }, [vadeModu, tarih, vadeTarihi]);
 
+  const listeTarihAralik = useMemo(
+    () => listeTarihAraligi(listeTarihDonem, listeTarihBaslangic, listeTarihBitis),
+    [listeTarihDonem, listeTarihBaslangic, listeTarihBitis]
+  );
+
   const filtreliListe = useMemo(() => {
     const q = listeArama.trim().toLocaleLowerCase('tr');
     return liste.filter((b) => {
       if (listeFiltreNeviId !== 'HEPSI' && b.belgeNeviId !== listeFiltreNeviId) return false;
       if (listeFiltreYon !== 'HEPSI' && b.yon !== listeFiltreYon) return false;
+      if (!belgeTarihUygunMu(b.tarih, listeTarihAralik)) return false;
       if (!q) return true;
       const haystack = [
         b.belgeNo,
@@ -421,12 +538,13 @@ export function FaturaModulu({
         .toLocaleLowerCase('tr');
       return haystack.includes(q);
     });
-  }, [liste, listeFiltreNeviId, listeFiltreYon, listeArama]);
+  }, [liste, listeFiltreNeviId, listeFiltreYon, listeArama, listeTarihAralik]);
 
   const listeOzet = useMemo(() => {
     const q = listeArama.trim().toLocaleLowerCase('tr');
     const taban = liste.filter((b) => {
       if (listeFiltreNeviId !== 'HEPSI' && b.belgeNeviId !== listeFiltreNeviId) return false;
+      if (!belgeTarihUygunMu(b.tarih, listeTarihAralik)) return false;
       if (!q) return true;
       const haystack = [b.belgeNo, b.belgeNeviAdi, b.cariAdi, b.cariKodu]
         .join(' ')
@@ -454,7 +572,7 @@ export function FaturaModulu({
       adetCikis,
       adet: adetGiris + adetCikis,
     };
-  }, [liste, listeFiltreNeviId, listeArama]);
+  }, [liste, listeFiltreNeviId, listeArama, listeTarihAralik]);
 
   const katalogYenile = useCallback(
     async (depo?: string) => {
@@ -900,8 +1018,40 @@ export function FaturaModulu({
   const formKaydetAktif = gorunum === 'form' && !saltOkunur && (aktifId ? duzenlemeVar : eklemeVar);
   const formSilAktif = gorunum === 'form' && Boolean(aktifId) && silmeVar;
   const cariyiDuzenleAktif = gorunum === 'form' && Boolean(seciliCari?.id) && duzenlemeVar;
+  const filtreleriDuzenleAktif = gorunum === 'liste' && goruntulemeVar;
+  const guncelleAktif = cariyiDuzenleAktif || filtreleriDuzenleAktif;
   const listeyeDonAktif = gorunum === 'form';
   const alanYonetAktif = gorunum === 'form';
+
+  const listeTarihPilleri = useMemo(
+    () => [
+      { id: 'HEPSI' as ListeTarihDonem, etiket: LISTE_TARIH_ETIKET.HEPSI },
+      ...listeFiltreDuzeni.tarihFiltreleri.map((id) => ({
+        id: id as ListeTarihDonem,
+        etiket: LISTE_TARIH_ETIKET[id],
+      })),
+    ],
+    [listeFiltreDuzeni.tarihFiltreleri]
+  );
+
+  useEffect(() => {
+    if (listeTarihDonem === 'HEPSI') return;
+    if (!listeFiltreDuzeni.tarihFiltreleri.includes(listeTarihDonem as ListeTarihDonemSecilebilir)) {
+      setListeTarihDonem('HEPSI');
+    }
+  }, [listeTarihDonem, listeFiltreDuzeni.tarihFiltreleri]);
+
+  useEffect(() => {
+    if (!listeFiltreDuzeni.ustBilesenler.includes('TARIH')) {
+      setListeTarihDonem((d) => (d === 'HEPSI' ? d : 'HEPSI'));
+    }
+    if (!listeFiltreDuzeni.ustBilesenler.includes('NEVI')) {
+      setListeFiltreNeviId((id) => (id === 'HEPSI' ? id : 'HEPSI'));
+    }
+    if (!listeFiltreDuzeni.ustBilesenler.includes('ARAMA')) {
+      setListeArama((a) => (a ? '' : a));
+    }
+  }, [listeFiltreDuzeni.ustBilesenler]);
 
   useModulAksiyonlari(
     {
@@ -912,8 +1062,12 @@ export function FaturaModulu({
             return false;
           }
         : undefined,
-      guncelle: cariyiDuzenleAktif
+      guncelle: guncelleAktif
         ? () => {
+            if (gorunum === 'liste') {
+              setListeFiltreYonetAcik(true);
+              return;
+            }
             if (!seciliCari?.id) return;
             cariBaslatYaz({ cariId: seciliCari.id, duzenle: true });
             onModulAc?.('cari');
@@ -930,7 +1084,7 @@ export function FaturaModulu({
     {
       kaydet: formKaydetAktif && !kaydediliyor,
       onizle: listeyeDonAktif,
-      guncelle: cariyiDuzenleAktif,
+      guncelle: guncelleAktif,
       belgeAlanYonet: alanYonetAktif,
       ekle: gorunum === 'liste' && eklemeVar,
       sil: formSilAktif && !kaydediliyor,
@@ -938,7 +1092,7 @@ export function FaturaModulu({
     undefined,
     {
       onizle: 'Listeye Dön',
-      guncelle: 'Cariyi Düzenle',
+      guncelle: gorunum === 'liste' ? 'Filtreleri Düzenle' : 'Cariyi Düzenle',
       belgeAlanYonet: 'Alanları Yönet',
     }
   );
@@ -1174,6 +1328,11 @@ export function FaturaModulu({
     [kdvDahil, katalog]
   );
 
+  const altSatirGruplari = useMemo(
+    () => belgeCariAltSatirlariBol(cariAlanDuzeni.alt, cariAlanDuzeni.altSatirlar),
+    [cariAlanDuzeni.alt, cariAlanDuzeni.altSatirlar]
+  );
+
   if (!goruntulemeVar) {
     return <YetkisizErisim aciklama={`${baslik} için Görüntüleme yetkisi gerekir.`} />;
   }
@@ -1229,35 +1388,88 @@ export function FaturaModulu({
 
         <section className="fatura-liste-bolum">
           <div className="fatura-liste-bolum-ust">
-            <div className="fatura-liste-arama">
-              <input
-                type="search"
-                className="fatura-liste-arama-input"
-                value={listeArama}
-                onChange={(e) => setListeArama(e.target.value)}
-                placeholder="Belge no, cari, nevi ara…"
-                aria-label="Belgelerde ara"
-              />
-            </div>
-            <div className="fatura-tur-sekme" role="tablist" aria-label="Belge nevi">
-              <button
-                type="button"
-                className={listeFiltreNeviId === 'HEPSI' ? 'aktif' : ''}
-                onClick={() => setListeFiltreNeviId('HEPSI')}
-              >
-                Hepsi
-              </button>
-              {listeNeviSekmeleri.map((n) => (
-                <button
-                  key={n.value}
-                  type="button"
-                  className={listeFiltreNeviId === n.value ? 'aktif' : ''}
-                  onClick={() => setListeFiltreNeviId(n.value)}
-                >
-                  {n.label}
-                </button>
-              ))}
-            </div>
+            {listeFiltreDuzeni.ustBilesenler.map((bilesen) => {
+              if (bilesen === 'ARAMA') {
+                return (
+                  <div key="ARAMA" className="fatura-liste-ust-oge fatura-liste-arama">
+                    <input
+                      type="search"
+                      className="fatura-liste-arama-input"
+                      value={listeArama}
+                      onChange={(e) => setListeArama(e.target.value)}
+                      placeholder="Belge no, cari, nevi ara…"
+                      aria-label="Belgelerde ara"
+                    />
+                  </div>
+                );
+              }
+              if (bilesen === 'TARIH') {
+                return (
+                  <div key="TARIH" className="fatura-liste-ust-oge fatura-liste-tarih-grup">
+                    <div className="fatura-liste-tarih-filtre" role="group" aria-label="Tarih filtresi">
+                      {listeTarihPilleri.map((d) => (
+                        <button
+                          key={d.id}
+                          type="button"
+                          className={`fatura-liste-tarih-pill${listeTarihDonem === d.id ? ' fatura-liste-tarih-pill--aktif' : ''}`}
+                          aria-pressed={listeTarihDonem === d.id}
+                          onClick={() => {
+                            setListeTarihDonem(d.id);
+                            if (d.id === 'ARALIK' && !listeTarihBaslangic && !listeTarihBitis) {
+                              const bugun = bugunIso();
+                              setListeTarihBaslangic(bugun);
+                              setListeTarihBitis(bugun);
+                            }
+                          }}
+                        >
+                          {d.etiket}
+                        </button>
+                      ))}
+                    </div>
+                    {listeTarihDonem === 'ARALIK' ? (
+                      <div className="fatura-liste-tarih-aralik" aria-label="Tarih aralığı">
+                        <TarihSecici
+                          deger={listeTarihBaslangic}
+                          ariaLabel="Başlangıç tarihi"
+                          varyant="satir"
+                          onChange={setListeTarihBaslangic}
+                        />
+                        <span className="fatura-liste-tarih-aralik-ayrac" aria-hidden>
+                          —
+                        </span>
+                        <TarihSecici
+                          deger={listeTarihBitis}
+                          ariaLabel="Bitiş tarihi"
+                          varyant="satir"
+                          onChange={setListeTarihBitis}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              }
+              return (
+                <div key="NEVI" className="fatura-liste-ust-oge fatura-tur-sekme" role="tablist" aria-label="Belge nevi">
+                  <button
+                    type="button"
+                    className={listeFiltreNeviId === 'HEPSI' ? 'aktif' : ''}
+                    onClick={() => setListeFiltreNeviId('HEPSI')}
+                  >
+                    Hepsi
+                  </button>
+                  {listeNeviSekmeleri.map((n) => (
+                    <button
+                      key={n.value}
+                      type="button"
+                      className={listeFiltreNeviId === n.value ? 'aktif' : ''}
+                      onClick={() => setListeFiltreNeviId(n.value)}
+                    >
+                      {n.label}
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
           </div>
 
           <div className="fatura-liste-tablo-wrap">
@@ -1349,6 +1561,13 @@ export function FaturaModulu({
           hedefMetin={liste.find((b) => b.id === silOnayId)?.belgeNo ?? ''}
           ariaLabel="Belge silme onayı"
         />
+
+        <BelgeListeFiltreYonetModal
+          acik={listeFiltreYonetAcik}
+          baslangic={listeFiltreDuzeni}
+          onKapat={() => setListeFiltreYonetAcik(false)}
+          onKaydet={setListeFiltreDuzeni}
+        />
       </div>
     );
   }
@@ -1357,9 +1576,6 @@ export function FaturaModulu({
   const firmaAdi = seciliCari
     ? seciliCari.cariAdi || seciliCari.unvan || '—'
     : 'Cari seçilmedi';
-  const altSatir1 = cariAlanDuzeni.alt.slice(0, 2);
-  const altSatir2 = cariAlanDuzeni.alt.slice(2, 6);
-  const altSatir3 = cariAlanDuzeni.alt.slice(6, 8);
 
   return (
     <div ref={sayfaRef} className={`${sayfaSinif} dg-demo-sayfa dg-demo-sag-tik-alan fatura-sayfa--bolumlu`}>
@@ -1371,6 +1587,27 @@ export function FaturaModulu({
           <>
       <section className="fatura-ust-serit" aria-label="Belge başlığı">
         <div className="fatura-ust-serit-satir">
+          <div className="fatura-ust-serit-sol">
+            <button
+              type="button"
+              className={`fatura-ust-ok${baslikDetayAcik ? ' fatura-ust-ok--acik' : ''}`}
+              aria-expanded={baslikDetayAcik}
+              aria-controls="fatura-ust-detay"
+              title={baslikDetayAcik ? 'Müşteri / cari bilgisini gizle' : 'Müşteri / cari bilgisini göster'}
+              onClick={() => setBaslikDetayAcik((v) => !v)}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+                <path
+                  d="M6 9l6 6 6-6"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
           <button
             type="button"
             className={`fatura-ust-firma fatura-ust-firma--tus${seciliCari ? '' : ' fatura-ust-firma--bos'}`}
@@ -1483,50 +1720,30 @@ export function FaturaModulu({
             </OtOutlinedAlan>
           </div>
 
-          <div className="fatura-ust-serit-sag">
-            {durum === 'ONAYLI' && duzenlemeVar ? (
-              <div className="fatura-ust-aksiyonlar">
-                {tur === 'SIPARIS' ? (
-                  <>
-                    <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void aktar('IRSALIYE')}>
-                      → İrsaliye
-                    </button>
-                    <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void aktar('FATURA')}>
-                      → Fatura
-                    </button>
-                  </>
-                ) : null}
-                {tur === 'IRSALIYE' ? (
+          {durum === 'ONAYLI' && duzenlemeVar ? (
+            <div className="fatura-ust-aksiyonlar">
+              {tur === 'SIPARIS' ? (
+                <>
+                  <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void aktar('IRSALIYE')}>
+                    → İrsaliye
+                  </button>
                   <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void aktar('FATURA')}>
                     → Fatura
                   </button>
-                ) : null}
-                {tur === 'FATURA' ? (
-                  <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void iadeOlustur()}>
-                    İade
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-            <button
-              type="button"
-              className={`fatura-ust-ok${baslikDetayAcik ? ' fatura-ust-ok--acik' : ''}`}
-              aria-expanded={baslikDetayAcik}
-              aria-controls="fatura-ust-detay"
-              title={baslikDetayAcik ? 'Müşteri / cari bilgisini gizle' : 'Müşteri / cari bilgisini göster'}
-              onClick={() => setBaslikDetayAcik((v) => !v)}
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
-                <path
-                  d="M6 9l6 6 6-6"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
+                </>
+              ) : null}
+              {tur === 'IRSALIYE' ? (
+                <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void aktar('FATURA')}>
+                  → Fatura
+                </button>
+              ) : null}
+              {tur === 'FATURA' ? (
+                <button type="button" className="fatura-btn fatura-btn--ghost" onClick={() => void iadeOlustur()}>
+                  İade
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {baslikDetayAcik ? (
@@ -1536,33 +1753,21 @@ export function FaturaModulu({
                 <div className="fatura-ust-detay-cari">
                   {seciliCari ? (
                     <div className="fatura-musteri-ozet fatura-musteri-ozet--modern fatura-musteri-ozet--duzenli">
-                      {altSatir1.length > 0 ? (
-                        <div className="fatura-musteri-ozet-satir fatura-musteri-ozet-satir--2">
-                          {altSatir1.map((alanId) => (
-                            <div key={alanId} className="fatura-musteri-ozet-slot">
-                              {belgeCariAlanIcerik(alanId, seciliCari, 'alt')}
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                      {altSatir2.length > 0 ? (
-                        <div className="fatura-musteri-ozet-satir fatura-musteri-ozet-satir--4">
-                          {altSatir2.map((alanId) => (
-                            <div key={alanId} className="fatura-musteri-ozet-slot">
-                              {belgeCariAlanIcerik(alanId, seciliCari, 'alt')}
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                      {altSatir3.length > 0 ? (
-                        <div className="fatura-musteri-ozet-satir fatura-musteri-ozet-satir--2">
-                          {altSatir3.map((alanId) => (
-                            <div key={alanId} className="fatura-musteri-ozet-slot">
-                              {belgeCariAlanIcerik(alanId, seciliCari, 'alt')}
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
+                      {altSatirGruplari.map((satir, sira) => {
+                        const sutun = cariAlanDuzeni.altSatirlar[sira] ?? satir.length;
+                        return (
+                          <div
+                            key={`alt-satir-${sira}`}
+                            className={`fatura-musteri-ozet-satir fatura-musteri-ozet-satir--n${sutun}`}
+                          >
+                            {satir.map((alanId) => (
+                              <div key={alanId} className="fatura-musteri-ozet-slot">
+                                {belgeCariAlanIcerik(alanId, seciliCari, 'alt')}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
                       {cariAlanDuzeni.alt.length === 0 ? (
                         <p className="fatura-cari-ozet-bos">Alt alanda gösterilecek alan yok — Alanları Yönet’ten ekleyin.</p>
                       ) : null}
@@ -1853,20 +2058,24 @@ export function FaturaModulu({
             </div>
             <div className="fatura-alt-finans-ozet-ozetler">
               <div className="fatura-alt-finans-ozet-kalem">
-                <span>Toplam İskonto</span>
-                <strong>{para(toplamlar.iskontoToplam)}</strong>
+                <span>Toplam Tutar</span>
+                <strong>{para(toplamlar.tutar)}</strong>
               </div>
               <div className="fatura-alt-finans-ozet-kalem">
-                <span>Toplam KDV</span>
-                <strong>{para(toplamlar.kdvToplam)}</strong>
+                <span>Toplam İskonto</span>
+                <strong>{para(toplamlar.iskontoToplam)}</strong>
               </div>
               <div className="fatura-alt-finans-ozet-kalem">
                 <span>Ara Toplam</span>
                 <strong>{para(toplamlar.araToplam)}</strong>
               </div>
+              <div className="fatura-alt-finans-ozet-kalem">
+                <span>Toplam KDV</span>
+                <strong>{para(toplamlar.kdvToplam)}</strong>
+              </div>
               <div className="fatura-alt-finans-ozet-kalem fatura-alt-finans-ozet-kalem--toplam">
-                <span>Toplam Tutar</span>
-                <strong>{para(toplamlar.tutar)}</strong>
+                <span>Genel Toplam</span>
+                <strong>{para(toplamlar.genelToplam)}</strong>
               </div>
             </div>
           </div>
@@ -1884,7 +2093,7 @@ export function FaturaModulu({
 
       <FaturaCariBulModal
         acik={cariBulAcik}
-        cariler={filtrelenmisCariler}
+        cariler={cariler}
         onKapat={() => setCariBulAcik(false)}
         onSec={(id) => {
           setCariId(id);

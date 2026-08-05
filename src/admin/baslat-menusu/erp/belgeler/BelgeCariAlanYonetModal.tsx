@@ -1,20 +1,25 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { SistemModal, SistemModalAksiyonlar } from '@/admin/ortak/SistemModal';
 import {
-  BELGE_CARI_ALAN_ALT_MAX,
   BELGE_CARI_ALAN_BOS,
   BELGE_CARI_ALAN_ETIKET,
   BELGE_CARI_ALAN_UST_MAX,
   BELGE_CARI_ALAN_VARSAYILAN,
+  BELGE_CARI_ALT_DUZEN_SECENEKLERI,
   belgeCariAlanCikar,
   belgeCariAlanDuzeniKaydet,
   belgeCariAlanEkle,
   belgeCariAlanHavuz,
   belgeCariAlanSiradaTasi,
   belgeCariAlanTakas,
+  belgeCariAltDuzenDegistir,
+  belgeCariAltDuzenId,
+  belgeCariAltKapasite,
+  belgeCariAltSatirlariBol,
   type BelgeCariAlanBolum,
   type BelgeCariAlanDuzeni,
   type BelgeCariAlanId,
+  type BelgeCariAltSatirlar,
 } from './belgeCariAlanDuzeni';
 
 interface BelgeCariAlanYonetModalProps {
@@ -48,27 +53,32 @@ export function BelgeCariAlanYonetModal({
   onKaydet,
 }: BelgeCariAlanYonetModalProps) {
   const [duzen, setDuzen] = useState<BelgeCariAlanDuzeni>(baslangic);
+  const [hedefBolum, setHedefBolum] = useState<BelgeCariAlanBolum>('ust');
   const [seciliUst, setSeciliUst] = useState<number | null>(null);
   const [seciliAlt, setSeciliAlt] = useState<number | null>(null);
-  const [seciliHavuz, setSeciliHavuz] = useState<BelgeCariAlanId | null>(null);
-  const [sonBolum, setSonBolum] = useState<BelgeCariAlanBolum | null>(null);
   const [surukle, setSurukle] = useState<SurukleKaynak>(null);
   const [hedef, setHedef] = useState<{ bolum: BelgeCariAlanBolum; indeks: number } | null>(null);
   const surukleRef = useRef<SurukleKaynak>(null);
 
   const havuz = useMemo(() => belgeCariAlanHavuz(duzen), [duzen]);
-  const degistirGorunur = seciliUst != null && seciliAlt != null;
+  const altMax = belgeCariAltKapasite(duzen.altSatirlar);
+  const altSatirGruplari = useMemo(
+    () => belgeCariAltSatirlariBol(duzen.alt, duzen.altSatirlar),
+    [duzen.alt, duzen.altSatirlar]
+  );
+  const aktifDuzenId = belgeCariAltDuzenId(duzen.altSatirlar);
+  const seciliIndeks = hedefBolum === 'ust' ? seciliUst : seciliAlt;
 
   useEffect(() => {
     if (!acik) return;
     setDuzen({
       ust: [...baslangic.ust],
       alt: [...baslangic.alt],
+      altSatirlar: [...baslangic.altSatirlar],
     });
+    setHedefBolum('ust');
     setSeciliUst(null);
     setSeciliAlt(null);
-    setSeciliHavuz(null);
-    setSonBolum(null);
     setSurukle(null);
     surukleRef.current = null;
     setHedef(null);
@@ -77,8 +87,6 @@ export function BelgeCariAlanYonetModal({
   function secimleriTemizle() {
     setSeciliUst(null);
     setSeciliAlt(null);
-    setSeciliHavuz(null);
-    setSonBolum(null);
   }
 
   function kaydet() {
@@ -91,111 +99,62 @@ export function BelgeCariAlanYonetModal({
     setDuzen({
       ust: [...BELGE_CARI_ALAN_VARSAYILAN.ust],
       alt: [...BELGE_CARI_ALAN_VARSAYILAN.alt],
+      altSatirlar: [...BELGE_CARI_ALAN_VARSAYILAN.altSatirlar],
     });
     secimleriTemizle();
   }
 
   function sifirla() {
-    setDuzen({ ust: [...BELGE_CARI_ALAN_BOS.ust], alt: [...BELGE_CARI_ALAN_BOS.alt] });
+    setDuzen({
+      ust: [...BELGE_CARI_ALAN_BOS.ust],
+      alt: [...BELGE_CARI_ALAN_BOS.alt],
+      altSatirlar: [...BELGE_CARI_ALAN_BOS.altSatirlar],
+    });
     secimleriTemizle();
   }
 
-  function bolumSec(bolum: BelgeCariAlanBolum, indeks: number, zorla = false) {
-    setSeciliHavuz(null);
-    setSonBolum(bolum);
-    if (bolum === 'ust') {
-      setSeciliUst((onceki) => (!zorla && onceki === indeks ? null : indeks));
-    } else {
-      setSeciliAlt((onceki) => (!zorla && onceki === indeks ? null : indeks));
-    }
-  }
-
-  function havuzSec(id: BelgeCariAlanId, zorla = false) {
-    setSeciliUst(null);
+  function altDuzenSec(satirlar: BelgeCariAltSatirlar) {
+    setDuzen((onceki) => belgeCariAltDuzenDegistir(onceki, satirlar));
     setSeciliAlt(null);
-    setSonBolum(null);
-    setSeciliHavuz((onceki) => (!zorla && onceki === id ? null : id));
   }
 
-  function seciliyiTasi(hedefBolum: BelgeCariAlanBolum) {
-    const max = hedefBolum === 'ust' ? BELGE_CARI_ALAN_UST_MAX : BELGE_CARI_ALAN_ALT_MAX;
-
-    if (seciliHavuz) {
-      if (duzen[hedefBolum].length >= max) return;
-      const id = seciliHavuz;
-      setDuzen((onceki) => belgeCariAlanEkle(onceki, hedefBolum, id));
-      setSeciliHavuz(null);
-      if (hedefBolum === 'ust') setSeciliUst(duzen.ust.length);
-      else setSeciliAlt(duzen.alt.length);
-      setSonBolum(hedefBolum);
-      return;
-    }
-
-    const kaynakBolum: BelgeCariAlanBolum | null =
-      hedefBolum === 'ust' ? (seciliAlt != null ? 'alt' : null) : seciliUst != null ? 'ust' : null;
-    const kaynakIndeks = kaynakBolum === 'ust' ? seciliUst : kaynakBolum === 'alt' ? seciliAlt : null;
-    if (kaynakBolum == null || kaynakIndeks == null) return;
-    if (kaynakBolum === hedefBolum) return;
-
-    if (duzen[hedefBolum].length >= max) {
-      const hedefIndeks = Math.min(kaynakIndeks, Math.max(0, duzen[hedefBolum].length - 1));
-      setDuzen((onceki) =>
-        belgeCariAlanTakas(onceki, kaynakBolum, kaynakIndeks, hedefBolum, hedefIndeks)
-      );
-      if (hedefBolum === 'ust') {
-        setSeciliUst(hedefIndeks);
-        setSeciliAlt(null);
-      } else {
-        setSeciliAlt(hedefIndeks);
-        setSeciliUst(null);
-      }
-      setSonBolum(hedefBolum);
-      return;
-    }
-
-    const id = duzen[kaynakBolum][kaynakIndeks];
-    if (!id) return;
-    setDuzen((onceki) => {
-      const cikarildi = belgeCariAlanCikar(onceki, kaynakBolum, kaynakIndeks);
-      return belgeCariAlanEkle(cikarildi, hedefBolum, id);
-    });
-    if (hedefBolum === 'ust') {
-      setSeciliUst(duzen.ust.length);
+  function bolumSec(bolum: BelgeCariAlanBolum, indeks: number) {
+    setHedefBolum(bolum);
+    if (bolum === 'ust') {
+      setSeciliUst((onceki) => (onceki === indeks ? null : indeks));
       setSeciliAlt(null);
     } else {
-      setSeciliAlt(duzen.alt.length);
+      setSeciliAlt((onceki) => (onceki === indeks ? null : indeks));
       setSeciliUst(null);
     }
-    setSonBolum(hedefBolum);
   }
 
-  function degistir() {
-    if (seciliUst == null || seciliAlt == null) return;
-    setDuzen((onceki) => belgeCariAlanTakas(onceki, 'ust', seciliUst, 'alt', seciliAlt));
+  function havuzdanEkle(id: BelgeCariAlanId) {
+    const max = hedefBolum === 'ust' ? BELGE_CARI_ALAN_UST_MAX : altMax;
+    if (duzen[hedefBolum].length >= max) return;
+    setDuzen((onceki) => belgeCariAlanEkle(onceki, hedefBolum, id));
+    const yeniIndeks = duzen[hedefBolum].length;
+    if (hedefBolum === 'ust') setSeciliUst(yeniIndeks);
+    else setSeciliAlt(yeniIndeks);
   }
 
   function seciliyiKaldir() {
-    if (sonBolum == null) return;
-    const indeks = sonBolum === 'ust' ? seciliUst : seciliAlt;
-    if (indeks == null) return;
-    setDuzen((onceki) => belgeCariAlanCikar(onceki, sonBolum, indeks));
-    if (sonBolum === 'ust') setSeciliUst(null);
+    if (seciliIndeks == null) return;
+    setDuzen((onceki) => belgeCariAlanCikar(onceki, hedefBolum, seciliIndeks));
+    if (hedefBolum === 'ust') setSeciliUst(null);
     else setSeciliAlt(null);
-    setSonBolum(null);
   }
 
   function birAdim(yon: -1 | 1) {
-    if (sonBolum == null) return;
-    const indeks = sonBolum === 'ust' ? seciliUst : seciliAlt;
-    if (indeks == null) return;
-    const liste = duzen[sonBolum];
-    const yeniIndeks = indeks + yon;
+    if (seciliIndeks == null) return;
+    const liste = duzen[hedefBolum];
+    const yeniIndeks = seciliIndeks + yon;
     if (yeniIndeks < 0 || yeniIndeks >= liste.length) return;
     setDuzen((onceki) => ({
       ...onceki,
-      [sonBolum]: belgeCariAlanSiradaTasi(onceki[sonBolum], indeks, yeniIndeks),
+      [hedefBolum]: belgeCariAlanSiradaTasi(onceki[hedefBolum], seciliIndeks, yeniIndeks),
     }));
-    if (sonBolum === 'ust') setSeciliUst(yeniIndeks);
+    if (hedefBolum === 'ust') setSeciliUst(yeniIndeks);
     else setSeciliAlt(yeniIndeks);
   }
 
@@ -208,7 +167,14 @@ export function BelgeCariAlanYonetModal({
     const kaynak: SurukleKaynak = { tur: 'bolum', bolum, indeks, id };
     surukleRef.current = kaynak;
     setSurukle(kaynak);
-    bolumSec(bolum, indeks, true);
+    setHedefBolum(bolum);
+    if (bolum === 'ust') {
+      setSeciliUst(indeks);
+      setSeciliAlt(null);
+    } else {
+      setSeciliAlt(indeks);
+      setSeciliUst(null);
+    }
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', id);
     surukleHayaletAyarla(e, BELGE_CARI_ALAN_ETIKET[id]);
@@ -218,7 +184,6 @@ export function BelgeCariAlanYonetModal({
     const kaynak: SurukleKaynak = { tur: 'havuz', id };
     surukleRef.current = kaynak;
     setSurukle(kaynak);
-    havuzSec(id, true);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', id);
     surukleHayaletAyarla(e, BELGE_CARI_ALAN_ETIKET[id]);
@@ -250,30 +215,27 @@ export function BelgeCariAlanYonetModal({
 
     if (kaynak.tur === 'havuz') {
       setDuzen((onceki) => belgeCariAlanEkle(onceki, bolum, kaynak.id, indeks));
+      setHedefBolum(bolum);
       if (bolum === 'ust') setSeciliUst(indeks);
       else setSeciliAlt(indeks);
-      setSeciliHavuz(null);
-      setSonBolum(bolum);
     } else if (kaynak.bolum === bolum) {
       setDuzen((onceki) => ({
         ...onceki,
         [bolum]: belgeCariAlanSiradaTasi(onceki[bolum], kaynak.indeks, indeks),
       }));
+      setHedefBolum(bolum);
       if (bolum === 'ust') setSeciliUst(indeks);
       else setSeciliAlt(indeks);
-      setSonBolum(bolum);
     } else {
-      setDuzen((onceki) =>
-        belgeCariAlanTakas(onceki, kaynak.bolum, kaynak.indeks, bolum, indeks)
-      );
+      setDuzen((onceki) => belgeCariAlanTakas(onceki, kaynak.bolum, kaynak.indeks, bolum, indeks));
+      setHedefBolum(bolum);
       if (bolum === 'ust') {
         setSeciliUst(indeks);
-        setSeciliAlt(kaynak.indeks);
+        setSeciliAlt(null);
       } else {
         setSeciliAlt(indeks);
-        setSeciliUst(kaynak.indeks);
+        setSeciliUst(null);
       }
-      setSonBolum(bolum);
     }
 
     surukleRef.current = null;
@@ -296,31 +258,38 @@ export function BelgeCariAlanYonetModal({
     baslik,
     max,
     idler,
+    aciklama,
   }: {
     bolum: BelgeCariAlanBolum;
     baslik: string;
     max: number;
     idler: BelgeCariAlanId[];
+    aciklama: string;
   }) {
-    const seciliIndeks = bolum === 'ust' ? seciliUst : seciliAlt;
+    const secili = bolum === 'ust' ? seciliUst : seciliAlt;
+    const aktifHedef = hedefBolum === bolum;
     return (
       <div
-        className="fatura-alan-yonet-liste"
+        className={`fatura-alan-yonet-liste fatura-alan-yonet-liste--${bolum}${aktifHedef ? ' fatura-alan-yonet-liste--hedef' : ''}`}
         onDragOver={(e) => onDragOverListe(e, bolum)}
         onDrop={(e) => onDropListeSonu(e, bolum)}
+        onClick={() => setHedefBolum(bolum)}
       >
         <div className="fatura-alan-yonet-liste-baslik">
-          <strong>{baslik}</strong>
-          <span>
+          <div className="fatura-alan-yonet-liste-baslik-sol">
+            <strong>{baslik}</strong>
+            <span className="fatura-alan-yonet-liste-aciklama">{aciklama}</span>
+          </div>
+          <span className="fatura-alan-yonet-adet">
             {idler.length}/{max}
           </span>
         </div>
         <ul className="fatura-alan-yonet-ul">
           {idler.length === 0 ? (
-            <li className="fatura-alan-yonet-bos">Boş — havuzdan ekle</li>
+            <li className="fatura-alan-yonet-bos">Boş — alttan alan ekleyin</li>
           ) : (
             idler.map((id, indeks) => {
-              const aktif = seciliIndeks === indeks;
+              const aktif = secili === indeks;
               const hedefMi = hedef?.bolum === bolum && hedef.indeks === indeks;
               const surukleniyor =
                 surukle?.tur === 'bolum' && surukle.bolum === bolum && surukle.indeks === indeks;
@@ -335,7 +304,10 @@ export function BelgeCariAlanYonetModal({
                   onDragOver={(e) => onDragOverBolum(e, bolum, indeks)}
                   onDrop={(e) => onDropBolum(e, bolum, indeks)}
                   onDragEnd={onDragEnd}
-                  onClick={() => bolumSec(bolum, indeks)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    bolumSec(bolum, indeks);
+                  }}
                 >
                   <span className="fatura-alan-yonet-surukle" aria-hidden>
                     ⠿
@@ -351,20 +323,16 @@ export function BelgeCariAlanYonetModal({
     );
   }
 
-  const aktifIndeks = sonBolum === 'ust' ? seciliUst : sonBolum === 'alt' ? seciliAlt : null;
-  const ustTasiKapali =
-    (!seciliHavuz && seciliAlt == null) ||
-    (Boolean(seciliHavuz) && duzen.ust.length >= BELGE_CARI_ALAN_UST_MAX);
-  const altTasiKapali =
-    (!seciliHavuz && seciliUst == null) ||
-    (Boolean(seciliHavuz) && duzen.alt.length >= BELGE_CARI_ALAN_ALT_MAX);
+  const ustDolu = duzen.ust.length >= BELGE_CARI_ALAN_UST_MAX;
+  const altDolu = duzen.alt.length >= altMax;
+  const hedefDolu = hedefBolum === 'ust' ? ustDolu : altDolu;
 
   return (
     <SistemModal
       acik={acik}
       onKapat={onKapat}
       baslik="Alanları Yönet"
-      altBaslik={`Üst en fazla ${BELGE_CARI_ALAN_UST_MAX} · Alt en fazla ${BELGE_CARI_ALAN_ALT_MAX} (2+4+2)`}
+      altBaslik="Alan seç · sırala · alt düzenini ayarla"
       genislik="lg"
       ustCizgi={false}
       disariTiklaKapat={false}
@@ -386,159 +354,180 @@ export function BelgeCariAlanYonetModal({
       }
     >
       <div className="fatura-alan-yonet">
-        <div className="fatura-alan-yonet-sol">
-          <div className="fatura-alan-yonet-kart">
-            <p className="fatura-alan-yonet-bolum-etiket">Üst önizleme (yan yana)</p>
-            <div className="fatura-alan-yonet-ust-onizle">
-              {duzen.ust.length === 0 ? (
-                <span className="fatura-alan-yonet-chip fatura-alan-yonet-chip--bos">Alan yok</span>
-              ) : (
-                duzen.ust.map((id) => (
-                  <span key={`u-${id}`} className="fatura-alan-yonet-chip">
-                    {BELGE_CARI_ALAN_ETIKET[id]}
-                  </span>
-                ))
-              )}
-            </div>
+        {/* Satır 1: üst önizleme | üst alanlar */}
+        <section className="fatura-alan-yonet-onizle fatura-alan-yonet-onizle--ust" aria-label="Üst önizleme">
+          <span className="fatura-alan-yonet-onizle-etiket">Üst görünüm</span>
+          <div className="fatura-alan-yonet-onizle-ust">
+            {duzen.ust.length === 0 ? (
+              <span className="fatura-alan-yonet-chip fatura-alan-yonet-chip--bos">Alan yok</span>
+            ) : (
+              duzen.ust.map((id) => (
+                <span key={`u-${id}`} className="fatura-alan-yonet-chip" title={BELGE_CARI_ALAN_ETIKET[id]}>
+                  {BELGE_CARI_ALAN_ETIKET[id]}
+                </span>
+              ))
+            )}
           </div>
+          <p className="fatura-alan-yonet-onizle-uyari">
+            Belgede yan yana durur — burada satır kırılması yalnızca önizlemedir.
+          </p>
+        </section>
 
-          <div className="fatura-alan-yonet-kart">
-            <p className="fatura-alan-yonet-bolum-etiket">Alt önizleme (2 · 4 · 2)</p>
-            <div className="fatura-alan-yonet-alt-onizle">
-              {duzen.alt.length === 0 ? (
-                <span className="fatura-alan-yonet-chip fatura-alan-yonet-chip--bos">Alan yok</span>
-              ) : (
-                <>
-                  <div className="fatura-alan-yonet-alt-satir fatura-alan-yonet-alt-satir--2">
-                    {duzen.alt.slice(0, 2).map((id) => (
-                      <span key={`a0-${id}`} className="fatura-alan-yonet-chip">
+        <Liste
+          bolum="ust"
+          baslik="Üst alanlar"
+          max={BELGE_CARI_ALAN_UST_MAX}
+          idler={duzen.ust}
+          aciklama="Yan yana"
+        />
+
+        {/* Satır 2: alt düzen | üste/alta ekle */}
+        <div className="fatura-alan-yonet-duzen" role="group" aria-label="Alt satır düzeni">
+          <span className="fatura-alan-yonet-duzen-label">Alt düzen</span>
+          <div className="fatura-alan-yonet-duzen-satir">
+            {BELGE_CARI_ALT_DUZEN_SECENEKLERI.map((secenek) => {
+              const aktif = aktifDuzenId === secenek.id;
+              return (
+                <button
+                  key={secenek.id}
+                  type="button"
+                  className={`fatura-alan-yonet-duzen-pill${aktif ? ' fatura-alan-yonet-duzen-pill--aktif' : ''}`}
+                  title={secenek.aciklama}
+                  aria-pressed={aktif}
+                  onClick={() => altDuzenSec(secenek.satirlar)}
+                >
+                  {secenek.etiket}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="fatura-alan-yonet-hedef-secim" role="tablist" aria-label="Ekleme hedefi">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={hedefBolum === 'ust'}
+            className={`fatura-alan-yonet-hedef-tus${hedefBolum === 'ust' ? ' fatura-alan-yonet-hedef-tus--aktif' : ''}`}
+            onClick={() => setHedefBolum('ust')}
+          >
+            Üste ekle
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={hedefBolum === 'alt'}
+            className={`fatura-alan-yonet-hedef-tus${hedefBolum === 'alt' ? ' fatura-alan-yonet-hedef-tus--aktif' : ''}`}
+            onClick={() => setHedefBolum('alt')}
+          >
+            Alta ekle
+          </button>
+        </div>
+
+        {/* Satır 3: alt önizleme | alt alanlar */}
+        <section className="fatura-alan-yonet-onizle fatura-alan-yonet-onizle--alt" aria-label="Alt önizleme">
+          <span className="fatura-alan-yonet-onizle-etiket">Alt görünüm</span>
+          <div className="fatura-alan-yonet-onizle-alt">
+            {duzen.alt.length === 0 ? (
+              <span className="fatura-alan-yonet-chip fatura-alan-yonet-chip--bos">Alan yok</span>
+            ) : (
+              altSatirGruplari.map((satir, sira) => {
+                const sutun = duzen.altSatirlar[sira] ?? satir.length;
+                return (
+                  <div
+                    key={`as-${sira}`}
+                    className="fatura-alan-yonet-alt-satir"
+                    style={{ gridTemplateColumns: `repeat(${sutun}, minmax(0, 1fr))` }}
+                  >
+                    {satir.map((id) => (
+                      <span
+                        key={`a-${sira}-${id}`}
+                        className="fatura-alan-yonet-chip"
+                        title={BELGE_CARI_ALAN_ETIKET[id]}
+                      >
                         {BELGE_CARI_ALAN_ETIKET[id]}
                       </span>
                     ))}
                   </div>
-                  {duzen.alt.length > 2 ? (
-                    <div className="fatura-alan-yonet-alt-satir fatura-alan-yonet-alt-satir--4">
-                      {duzen.alt.slice(2, 6).map((id) => (
-                        <span key={`a1-${id}`} className="fatura-alan-yonet-chip">
-                          {BELGE_CARI_ALAN_ETIKET[id]}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                  {duzen.alt.length > 6 ? (
-                    <div className="fatura-alan-yonet-alt-satir fatura-alan-yonet-alt-satir--2">
-                      {duzen.alt.slice(6, 8).map((id) => (
-                        <span key={`a2-${id}`} className="fatura-alan-yonet-chip">
-                          {BELGE_CARI_ALAN_ETIKET[id]}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </>
-              )}
-            </div>
+                );
+              })
+            )}
           </div>
+        </section>
 
-          <div className="fatura-alan-yonet-kart fatura-alan-yonet-kart--havuz">
-            <div className="fatura-alan-yonet-liste-baslik">
-              <strong>Kullanılmayan alanlar</strong>
-              <span>{havuz.length}</span>
-            </div>
-            <ul className="fatura-alan-yonet-ul fatura-alan-yonet-ul--havuz">
-              {havuz.length === 0 ? (
-                <li className="fatura-alan-yonet-bos">Tüm alanlar yerleştirildi</li>
-              ) : (
-                havuz.map((id) => {
-                  const aktif = seciliHavuz === id;
-                  const surukleniyor = surukle?.tur === 'havuz' && surukle.id === id;
-                  return (
-                    <li
-                      key={`h-${id}`}
-                      className={`fatura-alan-yonet-oge${aktif ? ' fatura-alan-yonet-oge--aktif' : ''}${
-                        surukleniyor ? ' fatura-alan-yonet-oge--surukleniyor' : ''
-                      }`}
-                      draggable
-                      onDragStart={(e) => onDragStartHavuz(e, id)}
-                      onDragEnd={onDragEnd}
-                      onClick={() => havuzSec(id)}
-                    >
-                      <span className="fatura-alan-yonet-surukle" aria-hidden>
-                        ⠿
-                      </span>
-                      <span className="fatura-alan-yonet-ad">{BELGE_CARI_ALAN_ETIKET[id]}</span>
-                    </li>
-                  );
-                })
-              )}
-            </ul>
+        <Liste
+          bolum="alt"
+          baslik="Alt alanlar"
+          max={altMax}
+          idler={duzen.alt}
+          aciklama={duzen.altSatirlar.join(' · ')}
+        />
+
+        {/* Alt şerit: havuz + araçlar */}
+        <section className="fatura-alan-yonet-havuz">
+          <div className="fatura-alan-yonet-havuz-baslik">
+            <strong>Eklenecek alanlar</strong>
+            <span>{havuz.length}</span>
           </div>
-        </div>
+          <div className="fatura-alan-yonet-havuz-chip-ler">
+            {havuz.length === 0 ? (
+              <p className="fatura-alan-yonet-bos">Hepsi yerleşti</p>
+            ) : (
+              havuz.map((id) => {
+                const surukleniyor = surukle?.tur === 'havuz' && surukle.id === id;
+                return (
+                  <button
+                    key={`h-${id}`}
+                    type="button"
+                    className={`fatura-alan-yonet-havuz-chip${surukleniyor ? ' fatura-alan-yonet-havuz-chip--surukleniyor' : ''}${
+                      hedefDolu ? ' fatura-alan-yonet-havuz-chip--kapali' : ''
+                    }`}
+                    disabled={hedefDolu}
+                    draggable={!hedefDolu}
+                    onDragStart={(e) => onDragStartHavuz(e, id)}
+                    onDragEnd={onDragEnd}
+                    onClick={() => havuzdanEkle(id)}
+                    title={hedefDolu ? 'Seçili bölüm dolu' : `${BELGE_CARI_ALAN_ETIKET[id]} ekle`}
+                  >
+                    + {BELGE_CARI_ALAN_ETIKET[id]}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </section>
 
-        <div className="fatura-alan-yonet-sag">
+        <div className="fatura-alan-yonet-alt-bar">
           <div className="fatura-alan-yonet-araclar">
-            <div className="fatura-alan-yonet-tasi-sutun">
-              <button
-                type="button"
-                className="ap-sistem-modal-btn"
-                disabled={ustTasiKapali}
-                onClick={() => seciliyiTasi('ust')}
-              >
-                Üste ekle
-              </button>
-              <button
-                type="button"
-                className="ap-sistem-modal-btn"
-                disabled={altTasiKapali}
-                onClick={() => seciliyiTasi('alt')}
-              >
-                Alta ekle
-              </button>
-            </div>
             <button
               type="button"
-              className="ap-sistem-modal-btn"
-              disabled={!degistirGorunur}
-              onClick={degistir}
+              className="ap-sistem-modal-btn fatura-alan-yonet-ok"
+              disabled={seciliIndeks == null || seciliIndeks === 0}
+              onClick={() => birAdim(-1)}
+              title="Yukarı"
             >
-              Değiştir
+              ▲
+            </button>
+            <button
+              type="button"
+              className="ap-sistem-modal-btn fatura-alan-yonet-ok"
+              disabled={seciliIndeks == null || seciliIndeks >= duzen[hedefBolum].length - 1}
+              onClick={() => birAdim(1)}
+              title="Aşağı"
+            >
+              ▼
             </button>
             <button
               type="button"
               className="ap-sistem-modal-btn"
-              disabled={aktifIndeks == null || sonBolum == null}
+              disabled={seciliIndeks == null}
               onClick={seciliyiKaldir}
             >
               Kaldır
             </button>
-            <div className="fatura-alan-yonet-oklar">
-              <button
-                type="button"
-                className="ap-sistem-modal-btn fatura-alan-yonet-ok"
-                disabled={aktifIndeks == null || sonBolum == null || aktifIndeks === 0}
-                onClick={() => birAdim(-1)}
-                title="Yukarı"
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                className="ap-sistem-modal-btn fatura-alan-yonet-ok"
-                disabled={
-                  aktifIndeks == null ||
-                  sonBolum == null ||
-                  aktifIndeks >= duzen[sonBolum].length - 1
-                }
-                onClick={() => birAdim(1)}
-                title="Aşağı"
-              >
-                ▼
-              </button>
-            </div>
           </div>
-          <Liste bolum="ust" baslik="Üst alanlar" max={BELGE_CARI_ALAN_UST_MAX} idler={duzen.ust} />
-          <Liste bolum="alt" baslik="Alt alanlar" max={BELGE_CARI_ALAN_ALT_MAX} idler={duzen.alt} />
           <p className="fatura-alan-yonet-ipucu">
-            Üst ve alttan birer alan seçince Değiştir görünür. Havuzdan seçip Üste/Alta ekle veya sürükle.
+            Ortadaki hedefe göre alan ekle · sürükle veya ▲▼ ile sırala
           </p>
         </div>
       </div>
