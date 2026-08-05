@@ -23,13 +23,20 @@ function kimlikSatiri(cari: AdminCari): { baslik: string; deger: string } {
   };
 }
 
-function fiyatOzet(tanim: string, secim: string, yon: 'alis' | 'satis'): { sol: string; sag: string } {
-  const secenekler = stokCokluFiyatAdlariGetir(tanim, yon);
+function fiyatOzet(
+  tanim: string | null | undefined,
+  secim: string | null | undefined,
+  yon: 'alis' | 'satis'
+): { sol: string; sag: string } {
+  const tanimMetin = (tanim ?? '').trim();
+  const secimMetin = (secim ?? '').trim();
+  const secenekler = stokCokluFiyatAdlariGetir(tanimMetin, yon);
   const secimEtiket =
-    secenekler.find((s) => s.value === secim)?.label ?? (secim.trim() ? secim.trim() : 'Ana Fiyat');
+    secenekler.find((s) => s.value === secimMetin)?.label ??
+    (secimMetin ? secimMetin : 'Ana Fiyat');
   return {
-    sol: tanim.trim() ? tanim.trim() : 'FİYAT',
-    sag: tanim.trim() ? secimEtiket : 'Standart',
+    sol: tanimMetin ? tanimMetin : 'FİYAT',
+    sag: tanimMetin ? secimEtiket : 'Standart',
   };
 }
 

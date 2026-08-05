@@ -5,6 +5,36 @@ const TABAN = '/cariler';
 
 export type CariSilModu = 'hepsi' | 'pasif';
 
+/** API yanıtında eksik gelebilecek string alanları güvenli hale getirir */
+function cariNormalize(c: AdminCari): AdminCari {
+  return {
+    ...c,
+    ustId: c.ustId ?? '',
+    isletmeTuru: c.isletmeTuru ?? '',
+    unvan: c.unvan ?? '',
+    alisFiyatTanimi: c.alisFiyatTanimi ?? '',
+    alisFiyatSecimi: c.alisFiyatSecimi ?? '',
+    satisFiyatTanimi: c.satisFiyatTanimi ?? '',
+    satisFiyatSecimi: c.satisFiyatSecimi ?? '',
+    yetkili: c.yetkili ?? '',
+    vergiDairesi: c.vergiDairesi ?? '',
+    vergiNo: c.vergiNo ?? '',
+    il: c.il ?? '',
+    ilce: c.ilce ?? '',
+    adres: c.adres ?? '',
+    telefon: c.telefon ?? '',
+    telefonDahili: c.telefonDahili ?? '',
+    gsm: c.gsm ?? '',
+    eposta: c.eposta ?? '',
+    web: c.web ?? '',
+    earsiv: c.earsiv ?? false,
+    efaturaTipi: c.efaturaTipi ?? '',
+    alias: c.alias ?? '',
+    earsivAlias: c.earsivAlias ?? '',
+    earsivTeslimSekli: c.earsivTeslimSekli ?? '',
+  };
+}
+
 function cariSilIstegi(id: string, mod?: CariSilModu) {
   return adminJsonFetch(`${TABAN}/${id}`, {
     method: 'DELETE',
@@ -18,7 +48,7 @@ export async function carileriGetir(cariTipi?: CariTipi | ''): Promise<AdminCari
   const veri = await adminJsonFetch<{ cariler: AdminCari[] }>(`${TABAN}${sorgu}`, {
     headers: adminHeaders(),
   });
-  return veri.cariler ?? [];
+  return (veri.cariler ?? []).map(cariNormalize);
 }
 
 export async function cariOlustur(form: CariFormDegeri): Promise<AdminCari> {
@@ -27,7 +57,7 @@ export async function cariOlustur(form: CariFormDegeri): Promise<AdminCari> {
     headers: adminHeaders(),
     body: JSON.stringify(form),
   });
-  return veri.cari;
+  return cariNormalize(veri.cari);
 }
 
 export async function cariGuncelle(id: string, form: CariFormDegeri): Promise<AdminCari> {
@@ -36,7 +66,7 @@ export async function cariGuncelle(id: string, form: CariFormDegeri): Promise<Ad
     headers: adminHeaders(),
     body: JSON.stringify(form),
   });
-  return veri.cari;
+  return cariNormalize(veri.cari);
 }
 
 export async function cariSil(id: string, mod?: CariSilModu): Promise<void> {

@@ -301,8 +301,8 @@ export function stokMiktarIsareti(yon: BelgeYon, tur: BelgeTur): number {
 }
 
 /** Satış tarafı müşteri tipleri; alış tarafı tedarikçi */
-export function cariTipiBelgeyeUygunMu(yon: BelgeYon, cariTipi: string): boolean {
-  const tip = cariTipi.trim().toLocaleUpperCase('tr');
+export function cariTipiBelgeyeUygunMu(yon: BelgeYon, cariTipi: string | null | undefined): boolean {
+  const tip = (cariTipi ?? '').trim().toLocaleUpperCase('tr');
   if (!tip) return true;
   const musteri = new Set(['ALICI', 'BAYI', 'DAGITICI', 'SON_KULLANICI', 'MUSTERI']);
   const tedarikci = new Set(['SATICI', 'TEDARIKCI', 'TEDARİKÇİ']);

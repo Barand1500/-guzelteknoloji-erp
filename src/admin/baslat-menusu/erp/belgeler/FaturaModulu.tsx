@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { FormAcilirSecim } from '@/formlar/FormAcilirSecim';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import type { DataGridApi, HizliGirisApi, HizliGirisEnterBaglami } from '@/admin/ortak/datagrid/types';
 import { sayiFormatla } from '@/admin/ortak/datagrid/formatYardimci';
@@ -1066,7 +1067,9 @@ export function FaturaModulu({
         const sku = u.sku.toLocaleLowerCase('tr');
         const ad = u.ad.toLocaleLowerCase('tr');
         if (sku === kod || sku === tam || ad === tam) return true;
-        return (u.barkodlar ?? []).some((b) => b.trim().toLocaleLowerCase('tr') === tam);
+        return (u.barkodlar ?? []).some(
+          (b) => (b ?? '').trim().toLocaleLowerCase('tr') === tam
+        );
       });
     },
     [katalog]
@@ -1815,18 +1818,21 @@ export function FaturaModulu({
           <div className="fatura-alt-finans-ozet-satir">
             <div className="fatura-alt-finans-ozet-kalem fatura-alt-finans-ozet-kalem--iskonto">
               <div className="fatura-alt-iskonto-girdi">
-                <select
+                <FormAcilirSecim
                   className="fatura-alt-iskonto-secim"
                   disabled={saltOkunur}
                   value={belgeIskontoModu}
                   aria-label="İskonto türü"
-                  onChange={(e) =>
-                    belgeIskontoModuDegistir(e.target.value === 'TUTAR' ? 'TUTAR' : 'ORAN')
+                  listeYonu="yukari"
+                  listeMaxYukseklik={120}
+                  secenekler={[
+                    { value: 'ORAN', label: 'İskonto Oranı' },
+                    { value: 'TUTAR', label: 'İskonto Tutarı' },
+                  ]}
+                  onChange={(v) =>
+                    belgeIskontoModuDegistir(v === 'TUTAR' ? 'TUTAR' : 'ORAN')
                   }
-                >
-                  <option value="ORAN">İskonto Oranı</option>
-                  <option value="TUTAR">İskonto Tutarı</option>
-                </select>
+                />
                 <div className="fatura-alt-iskonto-alan">
                   <input
                     type="text"

@@ -134,15 +134,15 @@ export function TarihSecici({
       if (!el) return;
       const r = el.getBoundingClientRect();
       const panel = panelRef.current;
-      const genislik = panel?.offsetWidth || 280;
+      const genislik = panel?.offsetWidth || 272;
       const yukseklik = panel?.offsetHeight || 320;
-      const kenar = 10;
+      const kenar = 8;
       const vw = document.documentElement.clientWidth;
       const vh = document.documentElement.clientHeight;
 
-      /* Sağa yasla ama tetik sağından biraz içeri (çok sola kaçmasın) */
+      /* Alan sağ kenarına hizalı (takvim daha geniş → sola taşar) */
       let sol = r.right - genislik + 55;
-      if (sol < kenar) sol = r.left;
+      if (sol < kenar) sol = Math.min(r.left, vw - genislik - kenar);
       sol = Math.max(kenar, Math.min(sol, vw - genislik - kenar));
 
       let ust = r.bottom + 6;
@@ -155,10 +155,7 @@ export function TarihSecici({
     }
 
     konumGuncelle();
-    const raf = requestAnimationFrame(() => {
-      konumGuncelle();
-      requestAnimationFrame(konumGuncelle);
-    });
+    const raf = requestAnimationFrame(konumGuncelle);
     window.addEventListener('resize', konumGuncelle);
     window.addEventListener('scroll', konumGuncelle, true);
     return () => {

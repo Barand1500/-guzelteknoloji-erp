@@ -1049,11 +1049,16 @@
   min-width: 0;
 }
 
-.fatura-alt-iskonto-secim {
+.fatura-alt-iskonto-secim.ap-form-acilir-secim {
   flex: 0 0 auto;
+  width: auto;
+  max-width: 8.6rem;
+}
+
+.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus {
   height: 2rem;
   max-width: 8.6rem;
-  padding: 0 1.4rem 0 0.45rem;
+  padding: 0 0.35rem 0 0.45rem;
   border: 1px solid color-mix(in srgb, var(--ap-border) 88%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--ap-surface) 92%, transparent);
@@ -1063,16 +1068,24 @@
   font-weight: 650;
   outline: none;
   cursor: pointer;
+  gap: 0.2rem;
 }
 
-.fatura-alt-iskonto-secim:focus {
+.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus:focus,
+.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus:focus-visible,
+.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus[aria-expanded='true'] {
   border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ap-accent) 16%, transparent);
 }
 
-.fatura-alt-iskonto-secim:disabled {
+.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus:disabled {
   opacity: 0.75;
   cursor: default;
+}
+
+.fatura-alt-iskonto-secim .ap-form-acilir-secim-tus-metin {
+  font-size: 0.72rem;
+  font-weight: 650;
 }
 
 .fatura-alt-iskonto-alan {
@@ -2847,24 +2860,45 @@
 }
 
 .fatura-hizli-stok-modal--detayli {
-  padding: 0.5rem !important;
-  align-items: stretch;
+  /* Üst/alt turuncu çerçeve içinde kalsın — kenara yapışmasın */
+  /* 2. değer yatay, 1.=üst, 4.=alt */
+  padding: 3.5rem 0.85rem 3.75rem !important;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .fatura-hizli-stok-modal--detayli .fatura-hizli-stok-cerceve--detayli {
   /* Sayfa genişliğine yakın — tanım kayıt 34rem sınırını ezer */
-  width: calc(100vw - 1rem) !important;
-  max-width: calc(100vw - 1rem);
-  max-height: calc(100vh - 1rem);
+  width: calc(100vw - 1.7rem) !important;
+  max-width: calc(100vw - 1.7rem);
+  max-height: calc(100vh - 7.5rem);
   margin: auto;
   align-self: center;
+  display: flex;
+  flex-direction: column;
+  /* Kart taşınca alt dönen çizgiyi örtmesin */
+  min-height: 0;
+}
+
+/* İçerik kutu içinde kalsın — 4px accent halkası görünür kalsın */
+.fatura-hizli-stok-modal--detayli .fatura-hizli-stok-cerceve--detayli > .erp-donen-cerceve-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .fatura-hizli-stok-modal--detayli .fatura-hizli-stok-kart,
 .fatura-hizli-stok-modal--detayli .fatura-hizli-stok-kart--detayli {
   width: 100% !important;
   max-width: none;
-  max-height: calc(100vh - 1rem);
+  /* Cerceve max-height ile aynı olmamalı — yoksa alt çizgiyi örter */
+  max-height: none;
+  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -2947,7 +2981,8 @@
 
 .fatura-hizli-stok-modal--detayli .stok-karti-kabuk--gomulu .stok-karti-icerik--gomulu {
   max-height: none;
-  padding: 0.15rem 0 1rem;
+  /* Alttaki boşluk (Birim Açıklama → footer arası) buradan */
+  padding: 0.15rem 0 0.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.9rem;

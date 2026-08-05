@@ -7,8 +7,8 @@ import { gecerliCariTipiKodu } from '@/admin/baslat-menusu/ozel-tanimlar/veri/ca
 
 const FATURA_TIPI_KODLARI = new Set<string>(FATURA_TIPLERI.map((t) => t.value));
 
-function faturaTipiNormalize(tip: string): string {
-  const ham = tip.trim().toLocaleUpperCase('tr');
+function faturaTipiNormalize(tip: string | null | undefined): string {
+  const ham = (tip ?? '').trim().toLocaleUpperCase('tr');
   const v = ham.replace(/\s+/g, '_').replace(/-/g, '_');
   if (v === 'TICARI_FATURA') return 'TICARI';
   /* Eski kayıtlarda fatura tipi olarak E-Arşiv vardı; artık ayrı alan */
@@ -20,9 +20,9 @@ function faturaTipiNormalize(tip: string): string {
   return 'TEMEL';
 }
 
-export function faturaTipiEtiketi(tip: string): string {
+export function faturaTipiEtiketi(tip: string | null | undefined): string {
   const kod = faturaTipiNormalize(tip);
-  return FATURA_TIPLERI.find((t) => t.value === kod)?.label ?? (tip.trim() || 'Temel');
+  return FATURA_TIPLERI.find((t) => t.value === kod)?.label ?? ((tip ?? '').trim() || 'Temel');
 }
 
 function iletisimKisileriniHazirla(c: AdminCari): CariIletisimKisi[] {
