@@ -15,6 +15,7 @@ import { BelgeListeFiltreYonetModal } from './BelgeListeFiltreYonetModal';
 import { belgeCariAlanIcerik } from './BelgeCariAlanGoster';
 import {
   belgeCariAlanDuzeniOku,
+  belgeCariAltDuzenId,
   belgeCariAltSatirlariBol,
   type BelgeCariAlanDuzeni,
 } from './belgeCariAlanDuzeni';
@@ -654,7 +655,13 @@ export function FaturaModulu({
       temizle();
       const hedef =
         sol.querySelector<HTMLElement>('.fatura-musteri-ozet, .fatura-cari-ozet-bos') ?? sol;
-      const h = Math.ceil(hedef.getBoundingClientRect().height);
+      const solH = Math.ceil(hedef.getBoundingClientRect().height);
+      const duzen4_4 = belgeCariAltDuzenId(cariAlanDuzeni.altSatirlar) === '4-4';
+      /* 4-4: sol iki sıra — yan sütunlar sola küçülsün; diğer/boş: ezilmesin */
+      const h =
+        duzen4_4 && seciliCari
+          ? solH
+          : Math.max(solH, Math.ceil(orta.scrollHeight), Math.ceil(sag.scrollHeight));
       if (h <= 0) return;
       /* minHeight yetmez — flex çocukların dolması için sabit height gerekir */
       orta.style.height = `${h}px`;
@@ -1840,7 +1847,14 @@ export function FaturaModulu({
         {baslikDetayAcik ? (
           <div id="fatura-ust-detay" className="fatura-ust-detay">
             <div className="fatura-ust-detay-bolum">
-              <div className="fatura-ust-musteri-grid" ref={musteriGridRef}>
+              <div
+                className={`fatura-ust-musteri-grid${
+                  belgeCariAltDuzenId(cariAlanDuzeni.altSatirlar) === '4-4'
+                    ? ' fatura-ust-musteri-grid--duzen-4-4'
+                    : ''
+                }`}
+                ref={musteriGridRef}
+              >
                 <div className="fatura-ust-detay-cari">
                   {seciliCari ? (
                     <div className="fatura-musteri-ozet fatura-musteri-ozet--modern fatura-musteri-ozet--duzenli">

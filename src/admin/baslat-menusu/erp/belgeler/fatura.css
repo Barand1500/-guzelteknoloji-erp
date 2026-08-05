@@ -343,13 +343,16 @@
   flex: 1.5 1 0;
   gap: 0;
   min-width: 240px;
+  min-height: 9.5rem;
   align-self: flex-start;
 }
 
 .fatura-ust-detay-cari .fatura-musteri-ozet,
 .fatura-ust-detay-cari .fatura-cari-ozet-bos {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .fatura-ust-lokasyon-sutun {
@@ -357,16 +360,16 @@
   gap: 6px;
   min-width: 140px;
   max-width: 200px;
+  min-height: 9.5rem;
   align-self: flex-start;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-/* Sabit sütun yüksekliğinde üç alan eşit dağılır */
+/* Sabit sütun yüksekliğinde üç alan eşit dağılır; boşken ezilmesin */
 .fatura-ust-lokasyon-sutun > .cari-outlined-field {
-  flex: 1 1 0;
-  height: 0;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 2.5rem;
   display: flex;
   flex-direction: column;
 }
@@ -410,15 +413,15 @@
 .fatura-ust-aciklama-sutun {
   flex: 1.25 1 0;
   min-width: 220px;
+  min-height: 9.5rem;
   align-self: flex-start;
   box-sizing: border-box;
   overflow: hidden;
 }
 
 .fatura-ust-aciklama-sutun > .cari-outlined-field {
-  flex: 1 1 0;
-  height: 0;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 8rem;
   display: flex;
   flex-direction: column;
 }
@@ -448,6 +451,29 @@
   min-height: 0 !important;
   height: 100%;
   resize: none;
+}
+
+/* 4·4: sol iki sıra — Şube/Depo/Kasa + Açıklama sola küçülsün, altta boşluk kalmasın */
+.fatura-ust-musteri-grid--duzen-4-4 .fatura-ust-detay-cari,
+.fatura-ust-musteri-grid--duzen-4-4 .fatura-ust-lokasyon-sutun,
+.fatura-ust-musteri-grid--duzen-4-4 .fatura-ust-aciklama-sutun {
+  min-height: 0;
+}
+
+.fatura-ust-musteri-grid--duzen-4-4 .fatura-ust-lokasyon-sutun {
+  gap: 4px;
+}
+
+.fatura-ust-musteri-grid--duzen-4-4 .fatura-ust-lokasyon-sutun > .cari-outlined-field {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+}
+
+.fatura-ust-musteri-grid--duzen-4-4 .fatura-ust-aciklama-sutun > .cari-outlined-field {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
 }
 
 .fatura-musteri-ozet {
@@ -2255,6 +2281,10 @@
   text-align: center;
   border: 1px dashed var(--ap-border);
   border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 9.5rem;
 }
 
 .fatura-genel-col--ozet {
