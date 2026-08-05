@@ -651,6 +651,52 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
     ipucu: 'Cari kartından çift tıklayarak hareket ekranına, oradan Belge Ekle ile forma geçebilirsiniz.',
   },
 
+  'belgeler-alan-yonet': {
+    baslik: 'Alanları Yönet Rehberi',
+    altBaslik: 'Cari bilgilerini belge formunda nasıl göstereceğini buradan kurarsın',
+    bolumBaslik: 'Adım adım',
+    kartlar: [
+      {
+        baslik: 'İki ayrı yer var — karıştırma',
+        aciklama:
+          'ÜST alanlar: cari adının hemen yanında, yan yana durur (küçük bilgi şeridi). ALT satırlar: oku açınca gördüğün detay kutusu — satır satır düzenlenir. Aynı alanı hem üste hem alta koyamazsın.',
+        renk: 'mor',
+      },
+      {
+        baslik: '1) Üste eklemek',
+        aciklama:
+          'Önce «Üste ekle»ye bas. Sonra alttaki alan listesinden (Telefon, E-Posta vb.) birine tıkla. Alan üst listede belirir. Sırayı ◀ ▶ ile değiştirirsin. Üstte en fazla 5 alan olur.',
+        renk: 'turuncu',
+      },
+      {
+        baslik: '2) Alta satır açmak (+1 +2 +3 +4)',
+        aciklama:
+          'Önce boş satır aç. +1 = tek yuvalı satır (ör. Adres tek başına). +2 = yan yana 2 yuva (ör. Telefon | GSM). +3 ve +4 aynı mantık. Bu butonlar alan eklemez; sadece kaç sütunluk satır istediğini söyler.',
+        renk: 'yesil',
+      },
+      {
+        baslik: '3) Boş yuvayı doldurmak',
+        aciklama:
+          '«Alta ekle»yi seç. Doldurmak istediğin satıra tıkla (aktif olsun). Sonra alttaki listeden alanı seç — boş yuvaya girer. ✕ ile alanı veya satırı silersin.',
+        renk: 'mavi',
+      },
+      {
+        baslik: '5+ satır olursa ne olur?',
+        aciklama:
+          'Alt satır sayısı 4’ü geçince form kaymasın diye Şube · Depo · Kasa yan yana tek satıra iner; Açıklama onların altına yayılır. 4 ve daha az satırda eski dikey düzen kalır. Yani 8 satır açsan bile Şube/Depo/Kasa şişip kocaman olmaz.',
+        renk: 'sari',
+      },
+      {
+        baslik: 'Kaydet / Varsayılan / Sıfırla',
+        aciklama:
+          'Kaydet: düzeni hatırlar, bir sonraki belgede aynı görünür. Varsayılan: hazır örneği yükler. Sıfırla: üstü ve altı tamamen boşaltır. Vazgeç: kaydetmeden kapatır.',
+        renk: 'camgobegi',
+      },
+    ],
+    ipucu:
+      'Kısa yol: modal içindeki «Nasıl kullanılır» mini şemaya, aksiyon çubuğundaki ? ise bu detaylı rehbere bakar. Üst max 5 · Alt max 8.',
+  },
+
   'alis-faturasi': {
     baslik: 'Belgeler Rehberi',
     altBaslik: 'Alış ve satış belgeleri',

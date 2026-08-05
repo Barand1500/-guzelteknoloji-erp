@@ -8,6 +8,7 @@ import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { YetkisizErisim } from '@/admin/ortak/YetkisizErisim';
 import { useAdminLogMesaji, useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
+import { useAdminAksiyon } from '@/baglamlar/AdminAksiyonContext';
 import { carileriGetir } from '@/admin/baslat-menusu/erp/cari/api';
 import { type AdminCari } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { BelgeCariAlanYonetModal } from './BelgeCariAlanYonetModal';
@@ -320,6 +321,7 @@ export function FaturaModulu({
     belgelerYetki.duzenlemeVar || alisYetki.duzenlemeVar || satisYetki.duzenlemeVar;
   const silmeVar = belgelerYetki.silmeVar || alisYetki.silmeVar || satisYetki.silmeVar;
   const logMesajiAyarla = useAdminLogMesaji();
+  const { setRehberModulId } = useAdminAksiyon();
 
   const [gorunum, setGorunum] = useState<Gorunum>('liste');
   const [listeFiltreNeviId, setListeFiltreNeviId] = useState<string>('HEPSI');
@@ -399,6 +401,16 @@ export function FaturaModulu({
   const topluUrunKuyruguRef = useRef<UrunKaydi[]>([]);
   const sayfaRef = useRef<HTMLDivElement>(null);
   const musteriGridRef = useRef<HTMLDivElement>(null);
+
+  /** Alanları Yönet açıkken aksiyon çubuğu ? → detaylı alan rehberi */
+  useEffect(() => {
+    if (alanYonetAcik) {
+      setRehberModulId('belgeler-alan-yonet');
+    } else {
+      setRehberModulId(null);
+    }
+    return () => setRehberModulId(null);
+  }, [alanYonetAcik, setRehberModulId]);
 
   const saltOkunur = durum !== 'TASLAK';
   const [pbSurumu, setPbSurumu] = useState(0);
