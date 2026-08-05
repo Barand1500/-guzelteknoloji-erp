@@ -737,6 +737,14 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .fatura-musteri-ozet-slot {
   min-width: 0;
 }
@@ -1314,6 +1322,45 @@
   margin-right: auto;
 }
 
+.fatura-alan-yonet-satir-tasima {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.fatura-alan-yonet-satir-tasi {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ap-border) 80%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ap-surface) 90%, transparent);
+  color: var(--ap-muted);
+  font-size: 0.58rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.fatura-alan-yonet-satir-tasi:hover:not(:disabled) {
+  color: var(--ap-accent);
+  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
+  background: color-mix(in srgb, var(--ap-accent) 10%, transparent);
+}
+
+.fatura-alan-yonet-satir-tasi:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .fatura-alan-yonet-satir-sil {
   appearance: none;
   border: none;
@@ -1865,7 +1912,9 @@
 
   .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--4,
   .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n3,
-  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n4 {
+  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n4,
+  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n5,
+  .fatura-musteri-ozet--duzenli .fatura-musteri-ozet-satir--n6 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

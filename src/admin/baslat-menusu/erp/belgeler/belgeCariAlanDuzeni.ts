@@ -29,7 +29,7 @@ export interface BelgeCariAlanDuzeni {
   satirlar: BelgeCariAlanId[][];
 }
 
-export const BELGE_CARI_SATIR_SUTUN_MAX = 4;
+export const BELGE_CARI_SATIR_SUTUN_MAX = 6;
 export const BELGE_CARI_ALAN_UST_MAX = 5;
 export const BELGE_CARI_ALAN_ALT_MAX = 8;
 
@@ -309,6 +309,26 @@ export function belgeCariSatirSil(
 ): BelgeCariAlanDuzeni {
   if (satirIndeks < 0 || satirIndeks >= duzen.satirlar.length) return duzen;
   return { ...duzen, satirlar: duzen.satirlar.filter((_, i) => i !== satirIndeks) };
+}
+
+export function belgeCariSatirTasi(
+  duzen: BelgeCariAlanDuzeni,
+  from: number,
+  to: number
+): BelgeCariAlanDuzeni {
+  if (
+    from === to ||
+    from < 0 ||
+    to < 0 ||
+    from >= duzen.satirlar.length ||
+    to >= duzen.satirlar.length
+  ) {
+    return duzen;
+  }
+  const satirlar = [...duzen.satirlar];
+  const [oge] = satirlar.splice(from, 1);
+  satirlar.splice(to, 0, oge);
+  return { ...duzen, satirlar };
 }
 
 export function belgeCariAlanSatiraEkle(

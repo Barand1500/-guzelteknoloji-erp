@@ -75,11 +75,20 @@ const BELGELER_CUBUK: AksiyonButonu[] = [
   A('belgeAlanYonet', 'Alanları Yönet', false),
 ];
 
+const CARI_CUBUK: AksiyonButonu[] = [
+  A('kaydet', 'Kaydet', false, true),
+  A('ekle', 'Yeni Ekle', false),
+  A('sil', 'Sil', false),
+  A('guncelle', 'Düzenle', false),
+  A('belgeAlanYonet', 'Bilgi Düzenle', false),
+];
+
 const MODUL_OZEL_CUBUK: Record<string, AksiyonButonu[]> = {
   stoklar: STOK_CUBUK,
   belgeler: BELGELER_CUBUK,
   'alis-faturasi': BELGELER_CUBUK,
   'satis-faturasi': BELGELER_CUBUK,
+  cari: CARI_CUBUK,
 };
 
 const varsayilanAksiyonlar = standartCubuk({ kaydet: { aktif: true } });
@@ -175,7 +184,10 @@ export function useAksiyonCubugu(modulId: string) {
       .filter((aksiyon) => {
         /* Belgeler formu: Yeni Ekle yalnızca listede; formda göstermeyelim */
         if (
-          (modulId === 'belgeler' || modulId === 'alis-faturasi' || modulId === 'satis-faturasi') &&
+          (modulId === 'belgeler' ||
+            modulId === 'alis-faturasi' ||
+            modulId === 'satis-faturasi' ||
+            modulId === 'cari') &&
           (aksiyon.id === 'ekle' || aksiyon.id === 'belgeAlanYonet' || aksiyon.id === 'guncelle') &&
           !aksiyon.aktif
         ) {

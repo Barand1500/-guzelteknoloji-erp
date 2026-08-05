@@ -14,6 +14,7 @@ import {
   belgeCariAltToplam,
   belgeCariBosSatirEkle,
   belgeCariSatirSil,
+  belgeCariSatirTasi,
   belgeCariUsteEkle,
   belgeCariUstenCikar,
   belgeCariUstSirala,
@@ -113,6 +114,20 @@ export function BelgeCariAlanYonetModal({
       if (onceki > indeks) return onceki - 1;
       return onceki;
     });
+  }
+
+  function satirTasi(indeks: number, yon: -1 | 1) {
+    const hedef = indeks + yon;
+    if (hedef < 0 || hedef >= duzen.satirlar.length) return;
+    setDuzen((onceki) => belgeCariSatirTasi(onceki, indeks, hedef));
+    setHedefler((onceki) => {
+      const kopya = [...onceki];
+      const [oge] = kopya.splice(indeks, 1);
+      kopya.splice(hedef, 0, oge);
+      return kopya;
+    });
+    setAktifSatir(hedef);
+    setHedefBolum('alt');
   }
 
   function slotBosalt(satirIndeks: number, slotIndeks: number) {
@@ -397,7 +412,7 @@ export function BelgeCariAlanYonetModal({
 
           <div className="fatura-alan-yonet-satir-ekle" role="group" aria-label="Satır ekle">
             <span className="fatura-alan-yonet-satir-ekle-label">Satır</span>
-            {([1, 2, 3, 4] as const).map((n) => (
+            {([1, 2, 3, 4, 5, 6] as const).map((n) => (
               <button
                 key={n}
                 type="button"
@@ -414,7 +429,7 @@ export function BelgeCariAlanYonetModal({
           <div className="fatura-alan-yonet-grid">
             {duzen.satirlar.length === 0 ? (
               <p className="fatura-alan-yonet-bos">
-                Alt satır yok. +1 … +4 ekleyin, «Alta ekle» ile alan seçin.
+                Alt satır yok. +1 … +6 ekleyin, «Alta ekle» ile alan seçin.
               </p>
             ) : (
               duzen.satirlar.map((satir, sira) => {
@@ -437,6 +452,30 @@ export function BelgeCariAlanYonetModal({
                       <span className="fatura-alan-yonet-satir-meta">
                         {satir.length}/{hedef}
                       </span>
+                      {aktif ? (
+                        <div className="fatura-alan-yonet-satir-tasima" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className="fatura-alan-yonet-satir-tasi"
+                            disabled={sira === 0}
+                            onClick={() => satirTasi(sira, -1)}
+                            title="Yukarı taşı"
+                            aria-label={`Satır ${sira + 1} yukarı`}
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            className="fatura-alan-yonet-satir-tasi"
+                            disabled={sira >= duzen.satirlar.length - 1}
+                            onClick={() => satirTasi(sira, 1)}
+                            title="Aşağı taşı"
+                            aria-label={`Satır ${sira + 1} aşağı`}
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      ) : null}
                       <button
                         type="button"
                         className="fatura-alan-yonet-satir-sil"

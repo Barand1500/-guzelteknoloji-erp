@@ -13,6 +13,16 @@ import { belgeBaslatYaz } from '@/admin/baslat-menusu/erp/belgeler/belgeBaslat';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { belgeNeviEtiketi } from '@/admin/baslat-menusu/ozel-tanimlar/veri/belgeNevileri';
 import { AP_SEKME_DEGISTI } from '@/araclar/sekmePortal';
+import {
+  cariOzetAlanDuzeniCariKaydet,
+  cariOzetAlanDuzeniCariSil,
+  cariOzetAlanDuzeniGlobalKaydet,
+  cariOzetAlanDuzeniOku,
+  cariOzetAlanTanimBul,
+  type CariOzetAlanDuzeni,
+  type CariOzetAlanId,
+} from './cariOzetAlanDuzeni';
+import { CariOzetAlanYonetModal } from './CariOzetAlanYonetModal';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 import './cariHareket.css';
 
@@ -24,6 +34,8 @@ interface CariHareketSayfasiProps {
   onModulAc?: (modulId: string) => void;
   /** Cari listesini yeniden yükler (Yenile) */
   onYenile?: () => void | Promise<void>;
+  bilgiYonetAcik?: boolean;
+  onBilgiYonetAcikDegistir?: (acik: boolean) => void;
 }
 
 interface HareketSatir {
@@ -36,6 +48,17 @@ interface HareketSatir {
   bakiye: number;
   belgeId: string | null;
   paraBirimi: string;
+}
+
+interface OzetKart {
+  id: CariOzetAlanId;
+  etiket: string;
+  deger: string;
+  mono?: boolean;
+}
+
+interface OzetSatir {
+  kartlar: OzetKart[];
 }
 
 function tarihGoster(iso: string) {
@@ -67,77 +90,68 @@ function cariBelgeleriAl(cari: AdminCari): BelgeKayit[] {
     .sort((a, b) => b.tarih.localeCompare(a.tarih));
 }
 
-function ozetAlanlari(cari: AdminCari): { etiket: string; deger: string }[] {
-  const alanlar: { etiket: string; deger: string }[] = [];
+function ozetDegerHaritasi(cari: AdminCari): Partial<Record<CariOzetAlanId, string>> {
+  const harita: Partial<Record<CariOzetAlanId, string>> = {};
 
-  if (cari.cariTipi) {
-    alanlar.push({ etiket: 'Cari Tipi', deger: cariTipiEtiketi(cari.cariTipi) });
-  }
-  if (cari.isletmeTuru) {
-    alanlar.push({ etiket: 'İşletme Türü', deger: isletmeTuruEtiketi(cari.isletmeTuru) });
-  }
-  if (cari.unvan.trim()) {
-    alanlar.push({ etiket: 'Ünvanı', deger: cari.unvan });
-  }
-  if (cari.vergiNo) {
-    alanlar.push({
-      etiket:
-        cari.isletmeTuru === 'GERCEK'
-          ? 'T.C. Kimlik No'
-          : cari.isletmeTuru === 'YABANCI'
-            ? 'Pasaport No'
-            : 'Vergi No',
-      deger: cari.vergiNo,
-    });
-  }
-  if (cari.vergiDairesi) {
-    alanlar.push({ etiket: 'Vergi Dairesi', deger: cari.vergiDairesi });
-  }
-  if (cari.adres) {
-    alanlar.push({ etiket: 'Adres', deger: cari.adres });
-  }
-  if (cari.il) {
-    alanlar.push({ etiket: 'İl', deger: cari.il });
-  }
-  if (cari.ilce) {
-    alanlar.push({ etiket: 'İlçe', deger: cari.ilce });
-  }
+  if (cari.cariTipi) harita.cariTipi = cariTipiEtiketi(cari.cariTipi);
+  if (cari.isletmeTuru) harita.isletmeTuru = isletmeTuruEtiketi(cari.isletmeTuru);
+  if (cari.unvan.trim()) harita.unvan = cari.unvan;
+  if (cari.vergiNo) harita.vergiNo = cari.vergiNo;
+  if (cari.vergiDairesi) harita.vergiDairesi = cari.vergiDairesi;
+  if (cari.adres) harita.adres = cari.adres;
+  if (cari.il) harita.il = cari.il;
+  if (cari.ilce) harita.ilce = cari.ilce;
   if (cari.telefon) {
-    const tel =
-      cari.telefonDahili?.trim()
-        ? `${cari.telefon} (Dahili ${cari.telefonDahili.trim()})`
-        : cari.telefon;
-    alanlar.push({ etiket: 'Telefon', deger: tel });
+    harita.telefon = cari.telefonDahili?.trim()
+      ? `${cari.telefon} (Dahili ${cari.telefonDahili.trim()})`
+      : cari.telefon;
   }
-  if (cari.gsm) {
-    alanlar.push({ etiket: 'GSM', deger: cari.gsm });
+  if (cari.gsm) harita.gsm = cari.gsm;
+  if (cari.eposta) harita.eposta = cari.eposta;
+  if (cari.web) harita.web = cari.web;
+
+  harita.efatura = cari.efatura ? 'Evet' : 'Hayır';
+  if (cari.efaturaTipi) harita.efaturaTipi = cari.efaturaTipi;
+  if (cari.alias) harita.alias = cari.alias;
+  if (cari.earsivTeslimSekli) {
+    harita.earsivTeslim = cari.earsivTeslimSekli === 'KAGIT' ? 'Kağıt' : 'Elektronik';
   }
-  if (cari.eposta) {
-    alanlar.push({ etiket: 'E-posta', deger: cari.eposta });
-  }
-  if (cari.web) {
-    alanlar.push({ etiket: 'Web', deger: cari.web });
-  }
-  alanlar.push({ etiket: 'E-Fatura', deger: cari.efatura ? 'Evet' : 'Hayır' });
-  if (cari.efatura) {
-    if (cari.efaturaTipi) {
-      alanlar.push({ etiket: 'Fatura Tipi', deger: cari.efaturaTipi });
+  harita.eirsaliye = cari.earsiv ? 'Evet' : 'Hayır';
+  if (cari.earsivAlias) harita.earsivAlias = cari.earsivAlias;
+
+  return harita;
+}
+
+function ozetSatirlariUret(cari: AdminCari, duzen: CariOzetAlanDuzeni): OzetSatir[] {
+  const degerler = ozetDegerHaritasi(cari);
+  const sonuc: OzetSatir[] = [];
+
+  for (const satir of duzen.satirlar) {
+    if (satir.length === 0) continue;
+    const kartlar: OzetKart[] = [];
+    for (const id of satir) {
+      const tanim = cariOzetAlanTanimBul(id);
+      let etiket = tanim.etiket;
+      if (id === 'vergiNo') {
+        etiket =
+          cari.isletmeTuru === 'GERCEK'
+            ? 'T.C. Kimlik No'
+            : cari.isletmeTuru === 'YABANCI'
+              ? 'Pasaport No'
+              : 'Vergi No';
+      }
+      const ham = degerler[id];
+      kartlar.push({
+        id,
+        etiket,
+        deger: ham != null && ham !== '' ? ham : '—',
+        mono: tanim.mono,
+      });
     }
-    if (cari.alias) {
-      alanlar.push({ etiket: 'E-Fatura Alias', deger: cari.alias });
-    }
-  } else if (cari.earsivTeslimSekli) {
-    alanlar.push({
-      etiket: 'E-Arşiv Teslim',
-      deger: cari.earsivTeslimSekli === 'KAGIT' ? 'Kağıt' : 'Elektronik',
-    });
-  }
-  alanlar.push({ etiket: 'E-İrsaliye', deger: cari.earsiv ? 'Evet' : 'Hayır' });
-  if (cari.earsiv && cari.earsivAlias) {
-    alanlar.push({ etiket: 'E-İrsaliye Alias', deger: cari.earsivAlias });
+    sonuc.push({ kartlar });
   }
 
-  return alanlar;
+  return sonuc;
 }
 
 export function CariHareketSayfasi({
@@ -145,14 +159,23 @@ export function CariHareketSayfasi({
   onGeri,
   onModulAc,
   onYenile,
+  bilgiYonetAcik = false,
+  onBilgiYonetAcikDegistir,
 }: CariHareketSayfasiProps) {
   const { basariBildir } = useAdminSayfaBildirimi();
   const [yenileAnahtar, setYenileAnahtar] = useState(0);
   const [yenileniyor, setYenileniyor] = useState(false);
-  const [ozetAcik, setOzetAcik] = useState(false);
+  const [ozetAcik, setOzetAcik] = useState(true);
+  const [ozetDuzeni, setOzetDuzeni] = useState<CariOzetAlanDuzeni>(() =>
+    cariOzetAlanDuzeniOku(cari.id)
+  );
   const kokRef = useRef<HTMLDivElement | null>(null);
   const yenileniyorRef = useRef(false);
   const yenileRef = useRef<(secenek?: { sessiz?: boolean }) => Promise<void>>(async () => {});
+
+  useEffect(() => {
+    setOzetDuzeni(cariOzetAlanDuzeniOku(cari.id));
+  }, [cari.id]);
 
   const bakiye = useMemo(() => {
     void yenileAnahtar;
@@ -199,7 +222,7 @@ export function CariHareketSayfasi({
     [hareketSatirlari]
   );
 
-  const alanlar = useMemo(() => ozetAlanlari(cari), [cari]);
+  const ozetSatirlari = useMemo(() => ozetSatirlariUret(cari, ozetDuzeni), [cari, ozetDuzeni]);
 
   const yenile = useCallback(async (secenek?: { sessiz?: boolean }) => {
     if (yenileniyorRef.current) return;
@@ -293,6 +316,8 @@ export function CariHareketSayfasi({
     onModulAc('belgeler');
   };
 
+  const bilgiYonetKapat = () => onBilgiYonetAcikDegistir?.(false);
+
   return (
     <div ref={kokRef} className="cari-hareket-sayfa">
       <div className="cari-hareket-ust">
@@ -304,7 +329,7 @@ export function CariHareketSayfasi({
       </div>
 
       <section
-        className={`cari-hareket-ozet${ozetAcik ? ' cari-hareket-ozet--acik' : ''}`}
+        className={`cari-hareket-ozet${ozetAcik ? ' cari-hareket-ozet--acik' : ''} cari-hareket-ozet--kutu-${ozetDuzeni.kutuBoyutu ?? 'normal'}`}
         aria-label="Cari özet"
       >
         <button
@@ -326,24 +351,50 @@ export function CariHareketSayfasi({
                 <span className="cari-hareket-ba">{bakiye.bakiye >= 0 ? 'B' : 'A'}</span>
               </strong>
             </div>
-            <span className="cari-hareket-ozet-ok" aria-hidden>
-              {ozetAcik ? '▾' : '▸'}
+            <span
+              className={`cari-hareket-ozet-ok${ozetAcik ? ' cari-hareket-ozet-ok--acik' : ''}`}
+              aria-hidden
+            >
+              ▾
             </span>
           </div>
         </button>
-        <div
-          id="cari-hareket-ozet-govde"
-          className="cari-hareket-ozet-govde"
-          hidden={!ozetAcik}
-        >
-          <dl className="cari-hareket-ozet-dl">
-            {alanlar.map((a) => (
-              <div key={a.etiket} className="cari-hareket-ozet-dl-oge">
-                <dt>{a.etiket}</dt>
-                <dd title={a.deger}>{a.deger}</dd>
-              </div>
-            ))}
-          </dl>
+        <div id="cari-hareket-ozet-govde" className="cari-hareket-ozet-govde" hidden={!ozetAcik}>
+          {ozetSatirlari.length === 0 ? (
+            <p className="cari-hareket-ozet-bos">
+              Gösterilecek alan yok — aksiyon çubuğundan Bilgi Düzenle ile satır ekleyin.
+            </p>
+          ) : (
+            <div className="cari-hareket-ozet-satirlar">
+              {ozetSatirlari.map((satir, sira) => (
+                <div
+                  key={`ozet-satir-${sira}`}
+                  className="cari-hareket-ozet-satir"
+                  style={{
+                    gridTemplateColumns: `repeat(${satir.kartlar.length}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {satir.kartlar.map((a) => (
+                    <div
+                      key={a.id}
+                      className={[
+                        'cari-hareket-ozet-kart',
+                        a.mono ? 'cari-hareket-ozet-kart--mono' : '',
+                        satir.kartlar.length === 1 ? 'cari-hareket-ozet-kart--tek' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <span className="cari-hareket-ozet-kart-etiket">{a.etiket}</span>
+                      <strong className="cari-hareket-ozet-kart-deger" title={a.deger}>
+                        {a.deger}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -389,7 +440,11 @@ export function CariHareketSayfasi({
                     <td>{r.izahat}</td>
                     <td>
                       {r.belgeId ? (
-                        <button type="button" className="fatura-link" onClick={() => belgeAc(r.belgeId)}>
+                        <button
+                          type="button"
+                          className="fatura-link"
+                          onClick={() => belgeAc(r.belgeId)}
+                        >
                           {r.evrakNo}
                         </button>
                       ) : (
@@ -422,6 +477,24 @@ export function CariHareketSayfasi({
           )}
         </div>
       </div>
+
+      <CariOzetAlanYonetModal
+        acik={bilgiYonetAcik}
+        cariId={cari.id}
+        baslangic={ozetDuzeni}
+        onKapat={bilgiYonetKapat}
+        onKaydetCari={(duzen) => {
+          const temiz = cariOzetAlanDuzeniCariKaydet(cari.id, duzen);
+          setOzetDuzeni(temiz);
+          basariBildir('Özet düzeni bu cari için kaydedildi.');
+        }}
+        onKaydetTumu={(duzen) => {
+          cariOzetAlanDuzeniCariSil(cari.id);
+          const temiz = cariOzetAlanDuzeniGlobalKaydet(duzen);
+          setOzetDuzeni(temiz);
+          basariBildir('Özet düzeni tüm cariler için kaydedildi.');
+        }}
+      />
     </div>
   );
 }

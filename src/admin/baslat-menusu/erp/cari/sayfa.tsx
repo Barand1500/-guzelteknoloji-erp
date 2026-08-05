@@ -118,6 +118,7 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   const [gorunum, setGorunum] = useState<Gorunum>('liste');
   const [kartModu, setKartModu] = useState<CariKartModu>('yeni');
   const [kayitlar, setKayitlar] = useState<AdminCari[]>([]);
+  const [bilgiYonetAcik, setBilgiYonetAcik] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [filtreMetni, setFiltreMetni] = useState('');
   const [uygulananFiltreMetni, setUygulananFiltreMetni] = useState('');
@@ -395,16 +396,19 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
       ekle: eklemeVar ? (hareketSayfasi ? harekettenBelgeEkle : yeniAc) : undefined,
       guncelle: duzenlemeVar ? () => duzenleAc() : undefined,
       sil: silmeVar ? silAksiyon : undefined,
+      belgeAlanYonet: hareketSayfasi ? () => setBilgiYonetAcik(true) : undefined,
     },
     {
       kaydet: kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar),
       ekle: eklemeVar,
       guncelle: duzenlemeVar && cariSecili && (gorunum === 'liste' || gorunum === 'hareket'),
       sil: silmeVar && cariSecili && gorunum === 'liste',
+      belgeAlanYonet: hareketSayfasi,
     },
     kartFormu ? kartKirli : false,
     {
       ekle: hareketSayfasi ? 'Belge Ekle' : undefined,
+      belgeAlanYonet: 'Bilgi Düzenle',
     }
   );
 
@@ -526,9 +530,14 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
         {gorunum === 'hareket' && aktifHareketCari ? (
           <CariHareketSayfasi
             cari={aktifHareketCari}
-            onGeri={() => listeyeDon({ kayitSonrasi: true })}
+            onGeri={() => {
+              setBilgiYonetAcik(false);
+              listeyeDon({ kayitSonrasi: true });
+            }}
             onModulAc={onModulAc}
             onYenile={yukle}
+            bilgiYonetAcik={bilgiYonetAcik}
+            onBilgiYonetAcikDegistir={setBilgiYonetAcik}
           />
         ) : gorunum === 'kart' ? (
           <CariKart

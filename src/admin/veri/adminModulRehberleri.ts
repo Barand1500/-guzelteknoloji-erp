@@ -669,9 +669,9 @@ export const ADMIN_MODUL_REHBERLERI: Record<string, ModulRehber> = {
         renk: 'turuncu',
       },
       {
-        baslik: '2) Alta satır açmak (+1 +2 +3 +4)',
+        baslik: '2) Alta satır açmak (+1 … +6)',
         aciklama:
-          'Önce boş satır aç. +1 = tek yuvalı satır (ör. Adres tek başına). +2 = yan yana 2 yuva (ör. Telefon | GSM). +3 ve +4 aynı mantık. Bu butonlar alan eklemez; sadece kaç sütunluk satır istediğini söyler.',
+          'Önce boş satır aç. +1 = tek yuvalı satır (ör. Adres tek başına). +2 = yan yana 2 yuva (ör. Telefon | GSM). +3 … +6 aynı mantık. Bu butonlar alan eklemez; sadece kaç sütunluk satır istediğini söyler.',
         renk: 'yesil',
       },
       {
