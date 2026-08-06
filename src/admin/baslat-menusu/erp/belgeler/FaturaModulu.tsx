@@ -100,6 +100,8 @@ import {
   belgeBaslatOkuVeTemizle,
   BELGE_BASLAT_OLAY,
 } from './belgeBaslat';
+import { sekmeAyarlariOku } from '@/admin/baslat-menusu/sistem/sekme-yonetimi/yardimci';
+import { AP_SEKME_DEGISTI } from '@/araclar/sekmePortal';
 import { cariBaslatYaz } from '@/admin/baslat-menusu/erp/cari/cariBaslat';
 import {
   BELGE_NEVILERI_GUNCELLENDI,
@@ -924,9 +926,13 @@ export function FaturaModulu({
     baslatUygula(baslat);
   }, [listeYukleniyor, baslatUygula]);
 
-  // Cari → Belge Ekle: sekme zaten açıksa sessionStorage + olay ile cariyi uygula
+  // Cari → Belge Ekle: sekme zaten açıksa sessionStorage + olay ile cariyi uygula.
+  // "Her seferinde yeni sekme" açıkken mevcut örnekler baslat'ı YUTMASIN —
+  // aksi halde 2. Belge Ekle'de eski sekme formu alır, yeni sekme boş liste kalır.
   useEffect(() => {
-    const dinle = () => {
+    const baslatDinle = () => {
+      if (sekmeAyarlariOku().varsayilanAcilis === 'yeni-sekme') return;
+
       const gozat = belgeBaslatGozat();
       if (!gozat) return;
 
@@ -939,7 +945,6 @@ export function FaturaModulu({
         return;
       }
 
-      // Mevcut belge: liste yükleniyorsa forma geç, yük bitince aç
       if (listeYukleniyor) {
         const baslat = belgeBaslatOkuVeTemizle();
         if (!baslat) return;
@@ -954,8 +959,49 @@ export function FaturaModulu({
       bekleyenBelgeIdBaslatRef.current = null;
       baslatUygula(baslat);
     };
-    window.addEventListener(BELGE_BASLAT_OLAY, dinle);
-    return () => window.removeEventListener(BELGE_BASLAT_OLAY, dinle);
+
+    // Yeni sekme açıldığında mount effect yetişmezse / tek-sekme geçişinde görünür olunca uygula
+    const sekmeDinle = () => {
+      const gozat = belgeBaslatGozat();
+      if (!gozat) return;
+
+      const kok = sayfaRef.current;
+      if (!kok) return;
+      if (kok.closest('.ap-sekme-canli-gizli')) return;
+      const panel = kok.closest('.ap-modul-panel');
+      if (panel?.getAttribute('data-ap-kesif-aktif') !== 'true') return;
+
+      if (baslatIslendiRef.current && !bekleyenBelgeIdBaslatRef.current) return;
+
+      if (belgeBaslatHemenUygulanir(gozat)) {
+        const baslat = belgeBaslatOkuVeTemizle();
+        if (!baslat) return;
+        baslatIslendiRef.current = true;
+        bekleyenBelgeIdBaslatRef.current = null;
+        baslatUygula(baslat);
+        return;
+      }
+
+      if (listeYukleniyor) {
+        const baslat = belgeBaslatOkuVeTemizle();
+        if (!baslat) return;
+        baslatIslendiRef.current = true;
+        bekleyenBelgeIdBaslatRef.current = baslat;
+        setGorunum('form');
+        return;
+      }
+      const baslat = belgeBaslatOkuVeTemizle();
+      if (!baslat) return;
+      baslatIslendiRef.current = true;
+      baslatUygula(baslat);
+    };
+
+    window.addEventListener(BELGE_BASLAT_OLAY, baslatDinle);
+    window.addEventListener(AP_SEKME_DEGISTI, sekmeDinle);
+    return () => {
+      window.removeEventListener(BELGE_BASLAT_OLAY, baslatDinle);
+      window.removeEventListener(AP_SEKME_DEGISTI, sekmeDinle);
+    };
   }, [listeYukleniyor, baslatUygula]);
 
   const girdiAl = useCallback(
@@ -1578,7 +1624,7 @@ export function FaturaModulu({
 
   if (gorunum === 'liste') {
     return (
-      <div className={`${sayfaSinif} fatura-sayfa--liste`}>
+      <div ref={sayfaRef} className={`${sayfaSinif} fatura-sayfa--liste`}>
         <div className="fatura-liste-ozet">
           <button
             type="button"
