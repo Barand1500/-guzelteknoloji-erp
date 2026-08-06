@@ -5,6 +5,7 @@ import {
   CARI_OZET_ALAN_ETIKET,
   CARI_OZET_ALAN_MAX,
   CARI_OZET_ALAN_VARSAYILAN,
+  CARI_OZET_GORUNUM_VARSAYILAN,
   CARI_OZET_KUTU_BOYUTLARI,
   CARI_OZET_SATIR_SUTUN_MAX,
   cariOzetAlanCikar,
@@ -13,11 +14,15 @@ import {
   cariOzetAlanSatiraEkle,
   cariOzetAlanToplam,
   cariOzetBosSatirEkle,
+  cariOzetGorunumDuzelt,
   cariOzetSatirSil,
   cariOzetSatirTasi,
   type CariOzetAlanDuzeni,
   type CariOzetAlanId,
+  type CariOzetGorunum,
   type CariOzetKutuBoyutu,
+  type CariOzetYaziAgirlik,
+  type CariOzetYaziBoyut,
 } from './cariOzetAlanDuzeni';
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 import './cariHareket.css';
@@ -33,9 +38,22 @@ interface CariOzetAlanYonetModalProps {
 
 type SatirHedefleri = number[];
 
+const AGIRLIK_SECENEK: { id: CariOzetYaziAgirlik; etiket: string }[] = [
+  { id: 'ince', etiket: 'İnce' },
+  { id: 'normal', etiket: 'Normal' },
+  { id: 'kalin', etiket: 'Kalın' },
+];
+
+const BOYUT_SECENEK: { id: CariOzetYaziBoyut; etiket: string }[] = [
+  { id: 'kucuk', etiket: 'Küçük' },
+  { id: 'orta', etiket: 'Orta' },
+  { id: 'buyuk', etiket: 'Büyük' },
+];
+
 function duzenKopyala(d: CariOzetAlanDuzeni): CariOzetAlanDuzeni {
   return {
     kutuBoyutu: d.kutuBoyutu ?? 'normal',
+    gorunum: cariOzetGorunumDuzelt(d.gorunum),
     satirlar: d.satirlar.map((s) => [...s]),
   };
 }
@@ -43,6 +61,72 @@ function duzenKopyala(d: CariOzetAlanDuzeni): CariOzetAlanDuzeni {
 function hedefKopyala(duzen: CariOzetAlanDuzeni): SatirHedefleri {
   return duzen.satirlar.map((s) =>
     Math.max(1, Math.min(CARI_OZET_SATIR_SUTUN_MAX, s.length || 1))
+  );
+}
+
+function gorunumSiniflari(g: CariOzetGorunum): string {
+  return [
+    `cari-hareket-ozet--etiket-${g.etiketAgirlik}`,
+    `cari-hareket-ozet--etiket-boyut-${g.etiketBoyut}`,
+    g.etiketBuyukHarf ? 'cari-hareket-ozet--etiket-buyuk-harf' : 'cari-hareket-ozet--etiket-normal-harf',
+    `cari-hareket-ozet--deger-${g.degerAgirlik}`,
+    `cari-hareket-ozet--deger-boyut-${g.degerBoyut}`,
+  ].join(' ');
+}
+
+function SecenekGrup<T extends string>({
+  etiket,
+  deger,
+  secenekler,
+  onDegistir,
+}: {
+  etiket: string;
+  deger: T;
+  secenekler: { id: T; etiket: string }[];
+  onDegistir: (v: T) => void;
+}) {
+  return (
+    <div className="cari-ozet-ayar-grup">
+      <span className="cari-ozet-ayar-grup-etiket">{etiket}</span>
+      <div className="cari-ozet-ayar-secenekler" role="radiogroup" aria-label={etiket}>
+        {secenekler.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            role="radio"
+            aria-checked={deger === s.id}
+            className={`cari-ozet-ayar-chip${deger === s.id ? ' cari-ozet-ayar-chip--aktif' : ''}`}
+            onClick={() => onDegistir(s.id)}
+          >
+            {s.etiket}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AnahtarSatir({
+  etiket,
+  acik,
+  onDegistir,
+}: {
+  etiket: string;
+  acik: boolean;
+  onDegistir: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`cari-ozet-ayar-anahtar${acik ? ' cari-ozet-ayar-anahtar--acik' : ''}`}
+      aria-pressed={acik}
+      onClick={() => onDegistir(!acik)}
+    >
+      <span>{etiket}</span>
+      <span className="cari-ozet-ayar-anahtar-pill" aria-hidden>
+        <i />
+      </span>
+    </button>
   );
 }
 
@@ -58,11 +142,13 @@ export function CariOzetAlanYonetModal({
   const [duzen, setDuzen] = useState<CariOzetAlanDuzeni>(() => duzenKopyala(baslangic));
   const [hedefler, setHedefler] = useState<SatirHedefleri>(() => hedefKopyala(baslangic));
   const [aktifSatir, setAktifSatir] = useState<number | null>(null);
+  const [ayarAcik, setAyarAcik] = useState(false);
 
   const havuz = useMemo(() => cariOzetAlanHavuz(duzen), [duzen]);
   const toplam = cariOzetAlanToplam(duzen);
   const kalan = CARI_OZET_ALAN_MAX - toplam;
   const kutuBoyutu = duzen.kutuBoyutu ?? 'normal';
+  const gorunum = cariOzetGorunumDuzelt(duzen.gorunum);
 
   useEffect(() => {
     if (!acik) return;
@@ -70,6 +156,7 @@ export function CariOzetAlanYonetModal({
     setDuzen(kopya);
     setHedefler(hedefKopyala(kopya));
     setAktifSatir(kopya.satirlar.length > 0 ? 0 : null);
+    setAyarAcik(false);
   }, [acik, baslangic]);
 
   function varsayilan() {
@@ -80,13 +167,30 @@ export function CariOzetAlanYonetModal({
   }
 
   function sifirla() {
-    setDuzen(duzenKopyala({ ...CARI_OZET_ALAN_BOS, kutuBoyutu }));
+    setDuzen(
+      duzenKopyala({
+        ...CARI_OZET_ALAN_BOS,
+        kutuBoyutu,
+        gorunum: { ...gorunum },
+      })
+    );
     setHedefler([]);
     setAktifSatir(null);
   }
 
   function kutuBoyutuAyarla(boyut: CariOzetKutuBoyutu) {
     setDuzen((onceki) => ({ ...onceki, kutuBoyutu: boyut }));
+  }
+
+  function gorunumAyarla(parca: Partial<CariOzetGorunum>) {
+    setDuzen((onceki) => ({
+      ...onceki,
+      gorunum: cariOzetGorunumDuzelt({ ...onceki.gorunum, ...parca }),
+    }));
+  }
+
+  function gorunumSifirla() {
+    gorunumAyarla({ ...CARI_OZET_GORUNUM_VARSAYILAN });
   }
 
   function satirEkle(sutun: number) {
@@ -167,6 +271,31 @@ export function CariOzetAlanYonetModal({
       genislik="md"
       ustCizgi={false}
       disariTiklaKapat={false}
+      baslikSag={
+        <button
+          type="button"
+          className={`cari-ozet-ayar-baslik-tus${ayarAcik ? ' cari-ozet-ayar-baslik-tus--aktif' : ''}`}
+          onClick={() => setAyarAcik((v) => !v)}
+          aria-expanded={ayarAcik}
+          aria-controls="cari-ozet-ayar-panel"
+          title="Görünüm ayarları"
+          aria-label="Görünüm ayarları"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
+            <path
+              d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
+            <path
+              d="M19.4 13.1c.05-.36.05-.74 0-1.1l1.7-1.3-1.6-2.8-2 .4a6.7 6.7 0 0 0-1-1l.4-2H9.1l.4 2a6.7 6.7 0 0 0-1 1l-2-.4-1.6 2.8 1.7 1.3c-.05.36-.05.74 0 1.1L4.9 14.4l1.6 2.8 2-.4a6.7 6.7 0 0 0 1 1l-.4 2h4.8l-.4-2a6.7 6.7 0 0 0 1-1l2 .4 1.6-2.8-1.7-1.3Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      }
       footer={
         <SistemModalAksiyonlar>
           <button type="button" className="ap-sistem-modal-btn" onClick={onKapat}>
@@ -202,6 +331,93 @@ export function CariOzetAlanYonetModal({
           </button>
         </SistemModalAksiyonlar>
       }
+      yanIcerik={
+        <aside
+          id="cari-ozet-ayar-panel"
+          className={`cari-ozet-ayar-panel${ayarAcik ? ' cari-ozet-ayar-panel--acik' : ''}`}
+          aria-hidden={!ayarAcik}
+          aria-label="Görünüm ayarları"
+        >
+          <div className="cari-ozet-ayar-panel-ic">
+            <div className="cari-ozet-ayar-panel-baslik">
+              <strong>Görünüm</strong>
+              <button
+                type="button"
+                className="cari-ozet-ayar-panel-kapat"
+                onClick={() => setAyarAcik(false)}
+                aria-label="Paneli kapat"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="cari-ozet-ayar-bolum">
+              <span className="cari-ozet-ayar-bolum-baslik">Başlık (etiket)</span>
+              <SecenekGrup
+                etiket="Kalınlık"
+                deger={gorunum.etiketAgirlik}
+                secenekler={AGIRLIK_SECENEK}
+                onDegistir={(v) => gorunumAyarla({ etiketAgirlik: v })}
+              />
+              <SecenekGrup
+                etiket="Boyut"
+                deger={gorunum.etiketBoyut}
+                secenekler={BOYUT_SECENEK}
+                onDegistir={(v) => gorunumAyarla({ etiketBoyut: v })}
+              />
+              <AnahtarSatir
+                etiket="Büyük harf"
+                acik={gorunum.etiketBuyukHarf}
+                onDegistir={(v) => gorunumAyarla({ etiketBuyukHarf: v })}
+              />
+            </div>
+
+            <div className="cari-ozet-ayar-bolum">
+              <span className="cari-ozet-ayar-bolum-baslik">Değer</span>
+              <SecenekGrup
+                etiket="Kalınlık"
+                deger={gorunum.degerAgirlik}
+                secenekler={AGIRLIK_SECENEK}
+                onDegistir={(v) => gorunumAyarla({ degerAgirlik: v })}
+              />
+              <SecenekGrup
+                etiket="Boyut"
+                deger={gorunum.degerBoyut}
+                secenekler={BOYUT_SECENEK}
+                onDegistir={(v) => gorunumAyarla({ degerBoyut: v })}
+              />
+            </div>
+
+            <div className="cari-ozet-ayar-bolum">
+              <span className="cari-ozet-ayar-bolum-baslik">Davranış</span>
+              <AnahtarSatir
+                etiket="Özet başlangıçta açık"
+                acik={gorunum.ozetBaslangicAcik}
+                onDegistir={(v) => gorunumAyarla({ ozetBaslangicAcik: v })}
+              />
+              <AnahtarSatir
+                etiket="Boş alanlarda — göster"
+                acik={gorunum.bosAlanGoster}
+                onDegistir={(v) => gorunumAyarla({ bosAlanGoster: v })}
+              />
+            </div>
+
+            <div
+              className={`cari-ozet-ayar-canli cari-hareket-ozet--kutu-${kutuBoyutu} ${gorunumSiniflari(gorunum)}`}
+              aria-hidden
+            >
+              <div className="cari-hareket-ozet-kart">
+                <span className="cari-hareket-ozet-kart-etiket">Cari Tipi</span>
+                <strong className="cari-hareket-ozet-kart-deger">Satıcı</strong>
+              </div>
+            </div>
+
+            <button type="button" className="cari-ozet-ayar-sifirla" onClick={gorunumSifirla}>
+              Görünümü varsayılana dön
+            </button>
+          </div>
+        </aside>
+      }
     >
       <div className="fatura-alan-yonet cari-ozet-yonet">
         <section className="cari-ozet-kutu-ayar" aria-label="Kutu büyüklüğü">
@@ -226,7 +442,7 @@ export function CariOzetAlanYonetModal({
             })}
           </div>
           <div
-            className={`cari-ozet-kutu-ayar-canli cari-hareket-ozet--kutu-${kutuBoyutu}`}
+            className={`cari-ozet-kutu-ayar-canli cari-hareket-ozet--kutu-${kutuBoyutu} ${gorunumSiniflari(gorunum)}`}
             aria-hidden
           >
             <div className="cari-hareket-ozet-satir" style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -289,7 +505,10 @@ export function CariOzetAlanYonetModal({
                         {satir.length}/{hedef}
                       </span>
                       {aktif ? (
-                        <div className="fatura-alan-yonet-satir-tasima" onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className="fatura-alan-yonet-satir-tasima"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             type="button"
                             className="fatura-alan-yonet-satir-tasi"

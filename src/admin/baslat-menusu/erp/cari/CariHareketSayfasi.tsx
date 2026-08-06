@@ -122,8 +122,12 @@ function ozetDegerHaritasi(cari: AdminCari): Partial<Record<CariOzetAlanId, stri
   return harita;
 }
 
-function ozetSatirlariUret(cari: AdminCari, duzen: CariOzetAlanDuzeni): OzetSatir[] {
+function ozetSatirlariUret(
+  cari: AdminCari,
+  duzen: CariOzetAlanDuzeni
+): OzetSatir[] {
   const degerler = ozetDegerHaritasi(cari);
+  const bosGoster = duzen.gorunum?.bosAlanGoster !== false;
   const sonuc: OzetSatir[] = [];
 
   for (const satir of duzen.satirlar) {
@@ -141,14 +145,16 @@ function ozetSatirlariUret(cari: AdminCari, duzen: CariOzetAlanDuzeni): OzetSati
               : 'Vergi No';
       }
       const ham = degerler[id];
+      const dolu = ham != null && ham !== '';
+      if (!dolu && !bosGoster) continue;
       kartlar.push({
         id,
         etiket,
-        deger: ham != null && ham !== '' ? ham : '—',
+        deger: dolu ? ham! : '—',
         mono: tanim.mono,
       });
     }
-    sonuc.push({ kartlar });
+    if (kartlar.length > 0) sonuc.push({ kartlar });
   }
 
   return sonuc;
@@ -165,17 +171,35 @@ export function CariHareketSayfasi({
   const { basariBildir } = useAdminSayfaBildirimi();
   const [yenileAnahtar, setYenileAnahtar] = useState(0);
   const [yenileniyor, setYenileniyor] = useState(false);
-  const [ozetAcik, setOzetAcik] = useState(true);
   const [ozetDuzeni, setOzetDuzeni] = useState<CariOzetAlanDuzeni>(() =>
     cariOzetAlanDuzeniOku(cari.id)
+  );
+  const [ozetAcik, setOzetAcik] = useState(
+    () => cariOzetAlanDuzeniOku(cari.id).gorunum?.ozetBaslangicAcik !== false
   );
   const kokRef = useRef<HTMLDivElement | null>(null);
   const yenileniyorRef = useRef(false);
   const yenileRef = useRef<(secenek?: { sessiz?: boolean }) => Promise<void>>(async () => {});
 
   useEffect(() => {
-    setOzetDuzeni(cariOzetAlanDuzeniOku(cari.id));
+    const duzen = cariOzetAlanDuzeniOku(cari.id);
+    setOzetDuzeni(duzen);
+    setOzetAcik(duzen.gorunum?.ozetBaslangicAcik !== false);
   }, [cari.id]);
+
+  const gorunumSinifi = useMemo(() => {
+    const g = ozetDuzeni.gorunum;
+    if (!g) return '';
+    return [
+      `cari-hareket-ozet--etiket-${g.etiketAgirlik}`,
+      `cari-hareket-ozet--etiket-boyut-${g.etiketBoyut}`,
+      g.etiketBuyukHarf
+        ? 'cari-hareket-ozet--etiket-buyuk-harf'
+        : 'cari-hareket-ozet--etiket-normal-harf',
+      `cari-hareket-ozet--deger-${g.degerAgirlik}`,
+      `cari-hareket-ozet--deger-boyut-${g.degerBoyut}`,
+    ].join(' ');
+  }, [ozetDuzeni.gorunum]);
 
   const bakiye = useMemo(() => {
     void yenileAnahtar;
@@ -329,7 +353,7 @@ export function CariHareketSayfasi({
       </div>
 
       <section
-        className={`cari-hareket-ozet${ozetAcik ? ' cari-hareket-ozet--acik' : ''} cari-hareket-ozet--kutu-${ozetDuzeni.kutuBoyutu ?? 'normal'}`}
+        className={`cari-hareket-ozet${ozetAcik ? ' cari-hareket-ozet--acik' : ''} cari-hareket-ozet--kutu-${ozetDuzeni.kutuBoyutu ?? 'normal'} ${gorunumSinifi}`.trim()}
         aria-label="Cari özet"
       >
         <button

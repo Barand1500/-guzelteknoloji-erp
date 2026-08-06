@@ -27,13 +27,37 @@ export interface CariOzetAlanTanim {
 }
 
 export interface CariOzetAlanDuzeni {
-  /** Her satır 1–4 alan (yan yana) */
+  /** Her satır 1–6 alan (yan yana) */
   satirlar: CariOzetAlanId[][];
   /** Özet kart kutularının boyutu */
   kutuBoyutu: CariOzetKutuBoyutu;
+  /** Tipografi ve davranış */
+  gorunum: CariOzetGorunum;
 }
 
 export type CariOzetKutuBoyutu = 'kompakt' | 'normal' | 'genis';
+export type CariOzetYaziAgirlik = 'ince' | 'normal' | 'kalin';
+export type CariOzetYaziBoyut = 'kucuk' | 'orta' | 'buyuk';
+
+export interface CariOzetGorunum {
+  etiketAgirlik: CariOzetYaziAgirlik;
+  etiketBoyut: CariOzetYaziBoyut;
+  etiketBuyukHarf: boolean;
+  degerAgirlik: CariOzetYaziAgirlik;
+  degerBoyut: CariOzetYaziBoyut;
+  ozetBaslangicAcik: boolean;
+  bosAlanGoster: boolean;
+}
+
+export const CARI_OZET_GORUNUM_VARSAYILAN: CariOzetGorunum = {
+  etiketAgirlik: 'kalin',
+  etiketBoyut: 'orta',
+  etiketBuyukHarf: true,
+  degerAgirlik: 'normal',
+  degerBoyut: 'orta',
+  ozetBaslangicAcik: true,
+  bosAlanGoster: true,
+};
 
 export const CARI_OZET_KUTU_BOYUTLARI: {
   id: CariOzetKutuBoyutu;
@@ -76,6 +100,7 @@ export const CARI_OZET_ALAN_ETIKET: Record<CariOzetAlanId, string> = Object.from
 /** Varsayılan satır düzeni */
 export const CARI_OZET_ALAN_VARSAYILAN: CariOzetAlanDuzeni = {
   kutuBoyutu: 'normal',
+  gorunum: { ...CARI_OZET_GORUNUM_VARSAYILAN },
   satirlar: [
     ['cariTipi', 'isletmeTuru', 'vergiNo', 'vergiDairesi'],
     ['unvan', 'adres'],
@@ -87,6 +112,7 @@ export const CARI_OZET_ALAN_VARSAYILAN: CariOzetAlanDuzeni = {
 
 export const CARI_OZET_ALAN_BOS: CariOzetAlanDuzeni = {
   kutuBoyutu: 'normal',
+  gorunum: { ...CARI_OZET_GORUNUM_VARSAYILAN },
   satirlar: [],
 };
 
@@ -100,10 +126,53 @@ function alanIdMi(v: unknown): v is CariOzetAlanId {
   return typeof v === 'string' && TUM_IDLER.has(v as CariOzetAlanId);
 }
 
+function yaziAgirlikMu(v: unknown): v is CariOzetYaziAgirlik {
+  return v === 'ince' || v === 'normal' || v === 'kalin';
+}
+
+function yaziBoyutMu(v: unknown): v is CariOzetYaziBoyut {
+  return v === 'kucuk' || v === 'orta' || v === 'buyuk';
+}
+
+export function cariOzetGorunumDuzelt(ham: unknown): CariOzetGorunum {
+  const v = ham && typeof ham === 'object' ? (ham as Record<string, unknown>) : {};
+  return {
+    etiketAgirlik: yaziAgirlikMu(v.etiketAgirlik)
+      ? v.etiketAgirlik
+      : CARI_OZET_GORUNUM_VARSAYILAN.etiketAgirlik,
+    etiketBoyut: yaziBoyutMu(v.etiketBoyut) ? v.etiketBoyut : CARI_OZET_GORUNUM_VARSAYILAN.etiketBoyut,
+    etiketBuyukHarf:
+      typeof v.etiketBuyukHarf === 'boolean'
+        ? v.etiketBuyukHarf
+        : CARI_OZET_GORUNUM_VARSAYILAN.etiketBuyukHarf,
+    degerAgirlik: yaziAgirlikMu(v.degerAgirlik)
+      ? v.degerAgirlik
+      : CARI_OZET_GORUNUM_VARSAYILAN.degerAgirlik,
+    degerBoyut: yaziBoyutMu(v.degerBoyut) ? v.degerBoyut : CARI_OZET_GORUNUM_VARSAYILAN.degerBoyut,
+    ozetBaslangicAcik:
+      typeof v.ozetBaslangicAcik === 'boolean'
+        ? v.ozetBaslangicAcik
+        : CARI_OZET_GORUNUM_VARSAYILAN.ozetBaslangicAcik,
+    bosAlanGoster:
+      typeof v.bosAlanGoster === 'boolean'
+        ? v.bosAlanGoster
+        : CARI_OZET_GORUNUM_VARSAYILAN.bosAlanGoster,
+  };
+}
+
 function duzenKopyala(d: CariOzetAlanDuzeni): CariOzetAlanDuzeni {
   return {
     kutuBoyutu: d.kutuBoyutu ?? 'normal',
+    gorunum: cariOzetGorunumDuzelt(d.gorunum),
     satirlar: d.satirlar.map((s) => [...s]),
+  };
+}
+
+function satirlarla(duzen: CariOzetAlanDuzeni, satirlar: CariOzetAlanId[][]): CariOzetAlanDuzeni {
+  return {
+    kutuBoyutu: duzen.kutuBoyutu ?? 'normal',
+    gorunum: cariOzetGorunumDuzelt(duzen.gorunum),
+    satirlar,
   };
 }
 
@@ -122,10 +191,16 @@ function duzListeyiSatirlara(alanlar: CariOzetAlanId[]): CariOzetAlanId[][] {
 export function cariOzetAlanDuzeniDuzelt(ham: unknown): CariOzetAlanDuzeni {
   if (!ham || typeof ham !== 'object') return duzenKopyala(CARI_OZET_ALAN_VARSAYILAN);
 
-  const obj = ham as { satirlar?: unknown; alanlar?: unknown; kutuBoyutu?: unknown };
+  const obj = ham as {
+    satirlar?: unknown;
+    alanlar?: unknown;
+    kutuBoyutu?: unknown;
+    gorunum?: unknown;
+  };
   const kutuBoyutu: CariOzetKutuBoyutu = kutuBoyutuMu(obj.kutuBoyutu)
     ? obj.kutuBoyutu
     : 'normal';
+  const gorunum = cariOzetGorunumDuzelt(obj.gorunum);
   const gorulen = new Set<CariOzetAlanId>();
   const satirlar: CariOzetAlanId[][] = [];
 
@@ -141,7 +216,7 @@ export function cariOzetAlanDuzeniDuzelt(ham: unknown): CariOzetAlanDuzeni {
       }
       if (satir.length > 0) satirlar.push(satir);
     }
-    return { kutuBoyutu, satirlar };
+    return { kutuBoyutu, gorunum, satirlar };
   }
 
   /* v1 düz liste → satırlara böl */
@@ -152,7 +227,7 @@ export function cariOzetAlanDuzeniDuzelt(ham: unknown): CariOzetAlanDuzeni {
       gorulen.add(v);
       alanlar.push(v);
     }
-    return { kutuBoyutu, satirlar: duzListeyiSatirlara(alanlar) };
+    return { kutuBoyutu, gorunum, satirlar: duzListeyiSatirlara(alanlar) };
   }
 
   return duzenKopyala(CARI_OZET_ALAN_VARSAYILAN);
@@ -184,7 +259,7 @@ export function cariOzetBosSatirEkle(
   const gercek = Math.max(1, Math.min(CARI_OZET_SATIR_SUTUN_MAX, sutun, kalan));
   const satirlar = [...duzen.satirlar, []];
   return {
-    duzen: { kutuBoyutu: duzen.kutuBoyutu ?? 'normal', satirlar },
+    duzen: satirlarla(duzen, satirlar),
     satirIndeks: satirlar.length - 1,
     sutun: gercek,
   };
@@ -204,7 +279,7 @@ export function cariOzetAlanSatiraEkle(
   const kapasite = Math.max(1, Math.min(CARI_OZET_SATIR_SUTUN_MAX, sutunKapasite));
   if (satir.length >= kapasite) return duzen;
   satir.push(id);
-  return { kutuBoyutu: duzen.kutuBoyutu ?? 'normal', satirlar };
+  return satirlarla(duzen, satirlar);
 }
 
 export function cariOzetAlanCikar(
@@ -216,15 +291,15 @@ export function cariOzetAlanCikar(
   const satir = satirlar[satirIndeks];
   if (!satir || slotIndeks < 0 || slotIndeks >= satir.length) return duzen;
   satir.splice(slotIndeks, 1);
-  return { kutuBoyutu: duzen.kutuBoyutu ?? 'normal', satirlar };
+  return satirlarla(duzen, satirlar);
 }
 
 export function cariOzetSatirSil(duzen: CariOzetAlanDuzeni, satirIndeks: number): CariOzetAlanDuzeni {
   if (satirIndeks < 0 || satirIndeks >= duzen.satirlar.length) return duzen;
-  return {
-    kutuBoyutu: duzen.kutuBoyutu ?? 'normal',
-    satirlar: duzen.satirlar.filter((_, i) => i !== satirIndeks),
-  };
+  return satirlarla(
+    duzen,
+    duzen.satirlar.filter((_, i) => i !== satirIndeks)
+  );
 }
 
 export function cariOzetSatirTasi(
@@ -244,7 +319,7 @@ export function cariOzetSatirTasi(
   const satirlar = [...duzen.satirlar];
   const [oge] = satirlar.splice(from, 1);
   satirlar.splice(to, 0, oge);
-  return { kutuBoyutu: duzen.kutuBoyutu ?? 'normal', satirlar };
+  return satirlarla(duzen, satirlar);
 }
 
 export function cariOzetAlanSiradaTasi<T>(liste: T[], from: number, to: number): T[] {

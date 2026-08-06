@@ -43,6 +43,8 @@ interface SistemModalProps {
   footer?: ReactNode;
   /** Modal kartının sağına ek panel (yardım vb.) */
   yanIcerik?: ReactNode;
+  /** Başlık satırında kapatmadan hemen önce (ayar ikonu vb.) */
+  baslikSag?: ReactNode;
 }
 
 export function SistemModal({
@@ -64,6 +66,7 @@ export function SistemModal({
   children,
   footer,
   yanIcerik,
+  baslikSag,
 }: SistemModalProps) {
   const sekme = useAdminSekmeKabuk();
   const kapat = useCallback(() => {
@@ -135,6 +138,7 @@ export function SistemModal({
                 </h2>
                 {altBaslik && <p className="ap-muted mt-1 text-sm leading-snug">{altBaslik}</p>}
               </div>
+              {baslikSag ? <div className="ap-sistem-modal-baslik-sag">{baslikSag}</div> : null}
               <button
                 type="button"
                 className="ap-sistem-modal-kapat ap-sistem-modal-kapat-v2 ap-modal-kapat-pil"

@@ -9030,6 +9030,13 @@ html:has(.admin-panel[data-tema='acik']) body {
   align-items: center;
 }
 
+.ap-sistem-modal-baslik-sag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+}
+
 .ap-sistem-modal-ikon {
   width: 2.5rem;
   height: 2.5rem;
