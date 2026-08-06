@@ -2048,9 +2048,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   flex-shrink: 0;
-  /* .fatura-sayfa--liste overflow:hidden — hover translateY üst border/çizgiyi kesmesin */
-  padding: 6px 2px 2px;
-  box-sizing: border-box;
 }
 
 .fatura-liste-ozet-kart {
@@ -2066,8 +2063,6 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
-  position: relative;
-  z-index: 0;
   transition:
     border-color 0.14s ease,
     background 0.14s ease,
@@ -2077,14 +2072,12 @@
 
 .fatura-liste-ozet-kart:hover,
 .fatura-liste-ozet-kart:focus-visible {
-  z-index: 1;
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--ap-accent) 12%, transparent);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--ap-accent) 14%, transparent);
 }
 
 .fatura-liste-ozet-kart--aktif {
-  z-index: 1;
   border-color: color-mix(in srgb, var(--ap-accent) 55%, var(--ap-border));
   background: color-mix(in srgb, var(--ap-accent) 12%, var(--ap-surface));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--ap-accent) 22%, transparent);
@@ -2094,7 +2087,7 @@
 .fatura-liste-ozet-kart--aktif:focus-visible {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--ap-accent) 28%, transparent),
-    0 4px 12px color-mix(in srgb, var(--ap-accent) 14%, transparent);
+    0 3px 10px color-mix(in srgb, var(--ap-accent) 14%, transparent);
 }
 
 .fatura-liste-ozet-kart span {
@@ -3586,6 +3579,10 @@
 .fatura-sayfa--liste {
   overflow: hidden;
   gap: 12px;
+  /* Hover translateY için clip payı; margin ile görsel üst boşluk aynı kalır */
+  padding-top: 3px;
+  margin-top: -3px;
+  box-sizing: border-box;
 }
 
 .fatura-sayfa--liste .fatura-liste-ust {
