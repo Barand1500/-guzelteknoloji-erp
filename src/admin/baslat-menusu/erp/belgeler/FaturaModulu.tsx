@@ -94,7 +94,12 @@ import {
   OtOutlinedAlan,
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
 import { TarihSecici } from '@/admin/ortak/TarihSecici';
-import { belgeBaslatOkuVeTemizle, BELGE_BASLAT_OLAY } from './belgeBaslat';
+import {
+  belgeBaslatGozat,
+  belgeBaslatHemenUygulanir,
+  belgeBaslatOkuVeTemizle,
+  BELGE_BASLAT_OLAY,
+} from './belgeBaslat';
 import { cariBaslatYaz } from '@/admin/baslat-menusu/erp/cari/cariBaslat';
 import {
   BELGE_NEVILERI_GUNCELLENDI,
@@ -323,7 +328,7 @@ export function FaturaModulu({
   const logMesajiAyarla = useAdminLogMesaji();
   const { setRehberModulId } = useAdminAksiyon();
 
-  const [gorunum, setGorunum] = useState<Gorunum>('liste');
+  const [gorunum, setGorunum] = useState<Gorunum>(() => (belgeBaslatGozat() ? 'form' : 'liste'));
   const [listeFiltreNeviId, setListeFiltreNeviId] = useState<string>('HEPSI');
   const [listeFiltreYon, setListeFiltreYon] = useState<BelgeYon | 'HEPSI'>('HEPSI');
   const [listeArama, setListeArama] = useState('');
@@ -845,6 +850,7 @@ export function FaturaModulu({
   }, []);
 
   const baslatIslendiRef = useRef(false);
+  const bekleyenBelgeIdBaslatRef = useRef<ReturnType<typeof belgeBaslatGozat>>(null);
 
   const baslatUygula = useCallback(
     (baslat: { cariId?: string; belgeId?: string; yeni?: boolean; belgeNeviId?: string }) => {
@@ -875,27 +881,77 @@ export function FaturaModulu({
     [liste, belgeAc, yeniBelgeAc, logMesajiAyarla]
   );
 
+  // Cari → Belge Ekle: liste yükünü beklemeden forma geç (liste flaşını önler)
   useEffect(() => {
-    if (listeYukleniyor) return;
-    const baslat = belgeBaslatOkuVeTemizle();
-    if (baslat) {
+    if (baslatIslendiRef.current) {
+      if (!listeYukleniyor && bekleyenBelgeIdBaslatRef.current?.belgeId) {
+        const bekleyen = bekleyenBelgeIdBaslatRef.current;
+        bekleyenBelgeIdBaslatRef.current = null;
+        baslatUygula(bekleyen);
+      }
+      return;
+    }
+
+    const gozat = belgeBaslatGozat();
+    if (!gozat) {
+      if (!listeYukleniyor) {
+        baslatIslendiRef.current = true;
+        setGorunum('liste');
+      }
+      return;
+    }
+
+    if (belgeBaslatHemenUygulanir(gozat)) {
+      const baslat = belgeBaslatOkuVeTemizle();
+      if (!baslat) return;
       baslatIslendiRef.current = true;
       baslatUygula(baslat);
       return;
     }
-    if (!baslatIslendiRef.current) {
+
+    // belgeId: liste (veya API) hazır olunca aç; o ana kadar formda kal (liste gösterme)
+    if (listeYukleniyor) {
+      const baslat = belgeBaslatOkuVeTemizle();
+      if (!baslat) return;
       baslatIslendiRef.current = true;
-      setGorunum('liste');
+      bekleyenBelgeIdBaslatRef.current = baslat;
+      setGorunum('form');
+      return;
     }
+    const baslat = belgeBaslatOkuVeTemizle();
+    if (!baslat) return;
+    baslatIslendiRef.current = true;
+    baslatUygula(baslat);
   }, [listeYukleniyor, baslatUygula]);
 
   // Cari → Belge Ekle: sekme zaten açıksa sessionStorage + olay ile cariyi uygula
   useEffect(() => {
     const dinle = () => {
-      if (listeYukleniyor) return;
+      const gozat = belgeBaslatGozat();
+      if (!gozat) return;
+
+      if (belgeBaslatHemenUygulanir(gozat)) {
+        const baslat = belgeBaslatOkuVeTemizle();
+        if (!baslat) return;
+        baslatIslendiRef.current = true;
+        bekleyenBelgeIdBaslatRef.current = null;
+        baslatUygula(baslat);
+        return;
+      }
+
+      // Mevcut belge: liste yükleniyorsa forma geç, yük bitince aç
+      if (listeYukleniyor) {
+        const baslat = belgeBaslatOkuVeTemizle();
+        if (!baslat) return;
+        baslatIslendiRef.current = true;
+        bekleyenBelgeIdBaslatRef.current = baslat;
+        setGorunum('form');
+        return;
+      }
       const baslat = belgeBaslatOkuVeTemizle();
       if (!baslat) return;
       baslatIslendiRef.current = true;
+      bekleyenBelgeIdBaslatRef.current = null;
       baslatUygula(baslat);
     };
     window.addEventListener(BELGE_BASLAT_OLAY, dinle);
