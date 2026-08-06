@@ -235,7 +235,6 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
       acik={acik}
       onKapat={kapat}
       baslik="Profilim"
-      altBaslik={`@${kullaniciAdi}`}
       baslikId={baslikId}
       ikon={<ProfilFlatIkon />}
       ikonFlat
@@ -252,7 +251,7 @@ export function AdminProfilModal({ acik, onKapat }: AdminProfilModalProps) {
               className="ap-profil-footer-tus ap-profil-footer-tus--cikis"
               onClick={hesaptanCikis}
             >
-              Çıkış Yap
+              <ModalTusIcerik metin="Çıkış Yap" />
             </button>
             <button
               type="submit"

@@ -67,6 +67,17 @@ export function TanimlarSayfasi() {
     [mod]
   );
 
+  const modCubugu =
+    gorunurSekmeler.length > 1 ? (
+      <TanimModCubugu
+        sekmeler={gorunurSekmeler}
+        aktif={mod}
+        onDegistir={(id) => modDegistir(id as TanimSayfaModu)}
+        ariaLabel="Tanımlar görünümü"
+        kompakt
+      />
+    ) : null;
+
   if (ilkYukleniyor) return <TanimYukleniyor />;
 
   if (!goruntulemeVar) {
@@ -76,30 +87,28 @@ export function TanimlarSayfasi() {
   }
 
   return (
-    <AdminModulKabuk
-      baslik="Tanımlar"
-      aciklama="Firma seçin, kayıtları gridde görün; ekleme ve düzenleme modal ile yapılır."
-      ustAksiyon={
-        <TanimModCubugu
-          sekmeler={gorunurSekmeler}
-          aktif={mod}
-          onDegistir={(id) => modDegistir(id as TanimSayfaModu)}
-          ariaLabel="Tanımlar görünümü"
-        />
-      }
-    >
+    <AdminModulKabuk>
       <div className="ap-tanimlar-sayfa">
         <div
           className={`ap-tanimlar-icerik ap-tanimlar-icerik--${modYonu}`}
           key={mod === 'kurulum' ? 'kurulum' : `kayitlar-${ozetAnahtar}`}
         >
           {mod === 'kurulum' && eklemeVar ? (
-            <KurulumSihirbazi
-              onTamamlandi={kurulumTamamlandi}
-              onIptal={() => modDegistir('kayitlar')}
-            />
+            <div className="ap-tanimlar-kurulum-kabuk">
+              {modCubugu ? (
+                <div className="ap-tanimlar-ust-bar ap-tanimlar-ust-bar--kurulum">
+                  <div className="ap-tanimlar-ust-bar-satir">
+                    <div className="ap-tanimlar-ust-bar-sag">{modCubugu}</div>
+                  </div>
+                </div>
+              ) : null}
+              <KurulumSihirbazi
+                onTamamlandi={kurulumTamamlandi}
+                onIptal={() => modDegistir('kayitlar')}
+              />
+            </div>
           ) : (
-            <KayitlarSayfasi />
+            <KayitlarSayfasi ustSolAksiyon={modCubugu} />
           )}
         </div>
       </div>

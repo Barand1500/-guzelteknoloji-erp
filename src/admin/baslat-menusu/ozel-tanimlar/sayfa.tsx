@@ -85,17 +85,14 @@ export function OzelTanimlarSayfasi() {
 
   if (!girisOk) {
     return (
-      <AdminModulKabuk baslik="Özel Tanımlar" aciklama="Yönetim tanımlarına erişim">
+      <AdminModulKabuk>
         <OzelTanimlarSifreKapisi onGiris={() => setGirisOk(true)} />
       </AdminModulKabuk>
     );
   }
 
   return (
-    <AdminModulKabuk
-      baslik="Özel Tanımlar"
-      aciklama="Site genelinde kullanılan tanımları buradan yönetin"
-    >
+    <AdminModulKabuk>
       <div className="ot-hub" ref={hubRef}>
         <aside className="ot-hub-nav">
           <p className="ot-hub-nav-baslik">Tanımlar</p>

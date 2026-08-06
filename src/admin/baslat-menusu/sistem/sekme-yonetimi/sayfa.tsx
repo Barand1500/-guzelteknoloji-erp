@@ -140,24 +140,16 @@ export function SekmeYonetimiSayfasi() {
 
   if (yukleniyor) {
     return (
-      <AdminModulKabuk
-        baslik="Sekme Yönetimi"
-        aciklama="Üst sekme çubuğunun boyutunu ve davranışını ayarlayın."
-        onizleGoster={false}
-      >
+      <AdminModulKabuk onizleGoster={false}>
         <YukleniyorDurumu />
       </AdminModulKabuk>
     );
   }
 
   return (
-    <AdminModulKabuk
-      baslik="Sekme Yönetimi"
-      aciklama="Üst sekme çubuğunun boyutunu ve davranışını ayarlayın."
-      onizleGoster={false}
-    >
+    <AdminModulKabuk onizleGoster={false}>
       {hata && <BildirimKutusu mesaj={hata} tur="hata" />}
-      <div className="mt-6">
+      <div className="mt-0">
         <AdminPanelKarti baslik="Sekme Ayarları" altBaslik="Değişiklikler, Kaydet ile uygulanır">
           <div className="space-y-5">
             <div className="rounded-xl border border-[var(--ap-border)] bg-[var(--ap-hover)]/30 p-3">

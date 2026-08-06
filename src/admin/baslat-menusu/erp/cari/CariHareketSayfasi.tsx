@@ -30,7 +30,6 @@ const OTO_YENILE_MS = 10_000;
 
 interface CariHareketSayfasiProps {
   cari: AdminCari;
-  onGeri: () => void;
   onModulAc?: (modulId: string) => void;
   /** Cari listesini yeniden yükler (Yenile) */
   onYenile?: () => void | Promise<void>;
@@ -162,7 +161,6 @@ function ozetSatirlariUret(
 
 export function CariHareketSayfasi({
   cari,
-  onGeri,
   onModulAc,
   onYenile,
   bilgiYonetAcik = false,
@@ -344,14 +342,6 @@ export function CariHareketSayfasi({
 
   return (
     <div ref={kokRef} className="cari-hareket-sayfa">
-      <div className="cari-hareket-ust">
-        <div className="cari-hareket-ust-sol">
-          <button type="button" className="fatura-btn fatura-btn--ghost" onClick={onGeri}>
-            ← Liste
-          </button>
-        </div>
-      </div>
-
       <section
         className={`cari-hareket-ozet${ozetAcik ? ' cari-hareket-ozet--acik' : ''} cari-hareket-ozet--kutu-${ozetDuzeni.kutuBoyutu ?? 'normal'} ${gorunumSinifi}`.trim()}
         aria-label="Cari özet"

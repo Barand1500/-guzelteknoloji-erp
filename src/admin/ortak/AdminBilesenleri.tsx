@@ -18,29 +18,52 @@ export function AdminModulKabuk({
   onizleGoster = false,
   ustAksiyon,
 }: AdminModulKabukProps) {
-  const baslikMetin = typeof baslik === 'string' ? baslik.trim() : baslik;
-  const baslikVar = Boolean(baslikMetin || aciklama?.trim() || ustAksiyon || onizleGoster);
+  const baslikGoster =
+    typeof baslik === 'string' || typeof baslik === 'number'
+      ? Boolean(String(baslik).trim())
+      : Boolean(baslik);
+  const aciklamaVar = Boolean(aciklama?.trim());
+  const yaziVar = baslikGoster || aciklamaVar;
+  const ustVar = Boolean(yaziVar || ustAksiyon || onizleGoster);
+
   return (
-    <div className="ap-modul-kabuk w-full min-w-0" data-ap-kesif="modul-kabuk">
-      {baslikVar ? (
-        <div className="ap-modul-baslik">
-          <div>
-            {typeof baslik === 'string' || typeof baslik === 'number' ? (
-              baslik.toString().trim() ? (
-                <h1 className="ap-heading text-xl font-bold">{baslik}</h1>
-              ) : null
-            ) : (
-              baslik
-            )}
-            {aciklama && <p className="ap-muted mt-1 text-sm">{aciklama}</p>}
-          </div>
-          <div className="flex items-center gap-2">
-            {ustAksiyon}
-            {onizleGoster && <AdminSiteOnizleLink />}
-          </div>
+    <div
+      className={[
+        'ap-modul-kabuk w-full min-w-0',
+        !ustVar ? 'ap-modul-kabuk--ustsuz' : '',
+        ustVar && !yaziVar ? 'ap-modul-kabuk--yazisiz' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      data-ap-kesif="modul-kabuk"
+    >
+      {ustVar ? (
+        <div
+          className={`ap-modul-baslik${!yaziVar ? ' ap-modul-baslik--yalniz-aksiyon' : ''}`}
+        >
+          {yaziVar ? (
+            <div>
+              {typeof baslik === 'string' || typeof baslik === 'number' ? (
+                String(baslik).trim() ? (
+                  <h1 className="ap-heading text-xl font-bold">{baslik}</h1>
+                ) : null
+              ) : (
+                baslik
+              )}
+              {aciklamaVar ? <p className="ap-muted mt-1 text-sm">{aciklama}</p> : null}
+            </div>
+          ) : null}
+          {(ustAksiyon || onizleGoster) && (
+            <div className="flex items-center gap-2 ap-modul-baslik-aksiyon">
+              {ustAksiyon}
+              {onizleGoster ? <AdminSiteOnizleLink /> : null}
+            </div>
+          )}
         </div>
       ) : null}
-      <div className="mt-6">{children}</div>
+      <div className={`ap-modul-kabuk-icerik${ustVar ? ' ap-modul-kabuk-icerik--ustlu' : ''}`}>
+        {children}
+      </div>
     </div>
   );
 }

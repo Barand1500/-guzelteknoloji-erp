@@ -15,7 +15,6 @@
   flex-direction: column !important;
   overflow: hidden !important;
   min-height: 0 !important;
-  padding: 0.875rem 1rem !important;
 }
 
 .dg-demo-sayfa > .dg-kabuk {
@@ -85,9 +84,9 @@
   min-height: 0;
 }
 
-/* overflow:hidden + border-radius ust kose kesmesin */
+/* overflow:hidden + border-radius üst köşe kesmesin — üst boşluk panelde (--standart) */
 .dg-urun-slayt-tablo > .dg-demo-sayfa:has(.stoklar-liste-ara-cubugu) {
-  padding: 0.625rem 0.625rem 0;
+  padding: 0 0.625rem 0;
   box-sizing: border-box;
 }
 

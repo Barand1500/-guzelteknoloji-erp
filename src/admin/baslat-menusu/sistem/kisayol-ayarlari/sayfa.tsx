@@ -119,14 +119,14 @@ export function KisayolAyarlariSayfasi() {
 
   if (yukleniyor || authYukleniyor) {
     return (
-      <AdminModulKabuk baslik="Kısayol Ayarları" aciklama="Panel kısayollarını özelleştirin." onizleGoster={false}>
+      <AdminModulKabuk onizleGoster={false}>
         <YukleniyorDurumu />
       </AdminModulKabuk>
     );
   }
 
   return (
-    <AdminModulKabuk baslik="Kısayol Ayarları" aciklama="Panel kısayollarını özelleştirin." onizleGoster={false}>
+    <AdminModulKabuk onizleGoster={false}>
       {hata && <BildirimKutusu mesaj={hata} tur="hata" />}
       {basari && <BildirimKutusu mesaj={basari} tur="basari" />}
 

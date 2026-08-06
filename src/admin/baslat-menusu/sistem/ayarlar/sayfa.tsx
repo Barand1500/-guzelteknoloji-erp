@@ -202,8 +202,6 @@ export function SistemAyarlariSayfasi() {
 
   return (
     <AdminModulKabuk
-      baslik="Sistem Ayarları"
-      aciklama="Site, güvenlik, dil ve panel davranış ayarlarını buradan yönetirsiniz."
       ustAksiyon={<SistemSekmeCubugu aktif={sekme} onDegistir={sekmeDegistir} />}
     >
       <div className="ap-ayarlar-sayfa">

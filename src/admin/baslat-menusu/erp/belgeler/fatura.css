@@ -1644,10 +1644,14 @@
   margin-left: 0;
 }
 
+.fatura-alt-finans-ozet-kalem--toplam span,
+.fatura-alt-finans-ozet-kalem--toplam strong {
+  color: var(--ap-accent, #c45c26);
+}
+
 .fatura-alt-finans-ozet-kalem--toplam strong {
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--ap-heading, var(--ap-text));
 }
 
 .fatura-alt-finans-ozet-kalem--iskonto {
@@ -1973,6 +1977,11 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.fatura-liste-ust--yalniz-aksiyon {
+  justify-content: flex-end;
+  margin-bottom: 0;
 }
 
 .fatura-form-ust-sol {

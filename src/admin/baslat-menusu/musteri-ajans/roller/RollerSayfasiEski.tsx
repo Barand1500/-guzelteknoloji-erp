@@ -195,18 +195,13 @@ export function RollerSayfasiEski() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-white">Roller ve Yetkiler</h1>
-      <p className="mt-1 text-sm text-slate-400">
-        Sistemdeki roller ve her role ait yetki matrisi. Kullanıcılara rol atamak için{' '}
-        <strong className="text-slate-300">Kullanıcılar</strong> modülünü kullanın.
-      </p>
-      {hata && <p className="mt-4 text-sm text-red-400">{hata}</p>}
-      {kaydediliyor && <p className="mt-4 text-sm text-slate-400">Kaydediliyor...</p>}
+      {hata && <p className="mb-4 text-sm text-red-400">{hata}</p>}
+      {kaydediliyor && <p className="mb-4 text-sm text-slate-400">Kaydediliyor...</p>}
 
       {yukleniyor ? (
-        <p className="mt-6 text-sm text-slate-400">Yükleniyor...</p>
+        <p className="text-sm text-slate-400">Yükleniyor...</p>
       ) : (
-        <div className="mt-6 space-y-8">
+        <div className="space-y-8">
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
               Sayfa Seçimi

@@ -1174,6 +1174,7 @@ export function FaturaModulu({
       onizle: 'Listeye Dön',
       guncelle: gorunum === 'liste' ? 'Filtreleri Düzenle' : 'Cariyi Düzenle',
       belgeAlanYonet: 'Alanları Yönet',
+      ekle: 'Belge Ekle',
     }
   );
 
@@ -1266,17 +1267,6 @@ export function FaturaModulu({
     });
   }, [kdvDahil]);
 
-  /** Arama sonucundan seçim: satıra eklemez, hızlı giriş alanlarını doldurur */
-  const urunSecVeDoldur = useCallback(
-    (urun: UrunKaydi) => {
-      if (saltOkunur) return;
-      topluUrunKuyruguRef.current = [];
-      hizliGiriseUrunDoldur(urun, true);
-      aramayiKapat(true);
-    },
-    [saltOkunur, aramayiKapat, hizliGiriseUrunDoldur]
-  );
-
   const urundenSatirOlustur = useCallback(
     (urun: UrunKaydi, idSonek = '') => {
       const birimFiyat = kdvDahil
@@ -1299,10 +1289,46 @@ export function FaturaModulu({
   );
 
   /**
+   * Arama sonucundan seçim:
+   * - Fiyat > 0 → doğrudan satıra ekler (düzenlemeye girmez)
+   * - Fiyat 0 → hızlı giriş alanlarını doldurur
+   */
+  const urunSecVeDoldur = useCallback(
+    (urun: UrunKaydi) => {
+      if (saltOkunur) return;
+      topluUrunKuyruguRef.current = [];
+
+      if (Number(urun.fiyat) > 0) {
+        const yeni = urundenSatirOlustur(urun);
+        setSatirlar((onceki) => {
+          if (satirEkleBaglam) {
+            const { satirId, konum } = satirEkleBaglam;
+            const idx = onceki.findIndex((s) => s.id === satirId);
+            if (idx < 0) return [...onceki, yeni];
+            const liste = [...onceki];
+            liste.splice(konum === 'ust' ? idx : idx + 1, 0, yeni);
+            return liste;
+          }
+          return [...onceki, yeni];
+        });
+        if (satirEkleBaglam) setSatirEkleBaglam(null);
+        hizliGirisApiRef.current?.sifirla();
+        aramayiKapat(false);
+        requestAnimationFrame(() => gridApiRef.current?.hizliGirisOdakla?.());
+        return;
+      }
+
+      hizliGiriseUrunDoldur(urun, true);
+      aramayiKapat(true);
+    },
+    [saltOkunur, aramayiKapat, hizliGiriseUrunDoldur, urundenSatirOlustur, satirEkleBaglam]
+  );
+
+  /**
    * Toplu seçim:
    * - Fiyatlı ürünler → doğrudan satıra eklenir
    * - 0 fiyatlılar → sırayla hızlı girişte düzenlemeye gelir
-   * Tek seçim UrunAramaSlayt’ta onSec → urunSecVeDoldur (bozulmaz)
+   * Tek seçim → urunSecVeDoldur (fiyatlıysa satıra, 0 ise düzenleme)
    */
   const urunTopluSecVeDoldur = useCallback(
     (urunler: UrunKaydi[]) => {
@@ -1497,20 +1523,6 @@ export function FaturaModulu({
   if (gorunum === 'liste') {
     return (
       <div className={`${sayfaSinif} fatura-sayfa--liste`}>
-        <div className="fatura-liste-ust">
-          <div>
-            <h2 className="fatura-baslik">{baslik}</h2>
-            <p className="fatura-alt">Tüm belgeler · tür ve yön filtresi · giriş / çıkış özeti</p>
-          </div>
-          {eklemeVar ? (
-            <div className="fatura-liste-aksiyon">
-              <button type="button" className="fatura-btn fatura-btn--birincil" onClick={() => yeniBelgeAc()}>
-                + Belge Ekle
-              </button>
-            </div>
-          ) : null}
-        </div>
-
         <div className="fatura-liste-ozet">
           <button
             type="button"
@@ -1633,7 +1645,7 @@ export function FaturaModulu({
             ) : filtreliListe.length === 0 ? (
               <p className="fatura-bos">
                 {liste.length === 0
-                  ? 'Henüz belge yok. + Belge Ekle ile yeni belge oluşturun.'
+                  ? 'Henüz belge yok. Aksiyon çubuğundan Belge Ekle ile yeni belge oluşturun.'
                   : 'Filtreye uyan belge bulunamadı.'}
               </p>
             ) : (
@@ -1870,6 +1882,7 @@ export function FaturaModulu({
                 disabled={saltOkunur}
                 ariaLabel="Belge tarihi"
                 varyant="alan"
+                sagKaydirma={18}
                 onChange={setTarih}
               />
             </OtOutlinedAlan>

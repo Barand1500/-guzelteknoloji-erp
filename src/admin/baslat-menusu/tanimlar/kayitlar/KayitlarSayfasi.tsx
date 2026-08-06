@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   TanimKayitModal,
   type TanimModalHedef,
@@ -109,7 +109,11 @@ function KartIkon() {
   );
 }
 
-export function KayitlarSayfasi() {
+export function KayitlarSayfasi({
+  ustSolAksiyon,
+}: {
+  ustSolAksiyon?: ReactNode;
+} = {}) {
   const { eklemeVar, duzenlemeVar, silmeVar } = useYetkiler('tanimlar');
   const { setRehberModulId } = useAdminAksiyon();
   const {
@@ -378,6 +382,7 @@ export function KayitlarSayfasi() {
           if (!seciliFirma || !duzenlemeVar) return;
           setModalHedef({ tip: 'firma', mod: 'duzenle', kayit: seciliFirma });
         }}
+        solAksiyon={ustSolAksiyon}
       />
 
       <div

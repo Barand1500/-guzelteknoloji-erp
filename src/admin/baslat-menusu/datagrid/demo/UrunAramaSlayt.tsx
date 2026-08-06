@@ -336,7 +336,7 @@ export function UrunAramaSlayt({
             {topluAktif ? (
               <span>□ İşaretle · Ctrl+Space · Enter: fiyatlılar satıra · 0 ₺ düzenleme</span>
             ) : (
-              <span>Enter Seç (alanlar dolar)</span>
+              <span>Enter: fiyatlıysa satıra · 0 ₺ düzenleme</span>
             )}
             <span>ESC Geri</span>
           </footer>

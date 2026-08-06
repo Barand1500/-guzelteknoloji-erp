@@ -552,19 +552,7 @@ export function KullanicilarSayfasiYeni() {
 
   return (
 
-    <AdminModulKabuk
-      baslik="Kullanıcılar"
-      aciklama="Panel kullanıcılarını oluşturun, rollerini atayın ve erişimlerini yönetin."
-      onizleGoster={false}
-      ustAksiyon={
-        <RolGorunumCubugu
-          sekmeler={GORUNUM_SEKMELER}
-          aktif={gorunum}
-          onDegistir={(id) => gorunumDegistir(id as KullaniciGorunumId)}
-          ariaLabel="Kullanıcı görünümü"
-        />
-      }
-    >
+    <AdminModulKabuk onizleGoster={false}>
 
       <div className="ap-kullanicilar-sayfa ap-kullanicilar-sayfa--yeni">
 
@@ -586,6 +574,14 @@ export function KullanicilarSayfasiYeni() {
               <AdminPanelKarti
                 baslik="Erişim Ataması"
                 altBaslik="Soldan kullanıcı seçin. Gridde satır satır firma, dönem, şube, depo ve kasa atayın. Ekle ile yeni satır açılır."
+                ustAksiyon={
+                  <RolGorunumCubugu
+                    sekmeler={GORUNUM_SEKMELER}
+                    aktif={gorunum}
+                    onDegistir={(id) => gorunumDegistir(id as KullaniciGorunumId)}
+                    ariaLabel="Kullanıcı görünümü"
+                  />
+                }
               >
                 <ErisimAtamasiPaneli
                   duzenlenebilir={!saltOkunur}
@@ -611,6 +607,15 @@ export function KullanicilarSayfasiYeni() {
 
                   : 'Formu doldurup Kaydet ile oluşturun'
 
+              }
+
+              ustAksiyon={
+                <RolGorunumCubugu
+                  sekmeler={GORUNUM_SEKMELER}
+                  aktif={gorunum}
+                  onDegistir={(id) => gorunumDegistir(id as KullaniciGorunumId)}
+                  ariaLabel="Kullanıcı görünümü"
+                />
               }
 
             >

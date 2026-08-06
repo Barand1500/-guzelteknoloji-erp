@@ -8,16 +8,6 @@
   padding: 0 2px 12px;
 }
 
-/* Hareket ekranında üst başlık yok — panel/kabuk boşluğunu sıkılaştır */
-.ap-modul-panel:has(.cari-hareket-sayfa) {
-  padding-top: 0.85rem !important;
-  padding-bottom: 0.85rem !important;
-}
-
-.ap-modul-kabuk:has(.cari-hareket-sayfa) > .mt-6 {
-  margin-top: 0.35rem !important;
-}
-
 .ap-tanimlar-sayfa:has(.cari-hareket-sayfa) {
   flex: none;
   min-height: 0;
@@ -260,7 +250,7 @@
   letter-spacing: 0.01em;
 }
 
-/* —— Kutu büyüklüğü: kompakt —— */
+/* ?? Kutu b?y?kl???: kompakt ?? */
 .cari-hareket-ozet--kutu-kompakt .cari-hareket-ozet-satirlar {
   gap: 5px;
 }
@@ -298,7 +288,7 @@
   padding: 8px 10px 10px;
 }
 
-/* —— Kutu büyüklüğü: geniş —— */
+/* ?? Kutu b?y?kl???: geni? ?? */
 .cari-hareket-ozet--kutu-genis .cari-hareket-ozet-satirlar {
   gap: 12px;
 }
@@ -590,7 +580,7 @@
 }
 
 @media print {
-  /* Sadece cari hareket içeriği basılsın */
+  /* Sadece cari hareket i?eri?i bas?ls?n */
   body.cari-hareket-yazdiriliyor * {
     visibility: hidden !important;
   }
@@ -700,7 +690,7 @@
   }
 }
 
-/* �� G�r�n�m ayarlar� (tipografi) �� */
+/* ?? G?r?n?m ayarlar? (tipografi) ?? */
 .cari-hareket-ozet--etiket-ince .cari-hareket-ozet-kart-etiket { font-weight: 500; }
 .cari-hareket-ozet--etiket-normal .cari-hareket-ozet-kart-etiket { font-weight: 650; }
 .cari-hareket-ozet--etiket-kalin .cari-hareket-ozet-kart-etiket { font-weight: 800; }
@@ -724,33 +714,57 @@
 .cari-hareket-ozet--deger-boyut-orta .cari-hareket-ozet-kart--mono .cari-hareket-ozet-kart-deger { font-size: 0.75rem; }
 .cari-hareket-ozet--deger-boyut-buyuk .cari-hareket-ozet-kart--mono .cari-hareket-ozet-kart-deger { font-size: 0.84rem; }
 
-/* �� Modal ba�l�k ayar ikonu + yan panel �� */
+/* Modal ba?l?k ayar ikonu ? kapat (?) ile ayn? y?kseklik, kare kutu */
 .cari-ozet-ayar-baslik-tus {
   appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  box-sizing: border-box;
+  width: 1.65rem;
+  height: 1.65rem;
   margin: 0;
   padding: 0;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--ap-border) 75%, transparent);
-  background: color-mix(in srgb, var(--ap-surface) 90%, transparent);
-  color: var(--ap-muted);
+  border-radius: 0.35rem;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-hover);
+  color: var(--ap-text-muted);
+  font-size: 0.7rem;
+  line-height: 1;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.cari-ozet-ayar-baslik-tus svg {
+  display: block;
+  width: 12px;
+  height: 12px;
 }
 
 .cari-ozet-ayar-baslik-tus:hover,
 .cari-ozet-ayar-baslik-tus--aktif {
-  border-color: color-mix(in srgb, var(--ap-accent) 45%, var(--ap-border));
-  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-surface));
+  background: color-mix(in srgb, var(--ap-accent) 10%, var(--ap-hover));
   color: var(--ap-accent);
+  border-color: color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
+}
+
+.ap-sistem-modal-baslik-v2:has(.cari-ozet-ayar-baslik-tus) .ap-sistem-modal-kapat-v2.ap-modal-kapat-pil {
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border-radius: 0.35rem;
+  justify-content: center;
+  font-size: 0.65rem;
 }
 
 .cari-ozet-ayar-panel {
   box-sizing: border-box;
+  flex-shrink: 0;
+  min-width: 0;
   width: 0;
   max-width: 0;
   opacity: 0;
@@ -761,28 +775,41 @@
   background: color-mix(in srgb, var(--ap-surface) 96%, var(--ap-border));
   box-shadow: 0 12px 36px color-mix(in srgb, #000 28%, transparent);
   transform: translateX(-8px);
-  transition: width 0.22s ease, max-width 0.22s ease, opacity 0.18s ease, transform 0.22s ease, border-color 0.18s ease;
+  transition:
+    width 0.22s ease,
+    max-width 0.22s ease,
+    opacity 0.18s ease,
+    transform 0.22s ease,
+    border-color 0.18s ease,
+    margin 0.22s ease;
   pointer-events: none;
 }
 
 .cari-ozet-ayar-panel--acik {
-  width: min(18.5rem, 42vw);
-  max-width: min(18.5rem, 42vw);
+  display: flex;
+  flex-direction: column;
+  width: min(17.5rem, 36vw);
+  max-width: min(17.5rem, 36vw);
   opacity: 1;
+  margin-top: var(--cerceve-kalinlik, 4px);
+  margin-bottom: var(--cerceve-kalinlik, 4px);
+  margin-left: 0.65rem;
   border-color: color-mix(in srgb, var(--ap-border) 80%, transparent);
   transform: translateX(0);
   pointer-events: auto;
 }
 
 .cari-ozet-ayar-panel-ic {
+  box-sizing: border-box;
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  gap: 12px;
-  width: min(18.5rem, 42vw);
-  height: 100%;
-  max-height: min(78vh, 42rem);
-  padding: 12px;
-  overflow: auto;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 0;
+  padding: 0.75rem 0.85rem 0.85rem;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .cari-ozet-ayar-panel-baslik {
@@ -953,4 +980,27 @@
 .cari-ozet-ayar-sifirla:hover {
   color: var(--ap-text);
   border-color: color-mix(in srgb, var(--ap-accent) 35%, var(--ap-border));
+}
+
+@media (max-width: 900px) {
+  .ap-sistem-modal-sira--yan:has(.cari-ozet-ayar-panel--acik) {
+    flex-direction: column;
+    align-items: center;
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+  }
+
+  .cari-ozet-ayar-panel--acik {
+    width: min(22rem, calc(100vw - 2rem));
+    max-width: min(22rem, calc(100vw - 2rem));
+    margin-left: 0;
+    margin-top: 0.65rem;
+    margin-bottom: 0;
+    align-self: center;
+  }
+
+  .cari-ozet-ayar-panel-ic {
+    width: 100%;
+    max-height: none;
+  }
 }

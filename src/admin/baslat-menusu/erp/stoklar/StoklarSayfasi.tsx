@@ -24,7 +24,6 @@ import { StokKartiModal } from '@/admin/baslat-menusu/erp/belgeler/StokKartiModa
 import '@/admin/baslat-menusu/erp/belgeler/fatura.css';
 import {
   gelismisFiltreAktifMi,
-  stokAramaKriteriVarMi,
   stoklariFiltrele,
 } from './stokFiltre';
 import {
@@ -198,7 +197,6 @@ export function StoklarSayfasi() {
   const [yukleniyor, setYukleniyor] = useState(true);
   const [filtreMetni, setFiltreMetni] = useState('');
   const [uygulananFiltreMetni, setUygulananFiltreMetni] = useState('');
-  const [aramaGosterildi, setAramaGosterildi] = useState(false);
   const [gelismisFiltre, setGelismisFiltre] = useState<StokGelismisFiltre>(bosStokGelismisFiltre());
   const [gelismisTaslak, setGelismisTaslak] = useState<StokGelismisFiltre>(bosStokGelismisFiltre());
   const [gelismisAcik, setGelismisAcik] = useState(false);
@@ -237,10 +235,7 @@ export function StoklarSayfasi() {
   );
 
   /** Datagrid sırasına göre kart gezinmesi (uçlarda döngü) */
-  const gezinmeListesi = useMemo(
-    () => (aramaGosterildi && filtrelenmis.length > 0 ? filtrelenmis : kayitlar),
-    [aramaGosterildi, filtrelenmis, kayitlar]
-  );
+  const gezinmeListesi = filtrelenmis;
 
   const gezinmeIdx = useMemo(() => {
     if (!aktifStokId) return -1;
@@ -463,31 +458,21 @@ export function StoklarSayfasi() {
     gelismisAraAc();
   }, [gelismisAraAc, gorunum, listeyeDon]);
 
-  const aramaSonuclariniGoster = useCallback(() => {
-    setSeciliIdler([]);
-    setAramaGosterildi(true);
-  }, []);
-
   const hizliAraUygula = useCallback(() => {
-    const taslakGelismis = gelismisAcik ? gelismisTaslak : gelismisFiltre;
-    if (!stokAramaKriteriVarMi(filtreMetni, taslakGelismis)) {
-      hataBildir('Aramak için stok kodu veya adı girin ya da gelişmiş arama kullanın.');
-      return;
-    }
     setUygulananFiltreMetni(filtreMetni);
     if (gelismisAcik) {
       setGelismisFiltre(gelismisTaslak);
       setGelismisAcik(false);
     }
-    aramaSonuclariniGoster();
-  }, [aramaSonuclariniGoster, filtreMetni, gelismisAcik, gelismisFiltre, gelismisTaslak, hataBildir]);
+    setSeciliIdler([]);
+  }, [filtreMetni, gelismisAcik, gelismisTaslak]);
 
   const gelismisUygula = useCallback(() => {
     setGelismisFiltre(gelismisTaslak);
     setUygulananFiltreMetni(filtreMetni);
     setGelismisAcik(false);
-    aramaSonuclariniGoster();
-  }, [aramaSonuclariniGoster, filtreMetni, gelismisTaslak]);
+    setSeciliIdler([]);
+  }, [filtreMetni, gelismisTaslak]);
 
   const kartFormu = gorunum === 'kart' && kartModu !== 'incele';
   const birimFiyatFormu =
@@ -674,12 +659,7 @@ export function StoklarSayfasi() {
         ? 'Stok Kartı Düzenleme'
         : gorunum === 'kart' && kartModu === 'incele'
           ? 'Stok Kartı İnceleme'
-          : gorunum === 'liste'
-            ? 'Stoklar'
-            : undefined;
-
-  const modulAciklama =
-    gorunum === 'liste' ? 'Stok kartlarını listeleyin, arayın ve yönetin.' : undefined;
+          : undefined;
 
   const aktifKartStok = useMemo(() => {
     if (gorunum !== 'kart' || !aktifStokId) return null;
@@ -702,7 +682,6 @@ export function StoklarSayfasi() {
   return (
     <AdminModulKabuk
       baslik={modulBaslik}
-      aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'kart' ? (
           <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
@@ -804,15 +783,7 @@ export function StoklarSayfasi() {
                   </button>
                 </form>
 
-                {!aramaGosterildi ? (
-                  <div className="stoklar-liste-bekleme">
-                    <p className="stoklar-liste-bekleme-baslik">Stok arayın</p>
-                    <p className="stoklar-liste-bekleme-metin">
-                      Listeyi görmek için stok kodu veya adı yazıp Ara&apos;ya basın. Kayıt
-                      bulunamazsa boş liste açılır.
-                    </p>
-                  </div>
-                ) : yukleniyor ? (
+                {yukleniyor ? (
                   <TanimYukleniyor />
                 ) : (
                   <div ref={sayfaRef} className="dg-demo-sag-tik-alan stoklar-tablo-alan">
@@ -848,7 +819,7 @@ export function StoklarSayfasi() {
                       satirlar={filtrelenmis}
                       depolamaAnahtari="stoklar_kayitlar_v3"
                       kolonGenislikSurumu={3}
-                      bosMesaj="Aramanızla eşleşen stok bulunamadı."
+                      bosMesaj="Kayıt bulunamadı. Arama kriterlerini değiştirin veya Yeni ile stok ekleyin."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => stokSatirSec(s.id)}
                       onSatirDuzenle={duzenlemeVar ? (s) => duzenleAc(s.id) : undefined}

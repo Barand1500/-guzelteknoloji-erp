@@ -20,7 +20,6 @@ import { CariHareketSayfasi } from './CariHareketSayfasi';
 import { CariGelismisArama } from './CariGelismisArama';
 import {
   bosCariGelismisFiltre,
-  cariAramaKriteriVarMi,
   carileriFiltrele,
   gelismisFiltreAktifMi,
   type CariGelismisFiltre,
@@ -125,7 +124,6 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   const [gelismisFiltre, setGelismisFiltre] = useState<CariGelismisFiltre>(bosCariGelismisFiltre());
   const [gelismisTaslak, setGelismisTaslak] = useState<CariGelismisFiltre>(bosCariGelismisFiltre());
   const [gelismisAcik, setGelismisAcik] = useState(false);
-  const [aramaGosterildi, setAramaGosterildi] = useState(false);
   const [seciliIdler, setSeciliIdler] = useState<string[]>([]);
   const [aktifCariId, setAktifCariId] = useState<string | null>(null);
   const [silme, setSilme] = useState<AdminCari | null>(null);
@@ -160,10 +158,7 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   );
 
   /** Datagrid’deki sıraya göre kart gezinmesi (uçlarda döngü) */
-  const gezinmeListesi = useMemo(
-    () => (aramaGosterildi && filtrelenmis.length > 0 ? filtrelenmis : kayitlar),
-    [aramaGosterildi, filtrelenmis, kayitlar]
-  );
+  const gezinmeListesi = filtrelenmis;
 
   const gezinmeIdx = useMemo(() => {
     if (!aktifCariId) return -1;
@@ -339,18 +334,13 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
 
   const hizliAraUygula = useCallback(() => {
     const taslakGelismis = gelismisAcik ? gelismisTaslak : gelismisFiltre;
-    if (!cariAramaKriteriVarMi(filtreMetni, taslakGelismis)) {
-      hataBildir('Aramak için cari kodu/adı veya gelişmiş filtre girin.');
-      return;
-    }
     if (gelismisAcik) {
-      setGelismisFiltre(gelismisTaslak);
+      setGelismisFiltre(taslakGelismis);
       setGelismisAcik(false);
     }
     setUygulananFiltreMetni(filtreMetni);
     setSeciliIdler([]);
-    setAramaGosterildi(true);
-  }, [filtreMetni, gelismisAcik, gelismisFiltre, gelismisTaslak, hataBildir]);
+  }, [filtreMetni, gelismisAcik, gelismisFiltre, gelismisTaslak]);
 
   const gelismisAraAc = useCallback(() => {
     setGelismisTaslak(gelismisFiltre);
@@ -362,7 +352,6 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
     setGelismisAcik(false);
     setUygulananFiltreMetni(filtreMetni);
     setSeciliIdler([]);
-    setAramaGosterildi(true);
   }, [filtreMetni, gelismisTaslak]);
 
   const aktifHareketCari = useMemo(
@@ -397,6 +386,12 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
       guncelle: duzenlemeVar ? () => duzenleAc() : undefined,
       sil: silmeVar ? silAksiyon : undefined,
       belgeAlanYonet: hareketSayfasi ? () => setBilgiYonetAcik(true) : undefined,
+      onizle: hareketSayfasi
+        ? () => {
+            listeyeDon({ kayitSonrasi: true });
+            return false;
+          }
+        : undefined,
     },
     {
       kaydet: kartFormu && (kartModu === 'yeni' ? eklemeVar : duzenlemeVar),
@@ -404,11 +399,13 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
       guncelle: duzenlemeVar && cariSecili && (gorunum === 'liste' || gorunum === 'hareket'),
       sil: silmeVar && cariSecili && gorunum === 'liste',
       belgeAlanYonet: hareketSayfasi,
+      onizle: hareketSayfasi,
     },
     kartFormu ? kartKirli : false,
     {
       ekle: hareketSayfasi ? 'Belge Ekle' : undefined,
       belgeAlanYonet: 'Bilgi Düzenle',
+      onizle: hareketSayfasi ? 'Listeye Dön' : undefined,
     }
   );
 
@@ -483,20 +480,13 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   const kolonlar = useMemo(() => cariKolonlari(), []);
 
   const modulBaslik =
-    gorunum === 'hareket'
-      ? ''
-      : gorunum === 'kart' && kartModu === 'yeni'
-        ? 'Yeni Cari Kart Ekleme'
-        : gorunum === 'kart' && kartModu === 'duzenle'
-          ? 'Cari Kart Düzenleme'
-          : gorunum === 'kart' && kartModu === 'incele'
-            ? 'Cari Kart İnceleme'
-            : 'Cari Kartlar';
-
-  const modulAciklama =
-    gorunum === 'liste'
-      ? 'Cari kartlarını listeleyin, arayın ve yönetin. Çift tıklayınca hareketler açılır.'
-      : undefined;
+    gorunum === 'kart' && kartModu === 'yeni'
+      ? 'Yeni Cari Kart Ekleme'
+      : gorunum === 'kart' && kartModu === 'duzenle'
+        ? 'Cari Kart Düzenleme'
+        : gorunum === 'kart' && kartModu === 'incele'
+          ? 'Cari Kart İnceleme'
+          : undefined;
 
   if (!goruntulemeVar) {
     return (
@@ -507,7 +497,6 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
   return (
     <AdminModulKabuk
       baslik={modulBaslik}
-      aciklama={modulAciklama}
       ustAksiyon={
         gorunum === 'kart' ? (
           <div className="cari-kart-gezin-grup" aria-label="Kart gezinme">
@@ -530,10 +519,6 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
         {gorunum === 'hareket' && aktifHareketCari ? (
           <CariHareketSayfasi
             cari={aktifHareketCari}
-            onGeri={() => {
-              setBilgiYonetAcik(false);
-              listeyeDon({ kayitSonrasi: true });
-            }}
             onModulAc={onModulAc}
             onYenile={yukle}
             bilgiYonetAcik={bilgiYonetAcik}
@@ -608,28 +593,20 @@ export function CariSayfasi({ onModulAc }: { onModulAc?: (modulId: string) => vo
                   </button>
                 </form>
 
-                {!aramaGosterildi ? (
-                  <div className="stoklar-liste-bekleme">
-                    <p className="stoklar-liste-bekleme-baslik">Cari arayın</p>
-                    <p className="stoklar-liste-bekleme-metin">
-                      Listeyi görmek için cari kodu veya adı yazıp Ara&apos;ya basın. Kayıt
-                      bulunamazsa boş liste açılır; aksiyon çubuğundan Yeni ile ekleyebilirsiniz.
-                    </p>
-                  </div>
-                ) : yukleniyor ? (
+                {yukleniyor ? (
                   <TanimYukleniyor />
                 ) : (
                   <div className="stoklar-tablo-alan">
                     <DataGrid
                       key={`cari_kayitlar_v${CARI_KOLON_GENISLIK_SURUMU}`}
                       tabloBaslik=""
-                      tabloAltBaslik="Arama sonuçları"
+                      tabloAltBaslik=""
                       yukleniyor={false}
                       gridApiRef={gridApiRef}
                       kolonlar={kolonlar}
                       satirlar={filtrelenmis}
                       depolamaAnahtari={`cari_kayitlar_v${CARI_KOLON_GENISLIK_SURUMU}`}
-                      bosMesaj="Aramanızla eşleşen cari bulunamadı. Yeni ile cari kart ekleyebilirsiniz."
+                      bosMesaj="Kayıt bulunamadı. Arama kriterlerini değiştirin veya Yeni ile cari kart ekleyin."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => gridApiRef.current?.secimAyarla([s.id])}
                       onSatirCiftTikla={(s) => hareketAc(s.id)}

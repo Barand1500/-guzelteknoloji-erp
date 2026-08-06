@@ -91,6 +91,8 @@ export interface TarihSeciciProps {
   /** satir: kompakt alan içi; alan: form input görünümü */
   varyant?: 'satir' | 'alan';
   className?: string;
+  /** Popup yatay kaydırma (px) — varsayılan 10 */
+  sagKaydirma?: number;
   onChange: (deger: string) => void;
   onFocusChange?: (odak: boolean) => void;
 }
@@ -105,6 +107,7 @@ export function TarihSecici({
   ariaLabel,
   varyant = 'satir',
   className = '',
+  sagKaydirma = 10,
   onChange,
   onFocusChange,
 }: TarihSeciciProps) {
@@ -140,9 +143,11 @@ export function TarihSecici({
       const vw = document.documentElement.clientWidth;
       const vh = document.documentElement.clientHeight;
 
-      /* Alan sağ kenarına hizalı (takvim daha geniş → sola taşar) */
-      let sol = r.right - genislik + 55;
-      if (sol < kenar) sol = Math.min(r.left, vw - genislik - kenar);
+      /* Tetik alanının soluna hizala (+ bir tık sağ); sağda taşarsa sağ kenara yasla */
+      let sol = r.left + sagKaydirma;
+      if (sol + genislik > vw - kenar) {
+        sol = r.right - genislik;
+      }
       sol = Math.max(kenar, Math.min(sol, vw - genislik - kenar));
 
       let ust = r.bottom + 6;
@@ -155,7 +160,10 @@ export function TarihSecici({
     }
 
     konumGuncelle();
-    const raf = requestAnimationFrame(konumGuncelle);
+    const raf = requestAnimationFrame(() => {
+      konumGuncelle();
+      requestAnimationFrame(konumGuncelle);
+    });
     window.addEventListener('resize', konumGuncelle);
     window.addEventListener('scroll', konumGuncelle, true);
     return () => {
@@ -163,7 +171,7 @@ export function TarihSecici({
       window.removeEventListener('resize', konumGuncelle);
       window.removeEventListener('scroll', konumGuncelle, true);
     };
-  }, [acik]);
+  }, [acik, sagKaydirma]);
 
   useEffect(() => {
     if (!acik) return;

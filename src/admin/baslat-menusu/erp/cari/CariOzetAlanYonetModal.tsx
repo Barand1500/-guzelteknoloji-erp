@@ -281,7 +281,7 @@ export function CariOzetAlanYonetModal({
           title="Görünüm ayarları"
           aria-label="Görünüm ayarları"
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" aria-hidden>
             <path
               d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
               stroke="currentColor"
@@ -402,18 +402,8 @@ export function CariOzetAlanYonetModal({
               />
             </div>
 
-            <div
-              className={`cari-ozet-ayar-canli cari-hareket-ozet--kutu-${kutuBoyutu} ${gorunumSiniflari(gorunum)}`}
-              aria-hidden
-            >
-              <div className="cari-hareket-ozet-kart">
-                <span className="cari-hareket-ozet-kart-etiket">Cari Tipi</span>
-                <strong className="cari-hareket-ozet-kart-deger">Satıcı</strong>
-              </div>
-            </div>
-
             <button type="button" className="cari-ozet-ayar-sifirla" onClick={gorunumSifirla}>
-              Görünümü varsayılana dön
+              Görünümü Varsayılana Döndür
             </button>
           </div>
         </aside>

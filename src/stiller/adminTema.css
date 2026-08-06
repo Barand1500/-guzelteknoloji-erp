@@ -51,6 +51,11 @@
   color: var(--ap-text);
   min-height: 0;
   accent-color: var(--ap-accent);
+  /* Turuncu çizgi altı → ilk içerik: tüm modüllerde aynı üst boşluk */
+  --ap-modul-ust-bosluk: 1.5rem;
+  --ap-modul-yan-bosluk: 1rem;
+  --ap-modul-icerik-ust-yazisiz: 0.65rem;
+  --ap-modul-icerik-ust-baslikli: 1.5rem;
 }
 
 html:has(.admin-panel),
@@ -3699,6 +3704,23 @@ html:has(.admin-panel[data-tema='acik']) body {
   min-width: 0;
 }
 
+/*
+ * Modül üst boşluğu: flex + overflow:hidden panelde padding-top yutuluyor (Cari/dg).
+ * Kabuklu sayfalarda margin-top; kabuksuz sayfalarda (Fatura vb.) padding-top kullanılır.
+ */
+.ap-modul-panel.ap-modul-panel--standart {
+  padding: 0 var(--ap-modul-yan-bosluk) var(--ap-modul-ust-bosluk) !important;
+  box-sizing: border-box;
+}
+
+.ap-modul-panel.ap-modul-panel--standart > .ap-modul-kabuk {
+  margin-top: var(--ap-modul-ust-bosluk) !important;
+}
+
+.ap-modul-panel.ap-modul-panel--standart:not(:has(> .ap-modul-kabuk)) {
+  padding-top: var(--ap-modul-ust-bosluk) !important;
+}
+
 .ap-modul-baslik {
   display: flex;
   flex-wrap: wrap;
@@ -3707,6 +3729,38 @@ html:has(.admin-panel[data-tema='acik']) body {
   gap: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--ap-border);
+}
+
+.ap-modul-baslik--yalniz-aksiyon {
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 0.75rem;
+}
+
+.ap-modul-baslik--yalniz-aksiyon .ap-modul-baslik-aksiyon {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.ap-modul-kabuk-icerik {
+  margin-top: 0;
+  min-width: 0;
+}
+
+.ap-modul-kabuk-icerik--ustlu {
+  margin-top: var(--ap-modul-icerik-ust-baslikli);
+}
+
+.ap-modul-kabuk--yazisiz > .ap-modul-kabuk-icerik--ustlu {
+  margin-top: var(--ap-modul-icerik-ust-yazisiz);
+}
+
+/* Üst başlık yoksa: turuncu çizgiden sonra yalnızca kabuk margin (--standart) */
+.ap-modul-kabuk--ustsuz > .ap-modul-kabuk-icerik,
+.ap-modul-kabuk--ustsuz > .ap-modul-kabuk-icerik--ustlu {
+  margin-top: 0 !important;
 }
 
 .ap-panel-kart {
@@ -3735,6 +3789,11 @@ html:has(.admin-panel[data-tema='acik']) body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  margin-left: auto;
+}
+
+.ap-panel-kart-ust-aksiyon .ap-roller-gorunum-sarmal {
+  max-width: 100%;
 }
 
 .ap-site-header-onizleme .site-header {
@@ -9024,7 +9083,7 @@ html:has(.admin-panel[data-tema='acik']) body {
   background: linear-gradient(90deg, var(--ap-accent), #8b5cf6, var(--ap-accent));
 }
 
-.ap-sistem-modal-baslik-v2 {
+.ap-sistem-modal-baslik.ap-sistem-modal-baslik-v2 {
   padding: 1.15rem 1.25rem 0.75rem;
   margin-bottom: 0;
   align-items: center;
@@ -9035,6 +9094,13 @@ html:has(.admin-panel[data-tema='acik']) body {
   align-items: center;
   flex-shrink: 0;
   margin-right: 0.25rem;
+}
+
+.ap-sistem-modal-baslik.ap-sistem-modal-baslik-v2 .ap-heading {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .ap-sistem-modal-ikon {
@@ -9062,7 +9128,7 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-sistem-modal-kapat-v2 {
-  align-self: flex-start;
+  align-self: center;
 }
 
 .ap-sistem-modal-govde-v2 {
@@ -9307,69 +9373,76 @@ html:has(.admin-panel[data-tema='acik']) body {
 }
 
 .ap-sistem-modal-alt-v2:has(.ap-profil-modal-footer) {
-  padding: 0.65rem 1rem;
-  background: color-mix(in srgb, var(--ap-hover) 45%, var(--ap-surface));
+  padding: 0;
+  gap: 0;
+  background: var(--ap-surface);
+  border-top: none;
 }
 
 .ap-profil-modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   width: 100%;
+  border-top: 1px solid color-mix(in srgb, var(--ap-border) 70%, transparent);
+  background: var(--ap-surface);
+  border-radius: 0 0 calc(var(--cerceve-yaricap, 1rem) - var(--cerceve-kalinlik, 4px))
+    calc(var(--cerceve-yaricap, 1rem) - var(--cerceve-kalinlik, 4px));
+  overflow: hidden;
 }
 
 .ap-profil-footer-tus {
   appearance: none;
   margin: 0;
-  display: inline-flex;
+  border: none;
+  outline: none;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.08rem;
-  min-width: 7.5rem;
-  padding: 0.4rem 0.85rem;
-  border-radius: 0.5rem;
+  gap: 0.12rem;
+  min-width: 0;
+  padding: 0.85rem 1.2rem 0.95rem;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ap-text);
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.2;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s, filter 0.15s;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.ap-profil-footer-tus .ap-modal-tus-kisayol {
-  font-size: 0.58rem;
-  letter-spacing: 0.04em;
+.ap-profil-footer-tus + .ap-profil-footer-tus {
+  box-shadow: -1px 0 0 color-mix(in srgb, var(--ap-border) 70%, transparent);
 }
 
 .ap-profil-footer-tus--cikis {
-  border: 1px solid rgb(239 68 68 / 0.35);
-  background: var(--ap-input-bg);
   color: #f87171;
 }
 
 .ap-profil-footer-tus--cikis:hover {
-  border-color: rgba(239, 68, 68, 0.55);
-  background: rgb(239 68 68 / 0.1);
+  background: color-mix(in srgb, #ef4444 12%, transparent);
   color: #ef4444;
 }
 
 .ap-profil-footer-tus--kaydet {
-  border: none;
   color: #fff;
-  background: var(--ap-accent);
-  margin-left: auto;
+  background: color-mix(in srgb, var(--ap-accent) 84%, #000000);
+}
+
+.ap-profil-footer-tus--kaydet .ap-modal-tus-kisayol {
+  opacity: 0.82;
 }
 
 .ap-profil-footer-tus--kaydet:hover:not(:disabled) {
-  filter: brightness(1.05);
+  background: var(--ap-accent);
 }
 
 .ap-profil-footer-tus--kaydet:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  filter: none;
 }
 
 .ap-sistem-modal-ikon--flat:has(svg) {
@@ -13207,12 +13280,11 @@ html:has(.admin-panel[data-tema='acik']) body {
   box-shadow: var(--ap-accent-glow);
 }
 
-/* Log Takibi */
+/* Log Takibi — düzen (--standart üst boşuğu kullanır) */
 .ap-modul-panel:has(.ap-log-sayfa) {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 1rem 1.25rem;
 }
 
 .ap-log-sayfa {

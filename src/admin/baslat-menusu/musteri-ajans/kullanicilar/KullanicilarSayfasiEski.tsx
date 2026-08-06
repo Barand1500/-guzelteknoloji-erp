@@ -449,29 +449,15 @@ export function KullanicilarSayfasiEski() {
 
   return (
 
-    <div className="ap-kullanicilar-sayfa">
+      <div className="ap-kullanicilar-sayfa">
 
-      <div className="ap-kullanicilar-sayfa-ust">
+      {hata && <p className="mb-4 text-sm text-red-400">{hata}</p>}
 
-        <h1 className="text-xl font-bold text-white">Kullanıcılar</h1>
-
-        <p className="mt-1 text-sm text-slate-400">
-
-          Panel kullanıcılarını oluşturun, rollerini atayın ve erişimlerini yönetin.
-
-        </p>
-
-        {hata && <p className="mt-4 text-sm text-red-400">{hata}</p>}
-
-        {kaydediliyor && <p className="mt-4 text-sm text-slate-400">İşlem yapılıyor...</p>}
-
-      </div>
-
-
+        {kaydediliyor && <p className="mb-4 text-sm text-slate-400">İşlem yapılıyor...</p>}
 
       {yukleniyor ? (
 
-        <p className="mt-6 text-sm text-slate-400">Yükleniyor...</p>
+        <p className="text-sm text-slate-400">Yükleniyor...</p>
 
       ) : (
 

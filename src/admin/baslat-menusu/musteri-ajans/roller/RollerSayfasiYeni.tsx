@@ -601,31 +601,7 @@ export function RollerSayfasiYeni() {
 
   return (
 
-    <AdminModulKabuk
-
-      baslik="Roller ve Yetkiler"
-
-      aciklama="Her rol için sayfa bazlı yetki matrisi. Önce sayfayı seçin, ardından rollere yetki verin."
-
-      onizleGoster={false}
-
-      ustAksiyon={
-
-        <RolGorunumCubugu
-
-          sekmeler={GORUNUM_SEKMELER}
-
-          aktif={gorunum}
-
-          onDegistir={(id) => gorunumDegistir(id as RolGorunumId)}
-
-          ariaLabel="Rol görünümü"
-
-        />
-
-      }
-
-    >
+    <AdminModulKabuk onizleGoster={false}>
 
       <div className="ap-roller-sayfa">
 
@@ -648,6 +624,15 @@ export function RollerSayfasiYeni() {
                 baslik="Yetki Matrisi"
 
                 altBaslik="Sayfa seçin veya Tüm sayfalar ile toplu yetki verin. Ekle ile tablonun altına satır açılır."
+
+                ustAksiyon={
+                  <RolGorunumCubugu
+                    sekmeler={GORUNUM_SEKMELER}
+                    aktif={gorunum}
+                    onDegistir={(id) => gorunumDegistir(id as RolGorunumId)}
+                    ariaLabel="Rol görünümü"
+                  />
+                }
 
               >
 
@@ -686,6 +671,15 @@ export function RollerSayfasiYeni() {
                 baslik="Rol Tanımları"
 
                 altBaslik="Ekle ile gridde boş kart açılır. Rol adı ve açıklamayı kart üzerinde doldurun."
+
+                ustAksiyon={
+                  <RolGorunumCubugu
+                    sekmeler={GORUNUM_SEKMELER}
+                    aktif={gorunum}
+                    onDegistir={(id) => gorunumDegistir(id as RolGorunumId)}
+                    ariaLabel="Rol görünümü"
+                  />
+                }
 
               >
 

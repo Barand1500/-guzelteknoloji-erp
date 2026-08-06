@@ -598,7 +598,7 @@ function AdminPanelGovde() {
           </div>
         )}
         <div
-          className="ap-modul-panel min-h-0 flex-1 overflow-y-auto p-6"
+          className="ap-modul-panel min-h-0 flex-1 overflow-y-auto ap-modul-panel--standart"
           data-ap-kesif="modul-icerik"
           data-ap-kesif-modul={sekme.modulId}
           data-ap-sekme-id={sekme.id}

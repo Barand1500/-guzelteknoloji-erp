@@ -1,10 +1,64 @@
-/* Roller ve Yetkiler — panel teması ile uyumlu düzen */
+/* Roller ve Yetkiler — panel teması ile uyumlu düzen (üst boşluk: adminTema --standart) */
+
+.ap-modul-panel:has(.ap-roller-sayfa),
+.ap-modul-panel:has(.ap-kullanicilar-sayfa--yeni) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  height: 100%;
+}
+
+.ap-modul-panel:has(.ap-roller-sayfa) .ap-modul-kabuk,
+.ap-modul-panel:has(.ap-kullanicilar-sayfa--yeni) .ap-modul-kabuk {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.ap-modul-panel:has(.ap-roller-sayfa) .ap-modul-kabuk-icerik,
+.ap-modul-panel:has(.ap-kullanicilar-sayfa--yeni) .ap-modul-kabuk-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 
 .ap-roller-sayfa {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ap-roller-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  animation: ap-roller-icerik-gir 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ap-modul-panel:has(.ap-roller-sayfa) .ap-panel-kart {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-modul-panel:has(.ap-roller-sayfa) .ap-panel-kart-baslik {
+  flex-shrink: 0;
+}
+
+.ap-modul-panel:has(.ap-roller-sayfa) .ap-panel-kart-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .ap-roller-kirli-banner {
@@ -28,10 +82,6 @@
   50% {
     box-shadow: 0 0 0 3px color-mix(in srgb, #f59e0b 12%, transparent);
   }
-}
-
-.ap-roller-icerik {
-  animation: ap-roller-icerik-gir 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .ap-roller-icerik--ileri {
@@ -175,7 +225,9 @@
   align-items: stretch;
   gap: 0.85rem;
   min-width: 0;
-  max-height: min(70vh, 36rem);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 .ap-roller-matris-ana {
@@ -189,13 +241,16 @@
 .ap-roller-matris-ana .ap-roller-matris-sarmal {
   flex: 1;
   max-height: none;
-  height: 100%;
+  min-height: 0;
+  height: auto;
 }
 
 .ap-roller-matris-sarmal {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: min(70vh, 36rem);
+  max-height: none;
+  flex: 1 1 auto;
+  min-height: 0;
   border-radius: 0.85rem;
   border: 1px solid var(--ap-border);
   background: var(--ap-surface);
@@ -773,7 +828,7 @@ button.ap-roller-yetki-hucre:hover {
   flex-direction: column;
   overflow: hidden;
   scrollbar-width: thin;
-  max-height: min(70vh, 36rem);
+  max-height: none;
   min-height: 0;
   border-radius: 0.85rem;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 12%, var(--ap-border));

@@ -31,18 +31,24 @@
   flex-shrink: 0;
 }
 
-.ap-modul-kabuk:has(.ap-tanimlar-sayfa) > .mt-6 {
-  margin-top: 0.75rem;
+.ap-modul-kabuk--yazisiz:has(.ap-tanimlar-sayfa) .ap-modul-baslik--yalniz-aksiyon {
+  align-items: center;
 }
 
-/* Sekme ge?i?inde ?st ba?l?k kaymas?n ? panel d?zeni her iki modda ayn? */
-.ap-modul-panel:has(.ap-tanimlar-sayfa),
+/* ERP liste (dg-demo): panel dolsun, kaydırma grid içinde */
 .ap-modul-panel:has(.ap-tanimlar-sayfa):has(.dg-demo-sayfa) {
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
   min-height: 0 !important;
-  padding: 1.5rem !important;
+}
+
+/* Tanımlar Kayıtlar/Kurulum — Cari/dg ile aynı panel; kaydırma içeride */
+.ap-modul-panel:has(.ap-tanimlar-sayfa):not(:has(.dg-demo-sayfa)) {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
 }
 
 .ap-modul-panel:has(.ap-tanimlar-sayfa) .ap-modul-kabuk {
@@ -52,6 +58,7 @@
   flex-direction: column;
 }
 
+.ap-modul-panel:has(.ap-tanimlar-sayfa) .ap-modul-kabuk > .ap-modul-kabuk-icerik,
 .ap-modul-panel:has(.ap-tanimlar-sayfa) .ap-modul-kabuk > .mt-6 {
   flex: 1 1 auto;
   min-height: 0;
@@ -2632,7 +2639,7 @@ button.ap-tanimlar-panel-arka {
   flex-direction: column !important;
   overflow: hidden !important;
   min-height: 0 !important;
-  padding: 0.85rem 1.15rem 0.35rem !important;
+  padding-bottom: 0.35rem !important;
 }
 
 .ap-modul-panel:has(.stok-envanter-analiz-sayfa) .ap-modul-kabuk,
@@ -7675,10 +7682,13 @@ button.ap-tanimlar-panel-arka {
 .ap-tanimlar-kayit-sayfa {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.15rem;
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .ap-tanimlar-ust-bar {
@@ -7693,6 +7703,27 @@ button.ap-tanimlar-panel-arka {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.55rem 0.75rem;
+}
+
+.ap-tanimlar-ust-bar-sol,
+.ap-tanimlar-ust-bar-sag {
+  flex: 0 0 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ap-tanimlar-ust-bar-sag {
+  margin-left: auto;
+}
+
+.ap-tanimlar-ust-bar-sol .ap-tanimlar-mod-sarmal,
+.ap-tanimlar-ust-bar-sag .ap-tanimlar-mod-sarmal {
+  margin: 0;
+}
+
+.ap-tanimlar-ust-bar--kurulum {
+  margin-bottom: 0;
 }
 
 .ap-tanimlar-firma-secici {
@@ -7901,7 +7932,7 @@ button.ap-tanimlar-panel-arka {
   min-height: min(52vh, 30rem);
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.2rem;
   min-width: 0;
   overflow: hidden;
 }
@@ -9075,14 +9106,124 @@ button.ap-tanimlar-panel-arka {
   grid-template-columns: none;
 }
 
+.ap-modul-panel:has(.ap-tanimlar-kayit-sayfa) .ap-modul-kabuk > .ap-modul-kabuk-icerik {
+  overflow: hidden;
+}
+
 .ap-modul-panel:has(.ap-tanimlar-kayit-sayfa) .ap-tanimlar-icerik {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+/* Tanımlar modülü — turuncu çizgi altı + sekme/liste alanı yukarı (yalnızca tanimlar sekmesi) */
+.ap-modul-panel.ap-modul-panel--standart[data-ap-kesif-modul='tanimlar'] > .ap-modul-kabuk {
+  margin-top: 0.1rem !important;
+}
+
+.ap-modul-panel[data-ap-kesif-modul='tanimlar'] .ap-tanimlar-kayit-ana--hiyerarsi {
+  margin-top: -0.35rem;
+}
+
+.ap-modul-panel[data-ap-kesif-modul='tanimlar'] .ap-tanimlar-ic-sekme-tus {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sayfa {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ap-tanimlar-kurulum-kabuk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.5rem 0.75rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.ap-tanimlar-kurulum-kabuk > .ap-tanimlar-ust-bar--kurulum {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  justify-self: end;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz {
+  display: contents;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz-adimlar {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  min-width: 0;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz-govde {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: stretch;
+  min-height: 0;
+  height: 100%;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz-adim-icerik {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz-tuslar {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-self: end;
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 @media (max-width: 900px) {
+  .ap-tanimlar-kurulum-kabuk {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 0.55rem;
+  }
+
+  .ap-tanimlar-kurulum-kabuk > .ap-tanimlar-ust-bar--kurulum {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: stretch;
+  }
+
+  .ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz-adimlar {
+    grid-row: 1;
+  }
+
+  .ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz-govde {
+    grid-row: 3;
+  }
+
+  .ap-modul-panel:has(.ap-tanimlar-kurulum-kabuk) .ap-tanimlar-sihirbaz-tuslar {
+    grid-row: 4;
+  }
+
   .ap-tanimlar-firma-secici--genis {
     max-width: none;
   }

@@ -88,6 +88,8 @@
   min-height: auto;
 }
 
+.ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk > .ap-modul-kabuk-icerik,
+.ap-modul-panel:has(.stok-karti-kabuk--form) .ap-modul-kabuk > .ap-modul-kabuk-icerik,
 .ap-modul-panel:has(.cari-kart-sayfa) .ap-modul-kabuk > .mt-6,
 .ap-modul-panel:has(.stok-karti-kabuk--form) .ap-modul-kabuk > .mt-6 {
   flex: none;

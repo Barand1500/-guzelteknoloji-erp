@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { AdminFirma } from '@/admin/baslat-menusu/tanimlar/tipler';
 import { FirmaAramaSecici } from './FirmaAramaSecici';
 
@@ -10,6 +11,8 @@ interface KayitlarUstBarProps {
   firmaPasif: boolean;
   onFirmaEkle: () => void;
   onFirmaDuzenle: () => void;
+  /** Kurulum / Kayıtlar cubuğu — satırın sağında */
+  solAksiyon?: ReactNode;
 }
 
 export function KayitlarUstBar({
@@ -21,6 +24,7 @@ export function KayitlarUstBar({
   firmaPasif,
   onFirmaEkle,
   onFirmaDuzenle,
+  solAksiyon,
 }: KayitlarUstBarProps) {
   return (
     <div className="ap-tanimlar-ust-bar">
@@ -56,6 +60,8 @@ export function KayitlarUstBar({
             </button>
           ) : null}
         </div>
+
+        {solAksiyon ? <div className="ap-tanimlar-ust-bar-sag">{solAksiyon}</div> : null}
       </div>
     </div>
   );

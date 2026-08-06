@@ -13,20 +13,17 @@
   gap: 0.65rem 1rem;
 }
 
-.ap-modul-kabuk:has(.ap-ayarlar-sayfa) .ap-modul-baslik > div:first-child {
+.ap-modul-kabuk:has(.ap-ayarlar-sayfa) .ap-modul-baslik > div:first-child:not(.ap-modul-baslik-aksiyon) {
   flex: 1 1 auto;
   min-width: min(100%, 16rem);
 }
 
+.ap-modul-kabuk:has(.ap-ayarlar-sayfa) .ap-modul-baslik-aksiyon,
 .ap-modul-kabuk:has(.ap-ayarlar-sayfa) .ap-modul-baslik > div:last-child {
   flex: 1 1 100%;
   min-width: 0;
   justify-content: flex-end;
   gap: 0.5rem;
-}
-
-.ap-modul-kabuk:has(.ap-ayarlar-sayfa) > .mt-6 {
-  margin-top: 0.75rem;
 }
 
 .ap-modul-kabuk:has(.ap-ayarlar-sayfa) .ap-ayarlar-tur-sarmal {

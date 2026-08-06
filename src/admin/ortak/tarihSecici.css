@@ -82,8 +82,9 @@
   position: fixed;
   z-index: 10360;
   box-sizing: border-box;
-  width: 272px;
-  max-width: calc(100vw - 16px);
+  width: 17rem;
+  min-width: 17rem;
+  max-width: min(17rem, calc(100vw - 16px));
   padding: 0.65rem 0.7rem 0.55rem;
   border-radius: 0.65rem;
   border: 1px solid color-mix(in srgb, var(--ap-accent) 28%, var(--ap-border));
