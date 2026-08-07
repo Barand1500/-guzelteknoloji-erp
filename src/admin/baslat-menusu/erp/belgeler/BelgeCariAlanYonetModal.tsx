@@ -412,7 +412,7 @@ export function BelgeCariAlanYonetModal({
 
           <div className="fatura-alan-yonet-satir-ekle" role="group" aria-label="Satır ekle">
             <span className="fatura-alan-yonet-satir-ekle-label">Satır</span>
-            {([1, 2, 3, 4, 5, 6] as const).map((n) => (
+            {([1, 2, 3, 4] as const).map((n) => (
               <button
                 key={n}
                 type="button"
@@ -429,7 +429,7 @@ export function BelgeCariAlanYonetModal({
           <div className="fatura-alan-yonet-grid">
             {duzen.satirlar.length === 0 ? (
               <p className="fatura-alan-yonet-bos">
-                Alt satır yok. +1 … +6 ekleyin, «Alta ekle» ile alan seçin.
+                Alt satır yok. +1 … +4 ekleyin, «Alta ekle» ile alan seçin.
               </p>
             ) : (
               duzen.satirlar.map((satir, sira) => {
