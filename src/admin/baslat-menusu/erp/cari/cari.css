@@ -1055,6 +1055,35 @@
   letter-spacing: 0.03em;
 }
 
+.dg-cari-bakiye {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dg-cari-bakiye--borc {
+  color: color-mix(in srgb, #f87171 85%, var(--ap-text));
+}
+
+.dg-cari-bakiye--alacak {
+  color: color-mix(in srgb, #34d399 85%, var(--ap-text));
+}
+
+.dg-cari-bakiye-ba {
+  font-size: 0.68em;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.dg-stok-envanter {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
 /* ??? Arama a??l?r (combobox) ??? */
 
 .cari-arama-acilir-cerceve {

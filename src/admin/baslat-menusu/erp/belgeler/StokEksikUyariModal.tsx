@@ -115,8 +115,10 @@ export function StokEksikUyariModal({
               {eksikler.map((e) => (
                 <tr key={e.urunKodu}>
                   <td>
-                    <strong>{e.urunKodu}</strong>
-                    {e.urunAdi ? <span className="fatura-stok-uyari-ad"> · {e.urunAdi}</span> : null}
+                    <div className="fatura-stok-uyari-urun" title={[e.urunKodu, e.urunAdi].filter(Boolean).join(' — ')}>
+                      <strong className="fatura-stok-uyari-kod">{e.urunKodu}</strong>
+                      {e.urunAdi ? <span className="fatura-stok-uyari-ad">{e.urunAdi}</span> : null}
+                    </div>
                   </td>
                   <td className="fatura-sayi">{sayiFormatla(e.mevcut)}</td>
                   <td className="fatura-sayi">{sayiFormatla(e.istenen)}</td>

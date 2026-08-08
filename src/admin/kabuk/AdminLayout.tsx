@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/baglamlar/AuthContext';
 import { useAdminSekmeler } from '@/kancalar/useAdminSekmeler';
 import { useAksiyonCubugu } from '@/kancalar/useAksiyonCubugu';
@@ -54,6 +54,67 @@ interface AyriPencere {
   modulId: string;
   baslik: string;
 }
+
+/** Açık sekmeler keep-alive’ta kalır; memo ile pasif paneller ebeveyn re-render’ında atlanır. */
+const SekmeIcerikPanel = memo(
+  function SekmeIcerikPanel({
+    sekme,
+    sekmeAktif,
+    split = false,
+    canliGizli = false,
+    onModulAc,
+    kaydedilmediIsaretle,
+    onPanelOdak,
+  }: {
+    sekme: AdminSekme;
+    sekmeAktif: boolean;
+    split?: boolean;
+    canliGizli?: boolean;
+    onModulAc: (modulId: string) => void;
+    kaydedilmediIsaretle: (sekmeId: string, kirli: boolean) => void;
+    onPanelOdak: (modulId: string) => void;
+  }) {
+    return (
+      <div
+        className={`ap-sekme-split-pane flex min-h-0 min-w-0 flex-1 flex-col${sekmeAktif ? ' ap-modul-panel-odak' : ''}${canliGizli ? ' ap-sekme-canli-gizli' : ''}`}
+        aria-hidden={canliGizli || undefined}
+        inert={canliGizli || undefined}
+      >
+        {split && (
+          <div
+            className="ap-sekme-split-baslik flex shrink-0 items-center border-b px-4 py-2 text-xs font-semibold"
+            style={{ borderColor: 'var(--ap-border)', background: 'var(--ap-surface)', color: 'var(--ap-heading)' }}
+          >
+            {sekme.baslik}
+          </div>
+        )}
+        <div
+          className="ap-modul-panel min-h-0 flex-1 overflow-y-auto ap-modul-panel--standart"
+          data-ap-kesif="modul-icerik"
+          data-ap-kesif-modul={sekme.modulId}
+          data-ap-sekme-id={sekme.id}
+          data-ap-kesif-aktif={sekmeAktif ? 'true' : undefined}
+          onMouseDown={() => onPanelOdak(sekme.modulId)}
+          onFocusCapture={() => onPanelOdak(sekme.modulId)}
+        >
+          <AdminSekmeKabuk sekmeId={sekme.id} kaydedilmediIsaretle={kaydedilmediIsaretle}>
+            <AdminModulIcerik modulId={sekme.modulId} onModulAc={onModulAc} />
+          </AdminSekmeKabuk>
+        </div>
+      </div>
+    );
+  },
+  (onceki, sonraki) =>
+    onceki.sekme.id === sonraki.sekme.id &&
+    onceki.sekme.modulId === sonraki.sekme.modulId &&
+    onceki.sekme.baslik === sonraki.sekme.baslik &&
+    onceki.sekmeAktif === sonraki.sekmeAktif &&
+    onceki.canliGizli === sonraki.canliGizli &&
+    onceki.split === sonraki.split &&
+    onceki.onModulAc === sonraki.onModulAc &&
+    onceki.kaydedilmediIsaretle === sonraki.kaydedilmediIsaretle &&
+    onceki.onPanelOdak === sonraki.onPanelOdak
+);
 
 function AdminPanelGovde() {
   const {
@@ -293,13 +354,19 @@ function AdminPanelGovde() {
     modulAcUygula(modul);
   }
 
-  function modulSecHandler(modulId: string) {
-    const modul = modulBul(modulId);
-    if (modul) {
-      setFocusModulId(modulId);
-      void modulAcHandler(modul);
-    }
-  }
+  const modulAcHandlerRef = useRef(modulAcHandler);
+  modulAcHandlerRef.current = modulAcHandler;
+
+  const modulSecHandler = useCallback(
+    (modulId: string) => {
+      const modul = modulBul(modulId);
+      if (modul) {
+        setFocusModulId(modulId);
+        void modulAcHandlerRef.current(modul);
+      }
+    },
+    [setFocusModulId]
+  );
 
   function sekmeKapatHandler(sekmeId: string) {
     if (sekmeler.length <= 1) return;
@@ -581,39 +648,6 @@ function AdminPanelGovde() {
     pencereKapat(sekmeId);
   }
 
-  function icerikPanel(sekme: AdminSekme, sekmeAktif: boolean, split = false, canliGizli = false) {
-    return (
-      <div
-        key={sekme.id}
-        className={`ap-sekme-split-pane flex min-h-0 min-w-0 flex-1 flex-col${sekmeAktif ? ' ap-modul-panel-odak' : ''}${canliGizli ? ' ap-sekme-canli-gizli' : ''}`}
-        aria-hidden={canliGizli || undefined}
-        inert={canliGizli || undefined}
-      >
-        {split && (
-          <div
-            className="ap-sekme-split-baslik flex shrink-0 items-center border-b px-4 py-2 text-xs font-semibold"
-            style={{ borderColor: 'var(--ap-border)', background: 'var(--ap-surface)', color: 'var(--ap-heading)' }}
-          >
-            {sekme.baslik}
-          </div>
-        )}
-        <div
-          className="ap-modul-panel min-h-0 flex-1 overflow-y-auto ap-modul-panel--standart"
-          data-ap-kesif="modul-icerik"
-          data-ap-kesif-modul={sekme.modulId}
-          data-ap-sekme-id={sekme.id}
-          data-ap-kesif-aktif={sekmeAktif ? 'true' : undefined}
-          onMouseDown={() => setFocusModulId(sekme.modulId)}
-          onFocusCapture={() => setFocusModulId(sekme.modulId)}
-        >
-          <AdminSekmeKabuk sekmeId={sekme.id} kaydedilmediIsaretle={kaydedilmediIsaretle}>
-            <AdminModulIcerik modulId={sekme.modulId} onModulAc={modulSecHandler} />
-          </AdminSekmeKabuk>
-        </div>
-      </div>
-    );
-  }
-
   const canliSekmeler = useMemo(
     () => sekmeler.filter((s) => !ayriPencereler.some((p) => p.sekmeId === s.id)),
     [sekmeler, ayriPencereler]
@@ -648,13 +682,31 @@ function AdminPanelGovde() {
             <div
               className={`ap-sekme-split-alan min-h-0 flex-1 ${splitGorunum === 'altAlta' ? 'ap-sekme-split-alan--alt-alta' : ''}`}
             >
-              {splitSekmeler.map((sekme) => icerikPanel(sekme, aktifSekmeId === sekme.id, true))}
+              {splitSekmeler.map((sekme) => (
+                <SekmeIcerikPanel
+                  key={sekme.id}
+                  sekme={sekme}
+                  sekmeAktif={aktifSekmeId === sekme.id}
+                  split
+                  onModulAc={modulSecHandler}
+                  kaydedilmediIsaretle={kaydedilmediIsaretle}
+                  onPanelOdak={setFocusModulId}
+                />
+              ))}
             </div>
           ) : (
             <div className="ap-sekme-canli-alan relative flex min-h-0 flex-1 flex-col overflow-hidden">
-              {canliSekmeler.map((sekme) =>
-                icerikPanel(sekme, sekme.id === aktifSekmeId, false, sekme.id !== aktifSekmeId)
-              )}
+              {canliSekmeler.map((sekme) => (
+                <SekmeIcerikPanel
+                  key={sekme.id}
+                  sekme={sekme}
+                  sekmeAktif={sekme.id === aktifSekmeId}
+                  canliGizli={sekme.id !== aktifSekmeId}
+                  onModulAc={modulSecHandler}
+                  kaydedilmediIsaretle={kaydedilmediIsaretle}
+                  onPanelOdak={setFocusModulId}
+                />
+              ))}
             </div>
           )}
           <Outlet context={{ aktifModul }} />

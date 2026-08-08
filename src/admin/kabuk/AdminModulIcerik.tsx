@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { LoglarSayfasi } from '@/admin/gizli-moduller/loglar/sayfa';
 import { VeriYedeklemeSayfasi } from '@/admin/gizli-moduller/veri-yedekleme/sayfa';
 import { YapilacaklarSayfasi } from '@/admin/gizli-moduller/yapilacaklar/sayfa';
@@ -21,13 +22,13 @@ interface AdminModulIcerikProps {
   onModulAc: (modulId: string) => void;
 }
 
-export function AdminModulIcerik({ modulId, onModulAc }: AdminModulIcerikProps) {
+export const AdminModulIcerik = memo(function AdminModulIcerik({ modulId, onModulAc }: AdminModulIcerikProps) {
   return (
     <ModulKabuk modulId={modulId}>
       <AdminModulGovde modulId={modulId} onModulAc={onModulAc} />
     </ModulKabuk>
   );
-}
+});
 
 function AdminModulGovde({ modulId, onModulAc }: AdminModulIcerikProps) {
   const cozulmusId = ESKI_BELGE_MODUL_YONLENDIRMELERI[modulId] ?? modulId;

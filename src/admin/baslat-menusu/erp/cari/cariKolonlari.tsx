@@ -1,5 +1,5 @@
 import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
-import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { sayiFormatla, tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { TanimDurumRozeti } from '@/admin/baslat-menusu/tanimlar/bilesenler/TanimKayitTablosu';
 import {
   cariTipiEtiketi,
@@ -7,8 +7,9 @@ import {
   type AdminCari,
 } from '@/admin/baslat-menusu/erp/cari/tipler';
 import { faturaTipiEtiketi } from '@/admin/baslat-menusu/erp/cari/cariYardimci';
+import { cariBakiyeAl } from '@/admin/baslat-menusu/erp/belgeler/api';
 
-export const CARI_KOLON_GENISLIK_SURUMU = 10;
+export const CARI_KOLON_GENISLIK_SURUMU = 11;
 
 export const CARI_VARSAYILAN_GIZLI: string[] = ['id', 'ustId'];
 
@@ -141,6 +142,31 @@ export function cariKolonlari(): KolonTanimi<AdminCari>[] {
       goster: (s) => <span className="dg-birim-etiket">{isletmeTuruEtiketi(s.isletmeTuru)}</span>,
     },
     metinKolon('unvan', 'Ünvanı', 160, (s) => s.unvan),
+    {
+      id: 'bakiye',
+      baslik: 'Bakiye',
+      tip: 'salt-okunur',
+      genislik: 120,
+      minGenislik: 88,
+      siralama: true,
+      degerAl: (s) => cariBakiyeAl(s.cariKodu).bakiye,
+      siralamaDegeri: (s) => cariBakiyeAl(s.cariKodu).bakiye,
+      goster: (s) => {
+        const bakiye = cariBakiyeAl(s.cariKodu).bakiye;
+        const borcMu = bakiye >= 0;
+        return (
+          <span
+            className={borcMu ? 'dg-cari-bakiye dg-cari-bakiye--borc' : 'dg-cari-bakiye dg-cari-bakiye--alacak'}
+            title={borcMu ? 'Borç bakiyesi' : 'Alacak bakiyesi'}
+          >
+            {sayiFormatla(Math.abs(bakiye))}
+            <span className="dg-cari-bakiye-ba" aria-hidden>
+              {borcMu ? 'B' : 'A'}
+            </span>
+          </span>
+        );
+      },
+    },
     {
       id: 'vergiDairesi',
       baslik: 'Vergi Dairesi',

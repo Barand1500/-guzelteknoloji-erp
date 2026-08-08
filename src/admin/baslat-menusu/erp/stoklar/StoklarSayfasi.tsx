@@ -5,7 +5,7 @@ import { AdminModulKabuk } from '@/admin/ortak/AdminBilesenleri';
 import { DataGrid } from '@/admin/ortak/datagrid/DataGrid';
 import { DatagridSagTikMenu } from '@/admin/ortak/datagrid/DatagridSagTikMenu';
 import '@/admin/ortak/datagrid/datagrid.css';
-import { tarihSaatFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { tarihSaatFormatla, sayiFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import type { DataGridApi, KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { SilmeOnayModal } from '@/admin/ortak/SilmeOnayModal';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
@@ -13,6 +13,7 @@ import { useModulAksiyonlari } from '@/kancalar/useModulAksiyonlari';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import '@/admin/baslat-menusu/tanimlar/tanimlar.css';
 import '@/admin/baslat-menusu/erp/cari/cari.css';
+import { stokBakiyeleriGetir } from '@/admin/baslat-menusu/erp/belgeler/api';
 import { stokGuncelle, stokSil, stoklariGetir } from './api';
 import { StokGelismisArama } from './StokGelismisArama';
 import { StokFiyatDuzenle } from './StokFiyatDuzenle';
@@ -186,6 +187,15 @@ function islemlerKolonu(): KolonTanimi<AdminStok> {
     siralama: false,
     degerAl: () => null,
   };
+}
+
+/** Tüm depolardaki toplam envanter */
+function stokEnvanterToplami(urunKodu: string): number {
+  const kod = urunKodu?.trim();
+  if (!kod) return 0;
+  return stokBakiyeleriGetir()
+    .filter((s) => s.urunKodu === kod)
+    .reduce((t, s) => t + s.miktar, 0);
 }
 
 export function StoklarSayfasi() {
@@ -630,6 +640,24 @@ export function StoklarSayfasi() {
         goster: (s) => s.anaBirim || '—',
       },
       {
+        id: 'envanter',
+        baslik: 'Envanter',
+        tip: 'salt-okunur',
+        genislik: 110,
+        minGenislik: 80,
+        siralama: true,
+        degerAl: (s) => stokEnvanterToplami(s.urunKodu),
+        siralamaDegeri: (s) => stokEnvanterToplami(s.urunKodu),
+        goster: (s) => {
+          const miktar = stokEnvanterToplami(s.urunKodu);
+          return (
+            <span className="dg-stok-envanter" title="Toplam envanter">
+              {sayiFormatla(miktar)}
+            </span>
+          );
+        },
+      },
+      {
         id: 'durum',
         baslik: 'Durum',
         tip: 'salt-okunur',
@@ -810,15 +838,15 @@ export function StoklarSayfasi() {
                       onBilgi={basariBildir}
                     />
                     <DataGrid
-                      key="stoklar_kayitlar_v2"
+                      key="stoklar_kayitlar_v4"
                       tabloBaslik=""
                       tabloAltBaslik=""
                       yukleniyor={false}
                       gridApiRef={gridApiRef}
                       kolonlar={kolonlar}
                       satirlar={filtrelenmis}
-                      depolamaAnahtari="stoklar_kayitlar_v3"
-                      kolonGenislikSurumu={3}
+                      depolamaAnahtari="stoklar_kayitlar_v4"
+                      kolonGenislikSurumu={4}
                       bosMesaj="Kayıt bulunamadı. Arama kriterlerini değiştirin veya Yeni ile stok ekleyin."
                       satirSinifAdi={(s) => (!s.aktif ? 'dg-satir--pasif' : undefined)}
                       onSatirTikla={(s) => stokSatirSec(s.id)}
