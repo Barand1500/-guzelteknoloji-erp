@@ -18,7 +18,6 @@ import {
   stokHareketleriGetir,
   cariBakiyeAl,
   cariHareketleriGetir,
-  mockStokSeedKur,
 } from './mockBelgeDepo';
 
 /** Mock-first API — backend yerine localStorage */
@@ -105,5 +104,4 @@ export {
   stokHareketleriGetir,
   cariBakiyeAl,
   cariHareketleriGetir,
-  mockStokSeedKur,
 };

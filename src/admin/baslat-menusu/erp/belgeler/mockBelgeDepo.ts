@@ -29,6 +29,7 @@ const CARI_HAREKET_ANAHTAR = 'erp-mock-cari-hareket-v2';
 const ODEME_ANAHTAR = 'erp-mock-odeme-v2';
 const SERI_ANAHTAR = 'erp-mock-belge-seri-v2';
 const STOK_SEED_ANAHTAR = 'erp-mock-stok-seed-v2';
+let sahteSeedTemizlendi = false;
 
 function okuJson<T>(anahtar: string, yedek: T): T {
   try {
@@ -73,6 +74,20 @@ function stokHareketYaz(liste: StokHareketKayit[]) {
   yazJson(STOK_HAREKET_ANAHTAR, liste);
 }
 
+/** Eski demo seed (sabit 50) hareketlerini bir kez temizle — stoklar/hızlı ekle tutarlı kalsın */
+function sahteStokSeedTemizle() {
+  if (sahteSeedTemizlendi) return;
+  sahteSeedTemizlendi = true;
+  try {
+    const ham = stokHareketOku();
+    const kalan = ham.filter((h) => h.belgeId !== 'SEED');
+    if (kalan.length !== ham.length) stokHareketYaz(kalan);
+    localStorage.removeItem(STOK_SEED_ANAHTAR);
+  } catch {
+    /* localStorage yoksa yok say */
+  }
+}
+
 function cariHareketOku(): CariHareketKayit[] {
   return okuJson<CariHareketKayit[]>(CARI_HAREKET_ANAHTAR, []);
 }
@@ -105,27 +120,6 @@ function yuvarla2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-/** Eski v1 kayıtlarını yok sayıp temiz başlangıç — isteğe bağlı seed stok */
-export function mockStokSeedKur(satirlar: { urunKodu: string; urunAdi: string; depoId: string; depoKodu: string; miktar: number; birim: string }[]) {
-  if (localStorage.getItem(STOK_SEED_ANAHTAR)) return;
-  const hareketler: StokHareketKayit[] = satirlar.map((s, i) => ({
-    id: `seed-${i}-${s.urunKodu}`,
-    belgeId: 'SEED',
-    belgeNo: 'SEED',
-    yon: 'ALIS',
-    tur: 'FATURA',
-    depoId: s.depoId,
-    depoKodu: s.depoKodu,
-    urunKodu: s.urunKodu,
-    urunAdi: s.urunAdi,
-    birim: s.birim,
-    miktar: s.miktar,
-    kayitTarihi: simdi(),
-  }));
-  stokHareketYaz([...hareketler, ...stokHareketOku()]);
-  localStorage.setItem(STOK_SEED_ANAHTAR, '1');
-}
-
 export function seriOner(
   yon: BelgeYon,
   tur: BelgeTur,
@@ -154,16 +148,20 @@ function seriTuket(yon: BelgeYon, tur: BelgeTur, seri: string, siraNo: number) {
 }
 
 export function stokBakiyeleriGetir(depoId?: string): StokBakiyeSatir[] {
+  sahteStokSeedTemizle();
   const map = new Map<string, StokBakiyeSatir>();
   for (const h of stokHareketOku()) {
+    if (h.belgeId === 'SEED') continue;
     if (depoId && h.depoId !== depoId) continue;
-    const key = `${h.depoId}::${h.urunKodu}`;
+    const urunKodu = (h.urunKodu ?? '').trim();
+    if (!urunKodu) continue;
+    const key = `${h.depoId}::${urunKodu}`;
     const onceki = map.get(key);
     if (onceki) {
       onceki.miktar = yuvarla2(onceki.miktar + h.miktar);
     } else {
       map.set(key, {
-        urunKodu: h.urunKodu,
+        urunKodu,
         urunAdi: h.urunAdi,
         depoId: h.depoId,
         depoKodu: h.depoKodu,
@@ -176,8 +174,9 @@ export function stokBakiyeleriGetir(depoId?: string): StokBakiyeSatir[] {
 }
 
 export function stokBakiyeAl(urunKodu: string, depoId: string): number {
+  const kod = urunKodu.trim();
   return stokBakiyeleriGetir(depoId)
-    .filter((s) => s.urunKodu === urunKodu)
+    .filter((s) => s.urunKodu === kod)
     .reduce((t, s) => t + s.miktar, 0);
 }
 
@@ -678,8 +677,11 @@ export function odemeEkleMock(girdi: {
 }
 
 export function stokHareketleriGetir(urunKodu?: string, depoId?: string): StokHareketKayit[] {
+  sahteStokSeedTemizle();
+  const kod = urunKodu?.trim();
   return stokHareketOku().filter((h) => {
-    if (urunKodu && h.urunKodu !== urunKodu) return false;
+    if (h.belgeId === 'SEED') return false;
+    if (kod && (h.urunKodu ?? '').trim() !== kod) return false;
     if (depoId && h.depoId !== depoId) return false;
     return true;
   });

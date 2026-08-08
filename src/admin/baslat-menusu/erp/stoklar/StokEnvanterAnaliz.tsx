@@ -6,6 +6,7 @@ import type { KolonTanimi } from '@/admin/ortak/datagrid/types';
 import { useAdminSayfaBildirimi } from '@/kancalar/useAdminSayfaBildirimi';
 import { useYetkiler } from '@/kancalar/useYetkiler';
 import { stokBirimleriGetir, stokMaliyetleriGetir } from './api';
+import { stokBakiyeleriGetir } from '@/admin/baslat-menusu/erp/belgeler/api';
 import {
   envanterToplam,
   type StokEnvanterAnalizSatir,
@@ -120,20 +121,36 @@ export function StokEnvanterAnaliz({
           m?.sonAlisMaliyeti || m?.yuruyenAgirlikliOrtalama || ana?.alisFiyati || null;
 
         if (!iptal) {
-          // Depo miktar tablosu henüz yok — MERKEZ satırı UI şablonuna uygun gösterilir.
-          setSatirlar([
-            {
-              id: `${stok.id}-depo-merkez`,
-              depoInd: 1,
-              depoKodu: 'MERKEZ',
-              envanter: 0,
-              sipMk: 0,
-              kullanilabilir: 0,
-              altSeviye: 0,
-              ustSeviye: 0,
-              optimumSeviye: 0,
-            },
-          ]);
+          const bakiyeler = stokBakiyeleriGetir().filter(
+            (b) => b.urunKodu === (stok.urunKodu ?? '').trim()
+          );
+          setSatirlar(
+            bakiyeler.length
+              ? bakiyeler.map((b, i) => ({
+                  id: `${stok.id}-depo-${b.depoId || i}`,
+                  depoInd: i + 1,
+                  depoKodu: b.depoKodu || b.depoId || '—',
+                  envanter: b.miktar,
+                  sipMk: 0,
+                  kullanilabilir: b.miktar,
+                  altSeviye: 0,
+                  ustSeviye: 0,
+                  optimumSeviye: 0,
+                }))
+              : [
+                  {
+                    id: `${stok.id}-depo-bos`,
+                    depoInd: 1,
+                    depoKodu: '—',
+                    envanter: 0,
+                    sipMk: 0,
+                    kullanilabilir: 0,
+                    altSeviye: 0,
+                    ustSeviye: 0,
+                    optimumSeviye: 0,
+                  },
+                ]
+          );
           setFiyatOzet({
             alisFiyati: ana?.alisFiyati ?? null,
             dAlisFiyati: ana?.alisFiyati ?? null,
@@ -156,7 +173,7 @@ export function StokEnvanterAnaliz({
     return () => {
       iptal = true;
     };
-  }, [hataBildir, stok.id]);
+  }, [hataBildir, stok.id, stok.urunKodu]);
 
   return (
     <div className="stok-karti-kabuk stok-envanter-analiz-sayfa">

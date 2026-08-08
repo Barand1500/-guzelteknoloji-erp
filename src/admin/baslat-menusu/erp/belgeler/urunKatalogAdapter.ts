@@ -1,9 +1,9 @@
 import { stoklariGetir, birimleriGetir } from '@/admin/baslat-menusu/erp/stoklar/api';
 import type { BelgeYon } from './tipler';
 import type { UrunBarkodDetay, UrunKaydi } from '@/admin/baslat-menusu/datagrid/demo/urunAramaYardimci';
-import { stokBakiyeleriGetir, mockStokSeedKur } from './mockBelgeDepo';
+import { stokBakiyeleriGetir } from './mockBelgeDepo';
 
-/** Stok + birim → katalog; envanter mock bakiyeden; barkodlar birim satırından */
+/** Stok + birim → katalog; envanter belge stok hareketlerinden; barkodlar birim satırından */
 export async function stokUrunKataloguGetir(yon: BelgeYon, depoId?: string | null): Promise<UrunKaydi[]> {
   const [urunler, birimler] = await Promise.all([stoklariGetir(), birimleriGetir()]);
   const alisMi = yon === 'ALIS';
@@ -11,10 +11,11 @@ export async function stokUrunKataloguGetir(yon: BelgeYon, depoId?: string | nul
   const katalogHam: UrunKaydi[] = [];
   for (const u of urunler) {
     if (!u.aktif) continue;
+    const urunKodu = (u.urunKodu ?? '').trim();
     const urunBirimleri = birimler.filter((b) => b.urunId === u.id && b.aktif);
     if (!urunBirimleri.length) {
       katalogHam.push({
-        sku: u.urunKodu,
+        sku: urunKodu,
         ad: u.urunAdi,
         birim: u.varsayilanBirim || u.anaBirim || 'ADET',
         fiyat: 0,
@@ -41,7 +42,7 @@ export async function stokUrunKataloguGetir(yon: BelgeYon, depoId?: string | nul
     }
 
     katalogHam.push({
-      sku: u.urunKodu,
+      sku: urunKodu,
       ad: u.urunAdi,
       birim: tercih.birimAdi || 'ADET',
       fiyat: alisMi ? Number(tercih.alisFiyati) || 0 : Number(tercih.satisFiyati) || 0,
@@ -52,22 +53,14 @@ export async function stokUrunKataloguGetir(yon: BelgeYon, depoId?: string | nul
     });
   }
 
-  // İlk açılışta mock stok seed (negatif kontrol denenebilsin)
-  if (depoId && katalogHam.length) {
-    mockStokSeedKur(
-      katalogHam.slice(0, 12).map((u) => ({
-        urunKodu: u.sku,
-        urunAdi: u.ad,
-        depoId,
-        depoKodu: '',
-        miktar: 50,
-        birim: u.birim,
-      }))
-    );
-  }
-
+  // Aynı kaynak: belge stok hareketleri (stoklar listesiyle birebir)
   const bakiyeler = stokBakiyeleriGetir(depoId || undefined);
-  const bakiyeMap = new Map(bakiyeler.map((b) => [b.urunKodu, b.miktar]));
+  const bakiyeMap = new Map<string, number>();
+  for (const b of bakiyeler) {
+    const kod = (b.urunKodu ?? '').trim();
+    if (!kod) continue;
+    bakiyeMap.set(kod, (bakiyeMap.get(kod) ?? 0) + b.miktar);
+  }
 
   return katalogHam.map((u) => ({
     ...u,

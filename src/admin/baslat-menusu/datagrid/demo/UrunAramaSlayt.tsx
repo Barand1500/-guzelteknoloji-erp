@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { paraFormatla, yuzdeFormatla } from '@/admin/ortak/datagrid/formatYardimci';
+import { paraFormatla, sayiFormatla, yuzdeFormatla } from '@/admin/ortak/datagrid/formatYardimci';
 import { birimEtiketi } from './birimVeri';
 import type { UrunKaydi } from './urunAramaYardimci';
 
@@ -319,7 +319,7 @@ export function UrunAramaSlayt({
                         <td className="dg-urun-arama-hucre dg-urun-arama-hucre--birim">{birimEtiketi(urun.birim)}</td>
                         <td className="dg-urun-arama-hucre dg-urun-arama-hucre--sayi">{paraFormatla(urun.fiyat)}</td>
                         <td className="dg-urun-arama-hucre dg-urun-arama-hucre--sayi">
-                          {urun.envanter.toLocaleString('tr-TR')}
+                          {sayiFormatla(urun.envanter)}
                         </td>
                         <td className="dg-urun-arama-hucre dg-urun-arama-hucre--sayi">{yuzdeFormatla(urun.kdv)}</td>
                       </tr>
