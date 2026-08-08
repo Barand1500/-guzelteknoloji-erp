@@ -12,10 +12,6 @@ import {
   type OzelBankaGirdi,
 } from '@/admin/baslat-menusu/ozel-tanimlar/veri/bankalar';
 import {
-  BANKA_HESAPLARI_GUNCELLENDI,
-  bankaHesapSayilari,
-} from '@/admin/baslat-menusu/ozel-tanimlar/veri/bankaHesaplari';
-import {
   OT_SAYFA_SECENEKLERI,
   OtIslemButonlari,
   OtSayfalama,
@@ -23,21 +19,11 @@ import {
 } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtListeOrtak';
 import { OtGorselAlani } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtGorselAlani';
 import { OtOutlinedAlan, OtOutlinedGirdi } from '@/admin/baslat-menusu/ozel-tanimlar/ortak/OtOutlined';
-import { BankaHesaplariListeSayfasi } from './BankaHesaplariListe';
 
 const BOS: OzelBankaGirdi = { adi: '', kisaAdi: '', gorselUrl: '', aktif: true };
 
-export function BankalarListeSayfasi({
-  hesapBanka,
-  onHesapBanka,
-}: {
-  hesapBanka: OzelBanka | null;
-  onHesapBanka: (banka: OzelBanka | null) => void;
-}) {
+export function BankalarListeSayfasi() {
   const [liste, setListe] = useState<OzelBanka[]>(() => bankalariGetir());
-  const [hesapSayilari, setHesapSayilari] = useState<Record<string, number>>(() =>
-    bankaHesapSayilari()
-  );
   const [arama, setArama] = useState('');
   const [sayfaBoyutu, setSayfaBoyutu] = useState(10);
   const [sayfa, setSayfa] = useState(1);
@@ -54,13 +40,6 @@ export function BankalarListeSayfasi({
     window.addEventListener(BANKALAR_GUNCELLENDI, h);
     return () => window.removeEventListener(BANKALAR_GUNCELLENDI, h);
   }, [yenile]);
-
-  useEffect(() => {
-    const yenileSayac = () => setHesapSayilari(bankaHesapSayilari());
-    yenileSayac();
-    window.addEventListener(BANKA_HESAPLARI_GUNCELLENDI, yenileSayac);
-    return () => window.removeEventListener(BANKA_HESAPLARI_GUNCELLENDI, yenileSayac);
-  }, [liste]);
 
   useEffect(() => {
     if (!modalAcik) return;
@@ -110,10 +89,6 @@ export function BankalarListeSayfasi({
     setModalAcik(false);
   }
 
-  if (hesapBanka) {
-    return <BankaHesaplariListeSayfasi banka={hesapBanka} />;
-  }
-
   return (
     <div className="ot-pb-sayfa">
       <div className="ot-pb-kontroller">
@@ -154,51 +129,43 @@ export function BankalarListeSayfasi({
             <tr>
               <th>Adı</th>
               <th>Kısa Adı</th>
-              <th>Hesap Sayısı</th>
               <th className="ot-pb-islem-th">#</th>
             </tr>
           </thead>
           <tbody>
             {kayitlar.length === 0 ? (
               <tr>
-                <td colSpan={4} className="ot-pb-bos">
+                <td colSpan={3} className="ot-pb-bos">
                   Kayıt bulunamadı.
                 </td>
               </tr>
             ) : (
-              kayitlar.map((b) => {
-                const hesapAdet = hesapSayilari[b.kisaAdi] ?? 0;
-                return (
-                  <tr key={b.id}>
-                    <td>
-                      <span className="ot-bk-marka-adi">
-                        {b.gorselUrl ? (
-                          <img src={b.gorselUrl} alt="" className="ot-bk-marka-img" />
-                        ) : (
-                          <span className="ot-bk-marka-rozet" aria-hidden>
-                            {b.kisaAdi.slice(0, 2)}
-                          </span>
-                        )}
-                        {b.adi}
-                      </span>
-                    </td>
-                    <td>{b.kisaAdi}</td>
-                    <td>{hesapAdet}</td>
-                    <td className="ot-pb-islem">
-                      <OtIslemButonlari
-                        gozYeri
-                        onGoz={() => onHesapBanka(b)}
-                        gozBaslik="Banka Hesapları"
-                        onDuzenle={() => {
-                          setDuzenlenen(b);
-                          setModalAcik(true);
-                        }}
-                        onSil={() => setSilinecek(b)}
-                      />
-                    </td>
-                  </tr>
-                );
-              })
+              kayitlar.map((b) => (
+                <tr key={b.id}>
+                  <td>
+                    <span className="ot-bk-marka-adi">
+                      {b.gorselUrl ? (
+                        <img src={b.gorselUrl} alt="" className="ot-bk-marka-img" />
+                      ) : (
+                        <span className="ot-bk-marka-rozet" aria-hidden>
+                          {b.kisaAdi.slice(0, 2)}
+                        </span>
+                      )}
+                      {b.adi}
+                    </span>
+                  </td>
+                  <td>{b.kisaAdi}</td>
+                  <td className="ot-pb-islem">
+                    <OtIslemButonlari
+                      onDuzenle={() => {
+                        setDuzenlenen(b);
+                        setModalAcik(true);
+                      }}
+                      onSil={() => setSilinecek(b)}
+                    />
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>

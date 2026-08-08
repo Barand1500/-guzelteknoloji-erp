@@ -4,39 +4,12 @@ import type { ReactNode } from 'react';
 export function OtIslemButonlari({
   onDuzenle,
   onSil,
-  onGoz,
-  gozBaslik = 'Görüntüle',
-  gozYeri = false,
 }: {
   onDuzenle: () => void;
   onSil?: () => void;
-  onGoz?: () => void;
-  gozBaslik?: string;
-  /** true ise göz kolonu her satırda rezerve edilir (kayma olmaz) */
-  gozYeri?: boolean;
 }) {
-  const gozKolonu = gozYeri || Boolean(onGoz);
-
   return (
-    <div className={`ot-pb-islem-grup${gozKolonu ? ' ot-pb-islem-grup--goz' : ''}`}>
-      {gozKolonu ? (
-        onGoz ? (
-          <button
-            type="button"
-            className="ot-pb-islem-btn ot-bk-goz-btn"
-            title={gozBaslik}
-            aria-label={gozBaslik}
-            onClick={onGoz}
-          >
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </button>
-        ) : (
-          <span className="ot-pb-islem-btn ot-pb-islem-btn-bos" aria-hidden />
-        )
-      ) : null}
+    <div className="ot-pb-islem-grup">
       <button type="button" className="ot-pb-islem-btn" title="Düzenle" aria-label="Düzenle" onClick={onDuzenle}>
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
           <path d="M12 20h9" strokeLinecap="round" />
