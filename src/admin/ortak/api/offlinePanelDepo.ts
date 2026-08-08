@@ -1,4 +1,8 @@
-/** Gercek backend modunda eski offline mock verisini temizler */
+/**
+ * Gerçek backend modunda yalnızca ESKİ offline panel anahtarlarını temizler.
+ * erp-mock-belgeler-v2 / stok-hareket / cari-hareket / seri hâlâ belgeler
+ * ekranı tarafından kullanıldığı için silinmez (aksi halde sunucuda kayıt kaybolur).
+ */
 
 const OFFLINE_ANAHTARLAR = [
   'erp-offline-kullanicilar',
@@ -6,11 +10,6 @@ const OFFLINE_ANAHTARLAR = [
   'erp-offline-datagrid-demo',
   'erp-offline-belgeler-v1',
   'erp-offline-belge-hareketleri-v1',
-  'erp-mock-belgeler-v2',
-  'erp-mock-stok-hareket-v2',
-  'erp-mock-cari-hareket-v2',
-  'erp-mock-odeme-v2',
-  'erp-mock-belge-seri-v2',
   'erp-mock-stok-seed-v2',
   'erp-offline-sistem-ayarlari',
   'erp-offline-moduller',

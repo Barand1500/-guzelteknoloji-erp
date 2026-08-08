@@ -750,8 +750,8 @@ export function FaturaModulu({
   }, [baslikDetayAcik, seciliCari, cariAlanDuzeni.ust, cariAlanDuzeni.satirlar]);
 
   const numarayiYenile = useCallback(
-    (hedefTur: BelgeTur, sube?: AdminSube | null) => {
-      const oner = seriOner(yon, hedefTur, {
+    (hedefTur: BelgeTur, sube?: AdminSube | null, hedefYon?: BelgeYon) => {
+      const oner = seriOner(hedefYon ?? yon, hedefTur, {
         efaturaSeri: sube?.efaturaSeri,
         earsivSeri: sube?.earsivSeri,
         eirsaliyeSeri: sube?.eirsaliyeSeri,
@@ -1916,7 +1916,8 @@ export function FaturaModulu({
                   setBelgeNeviId(nevi.id);
                   if (!aktifId) {
                     setTur(nevi.varsayilanTur);
-                    numarayiYenile(nevi.varsayilanTur, seciliSube);
+                    // yon state henüz güncellenmedi — yeni yönü açıkça ver
+                    numarayiYenile(nevi.varsayilanTur, seciliSube, yeniYon);
                   }
                 }}
               />
@@ -1939,7 +1940,7 @@ export function FaturaModulu({
                   const nevi = belgeNeviBul(id);
                   if (nevi && !aktifId) {
                     setTur(nevi.varsayilanTur);
-                    numarayiYenile(nevi.varsayilanTur, seciliSube);
+                    numarayiYenile(nevi.varsayilanTur, seciliSube, nevi.yon);
                   }
                 }}
               />
